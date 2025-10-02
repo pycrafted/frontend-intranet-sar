@@ -7,8 +7,6 @@ import { Button } from "@/components/ui/button"
 import { Badge } from "@/components/ui/badge"
 import { Card, CardContent } from "@/components/ui/card"
 import { Separator } from "@/components/ui/separator"
-import { FolderTree } from "@/components/folder-tree"
-import { FolderCreateModal } from "@/components/folder-create-modal"
 import {
   FileText,
   Folder,
@@ -18,11 +16,13 @@ import {
   ChevronDown,
   Download,
   Eye,
+  Calendar,
   User,
   HardDrive,
   File,
   Plus,
   BarChart3,
+  Clock,
   Target,
   Building2,
   Shield,
@@ -67,25 +67,47 @@ function useDocumentsStats() {
   return { stats, loading }
 }
 
+// Hook pour récupérer les catégories de documents
+function useDocumentCategories() {
+  const [categories, setCategories] = useState([])
+  const [loading, setLoading] = useState(true)
+
+  useEffect(() => {
+    const fetchCategories = async () => {
+      try {
+        const response = await api.get('/documents/categories/', { requireAuth: true })
+        if (response.ok) {
+          const data = await response.json()
+          setCategories(data)
+          console.log('✅ Catégories chargées:', data)
+        } else {
+          console.error('❌ Erreur API catégories:', response.status)
+        }
+      } catch (error) {
+        console.error('❌ Erreur lors du chargement des catégories:', error)
+      } finally {
+        setLoading(false)
+      }
+    }
+
+    fetchCategories()
+  }, [])
+
+  return { categories, loading }
+}
 
 interface DocumentsSidebarProps {
   activeCategory?: number | null
   onCategoryChange?: (categoryId: number | null) => void
   activeSort?: string
   onSortChange?: (sort: string) => void
-  activeFolder?: number | null
-  onFolderChange?: (folderId: number | null) => void
+  activeTimeFilter?: string
+  onTimeFilterChange?: (timeFilter: string) => void
   title?: string
   documentsCount?: number
   documents?: any[]
-  categories?: any[]
-  folders?: any[]
-  folderTree?: any[]
   onUploadSuccess?: () => void
   onUploadClick?: () => void
-  onCreateFolder?: (folderData: any) => Promise<{ success: boolean; error?: string }>
-  onUpdateFolder?: (folderId: number, folderData: any) => Promise<{ success: boolean; error?: string }>
-  onDeleteFolder?: (folderId: number) => Promise<{ success: boolean; error?: string }>
 }
 
 export function DocumentsSidebar({ 
@@ -93,67 +115,31 @@ export function DocumentsSidebar({
   onCategoryChange, 
   activeSort = "-created_at",
   onSortChange,
-  activeFolder = null,
-  onFolderChange,
+  activeTimeFilter = "all",
+  onTimeFilterChange,
   title = "Documents",
   documentsCount = 0,
   documents = [],
-  categories = [],
-  folders = [],
-  folderTree = [],
   onUploadSuccess,
-  onUploadClick,
-  onCreateFolder,
-  onUpdateFolder,
-  onDeleteFolder
+  onUploadClick
 }: DocumentsSidebarProps) {
   const { stats, loading: statsLoading } = useDocumentsStats()
+  const { categories, loading: categoriesLoading } = useDocumentCategories()
   const [expandedSections, setExpandedSections] = useState({
     filters: true,
-    categories: true,
-    folders: true
+    time: true,
+    categories: true
   })
-  const [expandedFolders, setExpandedFolders] = useState<Set<number>>(new Set())
-  const [showCreateFolderModal, setShowCreateFolderModal] = useState(false)
-  const [createFolderParent, setCreateFolderParent] = useState<number | null>(null)
 
-  // Debug: afficher les catégories et dossiers
-  // Logs supprimés pour éviter les re-renders excessifs
+  // Debug: afficher les catégories
+  console.log('🔍 Debug sidebar - categories:', categories)
+  console.log('🔍 Debug sidebar - categoriesLoading:', categoriesLoading)
 
   const toggleSection = (section: keyof typeof expandedSections) => {
     setExpandedSections(prev => ({
       ...prev,
       [section]: !prev[section]
     }))
-  }
-
-  const toggleFolderExpand = (folderId: number) => {
-    setExpandedFolders(prev => {
-      const newSet = new Set(prev)
-      if (newSet.has(folderId)) {
-        newSet.delete(folderId)
-      } else {
-        newSet.add(folderId)
-      }
-      return newSet
-    })
-  }
-
-  const handleCreateFolder = async (folderData: any) => {
-    if (onCreateFolder) {
-      const result = await onCreateFolder(folderData)
-      if (result.success) {
-        setShowCreateFolderModal(false)
-        setCreateFolderParent(null)
-      }
-      return result
-    }
-    return { success: false, error: 'Fonction de création non disponible' }
-  }
-
-  const handleFolderCreateClick = (parentId: number | null) => {
-    setCreateFolderParent(parentId)
-    setShowCreateFolderModal(true)
   }
 
   // Options de tri
@@ -173,9 +159,48 @@ export function DocumentsSidebar({
       count: 0,
       color: "text-blue-600",
       bgColor: "bg-blue-50"
+    },
+    { 
+      id: "-created_at", 
+      name: "Plus récent", 
+      icon: Calendar, 
+      count: 0,
+      color: "text-green-600",
+      bgColor: "bg-green-50"
+    },
+    { 
+      id: "created_at", 
+      name: "Plus ancien", 
+      icon: Calendar, 
+      count: 0,
+      color: "text-green-600",
+      bgColor: "bg-green-50"
+    },
+    { 
+      id: "downloaded", 
+      name: "Plus téléchargé", 
+      icon: Download, 
+      count: 0,
+      color: "text-orange-600",
+      bgColor: "bg-orange-50"
+    },
+    { 
+      id: "-file_size", 
+      name: "Plus volumineux", 
+      icon: File, 
+      count: 0,
+      color: "text-purple-600",
+      bgColor: "bg-purple-50"
     }
   ]
 
+  // Filtres temporels
+  const timeFilters = [
+    { id: "all", name: "Toutes les périodes", icon: Calendar, count: documentsCount },
+    { id: "today", name: "Aujourd'hui", icon: Clock, count: 0 },
+    { id: "week", name: "Cette semaine", icon: Calendar, count: 0 },
+    { id: "month", name: "Ce mois", icon: Calendar, count: 0 }
+  ]
 
   // Catégories dynamiques (basées sur l'API)
   const categoryItems = [
@@ -330,6 +355,18 @@ export function DocumentsSidebar({
 
           <Separator />
 
+          {/* Filtres temporels */}
+          <SidebarSection
+            title="Période"
+            items={timeFilters}
+            isExpanded={expandedSections.time}
+            onToggle={() => toggleSection('time')}
+            activeItem={activeTimeFilter || 'all'}
+            onItemClick={(id) => onTimeFilterChange?.(id as string)}
+          />
+
+          <Separator />
+
           {/* Catégories */}
           <SidebarSection
             title="Catégories"
@@ -340,85 +377,8 @@ export function DocumentsSidebar({
             onItemClick={(id) => onCategoryChange?.(id as number | null)}
           />
 
-          <Separator />
-
-          {/* Dossiers */}
-          <div className="space-y-2">
-            <div className="flex items-center justify-between px-3 py-2">
-              <button
-                onClick={() => toggleSection('folders')}
-                className="flex items-center gap-2 text-xs font-semibold text-gray-500 uppercase tracking-wider hover:text-gray-700 transition-colors"
-              >
-                Dossiers
-                {expandedSections.folders ? (
-                  <ChevronDown className="h-3 w-3" />
-                ) : (
-                  <ChevronRight className="h-3 w-3" />
-                )}
-              </button>
-              <Button
-                variant="ghost"
-                size="sm"
-                className="h-6 w-6 p-0"
-                onClick={() => handleFolderCreateClick(null)}
-                title="Créer un dossier racine"
-              >
-                <Plus className="h-3 w-3" />
-              </Button>
-            </div>
-            
-            {expandedSections.folders && (
-              <div className="space-y-1">
-                {/* Option "Tous les documents" */}
-                <button
-                  onClick={() => onFolderChange?.(null)}
-                  className={cn(
-                    "group flex items-center justify-between px-3 py-2.5 text-sm font-medium rounded-lg transition-all duration-200 w-full text-left",
-                    activeFolder === null
-                      ? "bg-blue-50 text-blue-700 shadow-sm"
-                      : "text-gray-700 hover:bg-gray-50 hover:text-gray-900"
-                  )}
-                >
-                  <div className="flex items-center">
-                    <FileText className="mr-3 h-4 w-4 text-gray-500" />
-                    Tous les documents
-                  </div>
-                  <Badge variant="outline" className="h-5 px-2 text-xs">
-                    {documentsCount}
-                  </Badge>
-                </button>
-
-                {/* Arbre des dossiers */}
-                {folderTree.length > 0 && (
-                  <FolderTree
-                    folders={folderTree}
-                    activeFolder={activeFolder}
-                    onFolderClick={onFolderChange}
-                    onFolderCreate={handleFolderCreateClick}
-                    onFolderEdit={onUpdateFolder}
-                    onFolderDelete={onDeleteFolder}
-                    expandedFolders={expandedFolders}
-                    onToggleExpand={toggleFolderExpand}
-                  />
-                )}
-              </div>
-            )}
-          </div>
-
         </nav>
       </div>
-
-      {/* Modal de création de dossier */}
-      <FolderCreateModal
-        isOpen={showCreateFolderModal}
-        onClose={() => {
-          setShowCreateFolderModal(false)
-          setCreateFolderParent(null)
-        }}
-        onCreateFolder={handleCreateFolder}
-        folders={folders}
-        folderTree={folderTree}
-      />
 
     </aside>
   )
