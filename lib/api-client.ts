@@ -82,7 +82,21 @@ export class APIClient {
     }
 
     // Faire la requête
+    console.log('🌐 [API_CLIENT] Requête:', {
+      url: `${API_BASE_URL}${endpoint}`,
+      method,
+      headers: finalHeaders,
+      body: body ? (body instanceof FormData ? 'FormData' : JSON.stringify(body)) : undefined
+    })
+    
     const response = await fetch(`${API_BASE_URL}${endpoint}`, requestConfig)
+    
+    console.log('📡 [API_CLIENT] Réponse:', {
+      url: `${API_BASE_URL}${endpoint}`,
+      status: response.status,
+      statusText: response.statusText,
+      headers: Object.fromEntries(response.headers.entries())
+    })
 
     // Vérifier l'authentification si requise
     if (requireAuth && (response.status === 401 || response.status === 403)) {

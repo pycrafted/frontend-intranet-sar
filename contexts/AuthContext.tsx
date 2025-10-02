@@ -102,17 +102,28 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
   // Fonction pour récupérer le token CSRF
   const getCSRFToken = async (): Promise<string | null> => {
     try {
-      const response = await fetch(`${process.env.NEXT_PUBLIC_API_URL || 'http://localhost:8000'}/api/auth/csrf/`, {
+      const url = `${process.env.NEXT_PUBLIC_API_URL || 'http://localhost:8000'}/api/auth/csrf/`
+      console.log('🔑 [AUTH] Récupération du token CSRF:', url)
+      
+      const response = await fetch(url, {
         method: 'GET',
         credentials: 'include',
       })
       
+      console.log('🔑 [AUTH] Réponse CSRF:', {
+        status: response.status,
+        statusText: response.statusText,
+        ok: response.ok
+      })
+      
       if (response.ok) {
         const data = await response.json()
+        console.log('🔑 [AUTH] Token CSRF reçu:', data.csrfToken ? 'Oui' : 'Non')
         return data.csrfToken
       }
       return null
     } catch (error) {
+      console.error('❌ [AUTH] Erreur lors de la récupération du token CSRF:', error)
       return null
     }
   }
@@ -120,10 +131,18 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
   // Fonction pour récupérer l'utilisateur actuel
   const fetchCurrentUser = async (): Promise<User | null> => {
     try {
+      console.log('👤 [AUTH] Récupération de l\'utilisateur actuel...')
       const response = await api.get('/auth/current-user/', { requireAuth: true })
+      
+      console.log('👤 [AUTH] Réponse utilisateur:', {
+        status: response.status,
+        statusText: response.statusText,
+        ok: response.ok
+      })
       
       if (response.ok) {
         const userData = await response.json()
+        console.log('👤 [AUTH] Données utilisateur reçues:', userData)
         // Vérifier que les données utilisateur sont valides
         if (userData && userData.id && userData.email) {
           return userData
@@ -135,7 +154,7 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
       }
       return null
     } catch (error) {
-      console.log('🔍 [AUTH] Erreur lors de la récupération de l\'utilisateur:', error)
+      console.log('❌ [AUTH] Erreur lors de la récupération de l\'utilisateur:', error)
       return null
     }
   }
@@ -151,12 +170,20 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
   // Fonction de connexion
   const login = async (data: LoginData): Promise<{ success: boolean; error?: string }> => {
     try {
+      console.log('🔐 [AUTH] Tentative de connexion:', { email: data.email })
       setIsLoading(true)
 
       const response = await api.post('/auth/login/', data, { requireAuth: false })
+      
+      console.log('🔐 [AUTH] Réponse de connexion:', {
+        status: response.status,
+        statusText: response.statusText,
+        ok: response.ok
+      })
 
       if (response.ok) {
         const result = await response.json()
+        console.log('🔐 [AUTH] Résultat de connexion:', result)
         setUser(result.user)
         
         // Vérifier si des tokens Google ont été générés automatiquement
