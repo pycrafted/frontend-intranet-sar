@@ -3,12 +3,12 @@
  */
 
 // Configuration de base pour toutes les requêtes
-const API_BASE_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:8000/api'
+const API_BASE_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:8000'
 
 // Fonction pour récupérer le token CSRF
 async function getCSRFToken(): Promise<string | null> {
   try {
-    const response = await fetch(`${API_BASE_URL}/auth/csrf/`, {
+    const response = await fetch(`${API_BASE_URL}/api/auth/csrf/`, {
       method: 'GET',
       credentials: 'include',
     })

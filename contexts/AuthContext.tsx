@@ -102,7 +102,7 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
   // Fonction pour récupérer le token CSRF
   const getCSRFToken = async (): Promise<string | null> => {
     try {
-      const response = await fetch(`${process.env.NEXT_PUBLIC_API_URL || 'http://localhost:8000/api'}/auth/csrf/`, {
+      const response = await fetch(`${process.env.NEXT_PUBLIC_API_URL || 'http://localhost:8000'}/api/auth/csrf/`, {
         method: 'GET',
         credentials: 'include',
       })
@@ -213,7 +213,7 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
       const csrfToken = await getCSRFToken()
       
       // Appeler l'endpoint de déconnexion côté serveur
-      await fetch(`${process.env.NEXT_PUBLIC_API_URL || 'http://localhost:8000/api'}/auth/logout/`, {
+      await fetch(`${process.env.NEXT_PUBLIC_API_URL || 'http://localhost:8000'}/api/auth/logout/`, {
         method: 'POST',
         credentials: 'include',
         headers: {
@@ -248,7 +248,7 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
       // Récupérer le token CSRF
       const csrfToken = await getCSRFToken()
       
-      const response = await fetch(`${process.env.NEXT_PUBLIC_API_URL || 'http://localhost:8000/api'}/auth/register/`, {
+      const response = await fetch(`${process.env.NEXT_PUBLIC_API_URL || 'http://localhost:8000'}/api/auth/register/`, {
         method: 'POST',
         credentials: 'include',
         headers: {
@@ -281,7 +281,7 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
       // Récupérer le token CSRF
       const csrfToken = await getCSRFToken()
       
-      const response = await fetch(`${process.env.NEXT_PUBLIC_API_URL || 'http://localhost:8000/api'}/auth/current-user/`, {
+      const response = await fetch(`${process.env.NEXT_PUBLIC_API_URL || 'http://localhost:8000'}/api/auth/current-user/`, {
         method: 'PUT',
         credentials: 'include',
         headers: {
@@ -314,7 +314,7 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
       // Récupérer le token CSRF
       const csrfToken = await getCSRFToken()
       
-      const response = await fetch(`${process.env.NEXT_PUBLIC_API_URL || 'http://localhost:8000/api'}/auth/change-password/`, {
+      const response = await fetch(`${process.env.NEXT_PUBLIC_API_URL || 'http://localhost:8000'}/api/auth/change-password/`, {
         method: 'POST',
         credentials: 'include',
         headers: {
