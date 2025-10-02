@@ -1,0 +1,51 @@
+/* Fix pour le menu déroulant des cartes */
+.adaptive-publication-card {
+  position: relative;
+}
+
+.adaptive-publication-card .group:hover .dropdown-trigger {
+  opacity: 1 !important;
+}
+
+.dropdown-trigger {
+  position: relative;
+  z-index: 10;
+}
+
+/* S'assurer que le menu déroulant est au-dessus de tout */
+[data-radix-popper-content-wrapper] {
+  z-index: 9999 !important;
+}
+
+/* Empêcher la propagation des événements de scroll */
+.dropdown-trigger:focus {
+  outline: none;
+}
+
+/* Améliorer l'apparence du bouton */
+.dropdown-trigger:hover {
+  background-color: rgba(0, 0, 0, 0.05) !important;
+}
+
+/* S'assurer que le menu est visible */
+[data-radix-dropdown-menu-content] {
+  z-index: 9999 !important;
+  position: relative;
+}
+
+/* Fix pour les événements de clic */
+.dropdown-item {
+  user-select: none;
+  -webkit-user-select: none;
+  -moz-user-select: none;
+  -ms-user-select: none;
+}
+
+/* Empêcher le scroll lors de l'ouverture du menu */
+body:has([data-state="open"]) {
+  overflow: hidden;
+}
+
+
+
+
