@@ -4,24 +4,25 @@ import { config } from "@/lib/config"
 
 export const authOptions: NextAuthOptions = {
   providers: [
-    GoogleProvider({
-      clientId: config.oauth.google.clientId,
-      clientSecret: config.oauth.google.clientSecret,
-      authorization: {
-        params: {
-          scope: [
-            'openid',
-            'email',
-            'profile',
-            'https://www.googleapis.com/auth/gmail.readonly',
-            'https://www.googleapis.com/auth/drive.readonly',
-            'https://www.googleapis.com/auth/calendar.readonly',
-          ].join(' '),
-          access_type: 'offline',
-          prompt: 'consent',
-        },
-      },
-    }),
+    // Google OAuth temporairement désactivé pour la production
+    // GoogleProvider({
+    //   clientId: config.oauth.google.clientId,
+    //   clientSecret: config.oauth.google.clientSecret,
+    //   authorization: {
+    //     params: {
+    //       scope: [
+    //         'openid',
+    //         'email',
+    //         'profile',
+    //         'https://www.googleapis.com/auth/gmail.readonly',
+    //         'https://www.googleapis.com/auth/drive.readonly',
+    //         'https://www.googleapis.com/auth/calendar.readonly',
+    //       ].join(' '),
+    //       access_type: 'offline',
+    //       prompt: 'consent',
+    //     },
+    //   },
+    // }),
   ],
   callbacks: {
     async signIn({ user, account, profile }) {

@@ -163,7 +163,7 @@ export default function LoginPage() {
                 Connexion
               </CardTitle>
                <p className="text-gray-600 mt-2">
-                 Accédez à l'intranet SAR et à tous vos outils Google
+                 Accédez à l'intranet SAR
                </p>
             </CardHeader>
             
