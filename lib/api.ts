@@ -1,0 +1,276 @@
+// Configuration de l'API
+const API_BASE_URL = `${process.env.NEXT_PUBLIC_API_URL || 'http://localhost:8000/api'}/actualites`;
+
+// Types TypeScript pour les données
+export interface PollOption {
+  id: number;
+  text: string;
+  votes: number;
+  percentage: number;
+}
+
+export interface Article {
+  id: number;
+  type: 'news' | 'poll' | 'event' | 'announcement';
+  title: string;
+  content: string;
+  date: string;
+  time: string;
+  author: string;
+  author_role: string;
+  author_avatar?: string;
+  author_avatar_url?: string;
+  category: string;
+  image?: string;
+  image_url?: string;
+  is_pinned: boolean;
+  question?: string;
+  end_date?: string;
+  event_date?: string;
+  poll_options?: PollOption[];
+  totalVotes?: number;
+  // Nouveaux champs pour les cartes adaptatives
+  gallery_images?: string[];
+  gallery_title?: string;
+  video?: string;
+  video_url?: string;
+  video_poster?: string;
+  video_poster_url?: string;
+  content_type: 'text_only' | 'image_only' | 'text_image' | 'gallery' | 'video' | 'poll' | 'event';
+}
+
+export interface ArticleListResponse {
+  count: number;
+  next: string | null;
+  previous: string | null;
+  results: Article[];
+}
+
+export interface ArticleStats {
+  filters: {
+    all: number;
+    announcements: number;
+    events: number;
+    publications: number;
+    polls: number;
+  };
+  categories: {
+    [key: string]: number;
+  };
+  timeFilters?: {
+    today: number;
+    week: number;
+    month: number;
+  };
+}
+
+export interface CreateArticleData {
+  type: 'news' | 'announcement';
+  title?: string;
+  content?: string;
+  author?: string;
+  author_role?: string;
+  category: string;
+  is_pinned?: boolean;
+  question?: string;
+  end_date?: string;
+  event_date?: string;
+  content_type?: 'text_only' | 'image_only' | 'text_image' | 'gallery' | 'video' | 'poll' | 'event';
+  image?: File;
+  video?: File;
+  video_poster?: File;
+}
+
+// Fonctions API
+export const api = {
+  // Récupérer la liste des articles avec filtrage
+  async getArticles(params?: {
+    type?: string;
+    category?: string;
+    search?: string;
+    pinned?: boolean;
+    time_filter?: string;
+    page?: number;
+    page_size?: number;
+  }): Promise<ArticleListResponse> {
+    const searchParams = new URLSearchParams();
+    
+    if (params?.type) searchParams.append('type', params.type);
+    if (params?.category) searchParams.append('category', params.category);
+    if (params?.search) searchParams.append('search', params.search);
+    if (params?.pinned !== undefined) searchParams.append('pinned', params.pinned.toString());
+    if (params?.time_filter) searchParams.append('time_filter', params.time_filter);
+    if (params?.page) searchParams.append('page', params.page.toString());
+    if (params?.page_size) searchParams.append('page_size', params.page_size.toString());
+
+    const url = `${API_BASE_URL}/${searchParams.toString() ? `?${searchParams.toString()}` : ''}`;
+    
+    const response = await fetch(url);
+    if (!response.ok) {
+      throw new Error(`Erreur API: ${response.status}`);
+    }
+    
+    return response.json();
+  },
+
+  // Récupérer le détail d'un article
+  async getArticle(id: number): Promise<Article> {
+    const response = await fetch(`${API_BASE_URL}/${id}/`);
+    if (!response.ok) {
+      throw new Error(`Erreur API: ${response.status}`);
+    }
+    return response.json();
+  },
+
+  // Voter pour un sondage
+  async votePoll(articleId: number, optionId: number, userId: string): Promise<void> {
+    const response = await fetch(`${API_BASE_URL}/${articleId}/vote/`, {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+      },
+      body: JSON.stringify({
+        option: optionId,
+        user_id: userId,
+      }),
+    });
+    
+    if (!response.ok) {
+      throw new Error(`Erreur API: ${response.status}`);
+    }
+  },
+
+  // Récupérer les statistiques
+  async getStats(): Promise<ArticleStats> {
+    const response = await fetch(`${API_BASE_URL}/stats/`);
+    if (!response.ok) {
+      throw new Error(`Erreur API: ${response.status}`);
+    }
+    return response.json();
+  },
+
+  // Supprimer un article
+  async deleteArticle(id: number): Promise<void> {
+    const response = await fetch(`${API_BASE_URL}/${id}/`, {
+      method: 'DELETE',
+    });
+    
+    if (!response.ok) {
+      let errorData;
+      try {
+        errorData = await response.json();
+      } catch (e) {
+        errorData = { message: 'Erreur inconnue' };
+      }
+      throw new Error(`Erreur API: ${response.status} - ${JSON.stringify(errorData)}`);
+    }
+  },
+
+  // Modifier un article
+  async updateArticle(id: number, articleData: CreateArticleData): Promise<Article> {
+    // Préparer FormData pour gérer les fichiers
+    const formData = new FormData();
+    
+    // Ajouter tous les champs textuels
+    formData.append('type', articleData.type);
+    if (articleData.title) formData.append('title', articleData.title);
+    if (articleData.content) formData.append('content', articleData.content);
+    formData.append('category', articleData.category);
+    
+    if (articleData.author) formData.append('author', articleData.author);
+    if (articleData.author_role) formData.append('author_role', articleData.author_role);
+    if (articleData.is_pinned !== undefined) formData.append('is_pinned', articleData.is_pinned.toString());
+    if (articleData.question) formData.append('question', articleData.question);
+    if (articleData.end_date) formData.append('end_date', articleData.end_date);
+    if (articleData.event_date) formData.append('event_date', articleData.event_date);
+    if (articleData.content_type) formData.append('content_type', articleData.content_type);
+    
+    // Ajouter l'image si présente
+    if (articleData.image) {
+      formData.append('image', articleData.image);
+    }
+    
+    // Ajouter la vidéo si présente
+    if (articleData.video) {
+      formData.append('video', articleData.video);
+    }
+    
+    // Ajouter l'image de couverture de la vidéo si présente
+    if (articleData.video_poster) {
+      formData.append('video_poster', articleData.video_poster);
+    }
+    
+    const response = await fetch(`${API_BASE_URL}/${id}/`, {
+      method: 'PUT',
+      // Ne pas définir Content-Type, laissez le navigateur le faire pour FormData
+      body: formData,
+    });
+    
+    if (!response.ok) {
+      let errorData;
+      try {
+        errorData = await response.json();
+      } catch (e) {
+        errorData = { message: 'Erreur inconnue' };
+      }
+      throw new Error(`Erreur API: ${response.status} - ${JSON.stringify(errorData)}`);
+    }
+    
+    const result = await response.json();
+    return result;
+  },
+
+  // Créer un nouvel article
+  async createArticle(articleData: CreateArticleData): Promise<Article> {
+    // Préparer FormData pour gérer les fichiers
+    const formData = new FormData();
+    
+    // Ajouter tous les champs textuels
+    formData.append('type', articleData.type);
+    if (articleData.title) formData.append('title', articleData.title);
+    if (articleData.content) formData.append('content', articleData.content);
+    formData.append('category', articleData.category);
+    
+    if (articleData.author) formData.append('author', articleData.author);
+    if (articleData.author_role) formData.append('author_role', articleData.author_role);
+    if (articleData.is_pinned !== undefined) formData.append('is_pinned', articleData.is_pinned.toString());
+    if (articleData.question) formData.append('question', articleData.question);
+    if (articleData.end_date) formData.append('end_date', articleData.end_date);
+    if (articleData.event_date) formData.append('event_date', articleData.event_date);
+    if (articleData.content_type) formData.append('content_type', articleData.content_type);
+    
+    // Ajouter l'image si présente
+    if (articleData.image) {
+      formData.append('image', articleData.image);
+    }
+    
+    // Ajouter la vidéo si présente
+    if (articleData.video) {
+      formData.append('video', articleData.video);
+    }
+    
+    // Ajouter l'image de couverture de la vidéo si présente
+    if (articleData.video_poster) {
+      formData.append('video_poster', articleData.video_poster);
+    }
+    
+    const response = await fetch(`${API_BASE_URL}/create/`, {
+      method: 'POST',
+      // Ne pas définir Content-Type, laissez le navigateur le faire pour FormData
+      body: formData,
+    });
+    
+    if (!response.ok) {
+      let errorData;
+      try {
+        errorData = await response.json();
+      } catch (e) {
+        errorData = { message: 'Erreur inconnue' };
+      }
+      throw new Error(`Erreur API: ${response.status} - ${JSON.stringify(errorData)}`);
+    }
+    
+    const result = await response.json();
+    return result;
+  },
+};
