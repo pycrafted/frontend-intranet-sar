@@ -49,7 +49,7 @@ function useDocumentsStats() {
   useEffect(() => {
     const fetchStats = async () => {
       try {
-        const response = await api.get('/documents/stats/', { requireAuth: true })
+        const response = await api.get('/api/documents/stats/', { requireAuth: true })
         if (response.ok) {
           const data = await response.json()
           setStats(data)
@@ -75,7 +75,7 @@ function useDocumentCategories() {
   useEffect(() => {
     const fetchCategories = async () => {
       try {
-        const response = await api.get('/documents/categories/', { requireAuth: true })
+        const response = await api.get('/api/documents/categories/', { requireAuth: true })
         if (response.ok) {
           const data = await response.json()
           setCategories(data)

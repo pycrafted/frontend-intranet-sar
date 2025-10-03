@@ -19,7 +19,7 @@ export function useUsers() {
     setError(null)
     
     try {
-      const response = await api.get('/auth/users/')
+      const response = await api.get('/api/auth/users/')
       const data = await response.json()
       
       if (data) {

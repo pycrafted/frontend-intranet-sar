@@ -90,7 +90,7 @@ export function useDocuments() {
       if (searchTerm) params.append('search', searchTerm)
       if (ordering) params.append('ordering', ordering)
 
-      const response = await api.get(`/documents/?${params.toString()}`, { requireAuth: true })
+      const response = await api.get(`/api/documents/?${params.toString()}`, { requireAuth: true })
       
       if (response.ok) {
         const data = await response.json()
@@ -108,7 +108,7 @@ export function useDocuments() {
   // Charger les catégories
   const fetchCategories = async () => {
     try {
-      const response = await api.get('/documents/categories/', { requireAuth: true })
+      const response = await api.get('/api/documents/categories/', { requireAuth: true })
       if (response.ok) {
         const data = await response.json()
         setCategories(data)
@@ -121,7 +121,7 @@ export function useDocuments() {
   // Charger les statistiques
   const fetchStats = async () => {
     try {
-      const response = await api.get('/documents/stats/', { requireAuth: true })
+      const response = await api.get('/api/documents/stats/', { requireAuth: true })
       if (response.ok) {
         const data = await response.json()
         setStats(data)
@@ -161,7 +161,7 @@ export function useDocuments() {
         fileName: documentData.file.name
       })
 
-      const response = await api.post('/documents/', formData, {
+      const response = await api.post('/api/documents/', formData, {
         requireAuth: true,
       })
 
@@ -201,7 +201,7 @@ export function useDocuments() {
   // Télécharger un document
   const downloadDocument = async (documentId: number, filename: string) => {
     try {
-      const response = await api.get(`/documents/${documentId}/download/`, { requireAuth: true })
+      const response = await api.get(`/api/documents/${documentId}/download/`, { requireAuth: true })
       
       if (response.ok) {
         // Créer un blob et déclencher le téléchargement
@@ -233,7 +233,7 @@ export function useDocuments() {
     try {
       console.log('🔍 [VIEW] Tentative de visualisation du document:', documentId)
       
-      const response = await api.get(`/documents/${documentId}/view/`, { requireAuth: true })
+      const response = await api.get(`/api/documents/${documentId}/view/`, { requireAuth: true })
       
       if (response.ok) {
         // Créer un blob et l'ouvrir dans un nouvel onglet
@@ -266,7 +266,7 @@ export function useDocuments() {
       setIsLoading(true)
       setError(null)
 
-      const response = await api.delete(`/documents/${documentId}/`, { requireAuth: true })
+      const response = await api.delete(`/api/documents/${documentId}/`, { requireAuth: true })
 
       if (response.ok) {
         setDocuments(prev => prev.filter(doc => doc.id !== documentId))
@@ -289,7 +289,7 @@ export function useDocuments() {
       setIsLoading(true)
       setError(null)
 
-      const response = await api.post('/documents/bulk-delete/', {
+      const response = await api.post('/api/documents/bulk-delete/', {
         document_ids: documentIds
       }, { requireAuth: true })
 
@@ -316,7 +316,7 @@ export function useDocuments() {
         params.append('parent', parentId === null ? 'null' : parentId.toString())
       }
       
-      const response = await api.get(`/documents/folders/?${params.toString()}`, { requireAuth: true })
+      const response = await api.get(`/api/documents/folders/?${params.toString()}`, { requireAuth: true })
       if (response.ok) {
         const data = await response.json()
         setFolders(data.results || data)
@@ -329,7 +329,7 @@ export function useDocuments() {
   // Charger l'arbre des dossiers
   const fetchFolderTree = async () => {
     try {
-      const response = await api.get('/documents/folders/tree/', { requireAuth: true })
+      const response = await api.get('/api/documents/folders/tree/', { requireAuth: true })
       if (response.ok) {
         const data = await response.json()
         setFolderTree(data)
@@ -345,7 +345,7 @@ export function useDocuments() {
       setIsLoading(true)
       setError(null)
 
-      const response = await api.post('/documents/folders/', folderData, { requireAuth: true })
+      const response = await api.post('/api/documents/folders/', folderData, { requireAuth: true })
 
       if (response.ok) {
         const newFolder = await response.json()
@@ -372,7 +372,7 @@ export function useDocuments() {
       setIsLoading(true)
       setError(null)
 
-      const response = await api.patch(`/documents/folders/${folderId}/`, folderData, { requireAuth: true })
+      const response = await api.patch(`/api/documents/folders/${folderId}/`, folderData, { requireAuth: true })
 
       if (response.ok) {
         const updatedFolder = await response.json()
@@ -399,7 +399,7 @@ export function useDocuments() {
       setIsLoading(true)
       setError(null)
 
-      const response = await api.delete(`/documents/folders/${folderId}/`, { requireAuth: true })
+      const response = await api.delete(`/api/documents/folders/${folderId}/`, { requireAuth: true })
 
       if (response.ok) {
         setFolders(prev => prev.filter(folder => folder.id !== folderId))
@@ -424,7 +424,7 @@ export function useDocuments() {
       setIsLoading(true)
       setError(null)
 
-      const response = await api.patch(`/documents/${documentId}/`, {
+      const response = await api.patch(`/api/documents/${documentId}/`, {
         title: newTitle
       }, { requireAuth: true })
 
