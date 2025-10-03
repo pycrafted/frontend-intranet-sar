@@ -102,7 +102,7 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
   // Fonction pour récupérer le token CSRF
   const getCSRFToken = async (): Promise<string | null> => {
     try {
-      const url = `${process.env.NEXT_PUBLIC_API_URL || 'http://localhost:8000'}/auth/csrf/`
+      const url = `${process.env.NEXT_PUBLIC_API_URL || 'http://localhost:8000'}/api/auth/csrf/`
       console.log('🔑 [AUTH] Récupération du token CSRF:', url)
       
       const response = await fetch(url, {
@@ -132,12 +132,14 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
   const fetchCurrentUser = async (): Promise<User | null> => {
     try {
       console.log('👤 [AUTH] Récupération de l\'utilisateur actuel...')
-      const response = await api.get('/auth/current-user/', { requireAuth: true })
+      console.log('👤 [AUTH] URL complète:', `${process.env.NEXT_PUBLIC_API_URL || 'http://localhost:8000'}/api/auth/current-user/`)
+      const response = await api.get('/api/auth/current-user/', { requireAuth: true })
       
       console.log('👤 [AUTH] Réponse utilisateur:', {
         status: response.status,
         statusText: response.statusText,
-        ok: response.ok
+        ok: response.ok,
+        url: response.url
       })
       
       if (response.ok) {
@@ -171,14 +173,16 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
   const login = async (data: LoginData): Promise<{ success: boolean; error?: string }> => {
     try {
       console.log('🔐 [AUTH] Tentative de connexion:', { email: data.email })
+      console.log('🔐 [AUTH] URL complète:', `${process.env.NEXT_PUBLIC_API_URL || 'http://localhost:8000'}/api/auth/login/`)
       setIsLoading(true)
 
-      const response = await api.post('/auth/login/', data, { requireAuth: false })
+      const response = await api.post('/api/auth/login/', data, { requireAuth: false })
       
       console.log('🔐 [AUTH] Réponse de connexion:', {
         status: response.status,
         statusText: response.statusText,
-        ok: response.ok
+        ok: response.ok,
+        url: response.url
       })
 
       if (response.ok) {
@@ -240,7 +244,7 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
       const csrfToken = await getCSRFToken()
       
       // Appeler l'endpoint de déconnexion côté serveur
-      await fetch(`${process.env.NEXT_PUBLIC_API_URL || 'http://localhost:8000'}/auth/logout/`, {
+      await fetch(`${process.env.NEXT_PUBLIC_API_URL || 'http://localhost:8000'}/api/auth/logout/`, {
         method: 'POST',
         credentials: 'include',
         headers: {
@@ -275,7 +279,7 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
       // Récupérer le token CSRF
       const csrfToken = await getCSRFToken()
       
-      const response = await fetch(`${process.env.NEXT_PUBLIC_API_URL || 'http://localhost:8000'}/auth/register/`, {
+      const response = await fetch(`${process.env.NEXT_PUBLIC_API_URL || 'http://localhost:8000'}/api/auth/register/`, {
         method: 'POST',
         credentials: 'include',
         headers: {
@@ -308,7 +312,7 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
       // Récupérer le token CSRF
       const csrfToken = await getCSRFToken()
       
-      const response = await fetch(`${process.env.NEXT_PUBLIC_API_URL || 'http://localhost:8000'}/auth/current-user/`, {
+      const response = await fetch(`${process.env.NEXT_PUBLIC_API_URL || 'http://localhost:8000'}/api/auth/current-user/`, {
         method: 'PUT',
         credentials: 'include',
         headers: {
@@ -341,7 +345,7 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
       // Récupérer le token CSRF
       const csrfToken = await getCSRFToken()
       
-      const response = await fetch(`${process.env.NEXT_PUBLIC_API_URL || 'http://localhost:8000'}/auth/change-password/`, {
+      const response = await fetch(`${process.env.NEXT_PUBLIC_API_URL || 'http://localhost:8000'}/api/auth/change-password/`, {
         method: 'POST',
         credentials: 'include',
         headers: {

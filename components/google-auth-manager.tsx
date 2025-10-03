@@ -39,7 +39,7 @@ export function GoogleAuthManager({ onGoogleAuthComplete }: GoogleAuthManagerPro
       try {
         console.log('🔍 [GOOGLE_AUTH_MANAGER] Récupération de l\'URL d\'authentification Google...')
         setIsCheckingGoogle(true)
-        const response = await api.get('/auth/google/get-auth-url/', { requireAuth: true })
+        const response = await api.get('/api/auth/google/get-auth-url/', { requireAuth: true })
         
         console.log('🔍 [GOOGLE_AUTH_MANAGER] Réponse API:', response.status, response.ok)
         
