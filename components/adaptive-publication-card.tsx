@@ -70,8 +70,6 @@ export function AdaptivePublicationCard({ article, onDelete, onUpdate, searchTer
 
   const getTypeIcon = (type: string) => {
     switch (type) {
-      case "poll":
-        return <BarChart3 className="w-4 h-4" />
       case "event":
         return <Calendar className="w-4 h-4" />
       case "announcement":
@@ -85,8 +83,6 @@ export function AdaptivePublicationCard({ article, onDelete, onUpdate, searchTer
 
   const getTypeColor = (type: string) => {
     switch (type) {
-      case "poll":
-        return "bg-purple-100 text-purple-700 border-purple-200"
       case "event":
         return "bg-green-100 text-green-700 border-green-200"
       case "announcement":
@@ -109,8 +105,6 @@ export function AdaptivePublicationCard({ article, onDelete, onUpdate, searchTer
         contentType = article.content ? 'text_image' : 'image_only'
       } else if (article.gallery_images && article.gallery_images.length > 0) {
         contentType = 'gallery'
-      } else if (article.type === 'poll') {
-        contentType = 'poll'
       } else if (article.type === 'event') {
         contentType = 'event'
       }
@@ -128,8 +122,6 @@ export function AdaptivePublicationCard({ article, onDelete, onUpdate, searchTer
         return <ImagesContent article={article} searchTerm={searchTerm} />
       case 'video':
         return <VideoContent article={article} searchTerm={searchTerm} />
-      case 'poll':
-        return <PollContent article={article} searchTerm={searchTerm} />
       case 'event':
         return <EventContent article={article} searchTerm={searchTerm} />
       default:
@@ -188,8 +180,7 @@ export function AdaptivePublicationCard({ article, onDelete, onUpdate, searchTer
               <span className="ml-1">{article.category}</span>
             </Badge>
             <Badge variant="outline" className="text-xs">
-              {article.type === "poll" ? "Sondage" :
-               article.type === "event" ? "Événement" :
+              {article.type === "event" ? "Événement" :
                article.type === "announcement" ? "Annonce" : 
                article.type === "news" ? "Actualité" : "Publication"}
             </Badge>
@@ -540,55 +531,6 @@ function VideoContent({ article, searchTerm }: { article: Article; searchTerm?: 
   )
 }
 
-// Composant pour le contenu sondage
-function PollContent({ article, searchTerm }: { article: Article; searchTerm?: string }) {
-  return (
-    <div className="px-6 pb-6 w-full">
-      <h2 className="article-title mb-3 w-full block">
-        {article.title}
-      </h2>
-      
-      <div className="space-y-4 p-6 bg-gray-50 rounded-lg border border-gray-200">
-        <div className="flex items-center gap-2 text-sm text-gray-600">
-          <BarChart3 className="w-4 h-4" />
-          <span>Sondage ({article.totalVotes || 0} votes)</span>
-        </div>
-
-        <div className="space-y-3">
-          {article.poll_options?.slice(0, 4).map((option: any) => (
-            <div key={option.id} className="space-y-2">
-              <div className="flex items-center justify-between text-sm">
-                <span className="text-gray-800">{option.text}</span>
-                <span className="text-gray-500">{option.percentage}%</span>
-              </div>
-              <div className="w-full bg-gray-200 rounded-full h-2">
-                <div
-                  className="bg-gray-600 h-2 rounded-full transition-all duration-300"
-                  style={{ width: `${option.percentage}%` }}
-                />
-              </div>
-            </div>
-          ))}
-        </div>
-
-        {article.poll_options && article.poll_options.length > 4 && (
-          <div className="text-center pt-2">
-            <span className="text-sm text-gray-500">
-              +{article.poll_options.length - 4} autres options
-            </span>
-          </div>
-        )}
-
-        {article.end_date && (
-          <div className="flex items-center gap-2 pt-2 text-sm text-gray-500">
-            <Calendar className="w-4 h-4" />
-            <span>Fin: {new Date(article.end_date).toLocaleDateString("fr-FR")}</span>
-          </div>
-        )}
-      </div>
-    </div>
-  )
-}
 
 // Composant pour le contenu événement
 function EventContent({ article, searchTerm }: { article: Article; searchTerm?: string }) {

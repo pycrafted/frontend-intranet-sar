@@ -80,31 +80,6 @@ const demoArticles: Article[] = [
     ]
   },
   
-  // 5. Sondage
-  {
-    id: 5,
-    type: 'poll',
-    content_type: 'poll',
-    title: 'Sondage : Satisfaction des employés Q1 2024',
-    content: '',
-    date: '2024-03-10',
-    time: '10:00',
-    author: 'Claire Martin',
-    author_role: 'Directrice RH',
-    author_avatar: '/placeholder-user.jpg',
-    category: 'RH',
-    is_pinned: true,
-    question: 'Comment évaluez-vous votre niveau de satisfaction au travail ce trimestre ?',
-    end_date: '2024-03-25',
-    poll_options: [
-      { id: 1, text: 'Très satisfait', votes: 45, percentage: 35 },
-      { id: 2, text: 'Satisfait', votes: 52, percentage: 40 },
-      { id: 3, text: 'Neutre', votes: 20, percentage: 15 },
-      { id: 4, text: 'Mécontent', votes: 8, percentage: 6 },
-      { id: 5, text: 'Très mécontent', votes: 5, percentage: 4 }
-    ],
-    totalVotes: 130
-  },
   
   // 6. Événement
   {

@@ -38,11 +38,6 @@ export const fallbackResponses: FallbackResponse[] = [
     category: 'admin'
   },
   {
-    keywords: ['questionnaire', 'sondage', 'enquête', 'vote'],
-    response: "Le module de questionnaires offre les capacités suivantes :\n• Création de sondages internes\n• Collecte d'avis et de retours\n• Analyse des réponses et statistiques\n• Distribution d'enquêtes ciblées",
-    category: 'questionnaire'
-  },
-  {
     keywords: ['idée', 'suggestion', 'proposition', 'amélioration'],
     response: "Le système de suggestions d'amélioration permet de :\n• Soumettre des propositions d'optimisation\n• Partager des recommandations\n• Évaluer les suggestions des collaborateurs\n• Contribuer à l'évolution de nos systèmes",
     category: 'ideas'

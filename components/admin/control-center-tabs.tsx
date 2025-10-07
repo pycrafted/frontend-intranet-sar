@@ -24,14 +24,13 @@ import { SafetyDataTable } from './safety-data-table'
 import { SafetyDashboard } from './safety-dashboard'
 import { MenuManagement } from './menu-management'
 import { EventManagement } from './event-management'
-import { QuestionnaireManagement } from './questionnaire-management'
 
 interface ControlCenterTabsProps {
   className?: string
   activeSection?: string
 }
 
-type TabType = 'articles' | 'ideas' | 'safety' | 'users' | 'menu' | 'events' | 'questionnaires'
+type TabType = 'articles' | 'ideas' | 'safety' | 'users' | 'menu' | 'events'
 
 interface Tab {
   id: TabType
@@ -77,12 +76,6 @@ const tabs: Tab[] = [
     icon: Calendar,
     description: 'Gestion des événements et calendrier'
   },
-  {
-    id: 'questionnaires',
-    label: 'Enquêtes',
-    icon: PieChart,
-    description: 'Gestion et analyse des enquêtes'
-  },
 ]
 
 export function ControlCenterTabs({ className, activeSection }: ControlCenterTabsProps) {
@@ -118,8 +111,6 @@ export function ControlCenterTabs({ className, activeSection }: ControlCenterTab
       case 'events':
         return <EventManagement />
       
-      case 'questionnaires':
-        return <QuestionnaireManagement />
       
       case 'users':
         return (

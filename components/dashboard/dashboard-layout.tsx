@@ -76,10 +76,10 @@ export function DashboardLayout({ children, userName = "Ahmed Mbaye", userRole =
           </div>
         </div>
 
-        {/* Troisième ligne - Actualités et Sondages */}
+        {/* Troisième ligne - Actualités */}
         <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
           <div className="h-96">
-            {/* Les widgets actualités et sondages seront insérés ici */}
+            {/* Les widgets actualités seront insérés ici */}
           </div>
         </div>
       </div>

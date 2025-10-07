@@ -45,7 +45,7 @@ export default function GoogleCallbackPage() {
           
           // Rediriger vers l'accueil après 2 secondes
           setTimeout(() => {
-            router.push('/accueil')
+            router.push('/')
           }, 2000)
         } else {
           const errorData = await response.json()

@@ -25,7 +25,7 @@ export function GoogleLoginButton({
     try {
       setIsLoading(true)
       await signIn('google', { 
-        callbackUrl: '/accueil',
+        callbackUrl: '/',
         redirect: true 
       })
     } catch (error) {
@@ -153,6 +153,7 @@ export function GoogleLoginButton({
     </Button>
   )
 }
+
 
 
 

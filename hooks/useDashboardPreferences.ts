@@ -4,7 +4,7 @@ import { useState, useEffect, useCallback } from 'react'
 
 export interface DashboardWidget {
   id: string
-  type: 'calendar' | 'news' | 'ideas' | 'safety' | 'polls' | 'questionnaire' | 'menu'
+  type: 'calendar' | 'news' | 'ideas' | 'safety' | 'menu'
   title: string
   size: 'small' | 'medium' | 'large' | 'full'
   order: number
@@ -28,8 +28,6 @@ const DEFAULT_PREFERENCES: DashboardPreferences = {
     { id: 'news', type: 'news', title: 'Actualités', size: 'medium', order: 2, isVisible: true },
     { id: 'ideas', type: 'ideas', title: 'Boîte à Idées', size: 'medium', order: 3, isVisible: true },
     { id: 'safety', type: 'safety', title: 'Sécurité', size: 'medium', order: 4, isVisible: true },
-    { id: 'polls', type: 'polls', title: 'Sondages', size: 'medium', order: 5, isVisible: true },
-    { id: 'questionnaire', type: 'questionnaire', title: 'Questionnaires', size: 'medium', order: 6, isVisible: true },
     { id: 'menu', type: 'menu', title: 'Menu', size: 'full', order: 7, isVisible: true },
   ],
   layout: 'grid',

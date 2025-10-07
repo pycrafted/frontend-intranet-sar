@@ -33,7 +33,7 @@ const getNavigationSections = (articlesCount: number) => [
   {
     title: "Tableau de Bord",
     items: [
-      { name: "Accueil", href: "/accueil", icon: Home, badge: null },
+      { name: "Accueil", href: "/", icon: Home, badge: null },
       { name: "Actualités", href: "/actualites", icon: Newspaper, badge: articlesCount > 0 ? articlesCount.toString() : null },
     ],
   },

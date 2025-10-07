@@ -30,8 +30,9 @@ import { NewsCarousel } from "./news-carousel"
 import { IdeaBoxWidget } from "./idea-box-widget"
 import { SafetyCounter } from "./safety-counter"
 import { RestaurantMenu } from "./restaurant-menu"
-import { PollCard } from "./poll-card"
 import { EventsCalendar } from "./events-calendar"
+import { AppsWidget } from "./apps-widget"
+import { DirectorMessageWidget } from "./director-message-widget"
 import { WidgetManager } from "./widget-manager"
 import { DashboardTour, useDashboardTour } from "./dashboard-tour"
 import { useToast, ToastContainer } from "@/components/ui/toast"
@@ -42,7 +43,7 @@ import { GripVertical, Plus, HelpCircle } from "lucide-react"
 // Types pour les widgets
 export interface DashboardWidget {
   id: string
-  type: 'news' | 'ideas' | 'safety' | 'menu' | 'poll' | 'calendar'
+  type: 'news' | 'ideas' | 'safety' | 'menu' | 'calendar' | 'apps' | 'director'
   title: string
   size: 'small' | 'medium' | 'large' | 'full'
   order: number
@@ -71,15 +72,20 @@ const WIDGET_CONFIG: Record<string, { size: string; component: React.ComponentTy
     component: RestaurantMenu, 
     title: 'Menu de la Semaine' 
   },
-  poll: { 
-    size: 'small', 
-    component: PollCard, 
-    title: 'Enquêtes' 
-  },
   calendar: { 
     size: 'small', 
     component: EventsCalendar, 
     title: 'Événements' 
+  },
+  apps: { 
+    size: 'small', 
+    component: AppsWidget, 
+    title: 'Applications' 
+  },
+  director: { 
+    size: 'small', 
+    component: DirectorMessageWidget, 
+    title: 'Mot du Directeur' 
   }
 }
 
@@ -115,10 +121,6 @@ function DraggableWidget({
 
   const config = WIDGET_CONFIG[widget.type]
   
-  // Debug pour le questionnaire
-  if (widget.type === 'questionnaire') {
-    // Rendu du widget questionnaire
-  }
   
   // Vérification de sécurité pour éviter les erreurs
   if (!config) {
@@ -244,19 +246,28 @@ export function DraggableDashboard() {
       return widget
     })
 
-    // S'assurer que le widget poll existe
-    const hasPollWidget = migratedWidgets.some(widget => widget.type === 'poll')
-    if (!hasPollWidget) {
-      const maxOrder = Math.max(...migratedWidgets.map(w => w.order), 0)
+    // S'assurer que le widget directeur existe
+    const hasDirectorWidget = migratedWidgets.some(widget => widget.type === 'director')
+    if (!hasDirectorWidget) {
+      // Trouver le plus petit ordre existant et placer le directeur avant
+      const minOrder = Math.min(...migratedWidgets.map(w => w.order), 1)
       migratedWidgets.push({
-        id: 'poll',
-        type: 'poll',
-        title: 'Sondage',
-        size: 'medium',
-        order: maxOrder + 1,
+        id: 'director',
+        type: 'director',
+        title: 'Mot du Directeur',
+        size: 'small',
+        order: minOrder,
         isVisible: true
       })
+      
+      // Ajuster l'ordre des autres widgets
+      migratedWidgets.forEach(widget => {
+        if (widget.type !== 'director') {
+          widget.order = widget.order + 1
+        }
+      })
     }
+
 
 
     // S'assurer que le widget calendrier existe
@@ -280,30 +291,29 @@ export function DraggableDashboard() {
   useEffect(() => {
     setIsClient(true)
     
+    // Vérifier la version des widgets et forcer la migration si nécessaire
+    const widgetVersion = localStorage.getItem('dashboard-widgets-version')
+    const currentVersion = '2.0' // Version avec widget directeur
+    
     // Charger la configuration sauvegardée ou utiliser la configuration par défaut
     const savedWidgets = localStorage.getItem('dashboard-widgets')
-    if (savedWidgets) {
+    if (savedWidgets && widgetVersion === currentVersion) {
       try {
         const parsed = JSON.parse(savedWidgets)
         const migratedWidgets = migrateWidgets(parsed)
-        
-        // Vérifier si une migration a été effectuée
-        const hasMigration = parsed.some((widget: any) => widget.type === 'countdown')
-        if (hasMigration) {
-          // Migration des widgets effectuée: countdown -> ideas
-          // Sauvegarder les widgets migrés
-          localStorage.setItem('dashboard-widgets', JSON.stringify(migratedWidgets))
-        }
-        
         setWidgets(migratedWidgets)
       } catch (error) {
         console.error('Erreur lors du chargement des widgets:', error)
         setWidgets(getDefaultWidgets())
+        localStorage.setItem('dashboard-widgets-version', currentVersion)
       }
     } else {
+      // Utiliser les widgets par défaut et marquer la version
       setWidgets(getDefaultWidgets())
+      localStorage.setItem('dashboard-widgets-version', currentVersion)
     }
   }, [])
+
 
   // Sauvegarder les widgets quand ils changent
   useEffect(() => {
@@ -335,12 +345,13 @@ export function DraggableDashboard() {
 
   function getDefaultWidgets(): DashboardWidget[] {
     return [
-      { id: 'news', type: 'news', title: 'Actualités', size: 'large', order: 1, isVisible: true },
-      { id: 'safety', type: 'safety', title: 'Sécurité du Travail', size: 'medium', order: 2, isVisible: true },
-      { id: 'calendar', type: 'calendar', title: 'Événements', size: 'small', order: 3, isVisible: true },
-      { id: 'ideas', type: 'ideas', title: 'Boîte à Idées', size: 'small', order: 4, isVisible: true },
-      { id: 'poll', type: 'poll', title: 'Enquêtes', size: 'small', order: 5, isVisible: true },
-      { id: 'menu', type: 'menu', title: 'Menu de la Semaine', size: 'full', order: 6, isVisible: true },
+      { id: 'director', type: 'director', title: 'Mot du Directeur', size: 'small', order: 1, isVisible: true },
+      { id: 'news', type: 'news', title: 'Actualités', size: 'large', order: 2, isVisible: true },
+      { id: 'safety', type: 'safety', title: 'Sécurité du Travail', size: 'medium', order: 3, isVisible: true },
+      { id: 'calendar', type: 'calendar', title: 'Événements', size: 'small', order: 4, isVisible: true },
+      { id: 'ideas', type: 'ideas', title: 'Boîte à Idées', size: 'small', order: 5, isVisible: true },
+      { id: 'apps', type: 'apps', title: 'Applications', size: 'small', order: 6, isVisible: true },
+      { id: 'menu', type: 'menu', title: 'Menu de la Semaine', size: 'full', order: 7, isVisible: true },
     ]
   }
 

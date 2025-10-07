@@ -7,7 +7,7 @@ import { Textarea } from '@/components/ui/textarea'
 import { Label } from '@/components/ui/label'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 import { Upload, FileText, X, AlertCircle } from 'lucide-react'
-import { useDocuments, type DocumentUpload, type DocumentCategory } from '@/hooks/useDocuments'
+import { useDocuments, type DocumentUpload } from '@/hooks/useDocuments'
 
 interface DocumentUploadProps {
   onUploadSuccess?: () => void
@@ -33,13 +33,12 @@ export function DocumentUpload({
   const [selectedFile, setSelectedFile] = useState<File | null>(null)
   const [formData, setFormData] = useState({
     title: '',
-    description: '',
-    category: ''
+    description: ''
   })
   const [error, setError] = useState<string | null>(null)
   const fileInputRef = useRef<HTMLInputElement>(null)
 
-  const { uploadDocument, categories } = useDocuments()
+  const { uploadDocument } = useDocuments()
 
   const handleFileSelect = (event: React.ChangeEvent<HTMLInputElement>) => {
     const file = event.target.files?.[0]
@@ -82,10 +81,6 @@ export function DocumentUpload({
       return
     }
 
-    if (!formData.category) {
-      setError('Veuillez sélectionner une catégorie')
-      return
-    }
 
     setIsUploading(true)
     setError(null)
@@ -95,13 +90,11 @@ export function DocumentUpload({
         title: formData.title.trim(),
         description: formData.description.trim() || undefined,
         file: selectedFile,
-        category: parseInt(formData.category), // Maintenant obligatoire
         folder: currentFolder || undefined
       }
 
       console.log('🔍 [UPLOAD] Données d\'upload:', {
         title: documentData.title,
-        category: documentData.category,
         folder: documentData.folder,
         currentFolder: currentFolder,
         fileName: selectedFile?.name
@@ -111,7 +104,7 @@ export function DocumentUpload({
       
       if (result.success) {
         // Réinitialiser le formulaire
-        setFormData({ title: '', description: '', category: '' })
+        setFormData({ title: '', description: '' })
         setSelectedFile(null)
         if (fileInputRef.current) {
           fileInputRef.current.value = ''
@@ -132,7 +125,7 @@ export function DocumentUpload({
   }
 
   const handleCancel = () => {
-    setFormData({ title: '', description: '', category: '' })
+    setFormData({ title: '', description: '' })
     setSelectedFile(null)
     setError(null)
     if (fileInputRef.current) {
@@ -242,28 +235,6 @@ export function DocumentUpload({
             />
           </div>
 
-          {/* Catégorie */}
-          <div className="space-y-2">
-            <Label htmlFor="category">Catégorie</Label>
-                <select
-                  id="category"
-                  value={formData.category}
-                  onChange={(e) => setFormData(prev => ({ ...prev, category: e.target.value }))}
-                  className="w-full px-3 py-2 border border-gray-300 rounded-md text-sm disabled:opacity-50 disabled:cursor-not-allowed"
-                  disabled={isUploading}
-                  required
-                >
-                  <option value="">Sélectionner une catégorie *</option>
-                  {categories.map((category) => (
-                    <option key={category.id} value={category.id}>
-                      {category.name}
-                    </option>
-                  ))}
-                </select>
-                <p className="text-xs text-gray-500">
-                  La catégorie est obligatoire pour classer le document
-                </p>
-          </div>
 
           {/* Erreur */}
           {error && (

@@ -52,7 +52,7 @@ export default function RegisterPage() {
   useEffect(() => {
     // Ne rediriger que si on n'est pas en train de charger ET qu'on est authentifié
     if (!authLoading && isAuthenticated) {
-      router.push('/accueil')
+      router.push('/')
     }
   }, [isAuthenticated, router, authLoading])
 
@@ -126,7 +126,7 @@ export default function RegisterPage() {
       if (result.success) {
         setSuccess(true)
         setTimeout(() => {
-          router.push('/accueil')
+          router.push('/')
         }, 2000)
       } else {
         setError(result.error || 'Erreur lors de la création du compte')

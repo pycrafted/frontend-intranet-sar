@@ -32,8 +32,6 @@ export function PublicationCard({
 
   const getTypeIcon = (type: string) => {
     switch (type) {
-      case "poll":
-        return <BarChart3 className="w-4 h-4" />
       case "event":
         return <Calendar className="w-4 h-4" />
       case "announcement":
@@ -45,8 +43,6 @@ export function PublicationCard({
 
   const getTypeColor = (type: string) => {
     switch (type) {
-      case "poll":
-        return "bg-purple-100 text-purple-700 border-purple-200"
       case "event":
         return "bg-green-100 text-green-700 border-green-200"
       case "announcement":
@@ -89,57 +85,6 @@ export function PublicationCard({
     )
   }
 
-  const renderPollContent = () => {
-    if (article.type !== "poll" || !article.poll_options) return null
-
-    return (
-      <div className="space-y-6 p-6 bg-gradient-to-br from-blue-50 to-purple-50 rounded-xl border border-blue-100">
-        <div className="flex items-center gap-3 text-lg font-semibold text-gray-800">
-          <div className="p-2 bg-blue-100 rounded-lg">
-            <BarChart3 className="w-5 h-5 text-blue-600" />
-          </div>
-          <span>Sondage ({article.totalVotes || 0} votes)</span>
-        </div>
-        
-        <div className="space-y-4">
-          {article.poll_options.slice(0, 4).map((option: any) => (
-            <div key={option.id} className="space-y-3 p-4 bg-white rounded-lg border border-gray-200 shadow-sm">
-              <div className="flex items-center justify-between">
-                <span className="text-base font-medium text-gray-800">{option.text}</span>
-                <div className="flex items-center gap-2">
-                  <span className="text-sm font-semibold text-blue-600">{option.votes} votes</span>
-                  <span className="text-sm text-gray-500">({option.percentage}%)</span>
-                </div>
-              </div>
-              <div className="w-full bg-gray-200 rounded-full h-3">
-                <div 
-                  className="bg-gradient-to-r from-blue-500 to-purple-500 h-3 rounded-full transition-all duration-500 ease-out"
-                  style={{ width: `${option.percentage}%` }}
-                />
-              </div>
-            </div>
-          ))}
-        </div>
-
-        {article.poll_options.length > 4 && (
-          <div className="text-center">
-            <div className="inline-flex items-center gap-2 px-4 py-2 bg-white rounded-full border border-gray-200 text-sm text-gray-600">
-              <span>+{article.poll_options.length - 4} autres options</span>
-            </div>
-          </div>
-        )}
-
-        {article.end_date && (
-          <div className="flex items-center justify-center gap-2 p-3 bg-white rounded-lg border border-gray-200">
-            <Calendar className="w-4 h-4 text-orange-500" />
-            <span className="text-sm font-medium text-gray-700">
-              Fin: {new Date(article.end_date).toLocaleDateString("fr-FR")}
-            </span>
-          </div>
-        )}
-      </div>
-    )
-  }
 
   return (
     <Card className="publication-card bg-white shadow-sm border border-gray-200 hover:shadow-lg rounded-xl overflow-hidden group fade-in">
@@ -173,8 +118,7 @@ export function PublicationCard({
               <span className="ml-1">{article.category}</span>
             </Badge>
             <Badge variant="outline" className="text-xs">
-              {article.type === "poll" ? "Sondage" : 
-               article.type === "event" ? "Événement" : 
+              {article.type === "event" ? "Événement" : 
                article.type === "announcement" ? "Annonce" : "Publication"}
             </Badge>
           </div>
@@ -186,9 +130,7 @@ export function PublicationCard({
             </h2>
             
             <div className="text-gray-700 leading-relaxed">
-              {article.type === "poll" ? (
-                <p className="text-lg font-medium">{article.question}</p>
-              ) : (
+              {(
                 <div>
                   <p className={cn(
                     "text-gray-700 leading-relaxed",
@@ -232,7 +174,7 @@ export function PublicationCard({
         <div className="px-6 py-8">
           {/* Contenu média ou interactif */}
           <div className="mb-0">
-            {article.type === "poll" ? renderPollContent() : renderMediaContent()}
+            {renderMediaContent()}
           </div>
         </div>
       </CardContent>

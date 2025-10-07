@@ -42,8 +42,10 @@ const fallbackDepartments = ["Tous"]
 
 export default function OrganigrammePage() {
   const [searchTerm, setSearchTerm] = useState("")
+  const [debouncedSearchTerm, setDebouncedSearchTerm] = useState("")
   const [selectedDepartment, setSelectedDepartment] = useState("Tous")
   const [filteredEmployees, setFilteredEmployees] = useState<Employee[]>([])
+  const [isTyping, setIsTyping] = useState(false)
 
   // Utiliser l'API
   const { 
@@ -54,6 +56,23 @@ export default function OrganigrammePage() {
     searchEmployees 
   } = useEmployees()
 
+  // Debounce pour la recherche
+  useEffect(() => {
+    if (searchTerm.trim() === '') {
+      setDebouncedSearchTerm(searchTerm)
+      setIsTyping(false)
+      return
+    }
+
+    setIsTyping(true)
+    const timer = setTimeout(() => {
+      setDebouncedSearchTerm(searchTerm)
+      setIsTyping(false)
+    }, 1000)
+    
+    return () => clearTimeout(timer)
+  }, [searchTerm])
+
   // Construire la liste des départements pour le filtre
   const departmentOptions = ["Tous", ...(departments.map(dept => dept.name) || ["Direction", "Direction EXECUTIVE - SUPPORT"])]
 
@@ -63,6 +82,14 @@ export default function OrganigrammePage() {
       await searchEmployees(term, selectedDepartment !== "Tous" ? selectedDepartment : undefined)
     } else {
       setFilteredEmployees(employees || [])
+    }
+  }
+
+  const handleSearchKeyDown = (e: React.KeyboardEvent<HTMLInputElement>) => {
+    if (e.key === 'Enter') {
+      e.preventDefault()
+      setIsTyping(false)
+      setDebouncedSearchTerm(searchTerm)
     }
   }
 
@@ -146,44 +173,23 @@ export default function OrganigrammePage() {
   }
 
   return (
-    <LayoutWrapper>
+    <LayoutWrapper 
+      secondaryNavbarProps={{
+        searchTerm,
+        onSearchChange: handleSearch,
+        onSearchKeyDown: handleSearchKeyDown,
+        searchPlaceholder: "Rechercher par nom, poste ou département...",
+        isTyping,
+        selectedDepartment,
+        onDepartmentChange: handleDepartmentChange,
+        departmentOptions
+      }}
+    >
       <div className="min-h-screen" style={{ backgroundColor: '#e5e7eb' }}>
         <div className="px-6 pt-6 space-y-6">
-          {/* Search and Filters */}
-          <div className="rounded-lg border shadow-sm" style={{ backgroundColor: '#e5e7eb', borderColor: '#d1d5db' }}>
-            <div className="p-6">
-              <div className="flex flex-col lg:flex-row gap-4">
-                <div className="flex-1 relative">
-                  <Search className="absolute left-4 top-1/2 transform -translate-y-1/2 text-slate-400 h-5 w-5" />
-                  <Input
-                    placeholder="Rechercher par nom, poste ou département..."
-                    value={searchTerm}
-                    onChange={(e) => handleSearch(e.target.value)}
-                    className="pl-12 h-12 text-base border-slate-300 focus:border-blue-500 focus:ring-blue-500 bg-white"
-                  />
-                </div>
-                <div className="flex items-center gap-3">
-                  <Building className="h-5 w-5 text-slate-500" />
-                  <Select value={selectedDepartment} onValueChange={handleDepartmentChange}>
-                    <SelectTrigger className="w-56 h-12 border-slate-300 focus:border-blue-500 focus:ring-blue-500">
-                      <SelectValue placeholder="Filtrer par département" />
-                    </SelectTrigger>
-                    <SelectContent>
-                      {departmentOptions.map((department, index) => (
-                        <SelectItem key={`${department}-${index}`} value={department}>
-                          {department}
-                        </SelectItem>
-                      ))}
-                    </SelectContent>
-                  </Select>
-                </div>
-              </div>
-            </div>
-          </div>
-
           {/* Interactive Organizational Chart - Full Width */}
           <div className="rounded-lg border shadow-sm overflow-hidden -mx-6" style={{ backgroundColor: '#e5e7eb', borderColor: '#d1d5db' }}>
-            <div className="h-[calc(100vh-300px)] relative">
+            <div className="h-[calc(100vh-200px)] relative">
               <InteractiveOrgChart />
             </div>
           </div>

@@ -8,7 +8,7 @@ import { Navbar } from "./navbar"
 import { SecondaryNavbar } from "./secondary-navbar"
 import { ActualitesSidebarV2 } from "./actualites-sidebar-v2"
 import { ControlCenterSidebar } from "./control-center-sidebar"
-import { DocumentsSidebar } from "./documents-sidebar"
+// import { DocumentsSidebar } from "./documents-sidebar" // Supprimé
 import { RecrutementSidebar } from "./recrutement-sidebar"
 import { PublicationModal } from "./publication-modal"
 import { AnnouncementModal } from "./announcement-modal"
@@ -33,15 +33,12 @@ interface LayoutWrapperProps {
     activeSection?: string
     onSectionChange?: (section: string) => void
     // Props spécifiques aux documents
-    activeCategory?: number | null
-    onCategoryChange?: (categoryId: number | null) => void
     activeSort?: string
     onSortChange?: (sort: string) => void
     activeFolder?: number | null
     onFolderChange?: (folderId: number | null) => void
     documentsCount?: number
     documents?: any[]
-    categories?: any[]
     folders?: any[]
     folderTree?: any[]
     onUploadSuccess?: () => void
@@ -82,34 +79,22 @@ export function LayoutWrapper({ children, secondaryNavbarProps, sidebarProps }: 
           <Navigation isOpen={sidebarOpen} onClose={() => setSidebarOpen(false)} />
 
           <main className="flex-1 lg:ml-64 flex flex-col">
-            <div className={`flex-1 bg-gray-200 ${pathname === "/actualites" ? "lg:ml-80" : ""} ${pathname === "/centre_de_controle" ? "lg:ml-80" : ""} ${pathname === "/documents" ? "lg:ml-80" : ""} ${pathname === "/recrutement" ? "lg:ml-80" : ""}`}>
-              {/* Secondary Navbar pour la page actualités - dans la zone de contenu */}
-              {pathname === "/actualites" && <SecondaryNavbar {...secondaryNavbarProps} />}
+            <div className={`flex-1 bg-gray-200 ${pathname === "/actualites" ? "lg:ml-80" : ""} ${pathname === "/centre_de_controle" ? "lg:ml-80" : ""} ${pathname === "/recrutement" ? "lg:ml-80" : ""}`}>
+        {/* Secondary Navbar pour les pages actualités, organigramme, annuaire et documents - dans la zone de contenu */}
+        {(pathname === "/actualites" || pathname === "/organigramme" || pathname === "/annuaire" || pathname === "/documents") && (
+          <SecondaryNavbar 
+            {...secondaryNavbarProps} 
+            showFilter={pathname === "/organigramme"} 
+          />
+        )}
               
-              <div className={`mx-auto px-4 py-6 lg:px-8 ${pathname === "/" || pathname === "/accueil" ? "max-w-none px-2 lg:px-4" : pathname === "/organigramme" ? "max-w-none px-0" : "max-w-7xl"}`}>
+              <div className={`mx-auto px-4 py-6 lg:px-8 ${pathname === "/" ? "max-w-none px-2 lg:px-4" : pathname === "/organigramme" ? "max-w-none px-0" : "max-w-7xl"}`}>
                 {children}
               </div>
             </div>
             {pathname === "/actualites" && <ActualitesSidebarV2 {...sidebarProps} />}
             {pathname === "/centre_de_controle" && <ControlCenterSidebar {...sidebarProps} />}
-            {pathname === "/documents" && <DocumentsSidebar
-              activeCategory={sidebarProps?.activeCategory}
-              onCategoryChange={sidebarProps?.onCategoryChange}
-              activeSort={sidebarProps?.activeSort}
-              onSortChange={sidebarProps?.onSortChange}
-              activeFolder={sidebarProps?.activeFolder}
-              onFolderChange={sidebarProps?.onFolderChange}
-              documentsCount={sidebarProps?.documentsCount}
-              documents={sidebarProps?.documents}
-              categories={sidebarProps?.categories}
-              folders={sidebarProps?.folders}
-              folderTree={sidebarProps?.folderTree}
-              onUploadSuccess={sidebarProps?.onUploadSuccess}
-              onUploadClick={sidebarProps?.onUploadClick}
-              onCreateFolder={sidebarProps?.onCreateFolder}
-              onUpdateFolder={sidebarProps?.onUpdateFolder}
-              onDeleteFolder={sidebarProps?.onDeleteFolder}
-            />}
+            {/* Sidebar des documents supprimée */}
             {pathname === "/recrutement" && <RecrutementSidebar
               onFilterChange={sidebarProps?.onFilterChange}
               onSearchChange={sidebarProps?.onSearchChange}

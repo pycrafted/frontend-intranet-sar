@@ -12,6 +12,14 @@ import { ContextMenu } from "@/components/context-menu"
 import { FolderCreateModal } from "@/components/folder-create-modal"
 import { RenameModal } from "@/components/rename-modal"
 import { DeleteConfirmationModal } from "@/components/delete-confirmation-modal"
+import { DocumentsHeader } from "@/components/documents-header"
+import { DocumentsToolbar } from "@/components/documents-toolbar"
+import { DocumentsGrid } from "@/components/documents-grid"
+import { DocumentsBreadcrumb } from "@/components/documents-breadcrumb"
+import { CreateFolderDialog } from "@/components/create-folder-dialog"
+import { UploadDialog } from "@/components/upload-dialog"
+import { RenameDialog } from "@/components/rename-dialog"
+import { InfoModal } from "@/components/info-modal"
 import { useDocuments, Document } from "@/hooks/useDocuments"
 import {
   Search,
@@ -44,6 +52,9 @@ import {
   Home,
   X,
   ChevronLeft,
+  HelpCircle,
+  LayoutGrid,
+  List,
 } from "lucide-react"
 
 const sortOptions = [
@@ -57,11 +68,13 @@ const sortOptions = [
 
 export default function DocumentsPage() {
   const [searchTerm, setSearchTerm] = useState("")
+  const [debouncedSearchTerm, setDebouncedSearchTerm] = useState("")
+  const [isTyping, setIsTyping] = useState(false)
   const [sortBy, setSortBy] = useState("-created_at")
   const [selectedDocuments, setSelectedDocuments] = useState<number[]>([])
-  const [selectedCategory, setSelectedCategory] = useState<number | null>(null)
   const [selectedFolder, setSelectedFolder] = useState<number | null>(null)
   const [currentFolderPath, setCurrentFolderPath] = useState<Array<{id: number, name: string}>>([])
+  const [viewMode, setViewMode] = useState<"grid" | "list">("grid")
   const [contextMenu, setContextMenu] = useState<{
     isOpen: boolean
     position: { x: number; y: number }
@@ -77,17 +90,39 @@ export default function DocumentsPage() {
   const [isRenameModalOpen, setIsRenameModalOpen] = useState(false)
   const [renameItem, setRenameItem] = useState<{ type: 'document' | 'folder'; name: string; id: number } | null>(null)
   const [isDeleteModalOpen, setIsDeleteModalOpen] = useState(false)
+  const [isRenameDialogOpen, setIsRenameDialogOpen] = useState(false)
+  const [renameDialogItem, setRenameDialogItem] = useState<{ id: string; name: string } | null>(null)
+  const [isRenaming, setIsRenaming] = useState(false)
   const [deleteItem, setDeleteItem] = useState<{ type: 'document' | 'folder'; name: string; id: number } | null>(null)
   const [isBulkDeleteModalOpen, setIsBulkDeleteModalOpen] = useState(false)
+  const [isInfoModalOpen, setIsInfoModalOpen] = useState(false)
+  const [infoModalContent, setInfoModalContent] = useState<{ title: string; message: string }>({ title: '', message: '' })
   const [currentPage, setCurrentPage] = useState(1)
   const itemsPerPage = 10
   const [touchStartTime, setTouchStartTime] = useState<number>(0)
   const [touchStartPosition, setTouchStartPosition] = useState<{ x: number; y: number }>({ x: 0, y: 0 })
   const [showTouchIndicator, setShowTouchIndicator] = useState<{ x: number; y: number } | null>(null)
 
+  // Debounce pour la recherche
+  useEffect(() => {
+    if (searchTerm.trim() === '') {
+      // Recherche immédiate si le champ est vide
+      setDebouncedSearchTerm(searchTerm)
+      setIsTyping(false)
+      return
+    }
+
+    setIsTyping(true)
+    const timer = setTimeout(() => {
+      setDebouncedSearchTerm(searchTerm)
+      setIsTyping(false)
+    }, 1000) // 1 seconde pour laisser le temps de finir d'écrire
+    
+    return () => clearTimeout(timer)
+  }, [searchTerm])
+
   const {
     documents,
-    categories,
     folders,
     folderTree,
     isLoading,
@@ -99,6 +134,7 @@ export default function DocumentsPage() {
     createFolder,
     updateFolder,
     deleteFolder,
+    uploadDocument,
     downloadDocument,
     viewDocument,
     deleteDocument,
@@ -108,21 +144,26 @@ export default function DocumentsPage() {
 
   // Filtrer les documents et dossiers localement
   const filteredDocuments = documents.filter((doc) => {
-    const matchesSearch = searchTerm === "" || 
-        doc.title.toLowerCase().includes(searchTerm.toLowerCase()) ||
-        doc.description?.toLowerCase().includes(searchTerm.toLowerCase()) ||
-        doc.uploaded_by_name.toLowerCase().includes(searchTerm.toLowerCase())
+    const matchesSearch = debouncedSearchTerm === "" || 
+        doc.title.toLowerCase().includes(debouncedSearchTerm.toLowerCase()) ||
+        doc.description?.toLowerCase().includes(debouncedSearchTerm.toLowerCase()) ||
+        doc.uploaded_by_name.toLowerCase().includes(debouncedSearchTerm.toLowerCase())
     
-    const matchesCategory = selectedCategory === null || doc.category === selectedCategory
     const matchesFolder = selectedFolder === null ? doc.folder === null : doc.folder === selectedFolder
     
-    // Log supprimé pour éviter les re-renders excessifs
-    
-    return matchesSearch && matchesCategory && matchesFolder
+    return matchesSearch && matchesFolder
   })
 
-  // Obtenir les dossiers du dossier actuel
-  const currentFolders = folders.filter(folder => folder.parent === selectedFolder)
+  // Obtenir les dossiers du dossier actuel avec filtrage par recherche
+  const currentFolders = folders.filter(folder => {
+    const matchesParent = folder.parent === selectedFolder
+    const matchesSearch = debouncedSearchTerm === "" || 
+        folder.name.toLowerCase().includes(debouncedSearchTerm.toLowerCase()) ||
+        folder.description?.toLowerCase().includes(debouncedSearchTerm.toLowerCase()) ||
+        folder.created_by_name.toLowerCase().includes(debouncedSearchTerm.toLowerCase())
+    
+    return matchesParent && matchesSearch
+  })
   
   // Log supprimé pour éviter les re-renders excessifs
 
@@ -158,29 +199,74 @@ export default function DocumentsPage() {
     }))
   ]
 
+  const formatDate = (dateString: string) => {
+    const date = new Date(dateString)
+    const now = new Date()
+    const diffInDays = Math.floor((now.getTime() - date.getTime()) / (1000 * 60 * 60 * 24))
+    
+    if (diffInDays === 0) return "Aujourd'hui"
+    if (diffInDays === 1) return "Hier"
+    if (diffInDays < 7) return `Il y a ${diffInDays} jours`
+    return date.toLocaleDateString("fr-FR")
+  }
+
+  // Convertir les données pour le nouveau design
+  const convertToFileItems = (items: any[]): Array<{
+    id: string
+    name: string
+    type: "folder" | "file"
+    fileType?: string
+    size?: string
+    modifiedDate: string
+    owner: string
+  }> => {
+    return items.map(item => ({
+      id: item.id,
+      name: item.name,
+      type: item.type,
+      fileType: item.file_extension?.toLowerCase(),
+      size: item.type === 'folder' ? undefined : `${(item.size / 1024 / 1024).toFixed(1)} MB`,
+      modifiedDate: formatDate(item.created_at),
+      owner: item.created_by_name || 'Moi'
+    }))
+  }
+
+  const fileItems = convertToFileItems(allItems)
+
   // Calcul de la pagination
   const totalPages = Math.ceil(allItems.length / itemsPerPage)
   const startIndex = (currentPage - 1) * itemsPerPage
   const endIndex = startIndex + itemsPerPage
   const paginatedItems = allItems.slice(startIndex, endIndex)
 
+  // Déclencher la recherche quand le terme de recherche debounced change
+  useEffect(() => {
+    fetchDocuments(debouncedSearchTerm, sortBy)
+  }, [debouncedSearchTerm, sortBy])
+
   // Réinitialiser la page quand les filtres changent
   useEffect(() => {
     setCurrentPage(1)
-  }, [searchTerm, selectedCategory, selectedFolder])
+  }, [debouncedSearchTerm, selectedFolder])
 
   const handleSearch = (term: string) => {
     setSearchTerm(term)
   }
 
-  const handleSortChange = (sort: string) => {
-    setSortBy(sort)
-    fetchDocuments(searchTerm, sort)
+  const handleSearchKeyDown = (e: React.KeyboardEvent<HTMLInputElement>) => {
+    if (e.key === 'Enter') {
+      e.preventDefault()
+      // Forcer la recherche immédiate sur Enter
+      setIsTyping(false)
+      setDebouncedSearchTerm(searchTerm)
+    }
   }
 
-  const handleCategoryChange = (categoryId: number | null) => {
-    setSelectedCategory(categoryId)
+  const handleSortChange = (sort: string) => {
+    setSortBy(sort)
+    fetchDocuments(debouncedSearchTerm, sort)
   }
+
 
   const handleFolderChange = (folderId: number | null) => {
   // Log supprimé pour éviter les re-renders excessifs
@@ -396,6 +482,188 @@ export default function DocumentsPage() {
     }
   }
 
+  // Nouvelles fonctions pour le design
+  const handleCreateFolder = async (name: string) => {
+    try {
+      const result = await createFolder({
+        name,
+        description: '',
+        parent: selectedFolder,
+        color: '#3b82f6',
+        icon: 'folder'
+      })
+      if (result.success) {
+        fetchFolders()
+        fetchFolderTree()
+      }
+    } catch (error) {
+      console.error('Erreur lors de la création du dossier:', error)
+    }
+  }
+
+  const handleUploadFiles = async (files: File[]) => {
+    let successCount = 0
+    let errorCount = 0
+
+    for (const file of files) {
+      try {
+        const result = await uploadDocument({
+          title: file.name,
+          file,
+          folder: selectedFolder
+        })
+        
+        if (result.success) {
+          console.log('✅ Fichier uploadé avec succès:', file.name)
+          successCount++
+        } else {
+          console.error('❌ Erreur lors de l\'upload:', result.error)
+          alert(`Erreur lors de l'upload de ${file.name}: ${result.error}`)
+          errorCount++
+        }
+      } catch (error) {
+        console.error('Erreur lors de l\'upload:', error)
+        alert(`Erreur lors de l'upload de ${file.name}`)
+        errorCount++
+      }
+    }
+    
+    // Fermer le modal d'upload
+    setIsUploadModalOpen(false)
+    
+    // Afficher un message de résumé
+    if (successCount > 0) {
+      alert(`${successCount} fichier(s) uploadé(s) avec succès !`)
+    }
+    
+    if (errorCount > 0) {
+      alert(`${errorCount} fichier(s) n'ont pas pu être uploadés.`)
+    }
+  }
+
+  const handleDeleteItem = (id: string) => {
+    if (id.startsWith('doc-')) {
+      const docId = parseInt(id.replace('doc-', ''))
+      const document = documents.find(doc => doc.id === docId)
+      if (document) {
+        handleDelete(document)
+      }
+    } else if (id.startsWith('folder-')) {
+      const folderId = parseInt(id.replace('folder-', ''))
+      const folder = folders.find(f => f.id === folderId)
+      if (folder) {
+        setDeleteItem({
+          type: 'folder',
+          name: folder.name,
+          id: folderId
+        })
+        setIsDeleteModalOpen(true)
+      }
+    }
+  }
+
+  // Fonction pour visualiser un document
+  const handleViewDocument = async (id: string) => {
+    if (id.startsWith('doc-')) {
+      const docId = parseInt(id.replace('doc-', ''))
+      
+      try {
+        const result = await viewDocument(docId)
+        if (result.success) {
+          // Document ouvert avec succès
+        } else {
+          // Afficher le message d'erreur du backend dans un modal
+          setInfoModalContent({
+            title: "Visualisation non disponible",
+            message: result.error
+          })
+          setIsInfoModalOpen(true)
+        }
+      } catch (error) {
+        setInfoModalContent({
+          title: "Erreur de visualisation",
+          message: 'Erreur lors de la visualisation du document'
+        })
+        setIsInfoModalOpen(true)
+      }
+    }
+  }
+
+  // Fonction pour télécharger un document
+  const handleDownloadDocument = async (id: string) => {
+    if (id.startsWith('doc-')) {
+      const docId = parseInt(id.replace('doc-', ''))
+      const document = documents.find(doc => doc.id === docId)
+      
+      if (document) {
+        console.log('🔍 [DOWNLOAD] Téléchargement du document:', docId, document.title)
+        
+        try {
+          const result = await downloadDocument(docId, document.title)
+          if (result.success) {
+            console.log('✅ [DOWNLOAD] Document téléchargé avec succès')
+          } else {
+            console.error('❌ [DOWNLOAD] Erreur lors du téléchargement:', result.error)
+            alert(`Erreur lors du téléchargement: ${result.error}`)
+          }
+        } catch (error) {
+          console.error('❌ [DOWNLOAD] Erreur complète:', error)
+          alert('Erreur lors du téléchargement du document')
+        }
+      } else {
+        console.error('❌ [DOWNLOAD] Document non trouvé:', docId)
+        alert('Document non trouvé')
+      }
+    }
+  }
+
+  // Fonction pour renommer un document ou dossier
+  const handleRenameItem = (id: string, currentName: string) => {
+    setRenameDialogItem({ id, name: currentName })
+    setIsRenameDialogOpen(true)
+  }
+
+  // Fonction pour confirmer le renommage
+  const handleConfirmRename = async (newName: string) => {
+    if (!renameDialogItem) return
+
+    setIsRenaming(true)
+    try {
+      if (renameDialogItem.id.startsWith('doc-')) {
+        const docId = parseInt(renameDialogItem.id.replace('doc-', ''))
+        console.log('🔍 [RENAME] Renommage du document:', docId, 'nouveau nom:', newName)
+        
+        const result = await renameDocument(docId, newName)
+        if (result.success) {
+          console.log('✅ [RENAME] Document renommé avec succès')
+          setIsRenameDialogOpen(false)
+          setRenameDialogItem(null)
+        } else {
+          console.error('❌ [RENAME] Erreur lors du renommage:', result.error)
+          alert(`Erreur lors du renommage: ${result.error}`)
+        }
+      } else if (renameDialogItem.id.startsWith('folder-')) {
+        const folderId = parseInt(renameDialogItem.id.replace('folder-', ''))
+        console.log('🔍 [RENAME] Renommage du dossier:', folderId, 'nouveau nom:', newName)
+        
+        const result = await updateFolder(folderId, { name: newName })
+        if (result.success) {
+          console.log('✅ [RENAME] Dossier renommé avec succès')
+          setIsRenameDialogOpen(false)
+          setRenameDialogItem(null)
+        } else {
+          console.error('❌ [RENAME] Erreur lors du renommage:', result.error)
+          alert(`Erreur lors du renommage: ${result.error}`)
+        }
+      }
+    } catch (error) {
+      console.error('❌ [RENAME] Erreur complète:', error)
+      alert('Erreur lors du renommage')
+    } finally {
+      setIsRenaming(false)
+    }
+  }
+
   // Fonctions de pagination
   const goToPreviousPage = () => {
     if (currentPage > 1) {
@@ -407,17 +675,6 @@ export default function DocumentsPage() {
     if (currentPage < totalPages) {
       setCurrentPage(currentPage + 1)
     }
-  }
-
-  const formatDate = (dateString: string) => {
-    const date = new Date(dateString)
-    const now = new Date()
-    const diffInDays = Math.floor((now.getTime() - date.getTime()) / (1000 * 60 * 60 * 24))
-    
-    if (diffInDays === 0) return "Aujourd'hui"
-    if (diffInDays === 1) return "Hier"
-    if (diffInDays < 7) return `Il y a ${diffInDays} jours`
-    return date.toLocaleDateString("fr-FR")
   }
 
   const getFileIcon = (type: string) => {
@@ -478,338 +735,39 @@ export default function DocumentsPage() {
 
   return (
     <LayoutWrapper 
-      sidebarProps={{
-        activeCategory: selectedCategory,
-        onCategoryChange: handleCategoryChange,
-        activeSort: sortBy,
-        onSortChange: handleSortChange,
-        activeFolder: selectedFolder,
-        onFolderChange: handleFolderChange,
-        documentsCount: allItems.length,
-        documents: documents,
-        categories: categories,
-        folders: folders,
-        folderTree: folderTree,
-        onUploadSuccess: () => fetchDocuments(),
-        onUploadClick: () => {
-          // Déclencher l'ouverture du modal d'upload
-          const uploadButton = document.querySelector('[data-upload-trigger]') as HTMLButtonElement
-          if (uploadButton) {
-            uploadButton.click()
-          }
-        },
-        onCreateFolder: createFolder,
-        onUpdateFolder: updateFolder,
-        onDeleteFolder: deleteFolder,
+      secondaryNavbarProps={{
+        searchTerm,
+        onSearchChange: handleSearch,
+        onSearchKeyDown: handleSearchKeyDown,
+        searchPlaceholder: "Rechercher dans les documents...",
+        isTyping
       }}
+      // sidebarProps supprimés - plus de sidebar pour les documents
     >
-      <div className="min-h-screen rounded-xl m-4" style={{ backgroundColor: '#e5e7eb' }}>
-        {/* Google Drive Style Header */}
-        <div className="border-b border-gray-300 sticky top-0 z-10 rounded-t-xl" style={{ backgroundColor: '#e5e7eb' }}>
-          <div className="px-6 py-4">
-            <div className="flex items-center justify-between">
-              {/* Left side - Logo and title */}
-              <div className="flex items-center gap-4">
-                <div className="flex items-center gap-2">
-                  <div className="w-8 h-8 bg-blue-600 rounded-lg flex items-center justify-center">
-                    <FileText className="h-5 w-5 text-white" />
-                  </div>
-                  <h1 className="text-xl font-semibold text-gray-900">Documents SAR</h1>
-                </div>
-                <div className="text-sm text-gray-500">
-                  {allItems.length} élément{allItems.length > 1 ? 's' : ''}
-                  {stats && (
-                    <span className="ml-2">
-                      • {stats.total_downloads} téléchargements
-                    </span>
-                  )}
-                </div>
-              </div>
-
-              {/* Right side - Actions */}
-              <div className="flex items-center gap-2">
-                <Button 
-                  onClick={() => setIsUploadModalOpen(true)}
-                  className="gap-2"
-                >
-                  <Upload className="h-4 w-4" />
-                  Nouveau
-                </Button>
-                <Button 
-                  variant="outline" 
-                  size="sm" 
-                  className="gap-2"
-                  onClick={() => setIsFolderModalOpen(true)}
-                >
-                  <FolderPlus className="h-4 w-4" />
-                  Dossier
-                </Button>
-                <Button variant="outline" size="sm">
-                  <Settings className="h-4 w-4" />
-                </Button>
-              </div>
-            </div>
-
-            {/* Search bar */}
-            <div className="mt-4 flex items-center gap-4">
-              <div className="flex-1 relative">
-                <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 h-4 w-4" />
-                <Input
-                  placeholder="Rechercher dans Documents SAR"
-                  value={searchTerm}
-                  onChange={(e) => handleSearch(e.target.value)}
-                  className="pl-10 h-9 border-gray-300 focus:border-blue-500 focus:ring-1 focus:ring-blue-500 bg-white placeholder:text-gray-600"
+      <div className="min-h-screen" style={{ backgroundColor: '#e5e7eb' }}>
+        <main className="mx-auto max-w-[1600px] px-6 py-6">
+          <div className="mb-4">
+            <DocumentsBreadcrumb 
+              currentPath={currentFolderPath}
+              onBreadcrumbClick={handleBreadcrumbClick}
                 />
               </div>
-            </div>
-
-            {/* Breadcrumb Navigation */}
-            {currentFolderPath.length > 0 && (
-              <div className="mt-3 flex items-center gap-2 text-sm text-gray-600">
-                <button
-                  onClick={() => handleBreadcrumbClick(null)}
-                  className="flex items-center gap-1 hover:text-blue-600 transition-colors"
-                >
-                  <Home className="h-4 w-4" />
-                  Tous les documents
-                </button>
-                {currentFolderPath.map((folder, index) => (
-                  <div key={folder.id} className="flex items-center gap-2">
-                    <ChevronRight className="h-4 w-4 text-gray-400" />
-                    <button
-                      onClick={() => handleBreadcrumbClick(folder.id)}
-                      className="hover:text-blue-600 transition-colors"
-                    >
-                      {folder.name}
-                    </button>
-                  </div>
-                ))}
-              </div>
-            )}
-
-          </div>
-        </div>
-
-        {/* Main content */}
-        <div className="p-6 rounded-b-xl" style={{ backgroundColor: '#e5e7eb' }}>
-            {/* Action bar */}
-            {selectedDocuments.length > 0 && (
-              <div className="mb-4 p-3 bg-blue-50 border border-blue-200 rounded-xl">
-                <div className="flex items-center justify-between">
-                  <div className="flex items-center gap-4">
-                    <span className="text-sm font-medium text-blue-700">
-                      {selectedDocuments.length} document{selectedDocuments.length > 1 ? 's' : ''} sélectionné{selectedDocuments.length > 1 ? 's' : ''}
-                    </span>
-                    <div className="flex items-center gap-2">
-                      <Button 
-                        variant="outline" 
-                        size="sm" 
-                        className="gap-2 text-red-600 hover:text-red-700"
-                        onClick={handleBulkDelete}
-                      >
-                        <Trash2 className="h-4 w-4" />
-                        Supprimer
-                      </Button>
-                    </div>
-                  </div>
-                  <Button
-                    variant="ghost"
-                    size="sm"
-                    onClick={() => setSelectedDocuments([])}
-                  >
-                    Annuler
-                  </Button>
-                </div>
-              </div>
-            )}
-
-            {/* Documents table */}
-            <div className="bg-white border border-gray-200 rounded-xl overflow-hidden">
-              {/* Table header */}
-              <div className="bg-gray-50 border-b border-gray-200">
-                <div className="flex items-center px-4 py-3">
-                    <Checkbox
-                      checked={selectedDocuments.length === paginatedItems.filter(item => item.type === 'document').length && paginatedItems.filter(item => item.type === 'document').length > 0}
-                      onCheckedChange={handleSelectAll}
-                      className="mr-3"
-                    />
-                  <div className="flex-1 text-sm font-medium text-gray-700">Nom</div>
-                  <div className="w-24 text-sm font-medium text-gray-700">Catégorie</div>
-                  <div className="w-32 text-sm font-medium text-gray-700">Propriétaire</div>
-                  <div className="w-32 text-sm font-medium text-gray-700">Modifié</div>
-                  <div className="w-24 text-sm font-medium text-gray-700">Taille</div>
-                  <div className="w-16"></div>
-                </div>
-              </div>
-
-                {/* Table body */}
-                <div className="divide-y divide-gray-200">
-                  {paginatedItems.map((item) => {
-                  const isSelected = selectedDocuments.includes(parseInt(item.id.replace('doc-', '')))
-                  const isFolder = item.type === 'folder'
-                  
-                  return (
-                    <div
-                      key={item.id}
-                      className={`flex items-center px-4 py-3 hover:bg-gray-50 transition-colors cursor-pointer ${
-                        isSelected ? "bg-blue-50" : ""
-                      }`}
-                      onClick={() => {
-                        if (isFolder) {
-                          handleFolderClick(parseInt(item.id.replace('folder-', '')))
-                        }
-                      }}
-                      onContextMenu={(e) => handleContextMenu(e, {
-                        id: item.id,
-                        type: item.type,
-                        name: item.name
-                      })}
-                      onTouchStart={(e) => handleTouchStart(e, {
-                        id: item.id,
-                        type: item.type,
-                        name: item.name
-                      })}
-                      onTouchEnd={(e) => handleTouchEnd(e, {
-                        id: item.id,
-                        type: item.type,
-                        name: item.name
-                      })}
-                      onTouchCancel={handleTouchCancel}
-                    >
-                      <Checkbox
-                        checked={isSelected}
-                        onCheckedChange={(checked) => {
-                          if (!isFolder) {
-                            handleDocumentSelect(parseInt(item.id.replace('doc-', '')))
-                          }
-                        }}
-                        className="mr-3"
-                      />
-                      
-                      <div className="flex items-center gap-3 flex-1 min-w-0">
-                        <div className={`p-2 rounded-lg ${isFolder ? 'bg-blue-50' : 'bg-red-50'}`}>
-                          {isFolder ? (
-                            <Folder className={`h-5 w-5 ${isFolder ? 'text-blue-600' : 'text-red-600'}`} />
-                          ) : (
-                            <FilePdf className="h-5 w-5 text-red-600" />
-                          )}
-                        </div>
-                        <div className="flex-1 min-w-0">
-                          <div className="flex items-center gap-2">
-                            <h3 className="text-sm font-medium text-gray-900 truncate">
-                              {item.name}
-                            </h3>
-                          </div>
-                        </div>
-                      </div>
-
-                      <div className="w-24 text-sm text-gray-600">
-                        {isFolder ? "Dossier" : "Document"}
-                      </div>
-
-                      <div className="w-32 text-sm text-gray-600 truncate">
-                        {item.created_by_name}
-                      </div>
-
-                      <div className="w-32 text-sm text-gray-600">
-                        {formatDate(item.created_at)}
-                      </div>
-
-                      <div className="w-24 text-sm text-gray-600">
-                        {isFolder ? "-" : `${(item.size / 1024 / 1024).toFixed(1)} MB`}
-                      </div>
-
-                      <div className="w-16 flex items-center justify-end">
-                        {/* Espace réservé pour l'alignement */}
-                      </div>
-                    </div>
-                  )
-                })}
-              </div>
-            </div>
-
-            {/* Empty state */}
-            {paginatedItems.length === 0 && !isLoading && (
-              <div className="text-center py-12">
-                <FileText className="h-12 w-12 text-gray-400 mx-auto mb-4" />
-                <h3 className="text-lg font-medium text-gray-900 mb-2">Aucun document trouvé</h3>
-                <p className="text-gray-500 mb-4">
-                  {searchTerm ? "Essayez de modifier vos critères de recherche" : "Commencez par ajouter un document"}
-                </p>
-                <DocumentUpload 
-                  key={`upload-empty-${selectedFolder || 'root'}`}
-                  showAsButton={true}
-                  buttonText="Ajouter un document"
-                  currentFolder={selectedFolder}
-                  onUploadSuccess={() => {
-                    fetchDocuments()
-                  }}
-                  onUploadError={(error) => {
-                    console.error('Upload error:', error)
-                  }}
-                />
-              </div>
-            )}
-
-            {/* Pagination */}
-            {totalPages > 1 && (
-              <div className="mt-6">
-                <div className="flex items-center justify-center gap-6 p-6 rounded-xl" style={{backgroundColor: "#e5e7eb"}}>
-                  {/* Flèche Gauche */}
-                  <Button
-                    onClick={goToPreviousPage}
-                    disabled={currentPage === 1}
-                    className="w-14 h-14 rounded-full flex items-center justify-center shadow-lg hover:shadow-xl transition-all duration-300 disabled:opacity-50 disabled:cursor-not-allowed"
-                    style={{
-                      backgroundColor: currentPage === 1 ? "#e5e7eb" : "#3b82f6",
-                      border: "none"
-                    }}
-                  >
-                    <ChevronLeft className="h-6 w-6" style={{color: currentPage === 1 ? "#9ca3af" : "white"}} />
-                  </Button>
-
-                  {/* Indicateur de page */}
-                  <div className="flex items-center gap-2">
-                    <span className="text-lg font-semibold text-gray-700">
-                      Page {currentPage} sur {totalPages}
-                    </span>
-                  </div>
-
-                  {/* Flèche Droite */}
-                  <Button
-                    onClick={goToNextPage}
-                    disabled={currentPage === totalPages}
-                    className="w-14 h-14 rounded-full flex items-center justify-center shadow-lg hover:shadow-xl transition-all duration-300 disabled:opacity-50 disabled:cursor-not-allowed"
-                    style={{
-                      backgroundColor: currentPage === totalPages ? "#e5e7eb" : "#3b82f6",
-                      border: "none"
-                    }}
-                  >
-                    <ChevronRight className="h-6 w-6" style={{color: currentPage === totalPages ? "#9ca3af" : "white"}} />
-                  </Button>
-                </div>
-              </div>
-            )}
-
-            {/* Error state */}
-            {error && documents.length > 0 && (
-              <div className="mt-4 p-4 bg-red-50 border border-red-200 rounded-xl">
-                <div className="flex items-center gap-2">
-                  <AlertCircle className="h-4 w-4 text-red-600" />
-                  <span className="text-sm text-red-700">{error}</span>
-                  <Button
-                    variant="outline"
-                    size="sm"
-                    onClick={() => fetchDocuments()}
-                    className="ml-auto"
-                  >
-                    <RefreshCw className="h-4 w-4" />
-                    Réessayer
-                  </Button>
-                </div>
-              </div>
-            )}
-        </div>
+          <DocumentsToolbar
+            viewMode={viewMode}
+            onViewModeChange={setViewMode}
+            onCreateFolder={() => setIsFolderModalOpen(true)}
+            onUpload={() => setIsUploadModalOpen(true)}
+          />
+          <DocumentsGrid 
+            items={fileItems} 
+            viewMode={viewMode} 
+            onDelete={handleDeleteItem}
+            onFolderClick={handleFolderClick}
+            onView={handleViewDocument}
+            onRename={handleRenameItem}
+            onDownload={handleDownloadDocument}
+          />
+        </main>
       </div>
 
       {/* Indicateur de long press */}
@@ -976,6 +934,38 @@ export default function DocumentsPage() {
           </div>
         </div>
       )}
+
+      {/* Nouveaux modals pour le design */}
+      <CreateFolderDialog
+        open={isFolderModalOpen}
+        onOpenChange={setIsFolderModalOpen}
+        onCreateFolder={handleCreateFolder}
+      />
+
+      <UploadDialog 
+        open={isUploadModalOpen} 
+        onOpenChange={setIsUploadModalOpen} 
+        onUpload={handleUploadFiles} 
+      />
+
+        {/* Dialogue de renommage */}
+        <RenameDialog
+          open={isRenameDialogOpen}
+          onOpenChange={setIsRenameDialogOpen}
+          currentName={renameDialogItem?.name || ""}
+          onRename={handleConfirmRename}
+          isLoading={isRenaming}
+        />
+
+        {/* Modal d'information */}
+        <InfoModal
+          open={isInfoModalOpen}
+          onOpenChange={setIsInfoModalOpen}
+          title={infoModalContent.title}
+          message={infoModalContent.message}
+          actionLabel="Compris"
+          showDownloadIcon={infoModalContent.message.includes("télécharger")}
+        />
     </LayoutWrapper>
   )
 }

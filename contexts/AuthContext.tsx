@@ -373,102 +373,44 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
   }
 
 
-  // Vérifier l'authentification au chargement et périodiquement
+  // TEMPORAIREMENT : Simuler un utilisateur connecté sans authentification
   useEffect(() => {
-    let isInitialLoad = true
-    let isChecking = false // Éviter les vérifications simultanées
-    let hasRedirected = false // Éviter les redirections multiples
-    
-    const checkAuth = async (isPeriodicCheck = false) => {
-      // Éviter les vérifications simultanées
-      if (isChecking) return
-      isChecking = true
-      
-      try {
-        // Ne mettre isLoading à true que lors du chargement initial
-        if (isInitialLoad) {
-          setIsLoading(true)
-        }
-        
-        const userData = await fetchCurrentUser()
-        if (userData) {
-          setUser(userData)
-          hasRedirected = false // Reset le flag si l'utilisateur est authentifié
-        } else {
-          setUser(null)
-          // Si pas d'utilisateur, rediriger vers login seulement si c'est un check initial ET qu'on n'a pas déjà redirigé
-          if (isInitialLoad && !hasRedirected && typeof window !== 'undefined' && window.location.pathname !== '/login') {
-            hasRedirected = true
-            console.log('🔍 [AUTH] Redirection vers /login')
-            window.location.href = '/login'
-          }
-        }
-      } catch (error) {
-        console.log('🔍 [AUTH] Erreur lors de la vérification:', error)
-        setUser(null)
-        // En cas d'erreur, rediriger vers login seulement si c'est un check initial ET qu'on n'a pas déjà redirigé
-        if (isInitialLoad && !hasRedirected && typeof window !== 'undefined' && window.location.pathname !== '/login') {
-          hasRedirected = true
-          console.log('🔍 [AUTH] Redirection vers /login (erreur)')
-          window.location.href = '/login'
-        }
-      } finally {
-        if (isInitialLoad) {
-          setIsLoading(false)
-          isInitialLoad = false
-        }
-        isChecking = false
-      }
+    // Simuler un utilisateur de démonstration
+    const mockUser: User = {
+      id: 1,
+      username: 'demo',
+      email: 'demo@sar.sn',
+      first_name: 'Utilisateur',
+      last_name: 'Démo',
+      full_name: 'Utilisateur Démo',
+      avatar: '',
+      avatar_url: '',
+      phone_number: '+221 33 123 45 67',
+      office_phone: '+221 33 123 45 68',
+      position: 'Employé',
+      department: 'IT',
+      matricule: 'SAR001',
+      manager: null,
+      manager_info: null,
+      is_active: true,
+      is_staff: false,
+      is_superuser: false,
+      last_login: new Date().toISOString(),
+      created_at: new Date().toISOString(),
+      updated_at: new Date().toISOString(),
+      google_id: '',
+      google_email: '',
+      google_avatar_url: '',
+      is_google_connected: false
     }
     
-    // Vérification initiale
-    checkAuth()
-    
-    // Vérifier l'authentification toutes les 10 minutes SEULEMENT si l'utilisateur est connecté
-    const authInterval = setInterval(() => {
-      // Ne vérifier que si on a un token et qu'on n'est pas sur la page de login
-      const token = localStorage.getItem('token')
-      if (token && typeof window !== 'undefined' && window.location.pathname !== '/login') {
-        checkAuth(true)
-      }
-    }, 10 * 60 * 1000)
-    
-    // Vérifier l'authentification quand la fenêtre reprend le focus
-    // MAIS seulement si l'utilisateur était déjà authentifié (évite les fermetures de modal)
-    const handleFocus = () => {
-      if (typeof window !== 'undefined' && 
-          window.location.pathname !== '/login') {
-        // Vérifier si l'utilisateur est connecté via le token localStorage
-        const token = localStorage.getItem('token')
-        if (token) {
-          checkAuth(true)
-        }
-      }
-    }
-    
-    // Vérifier l'authentification lors du changement de visibilité de la page
-    // Plus stable que l'event focus
-    const handleVisibilityChange = () => {
-      if (typeof window !== 'undefined' && 
-          !document.hidden && 
-          window.location.pathname !== '/login') {
-        // Vérifier si l'utilisateur est connecté via le token localStorage
-        const token = localStorage.getItem('token')
-        if (token) {
-          checkAuth(true)
-        }
-      }
-    }
-    
-    window.addEventListener('focus', handleFocus)
-    document.addEventListener('visibilitychange', handleVisibilityChange)
-    
-    return () => {
-      clearInterval(authInterval)
-      window.removeEventListener('focus', handleFocus)
-      document.removeEventListener('visibilitychange', handleVisibilityChange)
-    }
-  }, []) // SUPPRESSION de [user] - c'était la cause de la boucle infinie
+    // Simuler un chargement initial
+    setIsLoading(true)
+    setTimeout(() => {
+      setUser(mockUser)
+      setIsLoading(false)
+    }, 500)
+  }, [])
 
   // Valeur du contexte
   const value: AuthContextType = {

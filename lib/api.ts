@@ -2,16 +2,10 @@
 const API_BASE_URL = `${process.env.NEXT_PUBLIC_API_URL || 'http://localhost:8000/api'}/actualites`;
 
 // Types TypeScript pour les données
-export interface PollOption {
-  id: number;
-  text: string;
-  votes: number;
-  percentage: number;
-}
 
 export interface Article {
   id: number;
-  type: 'news' | 'poll' | 'event' | 'announcement';
+  type: 'news' | 'event' | 'announcement';
   title: string;
   content: string;
   date: string;
@@ -24,11 +18,7 @@ export interface Article {
   image?: string;
   image_url?: string;
   is_pinned: boolean;
-  question?: string;
-  end_date?: string;
   event_date?: string;
-  poll_options?: PollOption[];
-  totalVotes?: number;
   // Nouveaux champs pour les cartes adaptatives
   gallery_images?: string[];
   gallery_title?: string;
@@ -36,7 +26,7 @@ export interface Article {
   video_url?: string;
   video_poster?: string;
   video_poster_url?: string;
-  content_type: 'text_only' | 'image_only' | 'text_image' | 'gallery' | 'video' | 'poll' | 'event';
+  content_type: 'text_only' | 'image_only' | 'text_image' | 'gallery' | 'video' | 'event';
 }
 
 export interface ArticleListResponse {
@@ -52,7 +42,6 @@ export interface ArticleStats {
     announcements: number;
     events: number;
     publications: number;
-    polls: number;
   };
   categories: {
     [key: string]: number;
@@ -72,10 +61,8 @@ export interface CreateArticleData {
   author_role?: string;
   category: string;
   is_pinned?: boolean;
-  question?: string;
-  end_date?: string;
   event_date?: string;
-  content_type?: 'text_only' | 'image_only' | 'text_image' | 'gallery' | 'video' | 'poll' | 'event';
+  content_type?: 'text_only' | 'image_only' | 'text_image' | 'gallery' | 'video' | 'event';
   image?: File;
   video?: File;
   video_poster?: File;
@@ -122,23 +109,6 @@ export const api = {
     return response.json();
   },
 
-  // Voter pour un sondage
-  async votePoll(articleId: number, optionId: number, userId: string): Promise<void> {
-    const response = await fetch(`${API_BASE_URL}/${articleId}/vote/`, {
-      method: 'POST',
-      headers: {
-        'Content-Type': 'application/json',
-      },
-      body: JSON.stringify({
-        option: optionId,
-        user_id: userId,
-      }),
-    });
-    
-    if (!response.ok) {
-      throw new Error(`Erreur API: ${response.status}`);
-    }
-  },
 
   // Récupérer les statistiques
   async getStats(): Promise<ArticleStats> {

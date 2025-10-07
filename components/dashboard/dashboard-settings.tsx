@@ -23,8 +23,6 @@ const WIDGET_ICONS: Record<string, string> = {
   news: '📰',
   countdown: '⏰',
   safety: '🛡️',
-  polls: '📊',
-  questionnaire: '📝',
   menu: '🍽️'
 }
 

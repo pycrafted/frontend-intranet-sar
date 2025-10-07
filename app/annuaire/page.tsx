@@ -2,13 +2,11 @@
 
 import { useState, useEffect } from "react"
 import { LayoutWrapper } from "@/components/layout-wrapper"
-import { Input } from "@/components/ui/input"
 import { Badge } from "@/components/ui/badge"
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
 import { Button } from "@/components/ui/button"
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar"
-import { Search, Building, Mail, Phone, MapPin, MessageCircle, ChevronLeft, ChevronRight, Crown } from "lucide-react"
+import { Mail, Phone, MessageCircle, ChevronLeft, ChevronRight } from "lucide-react"
 import { useEmployees, Employee, Department } from "@/hooks/useEmployees"
 import { StandardLoader } from "@/components/ui/standard-loader"
 
@@ -242,6 +240,8 @@ const fallbackDepartments = ["Tous", "Direction Commerciale et Marketing", "Admi
 
 export default function AnnuairePage() {
   const [searchTerm, setSearchTerm] = useState("")
+  const [debouncedSearchTerm, setDebouncedSearchTerm] = useState("")
+  const [isTyping, setIsTyping] = useState(false)
   const [selectedDepartment, setSelectedDepartment] = useState("Tous")
   const [filteredEmployees, setFilteredEmployees] = useState<Employee[]>([])
   const [currentPage, setCurrentPage] = useState(1)
@@ -260,6 +260,16 @@ export default function AnnuairePage() {
   // Construire la liste des départements pour le filtre
   const departmentOptions = ["Tous", ...(departments.map(dept => dept.name) || fallbackDepartments.slice(1))]
 
+  // Debouncing pour la recherche
+  useEffect(() => {
+    const timer = setTimeout(() => {
+      setDebouncedSearchTerm(searchTerm)
+      setIsTyping(false)
+    }, 300)
+
+    return () => clearTimeout(timer)
+  }, [searchTerm])
+
   // Mettre à jour les données filtrées quand les données de l'API changent
   useEffect(() => {
     if (employees.length > 0) {
@@ -267,10 +277,23 @@ export default function AnnuairePage() {
     }
   }, [employees])
 
+  // Effectuer la recherche avec le terme debounced
+  useEffect(() => {
+    if (debouncedSearchTerm !== searchTerm) {
+      searchEmployees(debouncedSearchTerm, selectedDepartment)
+    }
+  }, [debouncedSearchTerm, selectedDepartment, searchEmployees])
+
   const handleSearch = (term: string) => {
     setSearchTerm(term)
-    // Utiliser l'API pour la recherche
-    searchEmployees(term, selectedDepartment)
+    setIsTyping(true)
+  }
+
+  const handleSearchKeyDown = (e: React.KeyboardEvent<HTMLInputElement>) => {
+    if (e.key === 'Enter') {
+      setDebouncedSearchTerm(searchTerm)
+      setIsTyping(false)
+    }
   }
 
   const handleDepartmentChange = (department: string) => {
@@ -378,48 +401,22 @@ export default function AnnuairePage() {
           background-clip: text;
         }
       `}</style>
-      <LayoutWrapper>
+      <LayoutWrapper 
+        secondaryNavbarProps={{
+          searchTerm,
+          onSearchChange: handleSearch,
+          onSearchKeyDown: handleSearchKeyDown,
+          searchPlaceholder: "Rechercher par nom, poste ou département...",
+          isTyping,
+          selectedDepartment,
+          onDepartmentChange: handleDepartmentChange,
+          departmentOptions
+        }}
+      >
         <div className="min-h-screen" style={{backgroundColor: "#e5e7eb"}}>
         <div className="px-6 py-8 space-y-8" style={{backgroundColor: "#e5e7eb"}}>
-          {/* Search and Filters */}
+          {/* Results count with animation */}
           <div className="max-w-7xl mx-auto">
-            <div className="rounded-none p-4" style={{backgroundColor: "#e5e7eb"}}>
-              <div className="bg-white/90 backdrop-blur-sm rounded-2xl border border-gray-200/50 shadow-lg">
-              <div className="p-8">
-                <div className="flex flex-col lg:flex-row gap-6">
-                  <div className="flex-1 relative group">
-                    <div className="absolute inset-0 bg-gradient-to-r from-gray-400 to-slate-500 rounded-xl blur opacity-0 group-hover:opacity-10 transition-opacity duration-300"></div>
-                    <div className="relative">
-                      <Search className="absolute left-5 top-1/2 transform -translate-y-1/2 text-gray-400 h-5 w-5 transition-colors duration-200 group-focus-within:text-gray-600" />
-                      <Input
-                        placeholder="Rechercher par nom, poste ou département..."
-                        value={searchTerm}
-                        onChange={(e) => handleSearch(e.target.value)}
-                        className="pl-14 h-14 text-base border-2 border-gray-200 focus:border-gray-400 focus:ring-4 focus:ring-gray-100 rounded-xl transition-all duration-200 bg-white/70 backdrop-blur-sm"
-                      />
-                    </div>
-                  </div>
-                  <div className="flex items-center gap-4">
-                    <Building className="h-6 w-6 text-gray-500" />
-                    <Select value={selectedDepartment} onValueChange={handleDepartmentChange}>
-                      <SelectTrigger className="w-64 h-14 border-2 border-gray-200 focus:border-gray-400 focus:ring-4 focus:ring-gray-100 rounded-xl bg-white/70 backdrop-blur-sm">
-                        <SelectValue placeholder="Filtrer par département" />
-                      </SelectTrigger>
-                      <SelectContent className="rounded-xl border-0 shadow-xl">
-                        {departmentOptions.map((department, index) => (
-                          <SelectItem key={`${department}-${index}`} value={department} className="rounded-lg">
-                            {department}
-                          </SelectItem>
-                        ))}
-                      </SelectContent>
-                    </Select>
-                  </div>
-                </div>
-              </div>
-            </div>
-            </div>
-
-            {/* Results count with animation */}
             <div className="flex items-center mt-6" style={{backgroundColor: "#e5e7eb"}}>
               <div className="flex items-center gap-3">
                 <div className="w-2 h-2 rounded-full animate-pulse" style={{backgroundColor: "#e5e7eb"}}></div>
@@ -433,7 +430,7 @@ export default function AnnuairePage() {
           {/* Employee Cards Grid */}
           <div className="max-w-7xl mx-auto">
             <div className="rounded-none p-4" style={{backgroundColor: "#e5e7eb"}}>
-              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4">
+              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4" style={{minHeight: 'calc(100vh - 200px)'}}>
               {displayEmployees.map((employee, index) => (
                 employee ? (
                 <Card

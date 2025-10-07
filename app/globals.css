@@ -419,18 +419,6 @@
     @apply mt-4;
   }
 
-  /* Sondage - design épuré et simple */
-  .poll-content {
-    @apply p-6;
-  }
-
-  .poll-content .space-y-3 > * + * {
-    @apply mt-3;
-  }
-
-  .poll-content .space-y-2 > * + * {
-    @apply mt-2;
-  }
 
   /* Événement - espacement équilibré */
   .event-content {

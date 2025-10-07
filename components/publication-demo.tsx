@@ -25,32 +25,6 @@ const demoArticles: Article[] = [
     ]
   },
   {
-    id: 2,
-    type: "poll",
-    title: "Quel est votre avis sur les nouveaux horaires de travail flexibles ?",
-    question: "Nous envisageons d'introduire des horaires de travail plus flexibles. Quel serait votre préférence ?",
-    content: "",
-    date: "2024-01-14",
-    time: "14:15",
-    author: "Jean Martin",
-    author_role: "Directeur RH",
-    author_avatar: "/placeholder-user.jpg",
-    category: "RH",
-    image: "/modern-technology-training-session.jpg",
-    is_pinned: false,
-    poll_options: [
-      { id: 1, text: "Horaire flexible (8h-17h ou 9h-18h)", votes: 45, percentage: 60 },
-      { id: 2, text: "Télétravail 2 jours/semaine", votes: 20, percentage: 27 },
-      { id: 3, text: "Horaire fixe traditionnel", votes: 10, percentage: 13 }
-    ],
-    totalVotes: 75,
-    end_date: "2024-01-25",
-    reactions: [
-      { emoji: "🤔", count: 3, users: ["user6"] },
-      { emoji: "👍", count: 15, users: ["user7", "user8"] }
-    ]
-  },
-  {
     id: 3,
     type: "event",
     title: "Formation sécurité incendie - Session de janvier",

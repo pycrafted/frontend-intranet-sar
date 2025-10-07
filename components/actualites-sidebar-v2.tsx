@@ -152,8 +152,6 @@ export function ActualitesSidebarV2({
       bgColor: "bg-yellow-50"
     },
     { 
-      id: "polls", 
-      name: "Enquêtes", 
       icon: BarChart3, 
       count: 0,
       color: "text-purple-600",

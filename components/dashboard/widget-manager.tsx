@@ -45,15 +45,6 @@ const AVAILABLE_WIDGETS = {
     size: 'medium' as const,
     isDefault: true
   },
-  poll: { 
-    id: 'poll',
-    name: 'Sondage', 
-    description: 'Participez aux sondages de l\'entreprise',
-    icon: '📊',
-    category: 'Collaboration',
-    size: 'medium' as const,
-    isDefault: true
-  },
   menu: { 
     id: 'menu',
     name: 'Menu de la Semaine', 
@@ -61,6 +52,15 @@ const AVAILABLE_WIDGETS = {
     icon: '🍽️',
     category: 'Services',
     size: 'full' as const,
+    isDefault: true
+  },
+  director: { 
+    id: 'director',
+    name: 'Mot du Directeur', 
+    description: 'Message du Directeur Général',
+    icon: '👑',
+    category: 'Direction',
+    size: 'small' as const,
     isDefault: true
   }
 }

@@ -1,14 +1,6 @@
 import { useState, useEffect } from 'react'
 import { api } from '@/lib/api-client'
 
-export interface DocumentCategory {
-  id: number
-  name: string
-  description: string
-  color: string
-  icon: string
-  order: number
-}
 
 export interface DocumentFolder {
   id: number
@@ -47,8 +39,6 @@ export interface Document {
   file_url: string
   uploaded_by: number
   uploaded_by_name: string
-  category: number | null
-  category_info: DocumentCategory | null
   folder: number | null
   folder_info: DocumentFolder | null
   created_at: string
@@ -61,7 +51,6 @@ export interface DocumentUpload {
   title: string
   description?: string
   file: File
-  category?: number
   folder?: number
 }
 
@@ -73,7 +62,6 @@ export interface DocumentStats {
 
 export function useDocuments() {
   const [documents, setDocuments] = useState<Document[]>([])
-  const [categories, setCategories] = useState<DocumentCategory[]>([])
   const [folders, setFolders] = useState<DocumentFolder[]>([])
   const [folderTree, setFolderTree] = useState<DocumentFolderTree[]>([])
   const [isLoading, setIsLoading] = useState(false)
@@ -90,7 +78,7 @@ export function useDocuments() {
       if (searchTerm) params.append('search', searchTerm)
       if (ordering) params.append('ordering', ordering)
 
-      const response = await api.get(`/api/documents/?${params.toString()}`, { requireAuth: true })
+      const response = await api.get(`/documents/?${params.toString()}`, { requireAuth: true })
       
       if (response.ok) {
         const data = await response.json()
@@ -105,23 +93,11 @@ export function useDocuments() {
     }
   }
 
-  // Charger les catégories
-  const fetchCategories = async () => {
-    try {
-      const response = await api.get('/api/documents/categories/', { requireAuth: true })
-      if (response.ok) {
-        const data = await response.json()
-        setCategories(data)
-      }
-    } catch (err) {
-      console.error('Erreur lors du chargement des catégories:', err)
-    }
-  }
 
   // Charger les statistiques
   const fetchStats = async () => {
     try {
-      const response = await api.get('/api/documents/stats/', { requireAuth: true })
+      const response = await api.get('/documents/stats/', { requireAuth: true })
       if (response.ok) {
         const data = await response.json()
         setStats(data)
@@ -142,9 +118,6 @@ export function useDocuments() {
       if (documentData.description) {
         formData.append('description', documentData.description)
       }
-      if (documentData.category) {
-        formData.append('category', documentData.category.toString())
-      }
       if (documentData.folder) {
         formData.append('folder', documentData.folder.toString())
         console.log('🔍 [UPLOAD] Dossier ajouté au FormData:', documentData.folder)
@@ -156,13 +129,20 @@ export function useDocuments() {
       console.log('🔍 [UPLOAD] FormData complet:', {
         title: formData.get('title'),
         description: formData.get('description'),
-        category: formData.get('category'),
         folder: formData.get('folder'),
         fileName: documentData.file.name
       })
 
-      const response = await api.post('/api/documents/', formData, {
+      console.log('🔍 [UPLOAD] Envoi de la requête POST vers /documents/')
+      const response = await api.post('/documents/', formData, {
         requireAuth: true,
+      })
+
+      console.log('🔍 [UPLOAD] Réponse reçue:', {
+        status: response.status,
+        statusText: response.statusText,
+        ok: response.ok,
+        headers: Object.fromEntries(response.headers.entries())
       })
 
       if (response.ok) {
@@ -179,13 +159,13 @@ export function useDocuments() {
         let errorData
         try {
           errorData = await response.json()
+          console.error('❌ [UPLOAD] Erreur API (JSON):', errorData)
         } catch (jsonError) {
           // Si la réponse n'est pas du JSON valide (erreur 500)
           const textResponse = await response.text()
           console.error('❌ [UPLOAD] Erreur API (non-JSON):', textResponse)
           throw new Error(`Erreur serveur (${response.status}): ${textResponse.substring(0, 100)}...`)
         }
-        console.error('❌ [UPLOAD] Erreur API:', errorData)
         throw new Error(errorData.error || errorData.detail || 'Erreur lors de l\'upload')
       }
     } catch (err) {
@@ -201,7 +181,7 @@ export function useDocuments() {
   // Télécharger un document
   const downloadDocument = async (documentId: number, filename: string) => {
     try {
-      const response = await api.get(`/api/documents/${documentId}/download/`, { requireAuth: true })
+      const response = await api.get(`/documents/${documentId}/download/`, { requireAuth: true })
       
       if (response.ok) {
         // Créer un blob et déclencher le téléchargement
@@ -231,9 +211,7 @@ export function useDocuments() {
   // Visualiser un document
   const viewDocument = async (documentId: number) => {
     try {
-      console.log('🔍 [VIEW] Tentative de visualisation du document:', documentId)
-      
-      const response = await api.get(`/api/documents/${documentId}/view/`, { requireAuth: true })
+      const response = await api.get(`/documents/${documentId}/view/`, { requireAuth: true })
       
       if (response.ok) {
         // Créer un blob et l'ouvrir dans un nouvel onglet
@@ -246,14 +224,19 @@ export function useDocuments() {
           window.URL.revokeObjectURL(url)
         }, 10000)
         
-        console.log('✅ [VIEW] Document ouvert avec succès')
         return { success: true }
       } else {
-        console.error('❌ [VIEW] Erreur lors de la récupération du document:', response.status)
-        throw new Error('Erreur lors de la visualisation')
+        // Essayer de récupérer le message d'erreur du backend
+        let errorMessage = 'Erreur lors de la visualisation'
+        try {
+          const errorData = await response.json()
+          errorMessage = errorData.error || errorMessage
+        } catch (jsonError) {
+          // Si on ne peut pas parser le JSON, utiliser le message par défaut
+        }
+        throw new Error(errorMessage)
       }
     } catch (err) {
-      console.error('❌ [VIEW] Erreur complète:', err)
       const errorMessage = err instanceof Error ? err.message : 'Erreur lors de la visualisation'
       setError(errorMessage)
       return { success: false, error: errorMessage }
@@ -266,7 +249,7 @@ export function useDocuments() {
       setIsLoading(true)
       setError(null)
 
-      const response = await api.delete(`/api/documents/${documentId}/`, { requireAuth: true })
+      const response = await api.delete(`/documents/${documentId}/`, { requireAuth: true })
 
       if (response.ok) {
         setDocuments(prev => prev.filter(doc => doc.id !== documentId))
@@ -289,7 +272,7 @@ export function useDocuments() {
       setIsLoading(true)
       setError(null)
 
-      const response = await api.post('/api/documents/bulk-delete/', {
+      const response = await api.post('/documents/bulk-delete/', {
         document_ids: documentIds
       }, { requireAuth: true })
 
@@ -316,7 +299,7 @@ export function useDocuments() {
         params.append('parent', parentId === null ? 'null' : parentId.toString())
       }
       
-      const response = await api.get(`/api/documents/folders/?${params.toString()}`, { requireAuth: true })
+      const response = await api.get(`/documents/folders/?${params.toString()}`, { requireAuth: true })
       if (response.ok) {
         const data = await response.json()
         setFolders(data.results || data)
@@ -329,7 +312,7 @@ export function useDocuments() {
   // Charger l'arbre des dossiers
   const fetchFolderTree = async () => {
     try {
-      const response = await api.get('/api/documents/folders/tree/', { requireAuth: true })
+      const response = await api.get('/documents/folders/tree/', { requireAuth: true })
       if (response.ok) {
         const data = await response.json()
         setFolderTree(data)
@@ -345,7 +328,7 @@ export function useDocuments() {
       setIsLoading(true)
       setError(null)
 
-      const response = await api.post('/api/documents/folders/', folderData, { requireAuth: true })
+      const response = await api.post('/documents/folders/', folderData, { requireAuth: true })
 
       if (response.ok) {
         const newFolder = await response.json()
@@ -372,7 +355,7 @@ export function useDocuments() {
       setIsLoading(true)
       setError(null)
 
-      const response = await api.patch(`/api/documents/folders/${folderId}/`, folderData, { requireAuth: true })
+      const response = await api.patch(`/documents/folders/${folderId}/`, folderData, { requireAuth: true })
 
       if (response.ok) {
         const updatedFolder = await response.json()
@@ -399,7 +382,7 @@ export function useDocuments() {
       setIsLoading(true)
       setError(null)
 
-      const response = await api.delete(`/api/documents/folders/${folderId}/`, { requireAuth: true })
+      const response = await api.delete(`/documents/folders/${folderId}/`, { requireAuth: true })
 
       if (response.ok) {
         setFolders(prev => prev.filter(folder => folder.id !== folderId))
@@ -424,7 +407,7 @@ export function useDocuments() {
       setIsLoading(true)
       setError(null)
 
-      const response = await api.patch(`/api/documents/${documentId}/`, {
+      const response = await api.patch(`/documents/${documentId}/`, {
         title: newTitle
       }, { requireAuth: true })
 
@@ -450,7 +433,6 @@ export function useDocuments() {
   // Charger les données au montage
   useEffect(() => {
     fetchDocuments()
-    fetchCategories()
     fetchStats()
     fetchFolders()
     fetchFolderTree()
@@ -458,14 +440,12 @@ export function useDocuments() {
 
   return {
     documents,
-    categories,
     folders,
     folderTree,
     isLoading,
     error,
     stats,
     fetchDocuments,
-    fetchCategories,
     fetchFolders,
     fetchFolderTree,
     createFolder,

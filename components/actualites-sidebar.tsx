@@ -31,7 +31,6 @@ const filterSections = [
       { name: "Annonces", href: "/actualites?filter=announcements", icon: Megaphone, badge: "3", count: 3 },
       { name: "Événements", href: "/actualites?filter=events", icon: Calendar, badge: "4", count: 4 },
       { name: "Publications", href: "/actualites?filter=publications", icon: FileText, badge: "5", count: 5 },
-      { name: "Sondages", href: "/actualites?filter=polls", icon: BarChart3, badge: "2", count: 2 },
     ],
   },
 ]

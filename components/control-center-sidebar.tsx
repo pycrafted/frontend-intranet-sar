@@ -39,12 +39,6 @@ const controlCenterSections = [
       { name: "Événements", section: "events", icon: Calendar, badge: "15", count: 15 },
     ],
   },
-  {
-    title: "Enquêtes & Sondages",
-    items: [
-      { name: "Enquêtes", section: "questionnaires", icon: ClipboardList, badge: "7", count: 7 },
-    ],
-  },
 ]
 
 interface ControlCenterSidebarProps {

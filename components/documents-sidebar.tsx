@@ -49,7 +49,7 @@ function useDocumentsStats() {
   useEffect(() => {
     const fetchStats = async () => {
       try {
-        const response = await api.get('/api/documents/stats/', { requireAuth: true })
+        const response = await api.get('/documents/stats/', { requireAuth: true })
         if (response.ok) {
           const data = await response.json()
           setStats(data)
@@ -67,38 +67,8 @@ function useDocumentsStats() {
   return { stats, loading }
 }
 
-// Hook pour récupérer les catégories de documents
-function useDocumentCategories() {
-  const [categories, setCategories] = useState([])
-  const [loading, setLoading] = useState(true)
-
-  useEffect(() => {
-    const fetchCategories = async () => {
-      try {
-        const response = await api.get('/api/documents/categories/', { requireAuth: true })
-        if (response.ok) {
-          const data = await response.json()
-          setCategories(data)
-          console.log('✅ Catégories chargées:', data)
-        } else {
-          console.error('❌ Erreur API catégories:', response.status)
-        }
-      } catch (error) {
-        console.error('❌ Erreur lors du chargement des catégories:', error)
-      } finally {
-        setLoading(false)
-      }
-    }
-
-    fetchCategories()
-  }, [])
-
-  return { categories, loading }
-}
 
 interface DocumentsSidebarProps {
-  activeCategory?: number | null
-  onCategoryChange?: (categoryId: number | null) => void
   activeSort?: string
   onSortChange?: (sort: string) => void
   activeTimeFilter?: string
@@ -111,8 +81,6 @@ interface DocumentsSidebarProps {
 }
 
 export function DocumentsSidebar({ 
-  activeCategory = null, 
-  onCategoryChange, 
   activeSort = "-created_at",
   onSortChange,
   activeTimeFilter = "all",
@@ -124,16 +92,11 @@ export function DocumentsSidebar({
   onUploadClick
 }: DocumentsSidebarProps) {
   const { stats, loading: statsLoading } = useDocumentsStats()
-  const { categories, loading: categoriesLoading } = useDocumentCategories()
   const [expandedSections, setExpandedSections] = useState({
     filters: true,
-    time: true,
-    categories: true
+    time: true
   })
 
-  // Debug: afficher les catégories
-  console.log('🔍 Debug sidebar - categories:', categories)
-  console.log('🔍 Debug sidebar - categoriesLoading:', categoriesLoading)
 
   const toggleSection = (section: keyof typeof expandedSections) => {
     setExpandedSections(prev => ({
@@ -202,40 +165,6 @@ export function DocumentsSidebar({
     { id: "month", name: "Ce mois", icon: Calendar, count: 0 }
   ]
 
-  // Catégories dynamiques (basées sur l'API)
-  const categoryItems = [
-    { 
-      id: null, 
-      name: "Toutes les catégories", 
-      icon: Target, 
-      count: documentsCount,
-      color: "text-gray-600",
-      bgColor: "bg-gray-50"
-    },
-    ...categories.map((category: any) => ({
-      id: category.id,
-      name: category.name,
-      icon: getCategoryIcon(category.name),
-      count: documents.filter((doc: any) => doc.category === category.id).length,
-      color: "text-blue-600",
-      bgColor: "bg-blue-50"
-    }))
-  ]
-
-  // Fonction pour obtenir l'icône selon la catégorie
-  function getCategoryIcon(categoryName: string) {
-    const iconMap: { [key: string]: any } = {
-      'Général': File,
-      'Ressources Humaines': Users,
-      'Finance': TrendingUp,
-      'Production': Building2,
-      'Sécurité': Shield,
-      'Qualité': CheckCircle,
-      'Maintenance': AlertCircle,
-      'Commercial': Star
-    }
-    return iconMap[categoryName] || File
-  }
 
   const SidebarSection = ({ 
     title, 
@@ -367,15 +296,6 @@ export function DocumentsSidebar({
 
           <Separator />
 
-          {/* Catégories */}
-          <SidebarSection
-            title="Catégories"
-            items={categoryItems}
-            isExpanded={expandedSections.categories}
-            onToggle={() => toggleSection('categories')}
-            activeItem={activeCategory}
-            onItemClick={(id) => onCategoryChange?.(id as number | null)}
-          />
 
         </nav>
       </div>
