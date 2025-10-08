@@ -51,3 +51,4 @@ export function DocumentsBreadcrumb({ currentPath, onBreadcrumbClick }: Document
     </div>
   )
 }
+

@@ -175,3 +175,4 @@ export const MOCK_DEPARTMENTS: Department[] = [
     color: "indigo"
   }
 ];
+

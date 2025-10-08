@@ -66,3 +66,4 @@ export function CreateFolderDialog({ open, onOpenChange, onCreateFolder }: Creat
     </Dialog>
   )
 }
+
