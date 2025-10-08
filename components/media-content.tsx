@@ -13,6 +13,7 @@ import {
   X
 } from "lucide-react"
 import { cn } from "@/lib/utils"
+import { ImageTest } from "./image-test"
 
 interface MediaContentProps {
   type: 'image' | 'gallery' | 'video' | 'checklist'
@@ -267,29 +268,35 @@ export function MediaContent({
         {type === 'video' && renderVideo()}
         {type === 'checklist' && renderChecklist()}
         {type === 'image' && images.length > 0 && (
-          <div className="relative group">
-            <img
-              src={images[0]}
-              alt="Publication image"
-              className="w-full h-96 object-cover rounded-lg"
-              onLoad={() => console.log('✅ [MEDIA_CONTENT] Image chargée avec succès:', images[0])}
-              onError={(e) => {
-                console.error('❌ [MEDIA_CONTENT] Erreur de chargement image:', {
-                  src: images[0],
-                  error: e,
-                  target: e.target
-                });
-              }}
-            />
-            <div className="absolute inset-0 bg-black bg-opacity-0 group-hover:bg-opacity-20 transition-all rounded-lg flex items-center justify-center">
-              <Button 
-                size="sm" 
-                variant="secondary" 
-                className="opacity-0 group-hover:opacity-100 transition-opacity h-8 w-8 p-0"
-                onClick={() => setIsFullscreen(true)}
-              >
-                <ImageIcon className="w-4 h-4" />
-              </Button>
+          <div className="space-y-4">
+            {/* Composant de test pour déboguer */}
+            <ImageTest imageUrl={images[0]} alt="Publication image" />
+            
+            {/* Image normale */}
+            <div className="relative group">
+              <img
+                src={images[0]}
+                alt="Publication image"
+                className="w-full h-96 object-cover rounded-lg"
+                onLoad={() => console.log('✅ [MEDIA_CONTENT] Image chargée avec succès:', images[0])}
+                onError={(e) => {
+                  console.error('❌ [MEDIA_CONTENT] Erreur de chargement image:', {
+                    src: images[0],
+                    error: e,
+                    target: e.target
+                  });
+                }}
+              />
+              <div className="absolute inset-0 bg-black bg-opacity-0 group-hover:bg-opacity-20 transition-all rounded-lg flex items-center justify-center">
+                <Button 
+                  size="sm" 
+                  variant="secondary" 
+                  className="opacity-0 group-hover:opacity-100 transition-opacity h-8 w-8 p-0"
+                  onClick={() => setIsFullscreen(true)}
+                >
+                  <ImageIcon className="w-4 h-4" />
+                </Button>
+              </div>
             </div>
           </div>
         )}

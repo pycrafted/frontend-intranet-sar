@@ -53,6 +53,16 @@ export function PublicationCard({
   }
 
   const renderMediaContent = () => {
+    // Log de débogage pour l'article
+    console.log('📰 [PUBLICATION_CARD] Article data:', {
+      id: article.id,
+      title: article.title,
+      image: article.image,
+      image_url: article.image_url,
+      type: (article as any).type,
+      hasImage: !!(article.image_url || article.image)
+    });
+
     // Déterminer le type de média basé sur les données disponibles
     let mediaType: 'image' | 'gallery' | 'video' | 'checklist' = 'image'
     let mediaProps: any = {}
@@ -71,8 +81,19 @@ export function PublicationCard({
       mediaProps = { images: (article as any).gallery_images }
     } else if (article.image_url || article.image) {
       mediaType = 'image'
-      mediaProps = { images: [article.image_url || article.image] }
+      const imageUrl = article.image_url || article.image;
+      mediaProps = { images: [imageUrl] }
+      
+      console.log('🖼️ [PUBLICATION_CARD] Image URL générée:', {
+        article_id: article.id,
+        article_title: article.title,
+        image: article.image,
+        image_url: article.image_url,
+        final_url: imageUrl,
+        mediaType
+      });
     } else {
+      console.log('❌ [PUBLICATION_CARD] Aucun média trouvé pour l\'article:', article.id);
       return null
     }
 
