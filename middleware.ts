@@ -34,9 +34,8 @@ const protectedApiRoutes = [
 ]
 
 export function middleware(request: NextRequest) {
-  // AUTHENTIFICATION COMPLÈTEMENT DÉSACTIVÉE
-  // Toutes les pages et API sont accessibles sans connexion
-  console.log(`🌐 [MIDDLEWARE] Accès libre à: ${request.nextUrl.pathname}`)
+  // TEMPORAIREMENT : Désactiver l'authentification
+  // Toutes les pages sont accessibles sans connexion
   return NextResponse.next()
 }
 

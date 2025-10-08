@@ -16,8 +16,18 @@ export default function HomePage() {
     day: 'numeric'
   })
 
-  // AUTHENTIFICATION DÉSACTIVÉE - Pas de loading nécessaire
-  console.log('🔓 [HOME] Authentification désactivée - Accès libre')
+  // Afficher un loading si l'authentification est en cours
+  if (isLoading) {
+    return (
+      <LayoutWrapper>
+        <div className="flex items-center justify-center min-h-[400px]">
+          <div className="flex items-center gap-2">
+            <div className="w-6 h-6 border-2 border-red-600 border-t-transparent rounded-full animate-spin" />
+          </div>
+        </div>
+      </LayoutWrapper>
+    )
+  }
 
   return (
     <LayoutWrapper>
