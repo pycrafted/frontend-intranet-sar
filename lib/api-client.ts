@@ -42,7 +42,7 @@ export class APIClient {
       method = 'GET',
       body,
       headers = {},
-      requireAuth = true
+      requireAuth = false  // AUTHENTIFICATION DÉSACTIVÉE
     } = options
 
     // Headers par défaut
@@ -98,11 +98,10 @@ export class APIClient {
       headers: Object.fromEntries(response.headers.entries())
     })
 
-    // Vérifier l'authentification si requise
-    if (requireAuth && (response.status === 401 || response.status === 403)) {
-      console.log('🔍 [API_CLIENT] Erreur d\'authentification:', response.status)
-      // Ne pas rediriger automatiquement - laisser le contexte d'authentification gérer cela
-      // pour éviter les boucles infinies
+    // AUTHENTIFICATION DÉSACTIVÉE - Ignorer les erreurs 401/403
+    if (response.status === 401 || response.status === 403) {
+      console.log('🔍 [API_CLIENT] Erreur d\'authentification ignorée (mode démo):', response.status)
+      // En mode démo, on ignore les erreurs d'authentification
     }
 
     return response

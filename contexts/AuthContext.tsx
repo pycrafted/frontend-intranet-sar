@@ -93,11 +93,38 @@ interface AuthProviderProps {
 
 // Provider du contexte d'authentification
 export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
-  const [user, setUser] = useState<User | null>(null)
-  const [isLoading, setIsLoading] = useState(true)
+  // TEMPORAIREMENT : Désactiver complètement l'authentification
+  const [user, setUser] = useState<User | null>({
+    id: 1,
+    username: 'demo',
+    email: 'demo@sar.sn',
+    first_name: 'Utilisateur',
+    last_name: 'Démo',
+    full_name: 'Utilisateur Démo',
+    avatar: '/placeholder-user.jpg',
+    avatar_url: '/placeholder-user.jpg',
+    phone_number: '+221 33 123 45 67',
+    office_phone: '+221 33 123 45 68',
+    position: 'Employé',
+    department: 'IT',
+    matricule: 'SAR001',
+    manager: null,
+    manager_info: null,
+    is_active: true,
+    is_staff: true,
+    is_superuser: true,
+    last_login: new Date().toISOString(),
+    created_at: new Date().toISOString(),
+    updated_at: new Date().toISOString(),
+    google_id: null,
+    google_email: null,
+    google_avatar_url: null,
+    is_google_connected: false
+  })
+  const [isLoading, setIsLoading] = useState(false)
 
-  // Vérifier si l'utilisateur est connecté (seulement si on a fini de charger)
-  const isAuthenticated = !isLoading && !!user
+  // TEMPORAIREMENT : Toujours authentifié
+  const isAuthenticated = true
 
   // Fonction pour récupérer le token CSRF
   const getCSRFToken = async (): Promise<string | null> => {
@@ -169,248 +196,35 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
     }
   }
 
-  // Fonction de connexion
+  // TEMPORAIREMENT : Fonction de connexion désactivée
   const login = async (data: LoginData): Promise<{ success: boolean; error?: string }> => {
-    try {
-      console.log('🔐 [AUTH] Tentative de connexion:', { email: data.email })
-      console.log('🔐 [AUTH] URL complète:', `${process.env.NEXT_PUBLIC_API_URL || 'http://localhost:8000'}/api/auth/login/`)
-      setIsLoading(true)
-
-      const response = await api.post('/api/auth/login/', data, { requireAuth: false })
-      
-      console.log('🔐 [AUTH] Réponse de connexion:', {
-        status: response.status,
-        statusText: response.statusText,
-        ok: response.ok,
-        url: response.url
-      })
-
-      if (response.ok) {
-        const result = await response.json()
-        console.log('🔐 [AUTH] Résultat de connexion:', result)
-        setUser(result.user)
-        
-        // Vérifier si des tokens Google ont été générés automatiquement
-        if (result.google_tokens_generated) {
-          console.log('🔗 Tokens Google générés automatiquement pour l\'utilisateur')
-          
-          // Si une URL d'authentification Google est fournie, l'ouvrir automatiquement
-          if (result.google_auth_url) {
-            console.log('🚀 Ouverture automatique de l\'authentification Google')
-            // Ouvrir dans une popup pour une meilleure UX
-            const popup = window.open(
-              result.google_auth_url, 
-              'google_auth', 
-              'width=500,height=600,scrollbars=yes,resizable=yes'
-            )
-            
-            // Surveiller la fermeture de la popup
-            const checkClosed = setInterval(() => {
-              if (popup?.closed) {
-                clearInterval(checkClosed)
-                console.log('✅ Popup Google fermée, rechargement des données utilisateur')
-                // Recharger les données utilisateur après fermeture de la popup
-                setTimeout(() => {
-                  refreshUser()
-                }, 1000)
-              }
-            }, 1000)
-          }
-        }
-        
-        // Recharger les données utilisateur pour s'assurer que l'avatar est à jour
-        setTimeout(() => {
-          refreshUser()
-        }, 100)
-        
-        return { success: true }
-      } else {
-        const error = await response.json()
-        return { success: false, error: error.detail || 'Erreur de connexion' }
-      }
-    } catch (error) {
-      return { success: false, error: 'Erreur de connexion' }
-    } finally {
-      setIsLoading(false)
-    }
+    console.log('🔐 [AUTH] Connexion désactivée - Mode démo activé')
+    return { success: true }
   }
 
-  // Fonction de déconnexion
+  // TEMPORAIREMENT : Fonction de déconnexion désactivée
   const logout = async (): Promise<void> => {
-    try {
-      setIsLoading(true)
-      
-      // Récupérer le token CSRF
-      const csrfToken = await getCSRFToken()
-      
-      // Appeler l'endpoint de déconnexion côté serveur
-      await fetch(`${process.env.NEXT_PUBLIC_API_URL || 'http://localhost:8000'}/api/auth/logout/`, {
-        method: 'POST',
-        credentials: 'include',
-        headers: {
-          'Content-Type': 'application/json',
-          'X-CSRFToken': csrfToken || '',
-        },
-      })
-    } catch (error) {
-      // Erreur silencieuse - on déconnecte quand même côté client
-    } finally {
-      // Vider l'état côté client
-      setUser(null)
-      setIsLoading(false)
-      
-      // Forcer la redirection vers login après déconnexion
-      if (typeof window !== 'undefined') {
-        // Nettoyer le localStorage et sessionStorage
-        localStorage.clear()
-        sessionStorage.clear()
-        
-        // Rediriger vers login avec un paramètre pour forcer la reconnexion
-        window.location.href = '/login?logout=true'
-      }
-    }
+    console.log('🔐 [AUTH] Déconnexion désactivée - Mode démo activé')
+    // Ne rien faire en mode démo
   }
 
-  // Fonction d'inscription
+  // TEMPORAIREMENT : Fonction d'inscription désactivée
   const register = async (data: RegisterData): Promise<{ success: boolean; error?: string }> => {
-    try {
-      setIsLoading(true)
-      
-      // Récupérer le token CSRF
-      const csrfToken = await getCSRFToken()
-      
-      const response = await fetch(`${process.env.NEXT_PUBLIC_API_URL || 'http://localhost:8000'}/api/auth/register/`, {
-        method: 'POST',
-        credentials: 'include',
-        headers: {
-          'Content-Type': 'application/json',
-          'X-CSRFToken': csrfToken || '',
-        },
-        body: JSON.stringify(data),
-      })
-
-      if (response.ok) {
-        const result = await response.json()
-        setUser(result.user)
-        return { success: true }
-      } else {
-        const error = await response.json()
-        return { success: false, error: error.detail || 'Erreur d\'inscription' }
-      }
-    } catch (error) {
-      return { success: false, error: 'Erreur d\'inscription' }
-    } finally {
-      setIsLoading(false)
-    }
+    console.log('🔐 [AUTH] Inscription désactivée - Mode démo activé')
+    return { success: true }
   }
 
-  // Fonction de mise à jour du profil
+  // TEMPORAIREMENT : Fonction de mise à jour du profil désactivée
   const updateProfile = async (data: Partial<User>): Promise<{ success: boolean; error?: string }> => {
-    try {
-      setIsLoading(true)
-      
-      // Récupérer le token CSRF
-      const csrfToken = await getCSRFToken()
-      
-      const response = await fetch(`${process.env.NEXT_PUBLIC_API_URL || 'http://localhost:8000'}/api/auth/current-user/`, {
-        method: 'PUT',
-        credentials: 'include',
-        headers: {
-          'Content-Type': 'application/json',
-          'X-CSRFToken': csrfToken || '',
-        },
-        body: JSON.stringify(data),
-      })
-
-      if (response.ok) {
-        const result = await response.json()
-        setUser(result)
-        return { success: true }
-      } else {
-        const error = await response.json()
-        return { success: false, error: error.detail || 'Erreur de mise à jour' }
-      }
-    } catch (error) {
-      return { success: false, error: 'Erreur de mise à jour' }
-    } finally {
-      setIsLoading(false)
-    }
+    console.log('🔐 [AUTH] Mise à jour profil désactivée - Mode démo activé')
+    return { success: true }
   }
 
-  // Fonction de changement de mot de passe
+  // TEMPORAIREMENT : Fonction de changement de mot de passe désactivée
   const changePassword = async (oldPassword: string, newPassword: string): Promise<{ success: boolean; error?: string }> => {
-    try {
-      setIsLoading(true)
-      
-      // Récupérer le token CSRF
-      const csrfToken = await getCSRFToken()
-      
-      const response = await fetch(`${process.env.NEXT_PUBLIC_API_URL || 'http://localhost:8000'}/api/auth/change-password/`, {
-        method: 'POST',
-        credentials: 'include',
-        headers: {
-          'Content-Type': 'application/json',
-          'X-CSRFToken': csrfToken || '',
-        },
-        body: JSON.stringify({
-          old_password: oldPassword,
-          new_password: newPassword,
-          new_password_confirm: newPassword,
-        }),
-      })
-
-      if (response.ok) {
-        return { success: true }
-      } else {
-        const error = await response.json()
-        return { success: false, error: error.detail || 'Erreur de changement de mot de passe' }
-      }
-    } catch (error) {
-      return { success: false, error: 'Erreur de changement de mot de passe' }
-    } finally {
-      setIsLoading(false)
-    }
+    console.log('🔐 [AUTH] Changement mot de passe désactivé - Mode démo activé')
+    return { success: true }
   }
-
-
-  // TEMPORAIREMENT : Simuler un utilisateur connecté sans authentification
-  useEffect(() => {
-    // Simuler un utilisateur de démonstration
-    const mockUser: User = {
-      id: 1,
-      username: 'demo',
-      email: 'demo@sar.sn',
-      first_name: 'Utilisateur',
-      last_name: 'Démo',
-      full_name: 'Utilisateur Démo',
-      avatar: '',
-      avatar_url: '',
-      phone_number: '+221 33 123 45 67',
-      office_phone: '+221 33 123 45 68',
-      position: 'Employé',
-      department: 'IT',
-      matricule: 'SAR001',
-      manager: null,
-      manager_info: null,
-      is_active: true,
-      is_staff: false,
-      is_superuser: false,
-      last_login: new Date().toISOString(),
-      created_at: new Date().toISOString(),
-      updated_at: new Date().toISOString(),
-      google_id: '',
-      google_email: '',
-      google_avatar_url: '',
-      is_google_connected: false
-    }
-    
-    // Simuler un chargement initial
-    setIsLoading(true)
-    setTimeout(() => {
-      setUser(mockUser)
-      setIsLoading(false)
-    }, 500)
-  }, [])
 
   // Valeur du contexte
   const value: AuthContextType = {

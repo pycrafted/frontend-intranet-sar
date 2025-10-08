@@ -323,7 +323,7 @@ const InteractiveOrgChart: React.FC<OrgChartProps> = ({ employees: propEmployees
             <div className="flex items-center justify-center mb-1">
               <Avatar className="w-6 h-6 mr-1">
                 <AvatarImage 
-                  src={employee.avatar ? `http://localhost:8000${employee.avatar}` : "/placeholder.svg"} 
+                  src={employee.avatar ? `${process.env.NEXT_PUBLIC_API_URL || 'https://backend-intranet-sar-1.onrender.com'}${employee.avatar}` : "/placeholder.svg"} 
                   alt={employee.full_name || employee.name || "Employé"} 
                   onError={(e) => {
                     e.currentTarget.src = "/placeholder.svg";
@@ -557,7 +557,7 @@ const InteractiveOrgChart: React.FC<OrgChartProps> = ({ employees: propEmployees
               <div className="relative">
                 <Avatar className="w-24 h-24 mx-auto mb-4 ring-4 ring-slate-100 group-hover:ring-blue-100 transition-all duration-300">
                   <AvatarImage 
-                    src={selectedNode.avatar ? `http://localhost:8000${selectedNode.avatar}` : "/placeholder.svg"} 
+                    src={selectedNode.avatar ? `${process.env.NEXT_PUBLIC_API_URL || 'https://backend-intranet-sar-1.onrender.com'}${selectedNode.avatar}` : "/placeholder.svg"} 
                     alt={selectedNode.full_name || selectedNode.name || "Employé"} 
                     onError={(e) => {
                       e.currentTarget.src = "/placeholder.svg";

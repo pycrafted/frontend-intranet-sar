@@ -42,12 +42,28 @@ export function MediaContent({
     if (images.length === 0) return null
 
     if (images.length === 1) {
+      // Log de débogage pour les images
+      console.log('🖼️ [MEDIA_CONTENT] Chargement image:', {
+        src: images[0],
+        isLocalhost: images[0]?.includes('localhost'),
+        isHttp: images[0]?.startsWith('http://'),
+        isHttps: images[0]?.startsWith('https://')
+      });
+
       return (
         <div className="relative group">
           <img
             src={images[0]}
             alt="Publication image"
             className="w-full h-96 object-cover rounded-lg"
+            onLoad={() => console.log('✅ [MEDIA_CONTENT] Image chargée avec succès:', images[0])}
+            onError={(e) => {
+              console.error('❌ [MEDIA_CONTENT] Erreur de chargement image:', {
+                src: images[0],
+                error: e,
+                target: e.target
+              });
+            }}
           />
           <div className="absolute inset-0 bg-black bg-opacity-0 group-hover:bg-opacity-20 transition-all rounded-lg flex items-center justify-center">
             <Button 
@@ -256,6 +272,14 @@ export function MediaContent({
               src={images[0]}
               alt="Publication image"
               className="w-full h-96 object-cover rounded-lg"
+              onLoad={() => console.log('✅ [MEDIA_CONTENT] Image chargée avec succès:', images[0])}
+              onError={(e) => {
+                console.error('❌ [MEDIA_CONTENT] Erreur de chargement image:', {
+                  src: images[0],
+                  error: e,
+                  target: e.target
+                });
+              }}
             />
             <div className="absolute inset-0 bg-black bg-opacity-0 group-hover:bg-opacity-20 transition-all rounded-lg flex items-center justify-center">
               <Button 

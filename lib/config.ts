@@ -8,7 +8,7 @@ export const config = {
     maxHistory: 10
   },
   backend: {
-    apiUrl: process.env.NEXT_PUBLIC_API_URL || "http://localhost:8000/api"
+    apiUrl: process.env.NEXT_PUBLIC_API_URL || "https://backend-intranet-sar-1.onrender.com/api"
   },
   chatbot: {
     name: "MAI",

@@ -9,6 +9,14 @@ const nextConfig = {
   images: {
     unoptimized: true,
     domains: ['backend-intranet-sar-1.onrender.com'],
+    remotePatterns: [
+      {
+        protocol: 'https',
+        hostname: 'backend-intranet-sar-1.onrender.com',
+        port: '',
+        pathname: '/media/**',
+      },
+    ],
   },
   // Configuration optimisée pour Vercel
   experimental: {

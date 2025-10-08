@@ -605,7 +605,7 @@ export default function AnnuairePage() {
                 <div className="relative">
                   <Avatar className="w-24 h-24 mx-auto mb-4 ring-4 ring-slate-100 group-hover:ring-blue-100 transition-all duration-300">
                     <AvatarImage 
-                      src={selectedEmployee.avatar ? `http://localhost:8000${selectedEmployee.avatar}` : "/placeholder.svg"} 
+                      src={selectedEmployee.avatar ? `${process.env.NEXT_PUBLIC_API_URL || 'https://backend-intranet-sar-1.onrender.com'}${selectedEmployee.avatar}` : "/placeholder.svg"} 
                       alt={selectedEmployee.full_name || selectedEmployee.name || "Employé"} 
                       onError={(e) => {
                         e.currentTarget.src = "/placeholder.svg";
