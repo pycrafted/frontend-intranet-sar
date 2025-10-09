@@ -108,7 +108,21 @@ export default function ActualitesPage() {
   }
 
   const handleDepartmentChange = (department: string) => {
-    setActiveDepartment(department)
+    // Mapper les noms français aux clés internes
+    const departmentMap: { [key: string]: string } = {
+      "Tous": "all",
+      "Sécurité": "securite",
+      "Finance": "finance",
+      "Formation": "formation",
+      "Production": "production",
+      "Partenariat": "partenariat",
+      "Environnement": "environnement",
+      "RH": "rh",
+    }
+    
+    const internalKey = departmentMap[department] || "all"
+    setActiveDepartment(internalKey)
+    
     // Mapper les catégories du sidebar aux catégories de l'API
     const categoryMap: { [key: string]: string } = {
       "all": "Toutes",
@@ -121,7 +135,7 @@ export default function ActualitesPage() {
       "rh": "RH",
     }
     
-    const mappedCategory = categoryMap[department] || "Toutes"
+    const mappedCategory = categoryMap[internalKey] || "Toutes"
     setSelectedCategory(mappedCategory)
   }
 
@@ -150,6 +164,17 @@ export default function ActualitesPage() {
   const allArticles = articles.filter(article => !deletedArticles.includes(article.id))
 
 
+  // Options de département pour le filtre
+  const departmentOptions = ["Tous", "Sécurité", "Finance", "Formation", "Production", "Partenariat", "Environnement", "RH"]
+
+  // Options de période pour le filtre
+  const timeFilterOptions = [
+    {id: "all", name: "Toutes les périodes"},
+    {id: "today", name: "Aujourd'hui"},
+    {id: "week", name: "Cette semaine"},
+    {id: "month", name: "Ce mois"}
+  ]
+
   return (
     <LayoutWrapper 
       secondaryNavbarProps={{
@@ -157,7 +182,25 @@ export default function ActualitesPage() {
         onSearchChange: handleSearch,
         onSearchKeyDown: handleSearchKeyDown,
         searchPlaceholder: "Rechercher dans les actualités...",
-        isTyping
+        isTyping,
+        selectedDepartment: (() => {
+          const departmentMap: { [key: string]: string } = {
+            "all": "Tous",
+            "securite": "Sécurité",
+            "finance": "Finance",
+            "formation": "Formation",
+            "production": "Production",
+            "partenariat": "Partenariat",
+            "environnement": "Environnement",
+            "rh": "RH",
+          }
+          return departmentMap[activeDepartment] || "Tous"
+        })(),
+        onDepartmentChange: handleDepartmentChange,
+        departmentOptions,
+        selectedTimeFilter: activeTimeFilter,
+        onTimeFilterChange: handleTimeFilterChange,
+        timeFilterOptions
       }}
       sidebarProps={{
         activeFilter,

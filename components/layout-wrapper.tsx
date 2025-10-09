@@ -1,15 +1,14 @@
 "use client"
 
 import type React from "react"
-import { useState } from "react"
+import { useState, useEffect } from "react"
 import { usePathname } from "next/navigation"
 import { Navigation } from "./navigation"
 import { Navbar } from "./navbar"
 import { SecondaryNavbar } from "./secondary-navbar"
-import { ActualitesSidebarV2 } from "./actualites-sidebar-v2"
 import { ControlCenterSidebar } from "./control-center-sidebar"
 // import { DocumentsSidebar } from "./documents-sidebar" // Supprimé
-import { RecrutementSidebar } from "./recrutement-sidebar"
+// import { RecrutementSidebar } from "./recrutement-sidebar" // Supprimé
 import { PublicationModal } from "./publication-modal"
 import { AnnouncementModal } from "./announcement-modal"
 import { Footer } from "./footer"
@@ -69,9 +68,35 @@ interface LayoutWrapperProps {
 
 export function LayoutWrapper({ children, secondaryNavbarProps, sidebarProps }: LayoutWrapperProps) {
   const [sidebarOpen, setSidebarOpen] = useState(false)
+  const [isSidebarCollapsed, setIsSidebarCollapsed] = useState(true) // Rétracté par défaut
+  const [isSecondarySidebarCollapsed, setIsSecondarySidebarCollapsed] = useState(true) // Rétracté par défaut
   const [showPublicationModal, setShowPublicationModal] = useState(false)
   const [showAnnouncementModal, setShowAnnouncementModal] = useState(false)
   const pathname = usePathname()
+
+  // Synchroniser automatiquement le rétractement du sidebar secondaire avec le sidebar principal
+  // Mais permettre aussi le contrôle indépendant
+  useEffect(() => {
+    if (pathname === "/centre_de_controle") {
+      // Si le sidebar principal est rétracté, forcer le rétractement du sidebar secondaire
+      if (isSidebarCollapsed) {
+        setIsSecondarySidebarCollapsed(true)
+      }
+      // Si le sidebar principal est développé, développer le sidebar secondaire
+      // Mais seulement si l'utilisateur n'a pas fait de contrôle manuel récent
+      else {
+        // On ne force pas le développement, on laisse l'utilisateur contrôler
+        // setIsSecondarySidebarCollapsed(false)
+      }
+    }
+  }, [isSidebarCollapsed, pathname])
+
+  // Initialiser les sidebars comme rétractés au chargement de la page
+  useEffect(() => {
+    // S'assurer que les sidebars sont rétractés par défaut
+    setIsSidebarCollapsed(true)
+    setIsSecondarySidebarCollapsed(true)
+  }, [])
 
   return (
     <AuthGuard>
@@ -79,15 +104,22 @@ export function LayoutWrapper({ children, secondaryNavbarProps, sidebarProps }: 
         <Navbar onMenuClick={() => setSidebarOpen(!sidebarOpen)} />
 
         <div className="flex flex-1">
-          <Navigation isOpen={sidebarOpen} onClose={() => setSidebarOpen(false)} />
+          <Navigation 
+            isOpen={sidebarOpen} 
+            onClose={() => setSidebarOpen(false)} 
+            onCollapseChange={setIsSidebarCollapsed}
+          />
 
-          <main className="flex-1 lg:ml-64 flex flex-col">
-            <div className={`flex-1 bg-gray-200 ${pathname === "/actualites" ? "lg:ml-80" : ""} ${pathname === "/centre_de_controle" ? "lg:ml-80" : ""} ${pathname === "/recrutement" ? "lg:ml-80" : ""}`}>
-        {/* Secondary Navbar pour les pages actualités, organigramme, annuaire et documents - dans la zone de contenu */}
-        {(pathname === "/actualites" || pathname === "/organigramme" || pathname === "/annuaire" || pathname === "/documents") && (
+          <main className={`flex-1 flex flex-col transition-all duration-300 ${isSidebarCollapsed ? 'lg:ml-16' : 'lg:ml-64'}`}>
+            <div className={`flex-1 bg-gray-200 transition-all duration-300 ${
+              pathname === "/centre_de_controle" ? (
+                isSecondarySidebarCollapsed ? "lg:ml-0" : "lg:ml-80"
+              ) : ""}`}>
+        {/* Secondary Navbar pour les pages actualités, organigramme, annuaire, documents et recrutement - dans la zone de contenu */}
+        {(pathname === "/actualites" || pathname === "/organigramme" || pathname === "/annuaire" || pathname === "/documents" || pathname === "/recrutement") && (
           <SecondaryNavbar 
             {...secondaryNavbarProps} 
-            showFilter={pathname === "/organigramme"} 
+            showFilter={pathname === "/organigramme" || pathname === "/actualites"} 
           />
         )}
               
@@ -95,15 +127,14 @@ export function LayoutWrapper({ children, secondaryNavbarProps, sidebarProps }: 
                 {children}
               </div>
             </div>
-            {pathname === "/actualites" && <ActualitesSidebarV2 {...sidebarProps} />}
-            {pathname === "/centre_de_controle" && <ControlCenterSidebar {...sidebarProps} />}
-            {/* Sidebar des documents supprimée */}
-            {pathname === "/recrutement" && <RecrutementSidebar
-              onFilterChange={sidebarProps?.onFilterChange}
-              onSearchChange={sidebarProps?.onSearchChange}
-              searchTerm={sidebarProps?.searchTerm}
-              activeFilters={sidebarProps?.activeFilters}
+            {pathname === "/centre_de_controle" && <ControlCenterSidebar 
+              {...sidebarProps} 
+              isCollapsed={isSecondarySidebarCollapsed}
+              onCollapseChange={setIsSecondarySidebarCollapsed}
+              isMainSidebarCollapsed={isSidebarCollapsed}
             />}
+            {/* Sidebar des documents supprimée */}
+            {/* Sidebar de recrutement supprimée */}
             
             {/* Footer - toujours en bas, après les sidebars */}
             <Footer />

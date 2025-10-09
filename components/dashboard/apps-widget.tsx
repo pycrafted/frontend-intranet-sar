@@ -2,7 +2,8 @@
 
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import { Button } from "@/components/ui/button"
-import { ExternalLink, Folder, Plus } from "lucide-react"
+import { ExternalLink, Folder, Plus, Sparkles, Globe } from "lucide-react"
+import Image from "next/image"
 
 // Interface pour les applications
 interface App {
@@ -15,33 +16,49 @@ interface App {
 
 // Composants SVG pour les logos
 const OutlookIcon = () => (
-  <svg viewBox="0 0 24 24" fill="currentColor" className="w-8 h-8">
-    <path d="M7.5 2h9A1.5 1.5 0 0 1 18 3.5v17a1.5 1.5 0 0 1-1.5 1.5h-9A1.5 1.5 0 0 1 6 20.5v-17A1.5 1.5 0 0 1 7.5 2zM12 7.5a3 3 0 1 0 0 6 3 3 0 0 0 0-6z"/>
-  </svg>
+  <img 
+    src="/bureau.png" 
+    alt="Outlook" 
+    className="w-8 h-8 object-contain"
+  />
 )
 
 const TeamsIcon = () => (
-  <svg viewBox="0 0 24 24" fill="currentColor" className="w-8 h-8">
-    <path d="M20.5 2.02h-17A1.5 1.5 0 0 0 2 3.52v17A1.5 1.5 0 0 0 3.5 22.02h17a1.5 1.5 0 0 0 1.5-1.5v-17a1.5 1.5 0 0 0-1.5-1.5zM7 20.02H4v-3h3v3zm0-4.5H4v-3h3v3zm0-4.5H4V8h3v3zm4.5 9H8.5v-3h3v3zm0-4.5h-3v-3h3v3zm0-4.5h-3V8h3v3zm4.5 9H13v-3h3v3zm0-4.5h-3v-3h3v3zm0-4.5h-3V8h3v3z"/>
-  </svg>
+  <img 
+    src="/entreprise.png" 
+    alt="Teams" 
+    className="w-8 h-8 object-contain"
+  />
 )
 
 const OneDriveIcon = () => (
-  <svg viewBox="0 0 24 24" fill="currentColor" className="w-8 h-8">
-    <path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm-1 17.93c-3.94-.49-7-3.85-7-7.93 0-.62.08-1.21.21-1.79L9 15v1c0 1.1.9 2 2 2v1.93zm6.9-2.54c-.26-.81-1-1.39-1.9-1.39h-1v-3c0-.55-.45-1-1-1H8v-2h2c.55 0 1-.45 1-1V7h2c1.1 0 2-.9 2-2v-.41c2.93 1.19 5 4.06 5 7.41 0 2.08-.8 3.97-2.1 5.39z"/>
-  </svg>
+  <img 
+    src="/microsoft.png" 
+    alt="OneDrive" 
+    className="w-8 h-8 object-contain"
+  />
 )
 
 const SharePointIcon = () => (
-  <svg viewBox="0 0 24 24" fill="currentColor" className="w-8 h-8">
-    <path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm-1 17.93c-3.94-.49-7-3.85-7-7.93 0-.62.08-1.21.21-1.79L9 15v1c0 1.1.9 2 2 2v1.93zm6.9-2.54c-.26-.81-1-1.39-1.9-1.39h-1v-3c0-.55-.45-1-1-1H8v-2h2c.55 0 1-.45 1-1V7h2c1.1 0 2-.9 2-2v-.41c2.93 1.19 5 4.06 5 7.41 0 2.08-.8 3.97-2.1 5.39z"/>
-  </svg>
+  <img 
+    src="/microsoft-access.png" 
+    alt="SharePoint" 
+    className="w-8 h-8 object-contain"
+  />
+)
+
+const WordIcon = () => (
+  <img 
+    src="/exceller.png" 
+    alt="Word" 
+    className="w-8 h-8 object-contain"
+  />
 )
 
 const GmailIcon = () => (
   <img 
-    src="/gmail.png" 
-    alt="Gmail" 
+    src="/google-docs.png" 
+    alt="Google Docs" 
     className="w-8 h-8 object-contain"
   />
 )
@@ -55,9 +72,11 @@ const DriveIcon = () => (
 )
 
 const CalendarIcon = () => (
-  <svg viewBox="0 0 24 24" fill="currentColor" className="w-8 h-8">
-    <path d="M19 3h-1V1h-2v2H8V1H6v2H5c-1.11 0-1.99.9-1.99 2L3 19c0 1.1.89 2 2 2h14c1.1 0 2-.9 2-2V5c0-1.1-.9-2-2-2zm0 16H5V8h14v11zM7 10h5v5H7z"/>
-  </svg>
+  <img 
+    src="/calendrier-google.png" 
+    alt="Google Calendar" 
+    className="w-8 h-8 object-contain"
+  />
 )
 
 const MeetIcon = () => (
@@ -78,33 +97,43 @@ const FormsIcon = () => (
 
 // Icônes pour les applications SAR
 const SAPIcon = () => (
-  <svg viewBox="0 0 24 24" fill="currentColor" className="w-8 h-8">
-    <path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm-1 17.93c-3.94-.49-7-3.85-7-7.93 0-.62.08-1.21.21-1.79L9 15v1c0 1.1.9 2 2 2v1.93zm6.9-2.54c-.26-.81-1-1.39-1.9-1.39h-1v-3c0-.55-.45-1-1-1H8v-2h2c.55 0 1-.45 1-1V7h2c1.1 0 2-.9 2-2v-.41c2.93 1.19 5 4.06 5 7.41 0 2.08-.8 3.97-2.1 5.39z"/>
-  </svg>
+  <img 
+    src="/css-3.png" 
+    alt="CSS3" 
+    className="w-8 h-8 object-contain"
+  />
 )
 
 const QualiproIcon = () => (
-  <svg viewBox="0 0 24 24" fill="currentColor" className="w-8 h-8">
-    <path d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"/>
-  </svg>
+  <img 
+    src="/css-3.png" 
+    alt="CSS3" 
+    className="w-8 h-8 object-contain"
+  />
 )
 
 const SAPFPIcon = () => (
-  <svg viewBox="0 0 24 24" fill="currentColor" className="w-8 h-8">
-    <path d="M3 13h8V3H3v10zm0 8h8v-6H3v6zm10 0h8V11h-8v10zm0-18v6h8V3h-8z"/>
-  </svg>
+  <img 
+    src="/css-3.png" 
+    alt="CSS3" 
+    className="w-8 h-8 object-contain"
+  />
 )
 
 const MaarchCourrierIcon = () => (
-  <svg viewBox="0 0 24 24" fill="currentColor" className="w-8 h-8">
-    <path d="M20 4H4c-1.1 0-1.99.9-1.99 2L2 18c0 1.1.9 2 2 2h16c1.1 0 2-.9 2-2V6c0-1.1-.9-2-2-2zm0 4l-8 5-8-5V6l8 5 8-5v2z"/>
-  </svg>
+  <img 
+    src="/css-3.png" 
+    alt="CSS3" 
+    className="w-8 h-8 object-contain"
+  />
 )
 
 const MaarchParapheurIcon = () => (
-  <svg viewBox="0 0 24 24" fill="currentColor" className="w-8 h-8">
-    <path d="M14 2H6c-1.1 0-1.99.9-1.99 2L4 20c0 1.1.89 2 2 2h12c1.1 0 2-.9 2-2V8l-6-6zm2 16H8v-2h8v2zm0-4H8v-2h8v2zm-3-5V3.5L18.5 9H13z"/>
-  </svg>
+  <img 
+    src="/css-3.png" 
+    alt="CSS3" 
+    className="w-8 h-8 object-contain"
+  />
 )
 
 // Données des applications
@@ -175,6 +204,13 @@ const APPS: App[] = [
     category: 'microsoft'
   },
   {
+    id: 'word',
+    icon: <WordIcon />,
+    color: 'from-blue-600 to-blue-700',
+    url: '#',
+    category: 'microsoft'
+  },
+  {
     id: 'gmail',
     icon: <GmailIcon />,
     color: 'from-red-500 to-red-600',
@@ -223,35 +259,53 @@ export function AppsWidget() {
   const googleApps = APPS.filter(app => app.category === 'google')
 
   return (
-    <Card className="h-[28rem] bg-gradient-to-br from-slate-50 via-gray-50 to-zinc-100 border-0 hover:shadow-xl transition-all duration-500 group flex flex-col overflow-hidden relative">
-       {/* Effet de brillance en arrière-plan */}
-       <div className="absolute inset-0 bg-gradient-to-br from-slate-200/20 via-transparent to-gray-200/20 opacity-0 group-hover:opacity-100 transition-opacity duration-500"></div>
+    <Card className="h-[28rem] flex flex-col overflow-hidden relative bg-gradient-to-br from-blue-50 via-indigo-50 to-purple-50 border-0 hover:shadow-2xl transition-all duration-500 group">
+      {/* Motifs décoratifs élégants */}
+      <div className="absolute inset-0">
+        <div className="absolute inset-0 bg-gradient-to-br from-blue-100/20 via-indigo-100/15 to-purple-100/20" />
+        {/* Motifs décoratifs - Couleurs claires attrayantes */}
+        <div className="absolute top-0 right-0 w-32 h-32 bg-blue-300/30 rounded-full -translate-y-16 translate-x-16 group-hover:bg-blue-200/40 transition-colors duration-500" />
+        <div className="absolute bottom-0 left-0 w-24 h-24 bg-indigo-300/30 rounded-full translate-y-12 -translate-x-12 group-hover:bg-indigo-200/40 transition-colors duration-500" />
+        <div className="absolute top-1/2 left-1/2 w-16 h-16 bg-purple-300/20 rounded-full -translate-x-8 -translate-y-8 group-hover:bg-purple-200/30 transition-colors duration-500" />
+      </div>
+
+      <CardHeader className="relative pb-4 flex-shrink-0 z-10">
+        <div className="flex items-center justify-between">
+          <div className="flex items-center gap-3">
+            <div className="p-3 bg-gradient-to-br from-blue-500 to-indigo-600 rounded-xl shadow-lg group-hover:shadow-blue-300/50 group-hover:scale-105 transition-all duration-300">
+              <Sparkles className="h-6 w-6 text-white" />
+            </div>
+            <div>
+              <CardTitle className="text-xl font-bold text-slate-800 group-hover:text-blue-700 transition-colors duration-300">
+                ⚡ Accès Rapide
+              </CardTitle>
+              <p className="text-sm text-slate-600 font-medium">
+                Applications & Services
+              </p>
+            </div>
+          </div>
+          
+        </div>
+      </CardHeader>
       
-       {/* Header */}
-       <CardHeader className="pb-4 flex-shrink-0 relative z-10">
-         <div className="flex items-center justify-center">
-           <CardTitle className="text-xl font-bold text-gray-900 group-hover:text-slate-700 transition-colors duration-300">
-           </CardTitle>
-         </div>
-       </CardHeader>
-      
-      <CardContent className="relative flex-1 flex flex-col justify-start p-6 pt-2">
+      <CardContent className="relative flex-1 flex flex-col justify-start p-6 pt-2 z-10">
         <div className="space-y-4">
-          {/* Section SAR */}
+          {/* Section SAR - Applications Internes */}
           <div>
-            <h3 className="text-sm font-semibold text-gray-700 mb-3 flex items-center gap-2">
-              <div className="w-2 h-2 bg-orange-500 rounded-full"></div>
+            <h3 className="text-sm font-bold text-orange-600 mb-2 flex items-center gap-2">
+              <div className="w-3 h-3 bg-orange-500 rounded-full shadow-lg"></div>
+              <Globe className="h-4 w-4" />
               SAR - Applications Internes
             </h3>
-            <div className="grid grid-cols-5 gap-2">
+            <div className="grid grid-cols-5 gap-3">
               {sarApps.map((app) => (
                 <Button
                   key={app.id}
                   variant="ghost"
-                  className="h-16 w-16 p-0 hover:bg-white/50 transition-all duration-200 group/app rounded-xl"
+                  className="h-16 w-16 p-0 hover:bg-slate-200/50 transition-all duration-300 group/app rounded-xl"
                   onClick={() => window.open(app.url, '_blank')}
                 >
-                  <div className={`w-full h-full rounded-xl bg-gradient-to-br ${app.color} flex items-center justify-center text-white group-hover/app:scale-110 transition-transform duration-200 shadow-lg`}>
+                  <div className="w-full h-full flex items-center justify-center text-slate-700 group-hover/app:scale-110 group-hover/app:rotate-3 transition-all duration-300">
                     {app.icon}
                   </div>
                 </Button>
@@ -261,19 +315,20 @@ export function AppsWidget() {
 
           {/* Section Microsoft */}
           <div>
-            <h3 className="text-sm font-semibold text-gray-700 mb-3 flex items-center gap-2">
-              <div className="w-2 h-2 bg-blue-500 rounded-full"></div>
+            <h3 className="text-sm font-bold text-blue-600 mb-2 flex items-center gap-2">
+              <div className="w-3 h-3 bg-blue-500 rounded-full shadow-lg"></div>
+              <ExternalLink className="h-4 w-4" />
               Microsoft
             </h3>
-            <div className="grid grid-cols-4 gap-3">
+            <div className="grid grid-cols-5 gap-3">
               {microsoftApps.map((app) => (
                 <Button
                   key={app.id}
                   variant="ghost"
-                  className="h-16 w-16 p-0 hover:bg-white/50 transition-all duration-200 group/app rounded-xl"
+                  className="h-16 w-16 p-0 hover:bg-slate-200/50 transition-all duration-300 group/app rounded-xl"
                   onClick={() => handleAppClick(app)}
                 >
-                  <div className={`w-full h-full rounded-xl bg-gradient-to-br ${app.color} flex items-center justify-center text-white group-hover/app:scale-110 transition-transform duration-200 shadow-lg`}>
+                  <div className="w-full h-full flex items-center justify-center text-slate-700 group-hover/app:scale-110 group-hover/app:rotate-3 transition-all duration-300">
                     {app.icon}
                   </div>
                 </Button>
@@ -283,19 +338,20 @@ export function AppsWidget() {
 
           {/* Section Google */}
           <div>
-            <h3 className="text-sm font-semibold text-gray-700 mb-3 flex items-center gap-2">
-              <div className="w-2 h-2 bg-red-500 rounded-full"></div>
+            <h3 className="text-sm font-bold text-red-600 mb-2 flex items-center gap-2">
+              <div className="w-3 h-3 bg-red-500 rounded-full shadow-lg"></div>
+              <Globe className="h-4 w-4" />
               Google
             </h3>
-            <div className="grid grid-cols-5 gap-2">
+            <div className="grid grid-cols-5 gap-3">
               {googleApps.map((app) => (
                 <Button
                   key={app.id}
                   variant="ghost"
-                  className="h-16 w-16 p-0 hover:bg-white/50 transition-all duration-200 group/app rounded-xl"
+                  className="h-16 w-16 p-0 hover:bg-slate-200/50 transition-all duration-300 group/app rounded-xl"
                   onClick={() => handleAppClick(app)}
                 >
-                  <div className={`w-full h-full rounded-xl bg-gradient-to-br ${app.color} flex items-center justify-center text-white group-hover/app:scale-110 transition-transform duration-200 shadow-lg`}>
+                  <div className="w-full h-full flex items-center justify-center text-slate-700 group-hover/app:scale-110 group-hover/app:rotate-3 transition-all duration-300">
                     {app.icon}
                   </div>
                 </Button>

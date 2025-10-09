@@ -1,6 +1,6 @@
 "use client"
 
-import { Search, X, Building } from "lucide-react"
+import { Search, X, Building, Calendar } from "lucide-react"
 import { useState } from "react"
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
 
@@ -10,10 +10,14 @@ interface SecondaryNavbarProps {
   onSearchKeyDown?: (e: React.KeyboardEvent<HTMLInputElement>) => void
   searchPlaceholder?: string
   isTyping?: boolean
-  // Props pour le filtre
+  // Props pour le filtre département
   selectedDepartment?: string
   onDepartmentChange?: (department: string) => void
   departmentOptions?: string[]
+  // Props pour le filtre période
+  selectedTimeFilter?: string
+  onTimeFilterChange?: (timeFilter: string) => void
+  timeFilterOptions?: Array<{id: string, name: string}>
   showFilter?: boolean
 }
 
@@ -26,6 +30,14 @@ export function SecondaryNavbar({
   selectedDepartment = "Tous",
   onDepartmentChange,
   departmentOptions = ["Tous"],
+  selectedTimeFilter = "all",
+  onTimeFilterChange,
+  timeFilterOptions = [
+    {id: "all", name: "Toutes les périodes"},
+    {id: "today", name: "Aujourd'hui"},
+    {id: "week", name: "Cette semaine"},
+    {id: "month", name: "Ce mois"}
+  ],
   showFilter = true
 }: SecondaryNavbarProps) {
   const [searchFocused, setSearchFocused] = useState(false)
@@ -78,22 +90,25 @@ export function SecondaryNavbar({
             )}
           </div>
 
-          {/* Filtre par département - conditionnel */}
+          {/* Filtres - conditionnels */}
           {showFilter && (
             <div className="flex items-center gap-3">
-              <Building className="h-5 w-5 text-slate-500" />
-              <Select value={selectedDepartment} onValueChange={onDepartmentChange}>
-                <SelectTrigger className="w-56 h-12 border-slate-300 focus:border-blue-500 focus:ring-blue-500">
-                  <SelectValue placeholder="Filtrer par département" />
-                </SelectTrigger>
-                <SelectContent>
-                  {departmentOptions.map((department, index) => (
-                    <SelectItem key={`${department}-${index}`} value={department}>
-                      {department}
-                    </SelectItem>
-                  ))}
-                </SelectContent>
-              </Select>
+              {/* Filtre par période */}
+              <div className="flex items-center gap-2">
+                <Calendar className="h-5 w-5 text-slate-500" />
+                <Select value={selectedTimeFilter} onValueChange={onTimeFilterChange}>
+                  <SelectTrigger className="w-48 h-12 border-slate-300 focus:border-blue-500 focus:ring-blue-500">
+                    <SelectValue placeholder="Période" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    {timeFilterOptions.map((option, index) => (
+                      <SelectItem key={`${option.id}-${index}`} value={option.id}>
+                        {option.name}
+                      </SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+              </div>
             </div>
           )}
         </div>

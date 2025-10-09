@@ -1,6 +1,7 @@
 "use client"
 
 import { useState } from "react"
+import Link from "next/link"
 import { Bell, User, ChevronDown, Menu, LogOut, Settings } from "lucide-react"
 import { Button } from "@/components/ui/button"
 import {
@@ -52,7 +53,7 @@ export function Navbar({ onMenuClick }: NavbarProps) {
             <Menu className="h-5 w-5" />
           </Button>
 
-          <div className="flex items-center gap-2 sm:gap-3 min-w-0">
+          <Link href="/" className="flex items-center gap-2 sm:gap-3 min-w-0 hover:opacity-80 transition-opacity duration-200">
             <div className="flex h-8 w-12 sm:h-10 sm:w-16 items-center justify-center flex-shrink-0 navbar-logo">
               <img 
                 src="/sarlogo.png" 
@@ -65,7 +66,7 @@ export function Navbar({ onMenuClick }: NavbarProps) {
                 Société Africaine de Raffinage
               </h1>
             </div>
-          </div>
+          </Link>
         </div>
 
 

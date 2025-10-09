@@ -5,8 +5,7 @@ import { LayoutWrapper } from "@/components/layout-wrapper"
 import { Card } from "@/components/ui/card"
 import { Badge } from "@/components/ui/badge"
 import { Button } from "@/components/ui/button"
-import { Input } from "@/components/ui/input"
-import { Search, MapPin, Briefcase, Clock, ChevronRight, Building2, ArrowUpRight, Users, Calendar, Star } from "lucide-react"
+import { MapPin, Briefcase, Clock, ChevronRight, ArrowUpRight, Users, Star } from "lucide-react"
 
 interface JobOffer {
   id: string
@@ -176,12 +175,43 @@ export default function RecrutementPage() {
     urgency: "all",
     experience: "all"
   })
+  const [isTyping, setIsTyping] = useState(false)
+  const [debouncedSearchTerm, setDebouncedSearchTerm] = useState("")
+
+  // Debounce pour la recherche (comme dans la page annuaire)
+  useEffect(() => {
+    const timer = setTimeout(() => {
+      setDebouncedSearchTerm(searchTerm)
+      setIsTyping(false)
+    }, 1000)
+
+    return () => clearTimeout(timer)
+  }, [searchTerm])
+
+  // Gérer l'état de frappe
+  const handleSearchChange = (value: string) => {
+    setSearchTerm(value)
+    if (value.trim() !== "") {
+      setIsTyping(true)
+    } else {
+      setIsTyping(false)
+    }
+  }
+
+  // Recherche immédiate sur Enter
+  const handleSearchKeyDown = (e: React.KeyboardEvent<HTMLInputElement>) => {
+    if (e.key === "Enter") {
+      setDebouncedSearchTerm(searchTerm)
+      setIsTyping(false)
+    }
+  }
 
   const filteredJobs = jobOffers.filter((job) => {
+    const searchQuery = debouncedSearchTerm.toLowerCase()
     const matchesSearch = 
-      job.title.toLowerCase().includes(searchTerm.toLowerCase()) ||
-      job.department.toLowerCase().includes(searchTerm.toLowerCase()) ||
-      job.location.toLowerCase().includes(searchTerm.toLowerCase())
+      job.title.toLowerCase().includes(searchQuery) ||
+      job.department.toLowerCase().includes(searchQuery) ||
+      job.location.toLowerCase().includes(searchQuery)
     
     const matchesDepartment = filters.department === "all" || job.department === filters.department
     const matchesType = filters.type === "all" || job.type === filters.type
@@ -225,67 +255,23 @@ export default function RecrutementPage() {
     setFilters(newFilters)
   }
 
-  const handleSearchChange = (search: string) => {
-    setSearchTerm(search)
-  }
-
   return (
     <LayoutWrapper
-      sidebarProps={{
-        onFilterChange: handleFilterChange,
-        onSearchChange: handleSearchChange,
+      secondaryNavbarProps={{
         searchTerm: searchTerm,
-        activeFilters: filters
+        onSearchChange: handleSearchChange,
+        onSearchKeyDown: handleSearchKeyDown,
+        searchPlaceholder: "Rechercher par titre, département ou localisation...",
+        isTyping: isTyping
       }}
     >
        <div className="min-h-screen" style={{backgroundColor: '#e5e7eb'}}>
-       {/* Header Section */}
-       <div className="border-b" style={{backgroundColor: '#e5e7eb', borderColor: '#e5e7eb'}}>
-        <div className="mx-auto max-w-7xl px-4 py-12 lg:px-8">
-          <div className="mb-8">
-            <div className="mb-3 flex items-center gap-2.5">
-              <div className="flex h-10 w-10 items-center justify-center rounded-lg bg-blue-100">
-                <Building2 className="h-5 w-5 text-blue-600" />
-              </div>
-              <span className="text-sm font-medium tracking-wide text-gray-500">CARRIÈRES</span>
-            </div>
-          </div>
-
-          {/* Search */}
-          <div className="space-y-4">
-            <div className="relative">
-              <Search className="absolute left-4 top-1/2 h-5 w-5 -translate-y-1/2 text-gray-400" />
-              <Input
-                type="text"
-                placeholder="Rechercher par titre, département ou localisation..."
-                value={searchTerm}
-                onChange={(e) => setSearchTerm(e.target.value)}
-                className="h-14 border-gray-300 bg-white pl-12 text-base shadow-sm transition-shadow focus-visible:shadow-md"
-              />
-            </div>
-          </div>
-        </div>
-      </div>
 
       {/* Main Content */}
       <div className="mx-auto max-w-7xl px-4 py-12 lg:px-8">
          <div className="rounded-xl m-4" style={{backgroundColor: '#e5e7eb'}}>
         {/* Job Listings */}
         <div className="space-y-6 p-6">
-          {/* Stats Header */}
-          <div className="mb-8 flex items-center justify-between">
-            <div className="flex items-center gap-4">
-              <p className="text-sm font-medium text-gray-600">
-                {filteredJobs.length} {filteredJobs.length === 1 ? "poste disponible" : "postes disponibles"}
-              </p>
-              {filteredJobs.length > 0 && (
-                <div className="flex items-center gap-2 text-sm text-gray-500">
-                  <Calendar className="h-4 w-4" />
-                  <span>Dernière mise à jour: {new Date().toLocaleDateString("fr-FR")}</span>
-                </div>
-              )}
-            </div>
-          </div>
           {filteredJobs.map((job) => (
             <Card
               key={job.id}

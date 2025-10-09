@@ -19,6 +19,7 @@ import {
   MessageCircle,
   Building2,
   ChevronRight,
+  ChevronLeft,
   X,
   LogOut,
   UserPlus,
@@ -56,9 +57,9 @@ const getNavigationSections = (articlesCount: number) => [
   {
     title: "Administration",
     items: [
-      { name: "Métriques", href: "/admin/metrics", icon: BarChart3, badge: null },
+      { name: "Métriques", href: "/metriques", icon: BarChart3, badge: null },
+      { name: "Paramètres", href: "/parametres", icon: Settings, badge: null },
       { name: "Centre de Contrôle", href: "/centre_de_controle", icon: Shield, badge: null },
-      { name: "Paramétrage", href: "/admin/settings", icon: Settings, badge: null },
     ],
   },
 ]
@@ -66,12 +67,14 @@ const getNavigationSections = (articlesCount: number) => [
 interface NavigationProps {
   isOpen?: boolean
   onClose?: () => void
+  onCollapseChange?: (isCollapsed: boolean) => void
 }
 
-export function Navigation({ isOpen, onClose }: NavigationProps) {
+export function Navigation({ isOpen, onClose, onCollapseChange }: NavigationProps) {
   const pathname = usePathname()
   const router = useRouter()
   const [isLoading, setIsLoading] = useState(false)
+  const [isCollapsed, setIsCollapsed] = useState(true) // Rétracté par défaut
   const { logout } = useLogout()
   const { stats } = useArticleStats()
 
@@ -79,6 +82,20 @@ export function Navigation({ isOpen, onClose }: NavigationProps) {
   useEffect(() => {
     setIsLoading(false)
   }, [pathname])
+
+  // Notifier le parent du changement d'état de rétractement
+  useEffect(() => {
+    if (onCollapseChange) {
+      onCollapseChange(isCollapsed)
+    }
+  }, [isCollapsed, onCollapseChange])
+
+  // Notifier l'état initial rétracté au chargement
+  useEffect(() => {
+    if (onCollapseChange) {
+      onCollapseChange(true) // Rétracté par défaut
+    }
+  }, [onCollapseChange])
 
   // Obtenir le nombre d'articles pour le badge
   const articlesCount = stats?.filters?.all || 0
@@ -96,13 +113,31 @@ export function Navigation({ isOpen, onClose }: NavigationProps) {
   }
 
   const NavigationContent = () => (
-    <div className="relative flex flex-col h-screen bg-white border-r border-gray-200">
-      <nav className="flex-1 px-4 py-6 space-y-6 overflow-y-auto pb-20">
+    <div className="relative flex flex-col h-full bg-gradient-to-b from-slate-50 to-white border-r border-slate-200/60 shadow-sm">
+      {/* Bouton de rétractement */}
+      <div className="flex justify-end p-2 border-b border-slate-200/60">
+        <Button
+          variant="ghost"
+          size="sm"
+          onClick={() => setIsCollapsed(!isCollapsed)}
+          className="h-8 w-8 p-0 text-slate-500 hover:text-slate-700 hover:bg-slate-100 rounded-lg"
+          aria-label={isCollapsed ? "Développer le menu" : "Rétracter le menu"}
+        >
+          {isCollapsed ? <ChevronRight className="h-4 w-4" /> : <ChevronLeft className="h-4 w-4" />}
+        </Button>
+      </div>
+
+      <nav className="flex-1 px-4 pt-4 space-y-8 overflow-y-auto">
         {navigationSections.map((section) => (
-          <div key={section.title} className="space-y-2">
-            <div className="px-3 mb-3">
-              <h3 className="text-xs font-semibold text-gray-500 uppercase tracking-wider">{section.title}</h3>
-            </div>
+          <div key={section.title} className="space-y-3">
+            {!isCollapsed && (
+              <div className="px-3">
+                <h3 className="text-xs font-semibold text-slate-500 uppercase tracking-wider flex items-center gap-2">
+                  <div className="w-1 h-1 rounded-full bg-slate-400"></div>
+                  {section.title}
+                </h3>
+              </div>
+            )}
             <div className="space-y-1">
               {section.items.map((item) => {
                 const Icon = item.icon
@@ -118,29 +153,54 @@ export function Navigation({ isOpen, onClose }: NavigationProps) {
                       if (onClose) onClose()
                     }}
                     className={cn(
-                      "group flex items-center justify-between px-3 py-2.5 text-sm font-medium rounded-lg transition-all duration-200",
+                      "group flex items-center justify-between px-3 py-3 text-sm font-medium rounded-xl transition-all duration-300 relative overflow-hidden",
                       isActive
-                        ? "bg-blue-50 text-blue-700 shadow-sm"
-                        : "text-gray-700 hover:bg-gray-50 hover:text-gray-900",
+                        ? "bg-gradient-to-r from-blue-50 to-indigo-50 text-blue-700 shadow-sm border border-blue-200/50"
+                        : "text-slate-700 hover:bg-slate-50 hover:text-slate-900 hover:shadow-sm",
+                      isCollapsed ? "justify-center" : ""
                     )}
+                    title={isCollapsed ? item.name : undefined}
                   >
-                    <div className="flex items-center">
-                      <Icon
-                        className={cn(
-                          "mr-3 h-4 w-4 transition-colors",
-                          isActive ? "text-blue-600" : "text-gray-500 group-hover:text-gray-700",
-                        )}
-                      />
-                      {item.name}
-                    </div>
-                    <div className="flex items-center space-x-2">
-                      {item.badge && (
-                        <Badge variant={isActive ? "secondary" : "outline"} className="h-5 px-2 text-xs">
-                          {item.badge}
-                        </Badge>
+                    {/* Effet de survol avec gradient */}
+                    <div className={cn(
+                      "absolute inset-0 bg-gradient-to-r from-blue-500/5 to-indigo-500/5 opacity-0 transition-opacity duration-300",
+                      "group-hover:opacity-100"
+                    )} />
+                    
+                    <div className="flex items-center relative z-10">
+                      <div className={cn(
+                        "p-2 rounded-lg transition-all duration-300",
+                        isActive 
+                          ? "bg-blue-100 text-blue-600 shadow-sm" 
+                          : "bg-slate-100 text-slate-500 group-hover:bg-blue-100 group-hover:text-blue-600"
+                      )}>
+                        <Icon className="h-4 w-4" />
+                      </div>
+                      {!isCollapsed && (
+                        <span className="ml-3 font-medium">{item.name}</span>
                       )}
-                      {isActive && <ChevronRight className="h-3 w-3 text-blue-600" />}
                     </div>
+                    
+                    {!isCollapsed && (
+                      <div className="flex items-center space-x-2 relative z-10">
+                        {item.badge && (
+                          <Badge 
+                            variant={isActive ? "default" : "secondary"} 
+                            className={cn(
+                              "h-5 px-2 text-xs font-medium transition-all duration-300",
+                              isActive 
+                                ? "bg-blue-100 text-blue-700 border-blue-200" 
+                                : "bg-slate-100 text-slate-600 border-slate-200"
+                            )}
+                          >
+                            {item.badge}
+                          </Badge>
+                        )}
+                        {isActive && (
+                          <div className="w-2 h-2 rounded-full bg-blue-500 animate-pulse" />
+                        )}
+                      </div>
+                    )}
                   </Link>
                 )
               })}
@@ -149,23 +209,27 @@ export function Navigation({ isOpen, onClose }: NavigationProps) {
         ))}
       </nav>
 
-      {/* Bouton de déconnexion positionné en bas absolu */}
-      <div className="fixed bottom-0 left-0 w-64 p-4 border-t border-gray-200 bg-white shadow-lg z-50">
+      {/* Bouton de déconnexion fixé en bas */}
+      <div className="border-t border-slate-200/60 bg-slate-50/50 p-4 mt-auto">
         <Button 
           variant="outline" 
-          className="w-full justify-start text-gray-700 hover:text-red-600 hover:border-red-200 hover:bg-red-50 transition-all duration-200 disabled:opacity-50"
+          className={cn(
+            "w-full text-slate-700 hover:text-red-600 hover:border-red-200 hover:bg-red-50 transition-all duration-300 border-slate-200 hover:shadow-sm",
+            isCollapsed ? "justify-center" : "justify-start"
+          )}
           onClick={handleLogout}
           disabled={isLoading}
+          title={isCollapsed ? "Se déconnecter" : undefined}
         >
           {isLoading ? (
             <>
-              <div className="mr-3 h-4 w-4 border-2 border-gray-400 border-t-transparent rounded-full animate-spin" />
-              Déconnexion...
+              <div className="h-4 w-4 border-2 border-slate-400 border-t-transparent rounded-full animate-spin" />
+              {!isCollapsed && <span className="ml-3">Déconnexion...</span>}
             </>
           ) : (
             <>
-              <LogOut className="mr-3 h-4 w-4" />
-              Se déconnecter
+              <LogOut className="h-4 w-4" />
+              {!isCollapsed && <span className="ml-3">Se déconnecter</span>}
             </>
           )}
         </Button>
@@ -175,24 +239,21 @@ export function Navigation({ isOpen, onClose }: NavigationProps) {
 
   return (
     <>
-      <aside className="hidden lg:flex lg:w-64 lg:flex-col lg:fixed lg:inset-y-16 lg:z-40 border-r border-gray-200 shadow-sm">
+      <aside className={cn(
+        "hidden lg:flex lg:flex-col lg:fixed lg:top-16 lg:bottom-0 lg:z-40 border-r border-gray-200 shadow-sm transition-all duration-300",
+        isCollapsed ? "lg:w-16" : "lg:w-64"
+      )}>
         <NavigationContent />
       </aside>
 
       <Sheet open={isOpen} onOpenChange={onClose}>
-        <SheetContent side="left" className="w-64 p-0 bg-white">
-          <div className="flex items-center justify-between h-16 px-4 border-b border-gray-200">
-            <div className="flex items-center gap-2">
-              <div className="flex h-8 w-8 items-center justify-center rounded-lg bg-blue-100">
-                <Building2 className="h-4 w-4 text-blue-600" />
-              </div>
-              <span className="font-semibold text-gray-900">SAR-Connect</span>
-            </div>
+        <SheetContent side="left" className="w-64 p-0 bg-gradient-to-b from-slate-50 to-white">
+          <div className="flex items-center justify-end h-16 px-6 border-b border-slate-200/60">
             <Button
               variant="ghost"
               size="sm"
               onClick={onClose}
-              className="h-8 w-8 p-0 text-gray-500 hover:text-gray-700"
+              className="h-8 w-8 p-0 text-slate-500 hover:text-slate-700 hover:bg-slate-100 rounded-lg"
               aria-label="Fermer le menu"
             >
               <X className="h-4 w-4" />
