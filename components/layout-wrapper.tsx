@@ -24,6 +24,9 @@ interface LayoutWrapperProps {
     onSearchKeyDown?: (e: React.KeyboardEvent<HTMLInputElement>) => void
     searchPlaceholder?: string
     isTyping?: boolean
+    selectedDepartment?: string
+    onDepartmentChange?: (department: string) => void
+    departmentOptions?: string[]
   }
   sidebarProps?: {
     activeFilter?: string

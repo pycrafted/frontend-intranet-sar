@@ -6,7 +6,8 @@ import { Badge } from "@/components/ui/badge"
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
 import { Button } from "@/components/ui/button"
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar"
-import { Mail, Phone, MessageCircle, ChevronLeft, ChevronRight } from "lucide-react"
+import { Input } from "@/components/ui/input"
+import { Mail, Phone, Smartphone, MessageCircle, ChevronLeft, ChevronRight, Search, Building2, User } from "lucide-react"
 import { useEmployees, Employee, Department } from "@/hooks/useEmployees"
 import { StandardLoader } from "@/components/ui/standard-loader"
 
@@ -19,11 +20,11 @@ const fallbackEmployees: Employee[] = [
     full_name: "Maimouna DIOP DIAGNE",
     initials: "MD",
     email: "maimoumadiagne@sar.sn",
-    phone: "774596321",
+    phone_fixed: "+221 33 825 96 21",
+    phone_mobile: "77 459 63 21",
     employee_id: "SAR001",
-    position: "Directrice Commerciale et Marketing",
+    position: 1,
     position_title: "Directrice Commerciale et Marketing",
-    department: "Direction Commerciale et Marketing",
     department_name: "Direction Commerciale et Marketing",
     matricule: "SAR001",
     manager: null,
@@ -31,10 +32,10 @@ const fallbackEmployees: Employee[] = [
     hierarchy_level: 1,
     is_manager: true,
     is_active: true,
-    is_staff: true,
-    is_superuser: false,
+    hire_date: "2020-01-01",
+    office_location: "Dakar - Siège",
+    work_schedule: "Temps plein",
     avatar: "/placeholder-user.jpg",
-    avatar_url: "/placeholder-user.jpg",
     created_at: "2020-01-01T00:00:00Z",
     updated_at: "2020-01-01T00:00:00Z",
   },
@@ -45,11 +46,11 @@ const fallbackEmployees: Employee[] = [
     full_name: "Mamadou Abib DIOP",
     initials: "MA",
     email: "mamadoudiop@sar.sn",
-    phone: "772503120",
+    phone_fixed: "+221 33 825 03 20",
+    phone_mobile: "77 250 31 20",
     employee_id: "SAR002",
-    position: "Directeur général",
+    position: 2,
     position_title: "Directeur général",
-    department: "Administration",
     department_name: "Administration",
     matricule: "SAR002",
     manager: null,
@@ -57,10 +58,10 @@ const fallbackEmployees: Employee[] = [
     hierarchy_level: 1,
     is_manager: true,
     is_active: true,
-    is_staff: true,
-    is_superuser: false,
+    hire_date: "2020-01-01",
+    office_location: "Dakar - Siège",
+    work_schedule: "Temps plein",
     avatar: "/placeholder-user.jpg",
-    avatar_url: "/placeholder-user.jpg",
     created_at: "2020-01-01T00:00:00Z",
     updated_at: "2020-01-01T00:00:00Z",
   },
@@ -71,11 +72,11 @@ const fallbackEmployees: Employee[] = [
     full_name: "Oumar DIOUF",
     initials: "OD",
     email: "oumardiouf@sar.sn",
-    phone: "772598631",
+    phone_fixed: "+221 33 825 98 31",
+    phone_mobile: null,
     employee_id: "SAR003",
-    position: "Directeur des Ressources Humaines",
+    position: 3,
     position_title: "Directeur des Ressources Humaines",
-    department: "Direction des Ressources Humaines",
     department_name: "Direction des Ressources Humaines",
     matricule: "SAR003",
     manager: null,
@@ -83,10 +84,10 @@ const fallbackEmployees: Employee[] = [
     hierarchy_level: 1,
     is_manager: true,
     is_active: true,
-    is_staff: true,
-    is_superuser: false,
+    hire_date: "2020-01-01",
+    office_location: "Dakar - Siège",
+    work_schedule: "Temps plein",
     avatar: "/placeholder-user.jpg",
-    avatar_url: "/placeholder-user.jpg",
     created_at: "2020-01-01T00:00:00Z",
     updated_at: "2020-01-01T00:00:00Z",
   },
@@ -97,11 +98,11 @@ const fallbackEmployees: Employee[] = [
     full_name: "Souleymane SECK",
     initials: "SS",
     email: "souleymaneseck@sar.sn",
-    phone: "771459313",
+    phone_fixed: "+221 33 825 59 13",
+    phone_mobile: "77 145 93 13",
     employee_id: "SAR004",
-    position: "Directeur EXECUTIVE - SUPPORT",
+    position: 4,
     position_title: "Directeur EXECUTIVE - SUPPORT",
-    department: "Direction EXECUTIVE - SUPPORT",
     department_name: "Direction EXECUTIVE - SUPPORT",
     matricule: "SAR004",
     manager: null,
@@ -109,10 +110,10 @@ const fallbackEmployees: Employee[] = [
     hierarchy_level: 1,
     is_manager: true,
     is_active: true,
-    is_staff: true,
-    is_superuser: false,
+    hire_date: "2020-01-01",
+    office_location: "Dakar - Siège",
+    work_schedule: "Temps plein",
     avatar: "/placeholder-user.jpg",
-    avatar_url: "/placeholder-user.jpg",
     created_at: "2020-01-01T00:00:00Z",
     updated_at: "2020-01-01T00:00:00Z",
   },
@@ -123,11 +124,11 @@ const fallbackEmployees: Employee[] = [
     full_name: "Ousmane SEMBENE",
     initials: "OS",
     email: "ousmanesembene@sar.sn",
-    phone: "775149638",
+    phone_fixed: null,
+    phone_mobile: "77 514 96 38",
     employee_id: "SAR005",
-    position: "Directeur Technique",
+    position: 5,
     position_title: "Directeur Technique",
-    department: "Direction Technique",
     department_name: "Direction Technique",
     matricule: "SAR005",
     manager: null,
@@ -135,10 +136,10 @@ const fallbackEmployees: Employee[] = [
     hierarchy_level: 1,
     is_manager: true,
     is_active: true,
-    is_staff: true,
-    is_superuser: false,
+    hire_date: "2020-01-01",
+    office_location: "Dakar - Siège",
+    work_schedule: "Temps plein",
     avatar: "/placeholder-user.jpg",
-    avatar_url: "/placeholder-user.jpg",
     created_at: "2020-01-01T00:00:00Z",
     updated_at: "2020-01-01T00:00:00Z",
   },
@@ -149,11 +150,11 @@ const fallbackEmployees: Employee[] = [
     full_name: "Daouda KEBE",
     initials: "DK",
     email: "daoudakebe@sar.sn",
-    phone: "772563920",
+    phone_fixed: "+221 33 825 63 20",
+    phone_mobile: "77 256 39 20",
     employee_id: "SAR006",
-    position: "Directeur EXECUTIVE OPERATIONS",
+    position: 6,
     position_title: "Directeur EXECUTIVE OPERATIONS",
-    department: "Direction Executif",
     department_name: "Direction Executif",
     matricule: "SAR006",
     manager: null,
@@ -161,10 +162,10 @@ const fallbackEmployees: Employee[] = [
     hierarchy_level: 1,
     is_manager: true,
     is_active: true,
-    is_staff: true,
-    is_superuser: false,
+    hire_date: "2020-01-01",
+    office_location: "Dakar - Siège",
+    work_schedule: "Temps plein",
     avatar: "/placeholder-user.jpg",
-    avatar_url: "/placeholder-user.jpg",
     created_at: "2020-01-01T00:00:00Z",
     updated_at: "2020-01-01T00:00:00Z",
   },
@@ -175,11 +176,11 @@ const fallbackEmployees: Employee[] = [
     full_name: "Fatou DIAGNE",
     initials: "FD",
     email: "fatoudiagne@sar.sn",
-    phone: "773456789",
+    phone_fixed: null,
+    phone_mobile: null,
     employee_id: "SAR007",
-    position: "Responsable Qualité",
+    position: 7,
     position_title: "Responsable Qualité",
-    department: "Direction Qualité",
     department_name: "Direction Qualité",
     matricule: "SAR007",
     manager: null,
@@ -188,7 +189,11 @@ const fallbackEmployees: Employee[] = [
     is_manager: false,
     is_active: true,
     hire_date: "2021-03-15",
+    office_location: "Dakar - Siège",
+    work_schedule: "Temps plein",
     avatar: "/placeholder-user.jpg",
+    created_at: "2021-03-15T00:00:00Z",
+    updated_at: "2021-03-15T00:00:00Z",
   },
   {
     id: 8,
@@ -197,11 +202,11 @@ const fallbackEmployees: Employee[] = [
     full_name: "Ibrahima FALL",
     initials: "IF",
     email: "ibrahimafall@sar.sn",
-    phone: "774567890",
+    phone_fixed: "+221 33 825 67 90",
+    phone_mobile: "77 456 78 90",
     employee_id: "SAR008",
-    position: "Chef de Projet",
+    position: 8,
     position_title: "Chef de Projet",
-    department: "Direction Technique",
     department_name: "Direction Technique",
     matricule: "SAR008",
     manager: null,
@@ -210,7 +215,11 @@ const fallbackEmployees: Employee[] = [
     is_manager: false,
     is_active: true,
     hire_date: "2021-06-01",
+    office_location: "Dakar - Siège",
+    work_schedule: "Temps plein",
     avatar: "/placeholder-user.jpg",
+    created_at: "2021-06-01T00:00:00Z",
+    updated_at: "2021-06-01T00:00:00Z",
   },
   {
     id: 9,
@@ -219,11 +228,11 @@ const fallbackEmployees: Employee[] = [
     full_name: "Aminata SARR",
     initials: "AS",
     email: "aminatasarr@sar.sn",
-    phone: "775678901",
+    phone_fixed: "+221 33 825 78 01",
+    phone_mobile: "77 567 89 01",
     employee_id: "SAR009",
-    position: "Analyste Financier",
+    position: 9,
     position_title: "Analyste Financier",
-    department: "Direction Financière",
     department_name: "Direction Financière",
     matricule: "SAR009",
     manager: null,
@@ -232,7 +241,11 @@ const fallbackEmployees: Employee[] = [
     is_manager: false,
     is_active: true,
     hire_date: "2022-01-10",
+    office_location: "Dakar - Siège",
+    work_schedule: "Temps plein",
     avatar: "/placeholder-user.jpg",
+    created_at: "2022-01-10T00:00:00Z",
+    updated_at: "2022-01-10T00:00:00Z",
   }
 ]
 
@@ -245,8 +258,7 @@ export default function AnnuairePage() {
   const [selectedDepartment, setSelectedDepartment] = useState("Tous")
   const [filteredEmployees, setFilteredEmployees] = useState<Employee[]>([])
   const [currentPage, setCurrentPage] = useState(1)
-  const [selectedEmployee, setSelectedEmployee] = useState<Employee | null>(null)
-  const itemsPerPage = 8
+  const itemsPerPage = 6
 
   // Utiliser l'API
   const { 
@@ -260,13 +272,21 @@ export default function AnnuairePage() {
   // Construire la liste des départements pour le filtre
   const departmentOptions = ["Tous", ...(departments.map(dept => dept.name) || fallbackDepartments.slice(1))]
 
-  // Debouncing pour la recherche
+  // Debounce pour la recherche (comme dans actualités)
   useEffect(() => {
+    if (searchTerm.trim() === '') {
+      // Recherche immédiate si le champ est vide
+      setDebouncedSearchTerm(searchTerm)
+      setIsTyping(false)
+      return
+    }
+
+    setIsTyping(true)
     const timer = setTimeout(() => {
       setDebouncedSearchTerm(searchTerm)
       setIsTyping(false)
-    }, 300)
-
+    }, 1000) // 1 seconde pour laisser le temps de finir d'écrire
+    
     return () => clearTimeout(timer)
   }, [searchTerm])
 
@@ -279,27 +299,27 @@ export default function AnnuairePage() {
 
   // Effectuer la recherche avec le terme debounced
   useEffect(() => {
-    if (debouncedSearchTerm !== searchTerm) {
-      searchEmployees(debouncedSearchTerm, selectedDepartment)
-    }
-  }, [debouncedSearchTerm, selectedDepartment, searchEmployees])
+    searchEmployees(debouncedSearchTerm, selectedDepartment)
+    setCurrentPage(1) // Réinitialiser à la première page lors de la recherche
+  }, [debouncedSearchTerm, selectedDepartment])
 
   const handleSearch = (term: string) => {
     setSearchTerm(term)
-    setIsTyping(true)
   }
 
   const handleSearchKeyDown = (e: React.KeyboardEvent<HTMLInputElement>) => {
     if (e.key === 'Enter') {
-      setDebouncedSearchTerm(searchTerm)
+      e.preventDefault()
+      // Forcer la recherche immédiate sur Enter
       setIsTyping(false)
+      setDebouncedSearchTerm(searchTerm)
     }
   }
 
   const handleDepartmentChange = (department: string) => {
     setSelectedDepartment(department)
-    // Utiliser l'API pour la recherche avec le nouveau département
-    searchEmployees(searchTerm, department)
+    setCurrentPage(1) // Réinitialiser à la première page lors du changement de département
+    // La recherche sera déclenchée automatiquement par le useEffect
   }
 
   const handleEmailClick = (email: string) => {
@@ -307,7 +327,7 @@ export default function AnnuairePage() {
   }
 
   const handleEmployeeClick = (employee: Employee) => {
-    setSelectedEmployee(employee)
+    // Modal supprimé - pas d'action au clic
   }
 
   const handleChatClick = (employee: Employee) => {
@@ -317,6 +337,7 @@ export default function AnnuairePage() {
 
   // Utiliser les données de l'API ou les données filtrées
   const displayData = filteredEmployees.length > 0 ? filteredEmployees : employees
+  
   
   // Calcul de la pagination
   const totalPages = Math.ceil(displayData.length / itemsPerPage)
@@ -414,267 +435,192 @@ export default function AnnuairePage() {
         }}
       >
         <div className="min-h-screen" style={{backgroundColor: "#e5e7eb"}}>
-        <div className="px-6 py-8 space-y-8" style={{backgroundColor: "#e5e7eb"}}>
-          {/* Results count with animation */}
-          <div className="max-w-7xl mx-auto">
-            <div className="flex items-center mt-6" style={{backgroundColor: "#e5e7eb"}}>
-              <div className="flex items-center gap-3">
-                <div className="w-2 h-2 rounded-full animate-pulse" style={{backgroundColor: "#e5e7eb"}}></div>
-                <span className="text-lg font-semibold" style={{color: "#e5e7eb"}}>
-                  {displayData.length} employé{displayData.length > 1 ? 's' : ''} trouvé{displayData.length > 1 ? 's' : ''}
-                </span>
-              </div>
-            </div>
-          </div>
+          <main className="container mx-auto px-4 py-8 max-w-7xl">
 
-          {/* Employee Cards Grid */}
-          <div className="max-w-7xl mx-auto">
-            <div className="rounded-none p-4" style={{backgroundColor: "#e5e7eb"}}>
-              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4" style={{minHeight: 'calc(100vh - 200px)'}}>
-              {displayEmployees.map((employee, index) => (
-                employee ? (
-                <Card
-                  key={employee.id}
-                  className="group relative bg-white border border-gray-200 hover:border-gray-300 shadow-sm hover:shadow-lg transition-all duration-300 rounded-xl overflow-hidden fade-in cursor-pointer"
-                  style={{
-                    animationDelay: `${index * 100}ms`,
-                    animation: 'fadeInUp 0.6s ease-out forwards'
-                  }}
-                  onClick={() => handleEmployeeClick(employee)}
-                >
-                  <CardContent className="p-0">
-                    {/* Header */}
-                    <div className="px-4 pt-5 pb-3">
-                      {/* Avatar centré */}
-                      <div className="flex justify-center mb-3">
-                        <div className="relative">
-                          <div className="w-16 h-16 rounded-full bg-gradient-to-br from-blue-500 to-indigo-600 flex items-center justify-center overflow-hidden shadow-md group-hover:scale-105 transition-transform duration-300">
-                            <img
-                              src={employee.avatar || "/placeholder-user.jpg"}
-                              alt={employee.full_name}
-                              className="w-full h-full object-cover"
-                              onError={(e) => {
-                                const target = e.target as HTMLImageElement;
-                                target.style.display = 'none';
-                                const parent = target.parentElement;
-                                if (parent) {
-                                  parent.innerHTML = `<div class="w-full h-full bg-gradient-to-br from-blue-500 to-indigo-600 text-white flex items-center justify-center text-lg font-bold">${employee.initials}</div>`;
-                                }
-                              }}
-                            />
-                          </div>
-                        </div>
-                      </div>
-                      
-                      {/* Nom et poste centrés */}
-                      <div className="text-center">
-                        <h3 className="text-base font-bold text-gray-900 group-hover:text-blue-700 transition-colors duration-300 leading-tight mb-1">
-                          {employee.full_name}
-                        </h3>
-                        <p className="text-xs font-medium text-gray-600 line-clamp-2">
-                          {employee.position_title}
-                        </p>
-                      </div>
-                    </div>
-
-                    {/* Séparateur visuel */}
-                    <div className="mx-4 mb-3">
-                      <div className="h-px bg-gradient-to-r from-transparent via-gray-200 to-transparent"></div>
-                    </div>
-
-                    {/* Informations de contact */}
-                    <div className="px-4 pb-3">
-                      <div className="space-y-2">
-                        <div className="flex items-center text-xs text-gray-600 group-hover:text-gray-800 transition-colors duration-200">
-                          <div className="w-6 h-6 bg-blue-50 rounded-md flex items-center justify-center mr-2 group-hover:bg-blue-100 transition-colors duration-200">
-                            <Mail className="h-3 w-3 text-blue-600" />
-                          </div>
-                          <span className="truncate font-medium">{employee.email}</span>
-                        </div>
-                        <div className="flex items-center text-xs text-gray-600 group-hover:text-gray-800 transition-colors duration-200">
-                          <div className="w-6 h-6 bg-green-50 rounded-md flex items-center justify-center mr-2 group-hover:bg-green-100 transition-colors duration-200">
-                            <Phone className="h-3 w-3 text-green-600" />
-                          </div>
-                          <span className="font-medium">{employee.phone || "Non renseigné"}</span>
-                        </div>
-                      </div>
-                    </div>
-
-                    {/* Actions */}
-                    <div className="px-4 pb-4">
-                      <Button
-                        onClick={() => handleChatClick(employee)}
-                        className="w-full h-8 bg-gradient-to-r from-blue-600 to-indigo-600 hover:from-blue-700 hover:to-indigo-700 text-white shadow-sm hover:shadow-md transition-all duration-200 rounded-md font-medium text-xs"
-                      >
-                        <MessageCircle className="h-3 w-3 mr-1" />
-                        Chatter
-                      </Button>
-                    </div>
-                  </CardContent>
-                </Card>
-                ) : (
-                  // Card vide pour maintenir la grille
-                  <div key={`empty-${index}`} className="invisible">
-                    <Card className="group relative bg-white border border-gray-200 rounded-xl overflow-hidden">
-                      <CardContent className="p-0">
-                        <div className="px-4 pt-5 pb-3">
-                          <div className="flex justify-center mb-3">
-                            <div className="w-16 h-16 rounded-full bg-gray-100"></div>
-                          </div>
-                          <div className="text-center">
-                            <div className="h-4 bg-gray-100 rounded mb-1"></div>
-                            <div className="h-3 bg-gray-100 rounded w-3/4 mx-auto"></div>
-                          </div>
-                        </div>
-                        <div className="mx-4 mb-3">
-                          <div className="h-px bg-gray-200"></div>
-                        </div>
-                        <div className="px-4 pb-3">
-                          <div className="space-y-2">
-                            <div className="flex items-center">
-                              <div className="w-6 h-6 bg-gray-100 rounded-md mr-2"></div>
-                              <div className="h-3 bg-gray-100 rounded flex-1"></div>
-                            </div>
-                            <div className="flex items-center">
-                              <div className="w-6 h-6 bg-gray-100 rounded-md mr-2"></div>
-                              <div className="h-3 bg-gray-100 rounded flex-1"></div>
-                            </div>
-                          </div>
-                        </div>
-                        <div className="px-4 pb-4">
-                          <div className="h-8 bg-gray-100 rounded-md"></div>
-                        </div>
-                      </CardContent>
-                    </Card>
-                  </div>
-                )
-              ))}
-              </div>
-            </div>
-            </div>
-
-            {/* Pagination - Directement après les cards */}
-            {totalPages > 1 && (
-              <div className="max-w-7xl mx-auto px-6">
-                <div className="flex items-center justify-center gap-6 p-6 rounded-xl" style={{backgroundColor: "#e5e7eb"}}>
-                  {/* Flèche Gauche */}
-                  <Button
-                    onClick={goToPreviousPage}
-                    disabled={currentPage === 1}
-                    className="w-14 h-14 rounded-full flex items-center justify-center shadow-lg hover:shadow-xl transition-all duration-300 disabled:opacity-50 disabled:cursor-not-allowed"
-                    style={{
-                      backgroundColor: currentPage === 1 ? "#e5e7eb" : "#3b82f6",
-                      border: "none"
-                    }}
-                  >
-                    <ChevronLeft className="h-6 w-6" style={{color: currentPage === 1 ? "#9ca3af" : "white"}} />
-                  </Button>
-
-                  {/* Indicateur de page */}
-                  <div className="flex items-center gap-2">
-                    <span className="text-lg font-semibold text-gray-700">
-                      Page {currentPage} sur {totalPages}
-                    </span>
-                  </div>
-
-                  {/* Flèche Droite */}
-                  <Button
-                    onClick={goToNextPage}
-                    disabled={currentPage === totalPages}
-                    className="w-14 h-14 rounded-full flex items-center justify-center shadow-lg hover:shadow-xl transition-all duration-300 disabled:opacity-50 disabled:cursor-not-allowed"
-                    style={{
-                      backgroundColor: currentPage === totalPages ? "#e5e7eb" : "#3b82f6",
-                      border: "none"
-                    }}
-                  >
-                    <ChevronRight className="h-6 w-6" style={{color: currentPage === totalPages ? "#9ca3af" : "white"}} />
-                  </Button>
+            {/* Compteur de résultats - Affiché seulement s'il y a des employés */}
+            {displayData.length > 0 && (
+              <div className="mb-6">
+                <div className="flex items-center gap-3">
+                  <div className="w-2 h-2 rounded-full bg-primary animate-pulse"></div>
+                  <span className="text-lg font-semibold text-foreground">
+                    {displayData.length} employé{displayData.length > 1 ? 's' : ''} trouvé{displayData.length > 1 ? 's' : ''}
+                  </span>
                 </div>
               </div>
             )}
-          </div>
 
-      </div>
+            {/* Grille des employés */}
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 mb-8">
+              {displayEmployees.map((employee, index) => (
+                employee ? (
+                  <Card 
+                    key={employee.id} 
+                    className="overflow-hidden hover:shadow-2xl hover:-translate-y-2 hover:scale-105 transition-all duration-300 ease-out bg-card border-border cursor-pointer transform"
+                    onClick={() => handleEmployeeClick(employee)}
+                  >
+                    <div className="h-16" style={{backgroundColor: "#e7eaee"}} />
+                    <CardContent className="pt-0 px-6 pb-6">
+                      <div className="flex flex-col items-center -mt-10">
+                        <Avatar className="w-20 h-20 border-4 border-card shadow-md">
+                          <AvatarImage
+                            src={employee.avatar || "/placeholder-user.jpg"}
+                            alt={`${employee.full_name}`}
+                            onError={(e) => {
+                              const target = e.target as HTMLImageElement;
+                              target.style.display = 'none';
+                            }}
+                          />
+                          <AvatarFallback className="bg-primary text-primary-foreground text-xl font-semibold">
+                            {employee.initials}
+                          </AvatarFallback>
+                        </Avatar>
 
-      {/* Carte détaillée de l'employé sélectionné - Style Organigramme */}
-      {selectedEmployee && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black bg-opacity-50">
-          <div className="relative w-80 max-w-sm mx-4">
-            <Card className="group hover:shadow-xl transition-all duration-300 border-slate-200 hover:border-blue-300 bg-white">
-              <CardHeader className="text-center pb-4 pt-6">
-                <div className="relative">
-                  <Avatar className="w-24 h-24 mx-auto mb-4 ring-4 ring-slate-100 group-hover:ring-blue-100 transition-all duration-300">
-                    <AvatarImage 
-                      src={selectedEmployee.avatar ? `${process.env.NEXT_PUBLIC_API_URL || 'https://backend-intranet-sar-1.onrender.com'}${selectedEmployee.avatar}` : "/placeholder.svg"} 
-                      alt={selectedEmployee.full_name || selectedEmployee.name || "Employé"} 
-                      onError={(e) => {
-                        e.currentTarget.src = "/placeholder.svg";
-                      }}
-                    />
-                    <AvatarFallback className="text-xl font-bold bg-gradient-to-br from-blue-500 to-blue-600 text-white">
-                      {selectedEmployee.initials || "??"}
-                    </AvatarFallback>
-                  </Avatar>
-                  {(selectedEmployee.hierarchy_level || selectedEmployee.level || 1) === 1 && (
-                    <div className="absolute -top-2 -right-2 w-8 h-8 bg-yellow-400 rounded-full flex items-center justify-center shadow-lg">
-                      <span className="text-yellow-800 text-lg">👑</span>
-                    </div>
-                  )}
+                        <div className="text-center mt-4 mb-4">
+                          <h3 className="text-xl font-semibold text-foreground text-balance">
+                            {employee.full_name}
+                          </h3>
+                          <p className="text-sm text-muted-foreground mt-1 text-balance">{employee.position_title}</p>
+                        </div>
+
+                        <div className="w-full space-y-3 mb-5">
+                          <div className="flex items-start gap-3 text-sm">
+                            <Building2 className="w-4 h-4 text-muted-foreground mt-0.5 flex-shrink-0" />
+                            <span className="text-foreground text-pretty leading-relaxed">{employee.department_name}</span>
+                          </div>
+
+                          <div className="flex items-center gap-3 text-sm">
+                            <Phone className="w-4 h-4 text-muted-foreground flex-shrink-0" />
+                            {employee.phone_fixed ? (
+                              <a href={`tel:${employee.phone_fixed}`} className="text-foreground hover:text-primary transition-colors">
+                                {employee.phone_fixed}
+                              </a>
+                            ) : (
+                              <span className="text-muted-foreground">Non renseigné</span>
+                            )}
+                          </div>
+
+                          <div className="flex items-center gap-3 text-sm">
+                            <Smartphone className="w-4 h-4 text-muted-foreground flex-shrink-0" />
+                            {employee.phone_mobile ? (
+                              <a href={`tel:${employee.phone_mobile}`} className="text-foreground hover:text-primary transition-colors">
+                                {employee.phone_mobile}
+                              </a>
+                            ) : (
+                              <span className="text-muted-foreground">Non renseigné</span>
+                            )}
+                          </div>
+
+                          <div className="flex items-center gap-3 text-sm">
+                            <Mail className="w-4 h-4 text-muted-foreground flex-shrink-0" />
+                            <a
+                              href={`mailto:${employee.email}`}
+                              className="text-foreground hover:text-primary transition-colors break-all"
+                            >
+                              {employee.email}
+                            </a>
+                          </div>
+
+                          <div className="flex items-center gap-3 text-sm">
+                            <User className="w-4 h-4 text-muted-foreground flex-shrink-0" />
+                            <span className="text-muted-foreground font-mono">{employee.matricule}</span>
+                          </div>
+                        </div>
+
+                        <div className="flex gap-2 w-full">
+                          <Button
+                            variant="outline"
+                            size="sm"
+                            className="flex-1 gap-2"
+                            style={{
+                              backgroundColor: 'white',
+                              color: 'black',
+                              borderColor: 'black',
+                              borderWidth: '1px'
+                            }}
+                            onMouseEnter={(e) => {
+                              e.currentTarget.style.backgroundColor = '#0e2f56';
+                              e.currentTarget.style.color = 'white';
+                            }}
+                            onMouseLeave={(e) => {
+                              e.currentTarget.style.backgroundColor = 'white';
+                              e.currentTarget.style.color = 'black';
+                            }}
+                            onClick={() => window.location.href = `mailto:${employee.email}`}
+                          >
+                            <Mail className="w-4 h-4" />
+                            Email
+                          </Button>
+                          <Button 
+                            size="sm" 
+                            className="flex-1 gap-2 bg-primary hover:bg-primary/90 text-primary-foreground"
+                            onClick={() => handleChatClick(employee)}
+                          >
+                            <MessageCircle className="w-4 h-4" />
+                            Chat
+                          </Button>
+                        </div>
+                      </div>
+                    </CardContent>
+                  </Card>
+                ) : null
+              ))}
+            </div>
+
+            {/* Empty State */}
+            {displayData.length === 0 && (
+              <Card className="p-12 text-center rounded-lg">
+                <div className="space-y-4">
+                  <div className="w-16 h-16 bg-muted rounded-full flex items-center justify-center mx-auto">
+                    <Search className="h-8 w-8 text-muted-foreground" />
+                  </div>
+                  <div>
+                    <h3 className="text-lg font-semibold">Aucun employé ajouté à l'annuaire</h3>
+                  </div>
+                </div>
+              </Card>
+            )}
+
+            {/* Pagination */}
+            {totalPages > 1 && (
+              <div className="flex items-center justify-center gap-2">
+                <Button
+                  onClick={goToPreviousPage}
+                  disabled={currentPage === 1}
+                  className="flex items-center justify-center w-10 h-10 rounded-lg bg-card border border-border text-foreground hover:bg-accent hover:text-accent-foreground transition-colors disabled:opacity-50 disabled:cursor-not-allowed disabled:hover:bg-card"
+                  aria-label="Page précédente"
+                >
+                  <ChevronLeft className="w-5 h-5" />
+                </Button>
+
+                {Array.from({ length: totalPages }, (_, i) => i + 1).map((page) => (
                   <Button
-                    size="sm"
-                    variant="ghost"
-                    onClick={() => setSelectedEmployee(null)}
-                    className="absolute -top-2 -left-2 w-8 h-8 bg-red-500 hover:bg-red-600 text-white rounded-full p-0 shadow-lg"
+                    key={page}
+                    onClick={() => setCurrentPage(page)}
+                    className={`flex items-center justify-center w-10 h-10 rounded-lg border transition-colors font-medium ${
+                      currentPage === page
+                        ? "bg-primary text-primary-foreground border-primary"
+                        : "bg-card text-foreground border-border hover:bg-accent hover:text-accent-foreground"
+                    }`}
+                    aria-label={`Page ${page}`}
+                    aria-current={currentPage === page ? "page" : undefined}
                   >
-                    ×
+                    {page}
                   </Button>
-                </div>
-                <CardTitle className="text-lg font-bold text-slate-900 group-hover:text-blue-600 transition-colors">
-                  {selectedEmployee.full_name || selectedEmployee.name || "Nom inconnu"}
-                </CardTitle>
-                <CardDescription className="text-sm font-medium text-blue-600">
-                  {selectedEmployee.position_title || selectedEmployee.role || "Poste inconnu"}
-                </CardDescription>
-                <Badge variant="outline" className="w-fit mx-auto mt-2 border-slate-200 text-slate-600 bg-slate-50">
-                  {selectedEmployee.department_name || selectedEmployee.department || "Département inconnu"}
-                </Badge>
-              </CardHeader>
-              <CardContent className="space-y-4 px-6 pb-6">
-                <div className="space-y-3 text-sm">
-                  <div className="flex items-center space-x-3 text-slate-600">
-                    <Mail className="h-4 w-4 text-blue-500" />
-                    <span className="truncate">{selectedEmployee.email || "Email non renseigné"}</span>
-                  </div>
-                  <div className="flex items-center space-x-3 text-slate-600">
-                    <Phone className="h-4 w-4 text-green-500" />
-                    <span>{selectedEmployee.phone || "Téléphone non renseigné"}</span>
-                  </div>
-                </div>
-                <div className="flex gap-2 pt-2">
-                  <Button 
-                    size="sm" 
-                    variant="outline" 
-                    className="flex-1 border-blue-200 text-blue-600 hover:bg-blue-50 hover:border-blue-300 transition-all"
-                    onClick={() => window.open(`mailto:${selectedEmployee.email}`)}
-                  >
-                    <Mail className="h-4 w-4 mr-1" />
-                    Email
-                  </Button>
-                  <Button 
-                    size="sm" 
-                    variant="outline" 
-                    className="flex-1 border-green-200 text-green-600 hover:bg-green-50 hover:border-green-300 transition-all"
-                    onClick={() => handleChatClick(selectedEmployee)}
-                  >
-                    <MessageCircle className="h-4 w-4 mr-1" />
-                    Chatter
-                  </Button>
-                </div>
-              </CardContent>
-            </Card>
-          </div>
+                ))}
+
+                <Button
+                  onClick={goToNextPage}
+                  disabled={currentPage === totalPages}
+                  className="flex items-center justify-center w-10 h-10 rounded-lg bg-card border border-border text-foreground hover:bg-accent hover:text-accent-foreground transition-colors disabled:opacity-50 disabled:cursor-not-allowed disabled:hover:bg-card"
+                  aria-label="Page suivante"
+                >
+                  <ChevronRight className="w-5 h-5" />
+                </Button>
+              </div>
+            )}
+          </main>
         </div>
-      )}
+
     </LayoutWrapper>
     </>
   )

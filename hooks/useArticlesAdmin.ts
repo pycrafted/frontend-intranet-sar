@@ -85,7 +85,7 @@ export const useArticlesAdmin = () => {
   const [selectedArticles, setSelectedArticles] = useState<number[]>([]);
 
   const BASE_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:8000/api';
-  const ARTICLES_URL = `${BASE_URL}actualites/`;
+  const ARTICLES_URL = `${BASE_URL}/actualites/`;
 
   // Fonction pour construire les paramètres de requête
   const buildQueryParams = useCallback((filters: Filters) => {

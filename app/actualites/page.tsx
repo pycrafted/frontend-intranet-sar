@@ -216,21 +216,8 @@ export default function ActualitesPage() {
                 <Search className="h-8 w-8 text-muted-foreground" />
               </div>
               <div>
-                <h3 className="text-lg font-semibold">Aucun article trouvé</h3>
-                <p className="text-muted-foreground">Essayez de modifier vos critères de recherche ou de filtrage.</p>
+                <h3 className="text-lg font-semibold">Aucune actualité ou annonce publiée</h3>
               </div>
-              <Button
-                variant="outline"
-                onClick={() => {
-                  setSearchTerm("")
-                  setSelectedCategory("Toutes")
-                  setActiveNavCategory("toutes")
-                  setActiveFilter("all")
-                  setActiveDepartment("all")
-                }}
-              >
-                Réinitialiser les filtres
-              </Button>
             </div>
           </Card>
         )}

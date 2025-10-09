@@ -9,36 +9,10 @@ import { Button } from "@/components/ui/button"
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
 import { Search, Building, Loader2 } from "lucide-react"
 import InteractiveOrgChart from "@/components/interactive-orgchart"
-import { useEmployees, Employee, Department } from "@/hooks/useEmployees"
+import { useOrgChart, Employee, Department } from "@/hooks/useOrgChart"
 import { StandardLoader } from "@/components/ui/standard-loader"
 
-// Données statiques de fallback
-const fallbackEmployees: Employee[] = [
-  {
-    id: 1,
-    first_name: "Amadou",
-    last_name: "Diallo",
-    full_name: "Amadou Diallo",
-    initials: "AD",
-    email: "amadou.diallo@sar.sn",
-    phone: "+221 33 123 4567",
-    employee_id: "SAR001",
-    position: 1,
-    position_title: "Directeur Général",
-    department_name: "Direction",
-    manager: null,
-    manager_name: null,
-    hierarchy_level: 1,
-    is_manager: true,
-    office_location: "Dakar - Siège",
-    work_schedule: "Temps plein",
-    is_active: true,
-    hire_date: "2020-01-01",
-    avatar: "/placeholder.svg?height=100&width=100&text=AD",
-  }
-]
-
-const fallbackDepartments = ["Tous"]
+// Les données sont maintenant gérées par le hook useOrgChart
 
 export default function OrganigrammePage() {
   const [searchTerm, setSearchTerm] = useState("")
@@ -47,14 +21,24 @@ export default function OrganigrammePage() {
   const [filteredEmployees, setFilteredEmployees] = useState<Employee[]>([])
   const [isTyping, setIsTyping] = useState(false)
 
-  // Utiliser l'API
+  console.log('🏢 [ORGANIGRAMME_PAGE] Initialisation - UTILISATION DU HOOK DÉDIÉ (pas de base de données)')
+
+  // Utiliser le hook dédié à l'organigramme
   const { 
     employees, 
     departments, 
     loading, 
     error, 
     searchEmployees 
-  } = useEmployees()
+  } = useOrgChart()
+
+  console.log('📊 [ORGANIGRAMME_PAGE] Données reçues du hook:', {
+    source: 'ORGCHART_HOOK',
+    employeesCount: employees?.length || 0,
+    departmentsCount: departments?.length || 0,
+    loading,
+    error: error || 'Aucune erreur'
+  })
 
   // Debounce pour la recherche
   useEffect(() => {
@@ -74,9 +58,14 @@ export default function OrganigrammePage() {
   }, [searchTerm])
 
   // Construire la liste des départements pour le filtre
-  const departmentOptions = ["Tous", ...(departments.map(dept => dept.name) || ["Direction", "Direction EXECUTIVE - SUPPORT"])]
+  const departmentOptions = ["Tous", ...(departments.map(dept => dept.name) || [])]
 
   const handleSearch = async (term: string) => {
+    console.log('🔍 [ORGANIGRAMME_PAGE] Recherche déclenchée:', {
+      term,
+      department: selectedDepartment,
+      source: 'ORGCHART_HOOK'
+    })
     setSearchTerm(term)
     if (term.trim()) {
       await searchEmployees(term, selectedDepartment !== "Tous" ? selectedDepartment : undefined)
@@ -94,6 +83,11 @@ export default function OrganigrammePage() {
   }
 
   const handleDepartmentChange = async (department: string) => {
+    console.log('🏢 [ORGANIGRAMME_PAGE] Changement de département:', {
+      department,
+      searchTerm,
+      source: 'ORGCHART_HOOK'
+    })
     setSelectedDepartment(department)
     if (searchTerm.trim()) {
       await searchEmployees(searchTerm, department !== "Tous" ? department : undefined)
@@ -106,54 +100,6 @@ export default function OrganigrammePage() {
   useEffect(() => {
     if (employees && employees.length > 0) {
       setFilteredEmployees(employees)
-    } else {
-      // Fallback avec des données de démonstration
-      setFilteredEmployees([
-        {
-          id: 1,
-          first_name: "Amadou",
-          last_name: "Diallo",
-          full_name: "Amadou Diallo",
-          initials: "AD",
-          email: "amadou.diallo@sar.sn",
-          phone: "+221 33 123 4567",
-          employee_id: "SAR001",
-          position: 1,
-          position_title: "Directeur Général",
-          department_name: "Direction",
-          manager: null,
-          manager_name: null,
-          hierarchy_level: 1,
-          is_manager: true,
-          office_location: "Dakar - Siège",
-          work_schedule: "Temps plein",
-          is_active: true,
-          hire_date: "2020-01-01",
-          avatar: "/media/avatars/directeur-general--2048x1657.jpg",
-        },
-        {
-          id: 2,
-          first_name: "Souleymane",
-          last_name: "SECK",
-          full_name: "Souleymane SECK",
-          initials: "SS",
-          email: "souleymaneseck@sar.sn",
-          phone: "771459313",
-          employee_id: "SAR002",
-          position: 2,
-          position_title: "Directeur EXECUTIVE - SUPPORT",
-          department_name: "Direction EXECUTIVE - SUPPORT",
-          manager: 1,
-          manager_name: "Amadou Diallo",
-          hierarchy_level: 2,
-          is_manager: true,
-          office_location: "Dakar - Siège",
-          work_schedule: "Temps plein",
-          is_active: true,
-          hire_date: "2020-06-01",
-          avatar: "/media/avatars/1716138550515.jpeg",
-        }
-      ])
     }
   }, [employees])
 

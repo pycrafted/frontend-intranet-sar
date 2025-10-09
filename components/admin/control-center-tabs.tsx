@@ -15,7 +15,8 @@ import {
   CheckCircle,
   TrendingUp,
   Lightbulb,
-  PieChart
+  PieChart,
+  Building2
 } from 'lucide-react'
 import { ArticleAdminTable } from './article-admin-table'
 import { IdeasAdminTable } from './ideas-admin-table'
@@ -24,13 +25,15 @@ import { SafetyDataTable } from './safety-data-table'
 import { SafetyDashboard } from './safety-dashboard'
 import { MenuManagement } from './menu-management'
 import { EventManagement } from './event-management'
+import { EmployeesAdminTable } from './employees-admin-table'
+import { DepartmentsAdminTable } from './departments-admin-table'
 
 interface ControlCenterTabsProps {
   className?: string
   activeSection?: string
 }
 
-type TabType = 'articles' | 'ideas' | 'safety' | 'users' | 'menu' | 'events'
+type TabType = 'articles' | 'ideas' | 'safety' | 'users' | 'employees' | 'departments' | 'menu' | 'events'
 
 interface Tab {
   id: TabType
@@ -45,6 +48,18 @@ const tabs: Tab[] = [
     label: 'Utilisateurs',
     icon: Users,
     description: 'Gestion des utilisateurs et permissions'
+  },
+  {
+    id: 'employees',
+    label: 'Employés',
+    icon: Users,
+    description: 'Gestion des employés de l\'annuaire'
+  },
+  {
+    id: 'departments',
+    label: 'Départements',
+    icon: Building2,
+    description: 'Gestion des départements et services'
   },
   {
     id: 'articles',
@@ -91,6 +106,12 @@ export function ControlCenterTabs({ className, activeSection }: ControlCenterTab
 
   const renderTabContent = () => {
     switch (activeTab) {
+      case 'employees':
+        return <EmployeesAdminTable />
+      
+      case 'departments':
+        return <DepartmentsAdminTable />
+      
       case 'articles':
         return <ArticleAdminTable />
       
@@ -111,7 +132,6 @@ export function ControlCenterTabs({ className, activeSection }: ControlCenterTab
       case 'events':
         return <EventManagement />
       
-      
       case 'users':
         return (
           <Card>
@@ -125,7 +145,6 @@ export function ControlCenterTabs({ className, activeSection }: ControlCenterTab
             </CardContent>
           </Card>
         )
-      
       
       default:
         return null

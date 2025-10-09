@@ -7,8 +7,10 @@ export interface Employee {
   full_name: string
   initials: string
   email: string
-  phone: string | null  // Corrigé : phone au lieu de phone_number
+  phone_fixed: string | null  // Téléphone fixe
+  phone_mobile: string | null  // Téléphone mobile
   employee_id: string | null
+  matricule: string | null  // Ajout du champ matricule (alias de employee_id)
   position: number  // ID de la position
   position_title: string
   department_name: string
@@ -17,7 +19,7 @@ export interface Employee {
   hierarchy_level: number
   is_manager: boolean
   is_active: boolean
-  avatar: string | null
+  avatar: string | null  // URL complète de l'avatar
   office_location: string | null
   work_schedule: string
   hire_date: string
@@ -28,8 +30,6 @@ export interface Employee {
 export interface Department {
   id: number
   name: string
-  description: string | null
-  location: string | null
   employee_count: number
   created_at: string
   updated_at: string
@@ -42,7 +42,8 @@ export interface OrgChartData {
     role: string
     department: string
     email: string
-    phone: string
+    phone_fixed: string | null
+    phone_mobile: string | null
     location: string | null
     avatar: string | null
     initials: string
@@ -115,12 +116,21 @@ export const useEmployees = () => {
       setLoading(true)
       const params = new URLSearchParams()
       if (query) params.append('q', query)
-      if (department && department !== 'Tous') params.append('department', department)
+      
+      // Trouver l'ID du département par son nom
+      if (department && department !== 'Tous') {
+        const dept = departments.find(d => d.name === department)
+        if (dept) {
+          params.append('department', dept.id.toString())
+        }
+      }
       
       // Utiliser le nouvel endpoint pour la recherche d'employés
       const response = await fetch(`${API_BASE_URL}/employees/search/?${params}`)
       if (!response.ok) throw new Error('Erreur lors de la recherche')
       const data = await response.json()
+      
+      
       setEmployees(data.results || data) // Gérer la pagination
     } catch (err) {
       setError(err instanceof Error ? err.message : 'Erreur inconnue')

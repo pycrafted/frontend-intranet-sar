@@ -22,7 +22,7 @@ import {
   MessageCircle
 } from "lucide-react"
 import { cn } from "@/lib/utils"
-import { useEmployees, Employee, OrgChartData } from "@/hooks/useEmployees"
+import { useOrgChart, Employee, OrgChartData } from "@/hooks/useOrgChart"
 
 interface OrgChartProps {
   // Props optionnelles pour compatibilité
@@ -42,14 +42,33 @@ const InteractiveOrgChart: React.FC<OrgChartProps> = ({ employees: propEmployees
   const containerRef = useRef<HTMLDivElement>(null)
   const animationRef = useRef<number>()
 
-  // Utiliser l'API ou les props en fallback
-  const { employees: apiEmployees, orgChartData, loading, error } = useEmployees()
+  console.log('🏢 [INTERACTIVE_ORGCHART] Initialisation - UTILISATION DU HOOK DÉDIÉ (pas de base de données)')
+
+  // Utiliser le hook dédié à l'organigramme ou les props en fallback
+  const { employees: apiEmployees, orgChartData, loading, error } = useOrgChart()
   const employees = propEmployees || apiEmployees
+
+  console.log('📊 [INTERACTIVE_ORGCHART] Données reçues:', {
+    source: 'ORGCHART_HOOK',
+    employeesCount: employees?.length || 0,
+    orgChartDataLevels: Object.keys(orgChartData || {}).length,
+    loading,
+    error: error || 'Aucune erreur',
+    usingProps: !!propEmployees
+  })
 
   // Convertir les données de l'API en structure hiérarchique
   const buildOrgStructure = (): Employee[] => {
+    console.log('🏗️ [INTERACTIVE_ORGCHART] Construction de la structure hiérarchique - DONNÉES STATIQUES')
+    
     // Utiliser les données des employés pour construire la hiérarchie
     if (employees && employees.length > 0) {
+      console.log('📊 [INTERACTIVE_ORGCHART] Données employés disponibles:', {
+        source: 'STATIC_DATA',
+        count: employees.length,
+        employees: employees.map(emp => ({ id: emp.id, name: emp.full_name, manager: emp.manager }))
+      })
+      
       // Créer un map des employés par ID pour un accès rapide
       const employeeMap = new Map<number, Employee>()
       employees.forEach(emp => {
@@ -59,9 +78,15 @@ const InteractiveOrgChart: React.FC<OrgChartProps> = ({ employees: propEmployees
       // Trouver le CEO (employé sans manager)
       const ceo = employees.find(emp => !emp.manager)
       if (!ceo) {
-        console.warn('Aucun CEO trouvé (employé sans manager)')
+        console.warn('⚠️ [INTERACTIVE_ORGCHART] Aucun CEO trouvé (employé sans manager)')
         return []
       }
+      
+      console.log('👑 [INTERACTIVE_ORGCHART] CEO identifié:', {
+        id: ceo.id,
+        name: ceo.full_name,
+        source: 'STATIC_DATA'
+      })
       
       // Construire la hiérarchie récursivement
       const buildHierarchy = (employeeId: number): Employee[] => {
@@ -86,6 +111,12 @@ const InteractiveOrgChart: React.FC<OrgChartProps> = ({ employees: propEmployees
       // Construire la hiérarchie à partir du CEO
       const ceoEmployee = employeeMap.get(ceo.id)!
       ceoEmployee.children = buildHierarchy(ceo.id)
+      
+      console.log('✅ [INTERACTIVE_ORGCHART] Structure hiérarchique construite:', {
+        source: 'STATIC_DATA',
+        ceo: ceoEmployee.full_name,
+        totalSubordinates: ceoEmployee.children.length
+      })
       
       return [ceoEmployee]
     }
