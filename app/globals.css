@@ -204,6 +204,57 @@
 }
 
 @layer base {
+  /* Suppression des styles par défaut de React Flow */
+  .react-flow__node {
+    background: transparent !important;
+    border: none !important;
+    padding: 0 !important;
+    box-shadow: none !important;
+  }
+
+  .react-flow__node-process {
+    background: transparent !important;
+    border: none !important;
+    padding: 0 !important;
+    box-shadow: none !important;
+  }
+
+  .react-flow__node.selected {
+    box-shadow: none !important;
+  }
+
+  /* Suppression supplémentaire pour tous les nœuds React Flow */
+  .react-flow__node > div {
+    background: transparent !important;
+    border: none !important;
+    box-shadow: none !important;
+  }
+
+  /* Force la suppression des styles par défaut */
+  .react-flow__node[data-id] {
+    background: transparent !important;
+    border: none !important;
+    padding: 0 !important;
+    box-shadow: none !important;
+  }
+
+  /* Styles ultra-spécifiques pour écraser React Flow */
+  .react-flow__node.react-flow__node-process {
+    background: transparent !important;
+    border: none !important;
+    padding: 0 !important;
+    box-shadow: none !important;
+    border-radius: 0 !important;
+  }
+
+  /* Suppression des styles de sélection */
+  .react-flow__node.selected,
+  .react-flow__node.selected.react-flow__node-process {
+    background: transparent !important;
+    border: none !important;
+    box-shadow: none !important;
+  }
+
   * {
     @apply border-border outline-ring/50;
   }
@@ -428,6 +479,7 @@
   .event-content .space-y-4 > * + * {
     @apply mt-4;
   }
+
 
   /* Professional scrollbar */
   .custom-scrollbar::-webkit-scrollbar {
@@ -892,4 +944,29 @@
 
 html {
   scroll-behavior: smooth;
+}
+
+@layer utilities {
+  /* Styles React Flow - couche utilities pour priorité maximale */
+  .react-flow__node {
+    background: transparent !important;
+    border: none !important;
+    padding: 0 !important;
+    box-shadow: none !important;
+    border-radius: 0 !important;
+  }
+
+  .react-flow__node-process {
+    background: transparent !important;
+    border: none !important;
+    padding: 0 !important;
+    box-shadow: none !important;
+    border-radius: 0 !important;
+  }
+
+  .react-flow__node.selected {
+    background: transparent !important;
+    border: none !important;
+    box-shadow: none !important;
+  }
 }
