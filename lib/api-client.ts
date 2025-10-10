@@ -65,7 +65,7 @@ export class APIClient {
     // Configuration de la requête
     const requestConfig: RequestInit = {
       method,
-      credentials: 'include', // CRUCIAL: Inclure les cookies de session
+      credentials: requireAuth ? 'include' : 'omit', // Inclure les cookies seulement si auth requise
       headers: finalHeaders,
     }
 
