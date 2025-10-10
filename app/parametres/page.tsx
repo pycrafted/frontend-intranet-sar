@@ -8,12 +8,6 @@ export default function ParametresPage() {
   return (
     <LayoutWrapper>
       <div className="space-y-6">
-        {/* Header */}
-        <div>
-          <h1 className="text-3xl font-bold text-foreground mb-2">Paramètres</h1>
-          <p className="text-muted-foreground">Configuration et préférences du système</p>
-        </div>
-
         {/* Coming Soon Card */}
         <ComingSoonCard 
           icon={Settings}

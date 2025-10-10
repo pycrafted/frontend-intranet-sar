@@ -8,12 +8,6 @@ export default function MetriquesPage() {
   return (
     <LayoutWrapper>
       <div className="space-y-6">
-        {/* Header */}
-        <div>
-          <h1 className="text-3xl font-bold text-foreground mb-2">Métriques et Analytics</h1>
-          <p className="text-muted-foreground">Tableaux de bord et analyses de performance</p>
-        </div>
-
         {/* Coming Soon Card */}
         <ComingSoonCard 
           icon={BarChart3}

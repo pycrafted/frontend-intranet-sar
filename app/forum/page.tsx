@@ -2,17 +2,17 @@
 
 import { LayoutWrapper } from "@/components/layout-wrapper"
 import { ComingSoonCard } from "@/components/coming-soon-card"
-import { MessageSquare } from "lucide-react"
+import { MessageCircle } from "lucide-react"
 
-export default function ReseauSocialPage() {
+export default function ForumPage() {
   return (
     <LayoutWrapper>
       <div className="space-y-6">
         {/* Coming Soon Card */}
         <ComingSoonCard 
-          icon={MessageSquare}
-          title="Réseau social d'entreprise"
-          description="Chat, forum et collaboration - Cette fonctionnalité sera bientôt disponible"
+          icon={MessageCircle}
+          title="Forum de discussion"
+          description="Échanges et discussions entre collègues - Cette fonctionnalité sera bientôt disponible"
         />
       </div>
     </LayoutWrapper>

@@ -57,35 +57,35 @@ const WIDGET_CONFIG: Record<string, { size: string; component: React.ComponentTy
     component: NewsCarousel, 
     title: 'Actualités Récentes' 
   },
-  ideas: { 
-    size: 'small', 
-    component: IdeaBoxWidget, 
-    title: 'Boîte à Idées' 
+  director: { 
+    size: 'medium', 
+    component: DirectorMessageWidget, 
+    title: 'Mot du Directeur' 
   },
   safety: { 
     size: 'medium', 
     component: SafetyCounter, 
     title: 'Sécurité du Travail' 
   },
+  apps: { 
+    size: 'medium', 
+    component: AppsWidget, 
+    title: 'Applications' 
+  },
+  calendar: { 
+    size: 'medium', 
+    component: EventsCalendar, 
+    title: 'Événements' 
+  },
+  ideas: { 
+    size: 'medium', 
+    component: IdeaBoxWidget, 
+    title: 'Boîte à Idées' 
+  },
   menu: { 
     size: 'full', 
     component: RestaurantMenu, 
     title: 'Menu de la Semaine' 
-  },
-  calendar: { 
-    size: 'small', 
-    component: EventsCalendar, 
-    title: 'Événements' 
-  },
-  apps: { 
-    size: 'small', 
-    component: AppsWidget, 
-    title: 'Applications' 
-  },
-  director: { 
-    size: 'small', 
-    component: DirectorMessageWidget, 
-    title: 'Mot du Directeur' 
   }
 }
 
@@ -345,12 +345,12 @@ export function DraggableDashboard() {
 
   function getDefaultWidgets(): DashboardWidget[] {
     return [
-      { id: 'director', type: 'director', title: 'Mot du Directeur', size: 'small', order: 1, isVisible: true },
-      { id: 'news', type: 'news', title: 'Actualités', size: 'large', order: 2, isVisible: true },
+      { id: 'news', type: 'news', title: 'Actualités', size: 'large', order: 1, isVisible: true },
+      { id: 'director', type: 'director', title: 'Mot du Directeur', size: 'medium', order: 2, isVisible: true },
       { id: 'safety', type: 'safety', title: 'Sécurité du Travail', size: 'medium', order: 3, isVisible: true },
-      { id: 'calendar', type: 'calendar', title: 'Événements', size: 'small', order: 4, isVisible: true },
-      { id: 'ideas', type: 'ideas', title: 'Boîte à Idées', size: 'small', order: 5, isVisible: true },
-      { id: 'apps', type: 'apps', title: 'Applications', size: 'small', order: 6, isVisible: true },
+      { id: 'apps', type: 'apps', title: 'Applications', size: 'medium', order: 4, isVisible: true },
+      { id: 'calendar', type: 'calendar', title: 'Événements', size: 'medium', order: 5, isVisible: true },
+      { id: 'ideas', type: 'ideas', title: 'Boîte à Idées', size: 'medium', order: 6, isVisible: true },
       { id: 'menu', type: 'menu', title: 'Menu de la Semaine', size: 'full', order: 7, isVisible: true },
     ]
   }

@@ -44,7 +44,7 @@ const getNavigationSections = (articlesCount: number) => [
       { name: "Organigramme", href: "/organigramme", icon: Users, badge: null },
       { name: "Annuaire", href: "/annuaire", icon: Phone, badge: null },
       { name: "Chat", href: "/reseau-social", icon: MessageSquare, badge: "12" },
-      { name: "Forum", href: "/reseau-social", icon: MessageCircle, badge: "8" },
+      { name: "Forum", href: "/forum", icon: MessageCircle, badge: "8" },
     ],
   },
   {

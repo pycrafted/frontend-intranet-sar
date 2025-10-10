@@ -49,7 +49,7 @@ function useDocumentsStats() {
   useEffect(() => {
     const fetchStats = async () => {
       try {
-        const response = await api.get('/documents/stats/', { requireAuth: true })
+        const response = await api.get('/documents/stats/')
         if (response.ok) {
           const data = await response.json()
           setStats(data)

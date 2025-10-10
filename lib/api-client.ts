@@ -86,7 +86,10 @@ export class APIClient {
       url: `${API_BASE_URL}${endpoint}`,
       method,
       headers: finalHeaders,
-      body: body ? (body instanceof FormData ? 'FormData' : JSON.stringify(body)) : undefined
+      body: body ? (body instanceof FormData ? 'FormData' : JSON.stringify(body)) : undefined,
+      requireAuth,
+      isDocumentsEndpoint: endpoint.includes('/documents/'),
+      credentials: requestConfig.credentials
     })
     
     const response = await fetch(`${API_BASE_URL}${endpoint}`, requestConfig)
@@ -95,14 +98,29 @@ export class APIClient {
       url: `${API_BASE_URL}${endpoint}`,
       status: response.status,
       statusText: response.statusText,
-      headers: Object.fromEntries(response.headers.entries())
+      ok: response.ok,
+      headers: Object.fromEntries(response.headers.entries()),
+      requireAuth,
+      isDocumentsEndpoint: endpoint.includes('/documents/')
     })
 
     // Vérifier l'authentification si requise
     if (requireAuth && (response.status === 401 || response.status === 403)) {
-      console.log('🔍 [API_CLIENT] Erreur d\'authentification:', response.status)
+      console.log('🔍 [API_CLIENT] Erreur d\'authentification:', {
+        status: response.status,
+        url: `${API_BASE_URL}${endpoint}`,
+        requireAuth,
+        isDocumentsEndpoint: endpoint.includes('/documents/')
+      })
       // Ne pas rediriger automatiquement - laisser le contexte d'authentification gérer cela
       // pour éviter les boucles infinies
+    } else if (!requireAuth && (response.status === 401 || response.status === 403)) {
+      console.log('⚠️ [API_CLIENT] Erreur d\'authentification sur endpoint sans auth:', {
+        status: response.status,
+        url: `${API_BASE_URL}${endpoint}`,
+        requireAuth,
+        isDocumentsEndpoint: endpoint.includes('/documents/')
+      })
     }
 
     return response
@@ -110,23 +128,33 @@ export class APIClient {
 
   // Méthodes HTTP
   static async get(endpoint: string, options: Omit<RequestOptions, 'method'> = {}) {
-    return APIClient.makeRequest(endpoint, { ...options, method: 'GET' })
+    // Désactiver l'authentification pour les endpoints de documents
+    const isDocumentsEndpoint = endpoint.includes('/documents/')
+    return APIClient.makeRequest(endpoint, { ...options, method: 'GET', requireAuth: !isDocumentsEndpoint })
   }
 
   static async post(endpoint: string, body?: any, options: Omit<RequestOptions, 'method' | 'body'> = {}) {
-    return APIClient.makeRequest(endpoint, { ...options, method: 'POST', body })
+    // Désactiver l'authentification pour les endpoints de documents
+    const isDocumentsEndpoint = endpoint.includes('/documents/')
+    return APIClient.makeRequest(endpoint, { ...options, method: 'POST', body, requireAuth: !isDocumentsEndpoint })
   }
 
   static async put(endpoint: string, body?: any, options: Omit<RequestOptions, 'method' | 'body'> = {}) {
-    return APIClient.makeRequest(endpoint, { ...options, method: 'PUT', body })
+    // Désactiver l'authentification pour les endpoints de documents
+    const isDocumentsEndpoint = endpoint.includes('/documents/')
+    return APIClient.makeRequest(endpoint, { ...options, method: 'PUT', body, requireAuth: !isDocumentsEndpoint })
   }
 
   static async patch(endpoint: string, body?: any, options: Omit<RequestOptions, 'method' | 'body'> = {}) {
-    return APIClient.makeRequest(endpoint, { ...options, method: 'PATCH', body })
+    // Désactiver l'authentification pour les endpoints de documents
+    const isDocumentsEndpoint = endpoint.includes('/documents/')
+    return APIClient.makeRequest(endpoint, { ...options, method: 'PATCH', body, requireAuth: !isDocumentsEndpoint })
   }
 
   static async delete(endpoint: string, options: Omit<RequestOptions, 'method'> = {}) {
-    return APIClient.makeRequest(endpoint, { ...options, method: 'DELETE' })
+    // Désactiver l'authentification pour les endpoints de documents
+    const isDocumentsEndpoint = endpoint.includes('/documents/')
+    return APIClient.makeRequest(endpoint, { ...options, method: 'DELETE', requireAuth: !isDocumentsEndpoint })
   }
 }
 

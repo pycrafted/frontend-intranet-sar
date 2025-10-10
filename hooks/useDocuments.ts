@@ -71,6 +71,12 @@ export function useDocuments() {
   // Charger la liste des documents
   const fetchDocuments = async (searchTerm?: string, ordering?: string) => {
     try {
+      console.log('📄 [USE_DOCUMENTS] fetchDocuments appelé:', {
+        searchTerm,
+        ordering,
+        timestamp: new Date().toISOString()
+      })
+      
       setIsLoading(true)
       setError(null)
 
@@ -78,15 +84,40 @@ export function useDocuments() {
       if (searchTerm) params.append('search', searchTerm)
       if (ordering) params.append('ordering', ordering)
 
-      const response = await api.get(`/documents/?${params.toString()}`, { requireAuth: true })
+      console.log('📄 [USE_DOCUMENTS] Paramètres de requête:', {
+        searchTerm,
+        ordering,
+        params: params.toString()
+      })
+
+      const response = await api.get(`/documents/?${params.toString()}`)
+      
+      console.log('📄 [USE_DOCUMENTS] Réponse fetchDocuments:', {
+        status: response.status,
+        ok: response.ok,
+        statusText: response.statusText,
+        headers: Object.fromEntries(response.headers.entries())
+      })
       
       if (response.ok) {
         const data = await response.json()
+        console.log('📄 [USE_DOCUMENTS] Données reçues:', {
+          count: data.results ? data.results.length : data.length,
+          hasResults: !!data.results,
+          dataType: Array.isArray(data) ? 'array' : typeof data
+        })
         setDocuments(data.results || data)
       } else {
-        throw new Error('Erreur lors du chargement des documents')
+        const errorText = await response.text()
+        console.error('📄 [USE_DOCUMENTS] Erreur fetchDocuments:', {
+          status: response.status,
+          statusText: response.statusText,
+          errorText: errorText.substring(0, 200)
+        })
+        throw new Error(`Erreur lors du chargement des documents: ${response.status} ${response.statusText}`)
       }
     } catch (err) {
+      console.error('📄 [USE_DOCUMENTS] Erreur complète fetchDocuments:', err)
       setError(err instanceof Error ? err.message : 'Erreur inconnue')
     } finally {
       setIsLoading(false)
@@ -97,13 +128,32 @@ export function useDocuments() {
   // Charger les statistiques
   const fetchStats = async () => {
     try {
-      const response = await api.get('/documents/stats/', { requireAuth: true })
+      console.log('📊 [USE_DOCUMENTS] fetchStats appelé:', {
+        timestamp: new Date().toISOString()
+      })
+      
+      const response = await api.get('/documents/stats/')
+      
+      console.log('📊 [USE_DOCUMENTS] Réponse fetchStats:', {
+        status: response.status,
+        ok: response.ok,
+        statusText: response.statusText
+      })
+      
       if (response.ok) {
         const data = await response.json()
+        console.log('📊 [USE_DOCUMENTS] Statistiques reçues:', data)
         setStats(data)
+      } else {
+        const errorText = await response.text()
+        console.error('📊 [USE_DOCUMENTS] Erreur fetchStats:', {
+          status: response.status,
+          statusText: response.statusText,
+          errorText: errorText.substring(0, 200)
+        })
       }
     } catch (err) {
-      console.error('Erreur lors du chargement des statistiques:', err)
+      console.error('📊 [USE_DOCUMENTS] Erreur complète fetchStats:', err)
     }
   }
 
@@ -134,9 +184,7 @@ export function useDocuments() {
       })
 
       console.log('🔍 [UPLOAD] Envoi de la requête POST vers /documents/')
-      const response = await api.post('/documents/', formData, {
-        requireAuth: true,
-      })
+      const response = await api.post('/documents/', formData)
 
       console.log('🔍 [UPLOAD] Réponse reçue:', {
         status: response.status,
@@ -181,7 +229,7 @@ export function useDocuments() {
   // Télécharger un document
   const downloadDocument = async (documentId: number, filename: string) => {
     try {
-      const response = await api.get(`/documents/${documentId}/download/`, { requireAuth: true })
+      const response = await api.get(`/documents/${documentId}/download/`)
       
       if (response.ok) {
         // Créer un blob et déclencher le téléchargement
@@ -211,7 +259,7 @@ export function useDocuments() {
   // Visualiser un document
   const viewDocument = async (documentId: number) => {
     try {
-      const response = await api.get(`/documents/${documentId}/view/`, { requireAuth: true })
+      const response = await api.get(`/documents/${documentId}/view/`)
       
       if (response.ok) {
         // Créer un blob et l'ouvrir dans un nouvel onglet
@@ -249,7 +297,7 @@ export function useDocuments() {
       setIsLoading(true)
       setError(null)
 
-      const response = await api.delete(`/documents/${documentId}/`, { requireAuth: true })
+      const response = await api.delete(`/documents/${documentId}/`)
 
       if (response.ok) {
         setDocuments(prev => prev.filter(doc => doc.id !== documentId))
@@ -274,7 +322,7 @@ export function useDocuments() {
 
       const response = await api.post('/documents/bulk-delete/', {
         document_ids: documentIds
-      }, { requireAuth: true })
+      })
 
       if (response.ok) {
         setDocuments(prev => prev.filter(doc => !documentIds.includes(doc.id)))
@@ -299,7 +347,7 @@ export function useDocuments() {
         params.append('parent', parentId === null ? 'null' : parentId.toString())
       }
       
-      const response = await api.get(`/documents/folders/?${params.toString()}`, { requireAuth: true })
+      const response = await api.get(`/documents/folders/?${params.toString()}`)
       if (response.ok) {
         const data = await response.json()
         setFolders(data.results || data)
@@ -312,7 +360,7 @@ export function useDocuments() {
   // Charger l'arbre des dossiers
   const fetchFolderTree = async () => {
     try {
-      const response = await api.get('/documents/folders/tree/', { requireAuth: true })
+      const response = await api.get('/documents/folders/tree/')
       if (response.ok) {
         const data = await response.json()
         setFolderTree(data)
@@ -328,7 +376,7 @@ export function useDocuments() {
       setIsLoading(true)
       setError(null)
 
-      const response = await api.post('/documents/folders/', folderData, { requireAuth: true })
+      const response = await api.post('/documents/folders/', folderData)
 
       if (response.ok) {
         const newFolder = await response.json()
@@ -355,7 +403,7 @@ export function useDocuments() {
       setIsLoading(true)
       setError(null)
 
-      const response = await api.patch(`/documents/folders/${folderId}/`, folderData, { requireAuth: true })
+      const response = await api.patch(`/documents/folders/${folderId}/`, folderData)
 
       if (response.ok) {
         const updatedFolder = await response.json()
@@ -382,7 +430,7 @@ export function useDocuments() {
       setIsLoading(true)
       setError(null)
 
-      const response = await api.delete(`/documents/folders/${folderId}/`, { requireAuth: true })
+      const response = await api.delete(`/documents/folders/${folderId}/`)
 
       if (response.ok) {
         setFolders(prev => prev.filter(folder => folder.id !== folderId))
@@ -409,7 +457,7 @@ export function useDocuments() {
 
       const response = await api.patch(`/documents/${documentId}/`, {
         title: newTitle
-      }, { requireAuth: true })
+      })
 
       if (response.ok) {
         const updatedDocument = await response.json()
