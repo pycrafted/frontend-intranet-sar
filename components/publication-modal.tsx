@@ -28,28 +28,16 @@ interface PublicationModalProps {
   onClose: () => void
 }
 
-const categories = [
-  "Toutes",
-  "Sécurité",
-  "Finance", 
-  "Formation",
-  "Production",
-  "Partenariat",
-  "Environnement",
-  "Ressources Humaines"
-]
 
 export function PublicationModal({ isOpen, onClose }: PublicationModalProps) {
   const [step, setStep] = useState(1)
   const [formData, setFormData] = useState({
     title: "",
     content: "",
-    category: "",
     type: "news",
     image: null as File | null,
     video: null as File | null,
     videoPoster: null as File | null,
-    isPinned: false
   })
   const [isSubmitting, setIsSubmitting] = useState(false)
   const [hasUnsavedChanges, setHasUnsavedChanges] = useState(false)
@@ -88,12 +76,10 @@ export function PublicationModal({ isOpen, onClose }: PublicationModalProps) {
     setFormData({
       title: "",
       content: "",
-      category: "",
       type: "news",
       image: null,
       video: null,
       videoPoster: null,
-      isPinned: false
     })
     setStep(1)
     setHasUnsavedChanges(false)
@@ -133,10 +119,6 @@ export function PublicationModal({ isOpen, onClose }: PublicationModalProps) {
         type: "news",
         title: formData.title.trim() || undefined,
         content: formData.content.trim() || undefined,
-        author: "Utilisateur Actuel", // TODO: Récupérer depuis le contexte utilisateur
-        author_role: "Employé", // TODO: Récupérer depuis le contexte utilisateur
-        category: formData.category,
-        is_pinned: formData.isPinned,
         content_type: contentType,
         image: formData.image || undefined,
         video: formData.video || undefined,
@@ -166,7 +148,7 @@ export function PublicationModal({ isOpen, onClose }: PublicationModalProps) {
   // Validation : au moins un contenu (titre, contenu, image ou vidéo) + catégorie
   const hasContent = formData.title.trim() || formData.content.trim() || formData.image || formData.video
   const canProceedToStep2 = hasContent
-  const canSubmit = canProceedToStep2 && formData.category
+  const canSubmit = canProceedToStep2
 
   return (
     <Dialog open={isOpen} onOpenChange={handleClose}>
@@ -334,35 +316,8 @@ export function PublicationModal({ isOpen, onClose }: PublicationModalProps) {
             <>
               {/* Étape 2: Configuration */}
               <div className="space-y-4">
-                <div>
-                  <Label htmlFor="category" className="text-sm font-medium text-gray-700">
-                    Catégorie *
-                  </Label>
-                  <Select value={formData.category} onValueChange={(value) => handleInputChange("category", value)}>
-                    <SelectTrigger className="mt-1">
-                      <SelectValue placeholder="Sélectionnez une catégorie" />
-                    </SelectTrigger>
-                    <SelectContent>
-                      {categories.map((category) => (
-                        <SelectItem key={category} value={category}>
-                          {category}
-                        </SelectItem>
-                      ))}
-                    </SelectContent>
-                  </Select>
-                </div>
 
                 <div className="flex items-center gap-2">
-                  <input
-                    type="checkbox"
-                    id="isPinned"
-                    checked={formData.isPinned}
-                    onChange={(e) => handleInputChange("isPinned", e.target.checked)}
-                    className="w-4 h-4 text-blue-600 border-gray-300 rounded focus:ring-blue-500"
-                  />
-                  <Label htmlFor="isPinned" className="text-sm text-gray-700">
-                    Épingler cette actualité en haut de la liste
-                  </Label>
                 </div>
 
                 {/* Aperçu de la publication */}
@@ -396,11 +351,6 @@ export function PublicationModal({ isOpen, onClose }: PublicationModalProps) {
                       <div className="text-sm text-gray-500 italic">
                         Aucun contenu saisi
                       </div>
-                    )}
-                    {formData.category && (
-                      <Badge variant="secondary" className="text-xs">
-                        {formData.category}
-                      </Badge>
                     )}
                   </div>
                 </div>

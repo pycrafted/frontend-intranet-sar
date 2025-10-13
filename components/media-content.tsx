@@ -16,7 +16,7 @@ import { cn } from "@/lib/utils"
 // import { ImageTest } from "./image-test"
 
 interface MediaContentProps {
-  type: 'image' | 'gallery' | 'video' | 'checklist'
+  type: 'image' | 'video' | 'checklist'
   images?: string[]
   videoUrl?: string
   videoPoster?: string
@@ -264,7 +264,6 @@ export function MediaContent({
   return (
     <>
       <div className={cn("w-full", className)}>
-        {type === 'gallery' && renderImageImages()}
         {type === 'video' && renderVideo()}
         {type === 'checklist' && renderChecklist()}
         {type === 'image' && images.length > 0 && (

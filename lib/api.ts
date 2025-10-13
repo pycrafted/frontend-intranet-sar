@@ -10,23 +10,15 @@ export interface Article {
   content: string;
   date: string;
   time: string;
-  author: string;
-  author_role: string;
-  author_avatar?: string;
-  author_avatar_url?: string;
-  category: string;
   image?: string;
   image_url?: string;
-  is_pinned: boolean;
   event_date?: string;
   // Nouveaux champs pour les cartes adaptatives
-  gallery_images?: string[];
-  gallery_title?: string;
   video?: string;
   video_url?: string;
   video_poster?: string;
   video_poster_url?: string;
-  content_type: 'text_only' | 'image_only' | 'text_image' | 'gallery' | 'video' | 'event';
+  content_type: 'text_only' | 'image_only' | 'text_image' | 'video' | 'event';
 }
 
 export interface ArticleListResponse {
@@ -57,12 +49,8 @@ export interface CreateArticleData {
   type: 'news' | 'announcement';
   title?: string;
   content?: string;
-  author?: string;
-  author_role?: string;
-  category: string;
-  is_pinned?: boolean;
   event_date?: string;
-  content_type?: 'text_only' | 'image_only' | 'text_image' | 'gallery' | 'video' | 'event';
+  content_type?: 'text_only' | 'image_only' | 'text_image' | 'video' | 'event';
   image?: File;
   video?: File;
   video_poster?: File;
@@ -73,9 +61,7 @@ export const api = {
   // Récupérer la liste des articles avec filtrage
   async getArticles(params?: {
     type?: string;
-    category?: string;
     search?: string;
-    pinned?: boolean;
     time_filter?: string;
     page?: number;
     page_size?: number;
@@ -83,9 +69,7 @@ export const api = {
     const searchParams = new URLSearchParams();
     
     if (params?.type) searchParams.append('type', params.type);
-    if (params?.category) searchParams.append('category', params.category);
     if (params?.search) searchParams.append('search', params.search);
-    if (params?.pinned !== undefined) searchParams.append('pinned', params.pinned.toString());
     if (params?.time_filter) searchParams.append('time_filter', params.time_filter);
     if (params?.page) searchParams.append('page', params.page.toString());
     if (params?.page_size) searchParams.append('page_size', params.page_size.toString());
@@ -151,11 +135,7 @@ export const api = {
     formData.append('type', articleData.type);
     if (articleData.title) formData.append('title', articleData.title);
     if (articleData.content) formData.append('content', articleData.content);
-    formData.append('category', articleData.category);
     
-    if (articleData.author) formData.append('author', articleData.author);
-    if (articleData.author_role) formData.append('author_role', articleData.author_role);
-    if (articleData.is_pinned !== undefined) formData.append('is_pinned', articleData.is_pinned.toString());
     if (articleData.question) formData.append('question', articleData.question);
     if (articleData.end_date) formData.append('end_date', articleData.end_date);
     if (articleData.event_date) formData.append('event_date', articleData.event_date);
@@ -205,11 +185,7 @@ export const api = {
     formData.append('type', articleData.type);
     if (articleData.title) formData.append('title', articleData.title);
     if (articleData.content) formData.append('content', articleData.content);
-    formData.append('category', articleData.category);
     
-    if (articleData.author) formData.append('author', articleData.author);
-    if (articleData.author_role) formData.append('author_role', articleData.author_role);
-    if (articleData.is_pinned !== undefined) formData.append('is_pinned', articleData.is_pinned.toString());
     if (articleData.question) formData.append('question', articleData.question);
     if (articleData.end_date) formData.append('end_date', articleData.end_date);
     if (articleData.event_date) formData.append('event_date', articleData.event_date);

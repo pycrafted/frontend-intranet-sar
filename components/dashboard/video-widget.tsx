@@ -77,26 +77,24 @@ export function VideoWidget() {
     )
   }
 
-  // URL de la vidéo YouTube
-  const videoUrl = "https://www.youtube.com/watch?v=QOTPxn9Wg-A&t=5s"
-  const videoId = "QOTPxn9Wg-A"
-  const embedUrl = `https://www.youtube.com/embed/${videoId}?start=5&autoplay=1&loop=1&playlist=${videoId}&rel=0&modestbranding=1&controls=1&showinfo=0`
+  // URL de la vidéo Cloudflare avec autoplay et boucle
+  const cloudflareVideoId = "3f0c7ea611f5f970f280df7cf5c8587b"
+  const cloudflarePlayerUrl = `https://customer-eas3f2kom74sgnh6.cloudflarestream.com/${cloudflareVideoId}/iframe?autoplay=true&loop=true&muted=true&controls=true&preload=auto`
 
   return (
     <Card className={`${config.cardHeight} flex flex-col overflow-hidden relative bg-black border-0 hover:shadow-xl transition-all duration-500 group`}>
       <CardContent className={`${config.contentPadding} flex-1 flex flex-col`}>
-        {/* Vidéo YouTube intégrée - Prend toute la carte */}
+        {/* Vidéo Cloudflare intégrée - Prend toute la carte */}
         <div className={`${config.videoHeight} w-full rounded-lg overflow-hidden shadow-lg group-hover:shadow-xl transition-shadow duration-300`}>
           <iframe
-            src={embedUrl}
+            src={cloudflarePlayerUrl}
             title="Vidéo SAR"
             className="w-full h-full"
             frameBorder="0"
-            allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
+            allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share"
             allowFullScreen
-            autoPlay
-            loop
-            muted
+            loading="eager"
+            sandbox="allow-scripts allow-same-origin allow-presentation"
           />
         </div>
       </CardContent>

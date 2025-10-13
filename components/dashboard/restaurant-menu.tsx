@@ -64,14 +64,20 @@ export function RestaurantMenu() {
     const days = ['monday', 'tuesday', 'wednesday', 'thursday', 'friday']
     const dayNames = ['Lundi', 'Mardi', 'Mercredi', 'Jeudi', 'Vendredi']
     
+    // Obtenir la date d'aujourd'hui
+    const today = new Date()
+    const todayString = today.toISOString().split('T')[0]
+    
     return days.map((day, index) => {
       const date = new Date(weekStart)
       date.setDate(weekStart.getDate() + index)
+      const dateString = date.toISOString().split('T')[0]
       
       return {
         day,
         dayName: dayNames[index],
-        date: date.toISOString().split('T')[0]
+        date: dateString,
+        isToday: dateString === todayString
       }
     })
   }
@@ -313,14 +319,26 @@ export function RestaurantMenu() {
               return (
                 <div 
                   key={dayInfo.day} 
-                  className="flex-shrink-0 w-64 bg-white/90 backdrop-blur-sm rounded-lg border border-slate-300 hover:bg-white hover:shadow-lg transition-all duration-300 overflow-hidden"
+                  className={`flex-shrink-0 w-64 backdrop-blur-sm rounded-lg border transition-all duration-300 overflow-hidden ${
+                    dayInfo.isToday 
+                      ? 'bg-gradient-to-br from-red-50 to-orange-50 border-2 border-red-400 shadow-lg ring-2 ring-red-100' 
+                      : 'bg-white/90 border-slate-300 hover:bg-white hover:shadow-lg'
+                  }`}
                 >
                   {/* En-tête du jour compact */}
-                  <div className="bg-gradient-to-r from-slate-100 to-blue-100 p-3 text-gray-900">
-                    <h3 className="font-bold text-sm text-center">
+                  <div className={`p-3 text-gray-900 ${
+                    dayInfo.isToday 
+                      ? 'bg-gradient-to-r from-red-100 to-orange-100' 
+                      : 'bg-gradient-to-r from-slate-100 to-blue-100'
+                  }`}>
+                    <h3 className={`font-bold text-sm text-center ${
+                      dayInfo.isToday ? 'text-red-800' : ''
+                    }`}>
                       {dayInfo.dayName}
                     </h3>
-                    <p className="text-gray-600 text-xs text-center">
+                    <p className={`text-xs text-center ${
+                      dayInfo.isToday ? 'text-red-600 font-semibold' : 'text-gray-600'
+                    }`}>
                       {formatDate(dayInfo.date)}
                     </p>
                   </div>
@@ -383,24 +401,38 @@ export function RestaurantMenu() {
             return (
               <div 
                 key={dayInfo.day} 
-                className="bg-white/80 backdrop-blur-sm rounded-xl border-2 border-slate-400 hover:bg-white/90 hover:shadow-lg transition-all duration-300 group/day overflow-hidden"
+                className={`backdrop-blur-sm rounded-xl border-2 transition-all duration-300 group/day overflow-hidden ${
+                  dayInfo.isToday 
+                    ? 'bg-gradient-to-br from-red-50 to-orange-50 border-red-400 shadow-xl ring-4 ring-red-100' 
+                    : 'bg-white/80 border-slate-400 hover:bg-white/90 hover:shadow-lg'
+                }`}
               >
                 {/* En-tête du jour avec gradient */}
-                <div className="bg-gradient-to-br from-slate-100 via-gray-100 to-blue-100 p-4 text-gray-900 relative overflow-hidden">
+                <div className={`p-4 text-gray-900 relative overflow-hidden ${
+                  dayInfo.isToday 
+                    ? 'bg-gradient-to-br from-red-100 via-orange-100 to-red-100' 
+                    : 'bg-gradient-to-br from-slate-100 via-gray-100 to-blue-100'
+                }`}>
                   <div className="absolute top-0 right-0 w-16 h-16 bg-white/10 rounded-full -translate-y-8 translate-x-8"></div>
                   <div className="absolute bottom-0 left-0 w-12 h-12 bg-white/10 rounded-full translate-y-6 -translate-x-6"></div>
                   <div className="relative z-10">
-                    <h3 className="font-bold text-lg text-center group-hover/day:scale-105 transition-transform duration-300">
+                    <h3 className={`font-bold text-lg text-center group-hover/day:scale-105 transition-transform duration-300 ${
+                      dayInfo.isToday ? 'text-red-800' : ''
+                    }`}>
                       {dayInfo.dayName}
                     </h3>
-                    <p className="text-gray-600 text-sm text-center font-medium">
+                    <p className={`text-sm text-center font-medium ${
+                      dayInfo.isToday ? 'text-red-600' : 'text-gray-600'
+                    }`}>
                       {formatFullDate(dayInfo.date)}
                     </p>
                   </div>
                 </div>
 
                 {/* Trait de séparation */}
-                <div className="border-t-2 border-slate-400"></div>
+                <div className={`border-t-2 ${
+                  dayInfo.isToday ? 'border-red-300' : 'border-slate-400'
+                }`}></div>
 
                 {/* Contenu du jour */}
                 <div className="p-4 space-y-4">

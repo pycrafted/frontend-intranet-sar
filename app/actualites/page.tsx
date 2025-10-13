@@ -15,24 +15,10 @@ import { StandardLoader } from "@/components/ui/standard-loader"
 
 // Données statiques supprimées - maintenant récupérées depuis l'API Django
 
-const categories = ["Toutes", "Sécurité", "Finance", "Formation", "Production", "Partenariat", "Environnement"]
-
-const newsCategories = [
-  { id: "toutes", label: "Toutes", active: true },
-  { id: "securite", label: "Sécurité", active: false },
-  { id: "finance", label: "Finance", active: false },
-  { id: "formation", label: "Formation", active: false },
-  { id: "production", label: "Production", active: false },
-  { id: "partenariat", label: "Partenariat", active: false },
-  { id: "environnement", label: "Environnement", active: false },
-  { id: "rh", label: "Ressources Humaines", active: false },
-]
 
 export default function ActualitesPage() {
   const [searchTerm, setSearchTerm] = useState("")
   const [debouncedSearchTerm, setDebouncedSearchTerm] = useState("")
-  const [selectedCategory, setSelectedCategory] = useState("Toutes")
-  const [activeNavCategory, setActiveNavCategory] = useState("toutes")
   const [activeFilter, setActiveFilter] = useState("all")
   const [activeDepartment, setActiveDepartment] = useState("all")
   const [activeTimeFilter, setActiveTimeFilter] = useState("all")
@@ -60,7 +46,6 @@ export default function ActualitesPage() {
   // Utilisation du hook pour récupérer les données depuis l'API
   const { articles, loading, error } = useArticles({
     type: activeFilter === "all" ? undefined : activeFilter,
-    category: selectedCategory === "Toutes" ? undefined : selectedCategory,
     search: debouncedSearchTerm || undefined,
     timeFilter: activeTimeFilter === "all" ? undefined : activeTimeFilter,
   })
@@ -81,27 +66,6 @@ export default function ActualitesPage() {
     }
   }
 
-  const handleCategoryChange = (category: string) => {
-    setSelectedCategory(category)
-  }
-
-  const handleNavCategoryChange = (categoryId: string) => {
-    setActiveNavCategory(categoryId)
-
-    const categoryMap: { [key: string]: string } = {
-      toutes: "Toutes",
-      securite: "Sécurité",
-      finance: "Finance",
-      formation: "Formation",
-      production: "Production",
-      partenariat: "Partenariat",
-      environnement: "Environnement",
-      rh: "Formation",
-    }
-
-    const mappedCategory = categoryMap[categoryId] || "Toutes"
-    setSelectedCategory(mappedCategory)
-  }
 
   const handleFilterChange = (filter: string) => {
     setActiveFilter(filter)
@@ -122,21 +86,6 @@ export default function ActualitesPage() {
     
     const internalKey = departmentMap[department] || "all"
     setActiveDepartment(internalKey)
-    
-    // Mapper les catégories du sidebar aux catégories de l'API
-    const categoryMap: { [key: string]: string } = {
-      "all": "Toutes",
-      "securite": "Sécurité",
-      "finance": "Finance",
-      "formation": "Formation",
-      "production": "Production",
-      "partenariat": "Partenariat",
-      "environnement": "Environnement",
-      "rh": "RH",
-    }
-    
-    const mappedCategory = categoryMap[internalKey] || "Toutes"
-    setSelectedCategory(mappedCategory)
   }
 
   const handleTimeFilterChange = (timeFilter: string) => {
@@ -164,8 +113,6 @@ export default function ActualitesPage() {
   const allArticles = articles.filter(article => !deletedArticles.includes(article.id))
 
 
-  // Options de département pour le filtre
-  const departmentOptions = ["Tous", "Sécurité", "Finance", "Formation", "Production", "Partenariat", "Environnement", "RH"]
 
   // Options de période pour le filtre
   const timeFilterOptions = [
@@ -197,7 +144,6 @@ export default function ActualitesPage() {
           return departmentMap[activeDepartment] || "Tous"
         })(),
         onDepartmentChange: handleDepartmentChange,
-        departmentOptions,
         selectedTimeFilter: activeTimeFilter,
         onTimeFilterChange: handleTimeFilterChange,
         timeFilterOptions

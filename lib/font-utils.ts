@@ -102,3 +102,5 @@ export function getResponsiveFontClass(
   
   return `${baseClass} ${smClass} ${lgClass}`.trim()
 }
+
+

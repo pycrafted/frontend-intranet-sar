@@ -98,3 +98,5 @@ export function getBrowserCompatibleClasses(browserInfo: BrowserInfo) {
 export function shouldUseFallbacks(browserInfo: BrowserInfo): boolean {
   return browserInfo.isEdge || browserInfo.isIE || !browserInfo.supportsBackdropFilter
 }
+
+

@@ -92,3 +92,5 @@ export function useTabletDetection(): TabletInfo {
 
   return tabletInfo
 }
+
+

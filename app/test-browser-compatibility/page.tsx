@@ -3,3 +3,4 @@ import { BrowserCompatibilityTest } from "@/components/browser-compatibility-tes
 export default function TestBrowserCompatibilityPage() {
   return <BrowserCompatibilityTest />
 }
+

@@ -3,9 +3,7 @@ import { api, Article, ArticleListResponse, ArticleStats } from '@/lib/api';
 
 interface UseArticlesParams {
   type?: string;
-  category?: string;
   search?: string;
-  pinned?: boolean;
   timeFilter?: string;
   page?: number;
   pageSize?: number;
@@ -26,9 +24,7 @@ export function useArticles(params: UseArticlesParams = {}) {
       
       const response: ArticleListResponse = await api.getArticles({
         type: params.type,
-        category: params.category,
         search: params.search,
-        pinned: params.pinned,
         time_filter: params.timeFilter,
         page: params.page,
         page_size: params.pageSize,
@@ -48,7 +44,7 @@ export function useArticles(params: UseArticlesParams = {}) {
 
   useEffect(() => {
     fetchArticles();
-  }, [params.type, params.category, params.search, params.pinned, params.timeFilter, params.page, params.pageSize]);
+  }, [params.type, params.search, params.timeFilter, params.page, params.pageSize]);
 
   return {
     articles,

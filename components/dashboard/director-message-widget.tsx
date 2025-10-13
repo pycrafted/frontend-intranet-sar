@@ -24,7 +24,7 @@ Visitez-le régulièrement, communiquez avec nous et partagez dans vos réseaux 
 
 Le Directeur Général`
 
-  const shortMessage = "Au service de l'économie sénégalaise, la SAR contribue activement à assurer la sécurité d'approvisionnement en énergie du Sénégal..."
+  const shortMessage = "Au service de l'économie sénégalaise, la SAR contribue activement à assurer la sécurité d'approvisionnement en énergie au Sénégal"
 
   return (
     <>

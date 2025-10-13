@@ -103,8 +103,6 @@ export function AdaptivePublicationCard({ article, onDelete, onUpdate, searchTer
         contentType = 'video'
       } else if (article.image_url || article.image) {
         contentType = article.content ? 'text_image' : 'image_only'
-      } else if (article.gallery_images && article.gallery_images.length > 0) {
-        contentType = 'gallery'
       } else if (article.type === 'event') {
         contentType = 'event'
       }
@@ -118,8 +116,6 @@ export function AdaptivePublicationCard({ article, onDelete, onUpdate, searchTer
         return <ImageOnlyContent article={article} searchTerm={searchTerm} />
       case 'text_image':
         return <TextImageContent article={article} searchTerm={searchTerm} />
-      case 'gallery':
-        return <ImagesContent article={article} searchTerm={searchTerm} />
       case 'video':
         return <VideoContent article={article} searchTerm={searchTerm} />
       case 'event':
@@ -173,12 +169,8 @@ export function AdaptivePublicationCard({ article, onDelete, onUpdate, searchTer
             </div>
           </div>
 
-          {/* Type et catégorie */}
+          {/* Type */}
           <div className="flex items-center gap-2">
-            <Badge className={cn("text-xs px-3 py-1", getTypeColor(article.type))}>
-              {getTypeIcon(article.type)}
-              <span className="ml-1">{article.category}</span>
-            </Badge>
             <Badge variant="outline" className="text-xs">
               {article.type === "event" ? "Événement" :
                article.type === "announcement" ? "Annonce" : 
@@ -370,78 +362,6 @@ function TextImageContent({ article, searchTerm }: { article: Article; searchTer
   )
 }
 
-// Composant pour le contenu galerie
-function ImagesContent({ article, searchTerm }: { article: Article; searchTerm?: string }) {
-  const [showFullContent, setShowFullContent] = useState(false)
-  const images = article.gallery_images || []
-  const displayImages = images.slice(0, 4)
-  const remainingCount = images.length - 4
-
-  return (
-    <div className="px-6 pb-6 w-full">
-      <h2 className="article-title mb-3 w-full block">
-        {article.title}
-      </h2>
-      
-      {article.content && (
-        <div className="text-gray-700 leading-relaxed mb-4">
-         <div className={cn(
-           "publication-content",
-           !showFullContent && article.content.length > 200 ? "line-clamp-3" : ""
-         )}>
-           {article.content}
-         </div>
-          {article.content.length > 200 && (
-            <Button
-              variant="ghost"
-              size="sm"
-              onClick={() => setShowFullContent(!showFullContent)}
-              className="mt-2 p-0 h-auto text-blue-600 hover:text-blue-700"
-            >
-              {showFullContent ? (
-                <>
-                  Voir moins <ChevronUp className="w-4 h-4 ml-1" />
-                </>
-              ) : (
-                <>
-                  Voir plus <ChevronDown className="w-4 h-4 ml-1" />
-                </>
-              )}
-            </Button>
-          )}
-        </div>
-      )}
-      
-      <div className="space-y-4 p-6 bg-gradient-to-br from-purple-50 to-pink-50 rounded-xl border border-purple-100">
-        <div className="flex items-center gap-3 text-lg font-semibold text-gray-800">
-          <div className="p-2 bg-purple-100 rounded-lg">
-            <Images className="w-5 h-5 text-purple-600" />
-          </div>
-          <span>{article.gallery_title || 'Galerie'} ({images.length} photos)</span>
-        </div>
-        
-        <div className="grid grid-cols-2 gap-3">
-          {displayImages.map((image, index) => (
-            <div key={index} className="relative group">
-               <img
-                 src={image}
-                 alt={`${article.gallery_title || 'Galerie'} ${index + 1}`}
-                 className="publication-image-gallery cursor-pointer transition-transform duration-200 hover:scale-105"
-               />
-              {index === 3 && remainingCount > 0 && (
-                <div className="absolute inset-0 bg-black bg-opacity-50 rounded-lg flex items-center justify-center">
-                  <span className="text-white font-semibold text-lg">
-                    +{remainingCount}
-                  </span>
-                </div>
-              )}
-            </div>
-          ))}
-        </div>
-      </div>
-    </div>
-  )
-}
 
 // Composant pour le contenu vidéo
 function VideoContent({ article, searchTerm }: { article: Article; searchTerm?: string }) {

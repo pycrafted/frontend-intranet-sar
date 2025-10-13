@@ -38,6 +38,8 @@ interface EventManagementProps {
 export function EventManagement({ onEventSelect }: EventManagementProps) {
   const [searchTerm, setSearchTerm] = useState("")
   const [showFilters, setShowFilters] = useState(false)
+  const [searchFocused, setSearchFocused] = useState(false)
+  const [isTyping, setIsTyping] = useState(false)
   const [isCreateDialogOpen, setIsCreateDialogOpen] = useState(false)
   const [editingEvent, setEditingEvent] = useState<Event | null>(null)
   const [selectedEvents, setSelectedEvents] = useState<number[]>([])
@@ -68,6 +70,21 @@ export function EventManagement({ onEventSelect }: EventManagementProps) {
   useEffect(() => {
     fetchEvents()
   }, [fetchEvents])
+
+  // Appliquer la recherche avec debounce
+  useEffect(() => {
+    if (searchTerm.trim() === '') {
+      setIsTyping(false)
+      return
+    }
+
+    setIsTyping(true)
+    const timer = setTimeout(() => {
+      setIsTyping(false)
+    }, 1000)
+    
+    return () => clearTimeout(timer)
+  }, [searchTerm])
 
   // Filtrer les événements
   const filteredEvents = events.filter(event => {
@@ -282,15 +299,51 @@ export function EventManagement({ onEventSelect }: EventManagementProps) {
         {/* Barre de recherche et filtres avec style inspiré de la page actualités */}
         <CardContent className="pt-0">
           <div className="space-y-4">
-            {/* Barre de recherche avec style cohérent */}
-            <div className="relative">
-              <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-blue-500" />
-              <Input
+            {/* Barre de recherche avancée (comme navbar secondaire) */}
+            <div className="flex justify-center">
+              <div className="relative w-full max-w-xl">
+              <Search className={`absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 transition-colors ${
+                searchFocused ? 'text-blue-500' : 'text-gray-400'
+              }`} />
+              <input
+                type="text"
                 placeholder="Rechercher dans les événements..."
                 value={searchTerm}
                 onChange={(e) => setSearchTerm(e.target.value)}
-                className="pl-10 border-blue-200 focus:border-blue-400 focus:ring-blue-400"
+                onFocus={() => setSearchFocused(true)}
+                onBlur={() => setSearchFocused(false)}
+                onKeyDown={(e) => {
+                  if (e.key === 'Enter') {
+                    e.preventDefault()
+                    setIsTyping(false)
+                  }
+                }}
+                className={`w-full pl-10 pr-10 py-3 text-sm border-2 rounded-lg transition-all duration-200 ${
+                  searchFocused 
+                    ? 'border-blue-500 ring-2 ring-blue-100 bg-white shadow-md' 
+                    : 'border-gray-300 hover:border-gray-400 bg-white'
+                }`}
               />
+              {searchTerm && (
+                <button
+                  onClick={() => setSearchTerm("")}
+                  className="absolute right-3 top-1/2 transform -translate-y-1/2 h-6 w-6 p-0 hover:bg-gray-100 rounded-full flex items-center justify-center"
+                >
+                  <X className="h-3 w-3 text-gray-400" />
+                </button>
+              )}
+              
+              {/* Indicateur de frappe */}
+              {searchTerm && isTyping && (
+                <div className="absolute right-10 top-1/2 transform -translate-y-1/2">
+                  <div className="flex space-x-1">
+                    <div className="w-1 h-1 bg-blue-500 rounded-full animate-bounce" style={{animationDelay: '0ms'}}></div>
+                    <div className="w-1 h-1 bg-blue-500 rounded-full animate-bounce" style={{animationDelay: '150ms'}}></div>
+                    <div className="w-1 h-1 bg-blue-500 rounded-full animate-bounce" style={{animationDelay: '300ms'}}></div>
+                  </div>
+                </div>
+              )}
+              </div>
             </div>
 
             {/* Filtres avec style cohérent */}

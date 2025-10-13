@@ -47,18 +47,6 @@ export function NewsCarousel({ autoScrollInterval = 4000, className = "" }: News
     })
   }
 
-  const getCategoryColor = (category: string) => {
-    const colors: { [key: string]: string } = {
-      'Sécurité': 'bg-red-500 text-white border-red-500 shadow-lg',
-      'Formation': 'bg-blue-500 text-white border-blue-500 shadow-lg',
-      'Direction': 'bg-purple-500 text-white border-purple-500 shadow-lg',
-      'Production': 'bg-green-600 text-white border-green-600 shadow-lg',
-      'Ressources Humaines': 'bg-orange-500 text-white border-orange-500 shadow-lg',
-      'Finance': 'bg-yellow-600 text-white border-yellow-600 shadow-lg',
-      'Toutes': 'bg-gray-500 text-white border-gray-500 shadow-lg'
-    }
-    return colors[category] || colors['Toutes']
-  }
 
   const getInitials = (name: string | null | undefined) => {
     if (!name || typeof name !== 'string') {
@@ -295,17 +283,6 @@ export function NewsCarousel({ autoScrollInterval = 4000, className = "" }: News
             <div className="flex flex-col h-full space-y-2 sm:space-y-3">
               {/* En-tête de l'article */}
               <div className="flex flex-wrap items-center gap-2 flex-shrink-0">
-                <Badge 
-                  variant="outline" 
-                  className={`text-xs font-semibold ${getCategoryColor(currentArticle.category)} badge-text`}
-                >
-                  {currentArticle.category}
-                </Badge>
-                {currentArticle.is_pinned && (
-                  <Badge variant="secondary" className="text-xs font-semibold bg-yellow-500 text-white border-yellow-500 shadow-lg badge-text">
-                    Épinglé
-                  </Badge>
-                )}
               </div>
               
               {/* Titre */}

@@ -30,28 +30,16 @@ interface EditArticleModalProps {
   onUpdate: (updatedArticle: Article) => void
 }
 
-const categories = [
-  "Toutes",
-  "Sécurité",
-  "Finance", 
-  "Formation",
-  "Production",
-  "Partenariat",
-  "Environnement",
-  "Ressources Humaines"
-]
 
 export function EditArticleModal({ isOpen, onClose, article, onUpdate }: EditArticleModalProps) {
   const [step, setStep] = useState(1)
   const [formData, setFormData] = useState({
     title: "",
     content: "",
-    category: "",
     type: "news" as "news" | "announcement",
     image: null as File | null,
     video: null as File | null,
     videoPoster: null as File | null,
-    isPinned: false
   })
   const [isSubmitting, setIsSubmitting] = useState(false)
   const [currentImageUrl, setCurrentImageUrl] = useState<string | null>(null)
@@ -64,12 +52,10 @@ export function EditArticleModal({ isOpen, onClose, article, onUpdate }: EditArt
       setFormData({
         title: article.title || "",
         content: article.content || "",
-        category: article.category || "",
         type: article.type as "news" | "announcement",
         image: null,
         video: null,
         videoPoster: null,
-        isPinned: article.is_pinned || false
       })
       setCurrentImageUrl(article.image_url || null)
       setCurrentVideoUrl(article.video_url || null)
@@ -138,10 +124,6 @@ export function EditArticleModal({ isOpen, onClose, article, onUpdate }: EditArt
         type: formData.type,
         title: formData.title.trim() || undefined,
         content: formData.content.trim() || undefined,
-        author: article.author || "Utilisateur Actuel",
-        author_role: article.author_role || "Employé",
-        category: formData.category,
-        is_pinned: formData.isPinned,
         content_type: contentType,
         image: formData.image || undefined,
         video: formData.video || undefined,
@@ -161,12 +143,10 @@ export function EditArticleModal({ isOpen, onClose, article, onUpdate }: EditArt
       setFormData({
         title: "",
         content: "",
-        category: "",
         type: "news",
         image: null,
         video: null,
         videoPoster: null,
-        isPinned: false
       })
       setCurrentImageUrl(null)
       setCurrentVideoUrl(null)
@@ -186,7 +166,7 @@ export function EditArticleModal({ isOpen, onClose, article, onUpdate }: EditArt
   // Validation : au moins un contenu (titre, contenu, image ou vidéo) + catégorie
   const hasContent = formData.title.trim() || formData.content.trim() || formData.image || currentImageUrl || formData.video || currentVideoUrl
   const canProceedToStep2 = hasContent
-  const canSubmit = canProceedToStep2 && formData.category
+  const canSubmit = canProceedToStep2
 
   if (!article) return null
 
@@ -384,35 +364,8 @@ export function EditArticleModal({ isOpen, onClose, article, onUpdate }: EditArt
             <>
               {/* Étape 2: Configuration */}
               <div className="space-y-4">
-                <div>
-                  <Label htmlFor="category" className="text-sm font-medium text-gray-700">
-                    Catégorie *
-                  </Label>
-                  <Select value={formData.category} onValueChange={(value) => handleInputChange("category", value)}>
-                    <SelectTrigger className="mt-1">
-                      <SelectValue placeholder="Sélectionnez une catégorie" />
-                    </SelectTrigger>
-                    <SelectContent>
-                      {categories.map((category) => (
-                        <SelectItem key={category} value={category}>
-                          {category}
-                        </SelectItem>
-                      ))}
-                    </SelectContent>
-                  </Select>
-                </div>
 
                 <div className="flex items-center gap-2">
-                  <input
-                    type="checkbox"
-                    id="isPinned"
-                    checked={formData.isPinned}
-                    onChange={(e) => handleInputChange("isPinned", e.target.checked)}
-                    className="w-4 h-4 text-blue-600 border-gray-300 rounded focus:ring-blue-500"
-                  />
-                  <Label htmlFor="isPinned" className="text-sm text-gray-700">
-                    Épingler cet article en haut de la liste
-                  </Label>
                 </div>
 
                 {/* Aperçu de l'article modifié */}
@@ -446,16 +399,6 @@ export function EditArticleModal({ isOpen, onClose, article, onUpdate }: EditArt
                       <div className="text-sm text-gray-500 italic">
                         Aucun contenu saisi
                       </div>
-                    )}
-                    {formData.category && (
-                      <Badge variant="secondary" className="text-xs">
-                        {formData.category}
-                      </Badge>
-                    )}
-                    {formData.isPinned && (
-                      <Badge className="text-xs bg-yellow-100 text-yellow-800">
-                        📌 Épinglé
-                      </Badge>
                     )}
                   </div>
                 </div>
