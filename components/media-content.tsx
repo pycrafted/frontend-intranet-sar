@@ -13,7 +13,7 @@ import {
   X
 } from "lucide-react"
 import { cn } from "@/lib/utils"
-import { ImageTest } from "./image-test"
+// import { ImageTest } from "./image-test"
 
 interface MediaContentProps {
   type: 'image' | 'gallery' | 'video' | 'checklist'
@@ -270,7 +270,12 @@ export function MediaContent({
         {type === 'image' && images.length > 0 && (
           <div className="space-y-4">
             {/* Composant de test pour déboguer */}
-            <ImageTest imageUrl={images[0]} alt="Publication image" />
+            {/* <ImageTest imageUrl={images[0]} alt="Publication image" /> */}
+            <img 
+              src={images[0]} 
+              alt="Publication image" 
+              className="w-full h-48 object-cover rounded-lg"
+            />
             
             {/* Image normale */}
             <div className="relative group">
