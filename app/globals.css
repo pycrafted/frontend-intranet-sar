@@ -5,6 +5,1486 @@
 
 @custom-variant dark (&:is(.dark *));
 
+/* ===== COMPATIBILITÉ CROSS-BROWSER ===== */
+
+/* Reset et normalisation pour tous les navigateurs */
+* {
+  box-sizing: border-box;
+  -webkit-box-sizing: border-box;
+  -moz-box-sizing: border-box;
+}
+
+html {
+  -webkit-text-size-adjust: 100%;
+  -ms-text-size-adjust: 100%;
+  text-size-adjust: 100%;
+}
+
+body {
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+  text-rendering: optimizeLegibility;
+  -webkit-text-rendering: optimizeLegibility;
+  -moz-text-rendering: optimizeLegibility;
+  -ms-text-rendering: optimizeLegibility;
+}
+
+/* Flexbox fallbacks pour Edge */
+.flex {
+  display: -webkit-box;
+  display: -ms-flexbox;
+  display: flex;
+}
+
+.flex-col {
+  -webkit-box-orient: vertical;
+  -webkit-box-direction: normal;
+  -ms-flex-direction: column;
+  flex-direction: column;
+}
+
+.flex-row {
+  -webkit-box-orient: horizontal;
+  -webkit-box-direction: normal;
+  -ms-flex-direction: row;
+  flex-direction: row;
+}
+
+.items-center {
+  -webkit-box-align: center;
+  -ms-flex-align: center;
+  align-items: center;
+}
+
+.justify-center {
+  -webkit-box-pack: center;
+  -ms-flex-pack: center;
+  justify-content: center;
+}
+
+.justify-between {
+  -webkit-box-pack: justify;
+  -ms-flex-pack: justify;
+  justify-content: space-between;
+}
+
+.flex-1 {
+  -webkit-box-flex: 1;
+  -ms-flex: 1;
+  flex: 1;
+}
+
+/* Grid fallbacks pour Edge */
+.grid {
+  display: -ms-grid;
+  display: grid;
+}
+
+/* Gradients avec fallbacks pour Edge */
+.gradient-fallback {
+  background: #ef4444; /* Fallback pour Edge */
+  background: -webkit-linear-gradient(to right, #ef4444, #dc2626);
+  background: -moz-linear-gradient(to right, #ef4444, #dc2626);
+  background: -ms-linear-gradient(to right, #ef4444, #dc2626);
+  background: linear-gradient(to right, #ef4444, #dc2626);
+}
+
+/* Backdrop-filter fallback pour Edge */
+.backdrop-blur-fallback {
+  background: rgba(255, 255, 255, 0.9);
+}
+
+.backdrop-blur-fallback.dark {
+  background: rgba(0, 0, 0, 0.9);
+}
+
+/* Animations avec préfixes */
+@-webkit-keyframes fadeIn {
+  from { opacity: 0; }
+  to { opacity: 1; }
+}
+
+@-moz-keyframes fadeIn {
+  from { opacity: 0; }
+  to { opacity: 1; }
+}
+
+@-ms-keyframes fadeIn {
+  from { opacity: 0; }
+  to { opacity: 1; }
+}
+
+@keyframes fadeIn {
+  from { opacity: 0; }
+  to { opacity: 1; }
+}
+
+/* Transitions avec préfixes */
+.transition-all {
+  -webkit-transition: all 0.3s ease;
+  -moz-transition: all 0.3s ease;
+  -ms-transition: all 0.3s ease;
+  -o-transition: all 0.3s ease;
+  transition: all 0.3s ease;
+}
+
+/* Transform avec préfixes */
+.transform {
+  -webkit-transform: translateZ(0);
+  -moz-transform: translateZ(0);
+  -ms-transform: translateZ(0);
+  -o-transform: translateZ(0);
+  transform: translateZ(0);
+}
+
+/* Border-radius avec préfixes */
+.rounded-lg {
+  -webkit-border-radius: 0.5rem;
+  -moz-border-radius: 0.5rem;
+  -ms-border-radius: 0.5rem;
+  border-radius: 0.5rem;
+}
+
+/* Box-shadow avec préfixes */
+.shadow-lg {
+  -webkit-box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.1), 0 4px 6px -2px rgba(0, 0, 0, 0.05);
+  -moz-box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.1), 0 4px 6px -2px rgba(0, 0, 0, 0.05);
+  -ms-box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.1), 0 4px 6px -2px rgba(0, 0, 0, 0.05);
+  box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.1), 0 4px 6px -2px rgba(0, 0, 0, 0.05);
+}
+
+/* ===== CORRECTIONS SPÉCIFIQUES POUR EDGE ===== */
+
+/* Correction des problèmes de grille sur Edge */
+.grid-cols-1 {
+  -ms-grid-columns: 1fr;
+  grid-template-columns: repeat(1, minmax(0, 1fr));
+}
+
+.grid-cols-2 {
+  -ms-grid-columns: 1fr 1fr;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+}
+
+.grid-cols-3 {
+  -ms-grid-columns: 1fr 1fr 1fr;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+}
+
+.grid-cols-4 {
+  -ms-grid-columns: 1fr 1fr 1fr 1fr;
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+}
+
+.grid-cols-6 {
+  -ms-grid-columns: 1fr 1fr 1fr 1fr 1fr 1fr;
+  grid-template-columns: repeat(6, minmax(0, 1fr));
+}
+
+.grid-cols-12 {
+  -ms-grid-columns: 1fr 1fr 1fr 1fr 1fr 1fr 1fr 1fr 1fr 1fr 1fr 1fr;
+  grid-template-columns: repeat(12, minmax(0, 1fr));
+}
+
+/* Gap avec fallback pour Edge */
+.gap-1 { gap: 0.25rem; }
+.gap-2 { gap: 0.5rem; }
+.gap-3 { gap: 0.75rem; }
+.gap-4 { gap: 1rem; }
+.gap-6 { gap: 1.5rem; }
+.gap-8 { gap: 2rem; }
+
+/* Espacement avec fallback pour Edge */
+.space-x-2 > * + * { margin-left: 0.5rem; }
+.space-x-4 > * + * { margin-left: 1rem; }
+.space-x-6 > * + * { margin-left: 1.5rem; }
+.space-y-2 > * + * { margin-top: 0.5rem; }
+.space-y-4 > * + * { margin-top: 1rem; }
+.space-y-6 > * + * { margin-top: 1.5rem; }
+
+/* Correction des problèmes de positionnement sur Edge */
+.relative {
+  position: relative;
+}
+
+.absolute {
+  position: absolute;
+}
+
+.fixed {
+  position: fixed;
+}
+
+/* Correction des problèmes de z-index sur Edge */
+.z-10 { z-index: 10; }
+.z-20 { z-index: 20; }
+.z-30 { z-index: 30; }
+.z-40 { z-index: 40; }
+.z-50 { z-index: 50; }
+
+/* Correction des problèmes de overflow sur Edge */
+.overflow-hidden {
+  overflow: hidden;
+}
+
+.overflow-auto {
+  overflow: auto;
+}
+
+.overflow-x-auto {
+  overflow-x: auto;
+}
+
+.overflow-y-auto {
+  overflow-y: auto;
+}
+
+/* Correction des problèmes de text-overflow sur Edge */
+.truncate {
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+/* Correction des problèmes de line-clamp sur Edge */
+.line-clamp-1 {
+  overflow: hidden;
+  display: -webkit-box;
+  -webkit-box-orient: vertical;
+  -webkit-line-clamp: 1;
+  -ms-line-clamp: 1;
+  line-clamp: 1;
+}
+
+.line-clamp-2 {
+  overflow: hidden;
+  display: -webkit-box;
+  -webkit-box-orient: vertical;
+  -webkit-line-clamp: 2;
+  -ms-line-clamp: 2;
+  line-clamp: 2;
+}
+
+.line-clamp-3 {
+  overflow: hidden;
+  display: -webkit-box;
+  -webkit-box-orient: vertical;
+  -webkit-line-clamp: 3;
+  -ms-line-clamp: 3;
+  line-clamp: 3;
+}
+
+/* Correction des problèmes de backdrop-filter sur Edge */
+.backdrop-blur-sm {
+  -webkit-backdrop-filter: blur(4px);
+  backdrop-filter: blur(4px);
+}
+
+.backdrop-blur-md {
+  -webkit-backdrop-filter: blur(8px);
+  backdrop-filter: blur(8px);
+}
+
+.backdrop-blur-lg {
+  -webkit-backdrop-filter: blur(16px);
+  backdrop-filter: blur(16px);
+}
+
+.backdrop-blur-xl {
+  -webkit-backdrop-filter: blur(24px);
+  backdrop-filter: blur(24px);
+}
+
+/* Fallback pour Edge qui ne supporte pas backdrop-filter */
+@supports not (backdrop-filter: blur(4px)) {
+  .backdrop-blur-sm {
+    background: rgba(255, 255, 255, 0.9);
+  }
+  
+  .backdrop-blur-md {
+    background: rgba(255, 255, 255, 0.85);
+  }
+  
+  .backdrop-blur-lg {
+    background: rgba(255, 255, 255, 0.8);
+  }
+  
+  .backdrop-blur-xl {
+    background: rgba(255, 255, 255, 0.75);
+  }
+}
+
+/* Correction des problèmes de gradient sur Edge */
+.bg-gradient-to-r {
+  background: -webkit-linear-gradient(left, var(--tw-gradient-stops));
+  background: -moz-linear-gradient(left, var(--tw-gradient-stops));
+  background: -ms-linear-gradient(left, var(--tw-gradient-stops));
+  background: linear-gradient(to right, var(--tw-gradient-stops));
+}
+
+.bg-gradient-to-br {
+  background: -webkit-linear-gradient(135deg, var(--tw-gradient-stops));
+  background: -moz-linear-gradient(135deg, var(--tw-gradient-stops));
+  background: -ms-linear-gradient(135deg, var(--tw-gradient-stops));
+  background: linear-gradient(135deg, var(--tw-gradient-stops));
+}
+
+.bg-gradient-to-b {
+  background: -webkit-linear-gradient(bottom, var(--tw-gradient-stops));
+  background: -moz-linear-gradient(bottom, var(--tw-gradient-stops));
+  background: -ms-linear-gradient(bottom, var(--tw-gradient-stops));
+  background: linear-gradient(to bottom, var(--tw-gradient-stops));
+}
+
+/* Correction des problèmes d'animation sur Edge */
+@-webkit-keyframes spin {
+  to { -webkit-transform: rotate(360deg); }
+}
+
+@-moz-keyframes spin {
+  to { -moz-transform: rotate(360deg); }
+}
+
+@-ms-keyframes spin {
+  to { -ms-transform: rotate(360deg); }
+}
+
+@keyframes spin {
+  to { transform: rotate(360deg); }
+}
+
+.animate-spin {
+  -webkit-animation: spin 1s linear infinite;
+  -moz-animation: spin 1s linear infinite;
+  -ms-animation: spin 1s linear infinite;
+  animation: spin 1s linear infinite;
+}
+
+/* Correction des problèmes de transition sur Edge */
+.transition-all {
+  -webkit-transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+  -moz-transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+  -ms-transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+  -o-transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+  transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+/* Correction des problèmes de transform sur Edge */
+.-translate-y-1 {
+  -webkit-transform: translateY(-0.25rem);
+  -moz-transform: translateY(-0.25rem);
+  -ms-transform: translateY(-0.25rem);
+  -o-transform: translateY(-0.25rem);
+  transform: translateY(-0.25rem);
+}
+
+.scale-105 {
+  -webkit-transform: scale(1.05);
+  -moz-transform: scale(1.05);
+  -ms-transform: scale(1.05);
+  -o-transform: scale(1.05);
+  transform: scale(1.05);
+}
+
+.scale-110 {
+  -webkit-transform: scale(1.1);
+  -moz-transform: scale(1.1);
+  -ms-transform: scale(1.1);
+  -o-transform: scale(1.1);
+  transform: scale(1.1);
+}
+
+/* Correction des problèmes de sélecteur sur Edge */
+.group:hover .group-hover\:opacity-100 {
+  opacity: 1;
+}
+
+.group:hover .group-hover\:scale-105 {
+  -webkit-transform: scale(1.05);
+  -moz-transform: scale(1.05);
+  -ms-transform: scale(1.05);
+  -o-transform: scale(1.05);
+  transform: scale(1.05);
+}
+
+/* ===== STYLES SPÉCIFIQUES POUR EDGE ===== */
+
+/* Correction des problèmes de grille sur Edge */
+@media screen and (-ms-high-contrast: active), (-ms-high-contrast: none) {
+  .grid {
+    display: -ms-grid;
+    display: grid;
+  }
+  
+  .grid-cols-1 {
+    -ms-grid-columns: 1fr;
+  }
+  
+  .grid-cols-2 {
+    -ms-grid-columns: 1fr 1fr;
+  }
+  
+  .grid-cols-3 {
+    -ms-grid-columns: 1fr 1fr 1fr;
+  }
+  
+  .grid-cols-4 {
+    -ms-grid-columns: 1fr 1fr 1fr 1fr;
+  }
+  
+  .grid-cols-6 {
+    -ms-grid-columns: 1fr 1fr 1fr 1fr 1fr 1fr;
+  }
+  
+  .grid-cols-12 {
+    -ms-grid-columns: 1fr 1fr 1fr 1fr 1fr 1fr 1fr 1fr 1fr 1fr 1fr 1fr;
+  }
+  
+  /* Correction des problèmes de gap sur Edge */
+  .gap-1 { gap: 0.25rem; }
+  .gap-2 { gap: 0.5rem; }
+  .gap-3 { gap: 0.75rem; }
+  .gap-4 { gap: 1rem; }
+  .gap-6 { gap: 1.5rem; }
+  .gap-8 { gap: 2rem; }
+}
+
+/* Correction des problèmes de flexbox sur Edge */
+@supports (-ms-ime-align: auto) {
+  .flex {
+    display: -ms-flexbox;
+    display: flex;
+  }
+  
+  .flex-col {
+    -ms-flex-direction: column;
+    flex-direction: column;
+  }
+  
+  .flex-row {
+    -ms-flex-direction: row;
+    flex-direction: row;
+  }
+  
+  .items-center {
+    -ms-flex-align: center;
+    align-items: center;
+  }
+  
+  .justify-center {
+    -ms-flex-pack: center;
+    justify-content: center;
+  }
+  
+  .justify-between {
+    -ms-flex-pack: justify;
+    justify-content: space-between;
+  }
+  
+  .flex-1 {
+    -ms-flex: 1;
+    flex: 1;
+  }
+}
+
+/* Correction des problèmes de backdrop-filter sur Edge */
+@supports not (backdrop-filter: blur(4px)) {
+  .backdrop-blur-sm,
+  .backdrop-blur-md,
+  .backdrop-blur-lg,
+  .backdrop-blur-xl {
+    background: rgba(255, 255, 255, 0.9);
+  }
+  
+  .dark .backdrop-blur-sm,
+  .dark .backdrop-blur-md,
+  .dark .backdrop-blur-lg,
+  .dark .backdrop-blur-xl {
+    background: rgba(0, 0, 0, 0.9);
+  }
+}
+
+/* Correction des problèmes de gradient sur Edge */
+@supports not (background: linear-gradient(45deg, red, blue)) {
+  .bg-gradient-to-r {
+    background: #ef4444;
+  }
+  
+  .bg-gradient-to-br {
+    background: #ef4444;
+  }
+  
+  .bg-gradient-to-b {
+    background: #ef4444;
+  }
+}
+
+/* Correction des problèmes d'animation sur Edge */
+@supports not (animation: spin 1s linear infinite) {
+  .animate-spin {
+    -webkit-animation: spin 1s linear infinite;
+    -moz-animation: spin 1s linear infinite;
+    -ms-animation: spin 1s linear infinite;
+    animation: spin 1s linear infinite;
+  }
+}
+
+/* Correction des problèmes de transition sur Edge */
+@supports not (transition: all 0.3s ease) {
+  .transition-all {
+    -webkit-transition: all 0.3s ease;
+    -moz-transition: all 0.3s ease;
+    -ms-transition: all 0.3s ease;
+    -o-transition: all 0.3s ease;
+    transition: all 0.3s ease;
+  }
+}
+
+/* Correction des problèmes de transform sur Edge */
+@supports not (transform: scale(1.05)) {
+  .scale-105 {
+    -webkit-transform: scale(1.05);
+    -moz-transform: scale(1.05);
+    -ms-transform: scale(1.05);
+    -o-transform: scale(1.05);
+    transform: scale(1.05);
+  }
+  
+  .scale-110 {
+    -webkit-transform: scale(1.1);
+    -moz-transform: scale(1.1);
+    -ms-transform: scale(1.1);
+    -o-transform: scale(1.1);
+    transform: scale(1.1);
+  }
+  
+  .-translate-y-1 {
+    -webkit-transform: translateY(-0.25rem);
+    -moz-transform: translateY(-0.25rem);
+    -ms-transform: translateY(-0.25rem);
+    -o-transform: translateY(-0.25rem);
+    transform: translateY(-0.25rem);
+  }
+}
+
+/* Correction des problèmes de border-radius sur Edge */
+@supports not (border-radius: 0.5rem) {
+  .rounded-lg {
+    -webkit-border-radius: 0.5rem;
+    -moz-border-radius: 0.5rem;
+    -ms-border-radius: 0.5rem;
+    border-radius: 0.5rem;
+  }
+  
+  .rounded-xl {
+    -webkit-border-radius: 0.75rem;
+    -moz-border-radius: 0.75rem;
+    -ms-border-radius: 0.75rem;
+    border-radius: 0.75rem;
+  }
+  
+  .rounded-2xl {
+    -webkit-border-radius: 1rem;
+    -moz-border-radius: 1rem;
+    -ms-border-radius: 1rem;
+    border-radius: 1rem;
+  }
+}
+
+/* Correction des problèmes de box-shadow sur Edge */
+@supports not (box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.1)) {
+  .shadow-lg {
+    -webkit-box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.1), 0 4px 6px -2px rgba(0, 0, 0, 0.05);
+    -moz-box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.1), 0 4px 6px -2px rgba(0, 0, 0, 0.05);
+    -ms-box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.1), 0 4px 6px -2px rgba(0, 0, 0, 0.05);
+    box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.1), 0 4px 6px -2px rgba(0, 0, 0, 0.05);
+  }
+  
+  .shadow-xl {
+    -webkit-box-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.1), 0 10px 10px -5px rgba(0, 0, 0, 0.04);
+    -moz-box-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.1), 0 10px 10px -5px rgba(0, 0, 0, 0.04);
+    -ms-box-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.1), 0 10px 10px -5px rgba(0, 0, 0, 0.04);
+    box-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.1), 0 10px 10px -5px rgba(0, 0, 0, 0.04);
+  }
+}
+
+/* ===== OPTIMISATION PRINCIPALE POUR EDGE ===== */
+
+/* Edge est le navigateur principal de l'entreprise - Design optimisé pour Edge */
+/* Utilisation de détection Edge plus fiable */
+@media screen and (-ms-high-contrast: active), (-ms-high-contrast: none) {
+  /* Reset et normalisation spécifique à Edge */
+  * {
+    -webkit-font-smoothing: antialiased;
+    -moz-osx-font-smoothing: grayscale;
+    text-rendering: optimizeLegibility;
+    -webkit-text-rendering: optimizeLegibility;
+    -moz-text-rendering: optimizeLegibility;
+    -ms-text-rendering: optimizeLegibility;
+  }
+  
+  /* Tailles de police optimisées pour Edge */
+  .text-xs {
+    font-size: 0.75rem !important;
+    line-height: 1.1 !important;
+    font-weight: 400 !important;
+  }
+  
+  .text-sm {
+    font-size: 0.875rem !important;
+    line-height: 1.3 !important;
+    font-weight: 400 !important;
+  }
+  
+  .text-base {
+    font-size: 1rem !important;
+    line-height: 1.4 !important;
+    font-weight: 400 !important;
+  }
+  
+  .text-lg {
+    font-size: 1.125rem !important;
+    line-height: 1.5 !important;
+    font-weight: 500 !important;
+  }
+  
+  .text-xl {
+    font-size: 1.25rem !important;
+    line-height: 1.4 !important;
+    font-weight: 600 !important;
+  }
+  
+  .text-2xl {
+    font-size: 1.5rem !important;
+    line-height: 1.3 !important;
+    font-weight: 700 !important;
+  }
+  
+  .text-3xl {
+    font-size: 1.875rem !important;
+    line-height: 1.2 !important;
+    font-weight: 700 !important;
+  }
+  
+  .text-4xl {
+    font-size: 2.25rem !important;
+    line-height: 1.1 !important;
+    font-weight: 800 !important;
+  }
+  
+  .text-5xl {
+    font-size: 3rem !important;
+    line-height: 1 !important;
+    font-weight: 800 !important;
+  }
+  
+  .text-6xl {
+    font-size: 3.75rem !important;
+    line-height: 1 !important;
+    font-weight: 900 !important;
+  }
+  
+  /* Optimisation des grilles pour Edge */
+  .grid {
+    display: -ms-grid;
+    display: grid;
+    -ms-grid-columns: 1fr;
+    -ms-grid-rows: auto;
+  }
+  
+  /* Optimisation des flexbox pour Edge */
+  .flex {
+    display: -ms-flexbox;
+    display: flex;
+    -ms-flex-direction: row;
+    -ms-flex-wrap: nowrap;
+  }
+  
+  .flex-col {
+    -ms-flex-direction: column;
+    flex-direction: column;
+  }
+  
+  .items-center {
+    -ms-flex-align: center;
+    align-items: center;
+  }
+  
+  .justify-center {
+    -ms-flex-pack: center;
+    justify-content: center;
+  }
+  
+  .justify-between {
+    -ms-flex-pack: justify;
+    justify-content: space-between;
+  }
+  
+  .flex-1 {
+    -ms-flex: 1 1 0%;
+    flex: 1 1 0%;
+  }
+  
+  /* Optimisation des espacements pour Edge */
+  .space-x-2 > * + * {
+    margin-left: 0.5rem;
+  }
+  
+  .space-x-4 > * + * {
+    margin-left: 1rem;
+  }
+  
+  .space-y-2 > * + * {
+    margin-top: 0.5rem;
+  }
+  
+  .space-y-4 > * + * {
+    margin-top: 1rem;
+  }
+  
+  /* Optimisation des gaps pour Edge */
+  .gap-1 { gap: 0.25rem; }
+  .gap-2 { gap: 0.5rem; }
+  .gap-3 { gap: 0.75rem; }
+  .gap-4 { gap: 1rem; }
+  .gap-6 { gap: 1.5rem; }
+  .gap-8 { gap: 2rem; }
+}
+
+/* ===== OPTIMISATION DES CARTES DRAGGABLES POUR EDGE ===== */
+
+/* Design spécifiquement optimisé pour Edge - Cartes draggables */
+@supports (-ms-ime-align: auto) {
+  /* Optimisation des cartes d'actualités */
+  .carousel-title {
+    font-size: 1rem !important;
+    line-height: 1.3 !important;
+    font-weight: 700 !important;
+    color: #ffffff !important;
+    text-shadow: 0 1px 2px rgba(0, 0, 0, 0.3) !important;
+  }
+  
+  @media (min-width: 640px) {
+    .carousel-title {
+      font-size: 1.125rem !important;
+      line-height: 1.4 !important;
+    }
+  }
+  
+  @media (min-width: 1024px) {
+    .carousel-title {
+      font-size: 1.25rem !important;
+      line-height: 1.3 !important;
+    }
+  }
+  
+  /* Texte des cartes optimisé pour Edge */
+  .carousel-text {
+    font-size: 0.75rem !important;
+    line-height: 1.4 !important;
+    font-weight: 400 !important;
+    color: rgba(255, 255, 255, 0.9) !important;
+    text-shadow: 0 1px 1px rgba(0, 0, 0, 0.2) !important;
+  }
+  
+  @media (min-width: 640px) {
+    .carousel-text {
+      font-size: 0.875rem !important;
+      line-height: 1.5 !important;
+    }
+  }
+  
+  /* Compteurs de sécurité optimisés pour Edge - Tailles réduites */
+  .safety-counter-number {
+    font-size: 1.25rem !important;
+    line-height: 1.1 !important;
+    font-weight: 800 !important;
+    color: #ffffff !important;
+    text-shadow: 0 1px 2px rgba(0, 0, 0, 0.3) !important;
+  }
+  
+  @media (min-width: 640px) {
+    .safety-counter-number {
+      font-size: 1.5rem !important;
+      line-height: 1 !important;
+    }
+  }
+  
+  @media (min-width: 1024px) {
+    .safety-counter-number {
+      font-size: 1.75rem !important;
+      line-height: 1 !important;
+    }
+  }
+  
+  /* Labels de sécurité optimisés - Tailles réduites */
+  .safety-counter-label {
+    font-size: 0.625rem !important;
+    line-height: 1.1 !important;
+    font-weight: 500 !important;
+    color: rgba(255, 255, 255, 0.85) !important;
+  }
+  
+  @media (min-width: 640px) {
+    .safety-counter-label {
+      font-size: 0.75rem !important;
+      line-height: 1.2 !important;
+    }
+  }
+  
+  @media (min-width: 1024px) {
+    .safety-counter-label {
+      font-size: 0.875rem !important;
+      line-height: 1.3 !important;
+    }
+  }
+  
+  /* Sous-titres de sécurité optimisés - Tailles réduites */
+  .safety-counter-subtitle {
+    font-size: 0.5rem !important;
+    line-height: 1.1 !important;
+    font-weight: 400 !important;
+    color: rgba(255, 255, 255, 0.7) !important;
+  }
+  
+  @media (min-width: 640px) {
+    .safety-counter-subtitle {
+      font-size: 0.625rem !important;
+      line-height: 1.2 !important;
+    }
+  }
+  
+  @media (min-width: 1024px) {
+    .safety-counter-subtitle {
+      font-size: 0.75rem !important;
+      line-height: 1.3 !important;
+    }
+  }
+  
+  /* Titres des widgets optimisés pour Edge - Tailles réduites */
+  .widget-title {
+    font-size: 0.875rem !important;
+    line-height: 1.2 !important;
+    font-weight: 600 !important;
+    color: #1f2937 !important;
+  }
+  
+  @media (min-width: 640px) {
+    .widget-title {
+      font-size: 1rem !important;
+      line-height: 1.3 !important;
+    }
+  }
+  
+  @media (min-width: 1024px) {
+    .widget-title {
+      font-size: 1.125rem !important;
+      line-height: 1.2 !important;
+    }
+  }
+  
+  /* Sous-titres des widgets - Tailles réduites */
+  .widget-subtitle {
+    font-size: 0.625rem !important;
+    line-height: 1.2 !important;
+    font-weight: 400 !important;
+    color: #6b7280 !important;
+  }
+  
+  @media (min-width: 640px) {
+    .widget-subtitle {
+      font-size: 0.75rem !important;
+      line-height: 1.3 !important;
+    }
+  }
+  
+  @media (min-width: 1024px) {
+    .widget-subtitle {
+      font-size: 0.875rem !important;
+      line-height: 1.4 !important;
+    }
+  }
+  
+  /* Badges optimisés pour Edge - Tailles réduites */
+  .badge-text {
+    font-size: 0.625rem !important;
+    line-height: 1.1 !important;
+    font-weight: 500 !important;
+    text-transform: uppercase !important;
+    letter-spacing: 0.025em !important;
+  }
+  
+  /* Métadonnées optimisées - Tailles réduites */
+  .metadata-text {
+    font-size: 0.625rem !important;
+    line-height: 1.2 !important;
+    font-weight: 400 !important;
+    color: #6b7280 !important;
+  }
+  
+  @media (min-width: 640px) {
+    .metadata-text {
+      font-size: 0.75rem !important;
+      line-height: 1.3 !important;
+    }
+  }
+  
+  @media (min-width: 1024px) {
+    .metadata-text {
+      font-size: 0.875rem !important;
+      line-height: 1.4 !important;
+    }
+  }
+  
+  /* Optimisation des grilles pour les cartes draggables */
+  .grid-cols-1 {
+    -ms-grid-columns: 1fr;
+    grid-template-columns: repeat(1, minmax(0, 1fr));
+  }
+  
+  .grid-cols-2 {
+    -ms-grid-columns: 1fr 1fr;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+  
+  .grid-cols-3 {
+    -ms-grid-columns: 1fr 1fr 1fr;
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+  }
+  
+  .grid-cols-4 {
+    -ms-grid-columns: 1fr 1fr 1fr 1fr;
+    grid-template-columns: repeat(4, minmax(0, 1fr));
+  }
+  
+  .grid-cols-6 {
+    -ms-grid-columns: 1fr 1fr 1fr 1fr 1fr 1fr;
+    grid-template-columns: repeat(6, minmax(0, 1fr));
+  }
+  
+  .grid-cols-12 {
+    -ms-grid-columns: 1fr 1fr 1fr 1fr 1fr 1fr 1fr 1fr 1fr 1fr 1fr 1fr;
+    grid-template-columns: repeat(12, minmax(0, 1fr));
+  }
+  
+  /* Optimisation des espacements pour les cartes */
+  .p-2 { padding: 0.5rem !important; }
+  .p-3 { padding: 0.75rem !important; }
+  .p-4 { padding: 1rem !important; }
+  .p-6 { padding: 1.5rem !important; }
+  
+  .px-2 { padding-left: 0.5rem !important; padding-right: 0.5rem !important; }
+  .px-3 { padding-left: 0.75rem !important; padding-right: 0.75rem !important; }
+  .px-4 { padding-left: 1rem !important; padding-right: 1rem !important; }
+  
+  .py-2 { padding-top: 0.5rem !important; padding-bottom: 0.5rem !important; }
+  .py-3 { padding-top: 0.75rem !important; padding-bottom: 0.75rem !important; }
+  .py-4 { padding-top: 1rem !important; padding-bottom: 1rem !important; }
+  
+  /* Optimisation des marges pour les cartes */
+  .m-2 { margin: 0.5rem !important; }
+  .m-3 { margin: 0.75rem !important; }
+  .m-4 { margin: 1rem !important; }
+  
+  .mb-2 { margin-bottom: 0.5rem !important; }
+  .mb-3 { margin-bottom: 0.75rem !important; }
+  .mb-4 { margin-bottom: 1rem !important; }
+  
+  .mt-2 { margin-top: 0.5rem !important; }
+  .mt-3 { margin-top: 0.75rem !important; }
+  .mt-4 { margin-top: 1rem !important; }
+  
+  /* ===== OPTIMISATION DE LA SECTION HERO POUR EDGE ===== */
+  
+  /* Section hero optimisée pour Edge */
+  .edge-optimized-hero {
+    background: #dc2626 !important; /* Fallback pour Edge */
+    background: -webkit-linear-gradient(left, #ef4444, #dc2626) !important;
+    background: -moz-linear-gradient(left, #ef4444, #dc2626) !important;
+    background: -ms-linear-gradient(left, #ef4444, #dc2626) !important;
+    background: linear-gradient(to right, #ef4444, #dc2626) !important;
+    border-radius: 0.5rem !important;
+    box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06) !important;
+  }
+  
+  /* Titre hero optimisé pour Edge */
+  .edge-hero-title {
+    font-size: 1.25rem !important;
+    line-height: 1.3 !important;
+    font-weight: 700 !important;
+    color: #ffffff !important;
+    text-shadow: 0 1px 2px rgba(0, 0, 0, 0.3) !important;
+    margin-bottom: 0.5rem !important;
+  }
+  
+  @media (min-width: 640px) {
+    .edge-hero-title {
+      font-size: 1.5rem !important;
+      line-height: 1.4 !important;
+    }
+  }
+  
+  @media (min-width: 1024px) {
+    .edge-hero-title {
+      font-size: 1.875rem !important;
+      line-height: 1.3 !important;
+    }
+  }
+  
+  /* Sous-titre hero optimisé pour Edge */
+  .edge-hero-subtitle {
+    font-size: 0.875rem !important;
+    line-height: 1.4 !important;
+    font-weight: 400 !important;
+    color: rgba(255, 255, 255, 0.9) !important;
+    margin-bottom: 0.75rem !important;
+  }
+  
+  @media (min-width: 640px) {
+    .edge-hero-subtitle {
+      font-size: 1rem !important;
+      line-height: 1.5 !important;
+    }
+  }
+  
+  /* Métadonnées hero optimisées pour Edge */
+  .edge-hero-meta {
+    font-size: 0.75rem !important;
+    line-height: 1.3 !important;
+    font-weight: 400 !important;
+    color: rgba(255, 255, 255, 0.8) !important;
+  }
+  
+  @media (min-width: 640px) {
+    .edge-hero-meta {
+      font-size: 0.875rem !important;
+      line-height: 1.4 !important;
+    }
+  }
+  
+  /* Optimisation des espacements pour la section hero */
+  .edge-optimized-hero .space-y-4 > * + * {
+    margin-top: 1rem !important;
+  }
+  
+  .edge-optimized-hero .space-y-2 > * + * {
+    margin-top: 0.5rem !important;
+  }
+  
+  .edge-optimized-hero .space-x-2 > * + * {
+    margin-left: 0.5rem !important;
+  }
+  
+  .edge-optimized-hero .space-x-6 > * + * {
+    margin-left: 1.5rem !important;
+  }
+}
+
+/* ===== STYLES FORCÉS POUR EDGE - APPROCHE DIRECTE ===== */
+
+/* Styles qui s'appliquent directement aux classes Tailwind sur Edge */
+@media screen and (-ms-high-contrast: active), (-ms-high-contrast: none) {
+  /* Forcer les tailles de police pour les titres de widgets */
+  .text-lg {
+    font-size: 0.875rem !important;
+    line-height: 1.2 !important;
+    font-weight: 600 !important;
+  }
+  
+  .text-xl {
+    font-size: 1rem !important;
+    line-height: 1.3 !important;
+    font-weight: 600 !important;
+  }
+  
+  .text-2xl {
+    font-size: 1.125rem !important;
+    line-height: 1.2 !important;
+    font-weight: 700 !important;
+  }
+  
+  .text-3xl {
+    font-size: 1.25rem !important;
+    line-height: 1.1 !important;
+    font-weight: 700 !important;
+  }
+  
+  /* Forcer les tailles pour les sous-titres */
+  .text-sm {
+    font-size: 0.625rem !important;
+    line-height: 1.2 !important;
+    font-weight: 400 !important;
+  }
+  
+  .text-xs {
+    font-size: 0.5rem !important;
+    line-height: 1.1 !important;
+    font-weight: 400 !important;
+  }
+  
+  /* Forcer les tailles pour les compteurs */
+  .text-4xl {
+    font-size: 1.25rem !important;
+    line-height: 1.1 !important;
+    font-weight: 800 !important;
+  }
+  
+  .text-5xl {
+    font-size: 1.5rem !important;
+    line-height: 1 !important;
+    font-weight: 800 !important;
+  }
+  
+  .text-6xl {
+    font-size: 1.75rem !important;
+    line-height: 1 !important;
+    font-weight: 900 !important;
+  }
+}
+
+/* ===== STYLES SPÉCIFIQUES POUR LES COMPOSANTS ===== */
+
+/* Styles pour harmoniser "Sécurité du Travail" avec "Mot du Directeur" */
+@media screen and (-ms-high-contrast: active), (-ms-high-contrast: none) {
+  /* Titre "Sécurité du Travail" - même taille que "Mot du Directeur" */
+  .safety-widget-title {
+    font-size: 0.875rem !important;
+    line-height: 1.2 !important;
+    font-weight: 600 !important;
+    color: #ffffff !important;
+  }
+  
+  @media (min-width: 640px) {
+    .safety-widget-title {
+      font-size: 1rem !important;
+      line-height: 1.3 !important;
+    }
+  }
+  
+  /* Sous-titre "Compteurs de jours sans accident" */
+  .safety-widget-subtitle {
+    font-size: 0.625rem !important;
+    line-height: 1.2 !important;
+    font-weight: 400 !important;
+    color: rgba(255, 255, 255, 0.8) !important;
+  }
+  
+  @media (min-width: 640px) {
+    .safety-widget-subtitle {
+      font-size: 0.75rem !important;
+      line-height: 1.3 !important;
+    }
+  }
+}
+
+/* ===== STYLES FORCÉS GLOBAUX POUR EDGE ===== */
+
+/* Styles qui s'appliquent à tous les navigateurs mais avec priorité pour Edge */
+.text-lg {
+  font-size: 1rem !important;
+  line-height: 1.3 !important;
+  font-weight: 600 !important;
+}
+
+.text-xl {
+  font-size: 1.125rem !important;
+  line-height: 1.4 !important;
+  font-weight: 600 !important;
+}
+
+.text-2xl {
+  font-size: 1.25rem !important;
+  line-height: 1.3 !important;
+  font-weight: 700 !important;
+}
+
+.text-3xl {
+  font-size: 1.5rem !important;
+  line-height: 1.2 !important;
+  font-weight: 700 !important;
+}
+
+.text-sm {
+  font-size: 0.75rem !important;
+  line-height: 1.3 !important;
+  font-weight: 400 !important;
+}
+
+.text-xs {
+  font-size: 0.625rem !important;
+  line-height: 1.2 !important;
+  font-weight: 400 !important;
+}
+
+.text-4xl {
+  font-size: 1.5rem !important;
+  line-height: 1.2 !important;
+  font-weight: 800 !important;
+}
+
+.text-5xl {
+  font-size: 1.875rem !important;
+  line-height: 1.1 !important;
+  font-weight: 800 !important;
+}
+
+.text-6xl {
+  font-size: 2.25rem !important;
+  line-height: 1 !important;
+  font-weight: 900 !important;
+}
+
+/* Styles spécifiques pour les composants */
+.safety-widget-title {
+  font-size: 1rem !important;
+  line-height: 1.3 !important;
+  font-weight: 600 !important;
+  color: #ffffff !important;
+}
+
+@media (min-width: 640px) {
+  .safety-widget-title {
+    font-size: 1.125rem !important;
+    line-height: 1.4 !important;
+  }
+}
+
+.safety-widget-subtitle {
+  font-size: 0.75rem !important;
+  line-height: 1.3 !important;
+  font-weight: 400 !important;
+  color: rgba(255, 255, 255, 0.8) !important;
+}
+
+@media (min-width: 640px) {
+  .safety-widget-subtitle {
+    font-size: 0.875rem !important;
+    line-height: 1.4 !important;
+  }
+}
+
+/* Styles pour harmoniser "Mot du Directeur" avec les autres composants */
+.director-widget-title {
+  font-size: 1rem !important;
+  line-height: 1.3 !important;
+  font-weight: 600 !important;
+  color: rgba(238, 0, 9, 0.8) !important;
+}
+
+@media (min-width: 640px) {
+  .director-widget-title {
+    font-size: 1.125rem !important;
+    line-height: 1.4 !important;
+  }
+}
+
+.director-widget-subtitle {
+  font-size: 0.75rem !important;
+  line-height: 1.3 !important;
+  font-weight: 400 !important;
+  color: #6b7280 !important;
+}
+
+@media (min-width: 640px) {
+  .director-widget-subtitle {
+    font-size: 0.875rem !important;
+    line-height: 1.4 !important;
+  }
+}
+
+/* Styles pour les actualités */
+.carousel-title {
+  font-size: 1rem !important;
+  line-height: 1.3 !important;
+  font-weight: 700 !important;
+  color: #ffffff !important;
+  text-shadow: 0 1px 2px rgba(0, 0, 0, 0.3) !important;
+}
+
+@media (min-width: 640px) {
+  .carousel-title {
+    font-size: 1.125rem !important;
+    line-height: 1.4 !important;
+  }
+}
+
+@media (min-width: 1024px) {
+  .carousel-title {
+    font-size: 1.25rem !important;
+    line-height: 1.3 !important;
+  }
+}
+
+.carousel-text {
+  font-size: 0.75rem !important;
+  line-height: 1.4 !important;
+  font-weight: 400 !important;
+  color: rgba(255, 255, 255, 0.9) !important;
+  text-shadow: 0 1px 1px rgba(0, 0, 0, 0.2) !important;
+}
+
+@media (min-width: 640px) {
+  .carousel-text {
+    font-size: 0.875rem !important;
+    line-height: 1.5 !important;
+  }
+}
+
+.badge-text {
+  font-size: 0.625rem !important;
+  line-height: 1.2 !important;
+  font-weight: 500 !important;
+  text-transform: uppercase !important;
+  letter-spacing: 0.025em !important;
+}
+
+.metadata-text {
+  font-size: 0.625rem !important;
+  line-height: 1.3 !important;
+  font-weight: 400 !important;
+  color: #6b7280 !important;
+}
+
+@media (min-width: 640px) {
+  .metadata-text {
+    font-size: 0.75rem !important;
+    line-height: 1.4 !important;
+  }
+}
+
+/* Correction des problèmes de rendu de police sur Edge */
+@supports (-ms-ime-align: auto) {
+  /* Force le rendu de police identique à Chrome */
+  body {
+    -webkit-font-smoothing: antialiased;
+    -moz-osx-font-smoothing: grayscale;
+    text-rendering: optimizeLegibility;
+    -webkit-text-rendering: optimizeLegibility;
+    -moz-text-rendering: optimizeLegibility;
+    -ms-text-rendering: optimizeLegibility;
+  }
+  
+  /* Correction spécifique pour les éléments de texte */
+  h1, h2, h3, h4, h5, h6, p, span, div {
+    -webkit-font-smoothing: antialiased;
+    -moz-osx-font-smoothing: grayscale;
+    text-rendering: optimizeLegibility;
+  }
+  
+  /* Correction des problèmes de line-height sur Edge */
+  .line-clamp-1, .line-clamp-2, .line-clamp-3 {
+    line-height: 1.5 !important;
+  }
+  
+  /* Correction des problèmes de font-weight sur Edge */
+  .font-bold {
+    font-weight: 700 !important;
+  }
+  
+  .font-semibold {
+    font-weight: 600 !important;
+  }
+  
+  .font-medium {
+    font-weight: 500 !important;
+  }
+}
+
+/* ===== CLASSES FORCÉES POUR HARMONISATION CROSS-BROWSER ===== */
+
+/* Classes forcées pour Edge - Tailles de police identiques à Chrome */
+@supports (-ms-ime-align: auto) {
+  .forced-text-xs {
+    font-size: 0.75rem !important;
+    line-height: 1rem !important;
+  }
+  
+  .forced-text-sm {
+    font-size: 0.875rem !important;
+    line-height: 1.25rem !important;
+  }
+  
+  .forced-text-base {
+    font-size: 1rem !important;
+    line-height: 1.5rem !important;
+  }
+  
+  .forced-text-lg {
+    font-size: 1.125rem !important;
+    line-height: 1.75rem !important;
+  }
+  
+  .forced-text-xl {
+    font-size: 1.25rem !important;
+    line-height: 1.75rem !important;
+  }
+  
+  .forced-text-2xl {
+    font-size: 1.5rem !important;
+    line-height: 2rem !important;
+  }
+  
+  .forced-text-3xl {
+    font-size: 1.875rem !important;
+    line-height: 2.25rem !important;
+  }
+  
+  .forced-text-4xl {
+    font-size: 2.25rem !important;
+    line-height: 2.5rem !important;
+  }
+  
+  .forced-text-5xl {
+    font-size: 3rem !important;
+    line-height: 1 !important;
+  }
+  
+  .forced-text-6xl {
+    font-size: 3.75rem !important;
+    line-height: 1 !important;
+  }
+}
+
+/* Correction des problèmes de rendu de police sur tous les navigateurs */
+* {
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+  text-rendering: optimizeLegibility;
+}
+
+/* Correction spécifique pour les éléments de texte sur Edge */
+@supports (-ms-ime-align: auto) {
+  h1, h2, h3, h4, h5, h6, p, span, div, button, a {
+    -webkit-font-smoothing: antialiased;
+    -moz-osx-font-smoothing: grayscale;
+    text-rendering: optimizeLegibility;
+  }
+  
+  /* Force la cohérence des tailles de police */
+  .text-xs, .text-sm, .text-base, .text-lg, .text-xl, 
+  .text-2xl, .text-3xl, .text-4xl, .text-5xl, .text-6xl {
+    font-family: inherit !important;
+  }
+  
+  /* Correction des problèmes de line-height */
+  .leading-tight { line-height: 1.25 !important; }
+  .leading-snug { line-height: 1.375 !important; }
+  .leading-normal { line-height: 1.5 !important; }
+  .leading-relaxed { line-height: 1.625 !important; }
+  .leading-loose { line-height: 2 !important; }
+  
+  /* Correction des problèmes de font-weight */
+  .font-thin { font-weight: 100 !important; }
+  .font-extralight { font-weight: 200 !important; }
+  .font-light { font-weight: 300 !important; }
+  .font-normal { font-weight: 400 !important; }
+  .font-medium { font-weight: 500 !important; }
+  .font-semibold { font-weight: 600 !important; }
+  .font-bold { font-weight: 700 !important; }
+  .font-extrabold { font-weight: 800 !important; }
+  .font-black { font-weight: 900 !important; }
+}
+
 /* Custom breakpoints for better mobile responsiveness */
 @screen xs {
   /* Extra small devices (phones, 320px and up) */
@@ -18,8 +1498,8 @@
   }
   
   .navbar-mobile-optimized .navbar-logo {
-    width: 2rem;
-    height: 2rem;
+    width: 1.5rem;
+    height: 1.5rem;
   }
   
   .navbar-mobile-optimized .navbar-text {
@@ -27,13 +1507,249 @@
   }
   
   .navbar-mobile-optimized .navbar-avatar {
-    width: 1.5rem;
-    height: 1.5rem;
+    width: 1.25rem;
+    height: 1.25rem;
   }
   
   .navbar-mobile-optimized .navbar-icon {
+    width: 0.75rem;
+    height: 0.75rem;
+  }
+}
+
+/* Extra small devices optimizations */
+@media (max-width: 480px) {
+  .navbar-mobile-optimized {
+    padding-left: 0.25rem;
+    padding-right: 0.25rem;
+  }
+  
+  .navbar-mobile-optimized .navbar-logo {
+    width: 1.25rem;
+    height: 1.25rem;
+  }
+  
+  .navbar-mobile-optimized .navbar-text {
+    font-size: 0.625rem;
+  }
+  
+  .navbar-mobile-optimized .navbar-avatar {
     width: 1rem;
     height: 1rem;
+  }
+  
+  .navbar-mobile-optimized .navbar-icon {
+    width: 0.625rem;
+    height: 0.625rem;
+  }
+}
+
+/* Safety widget optimizations for mobile */
+@media (max-width: 640px) {
+  .safety-widget-mobile {
+    min-height: 18rem;
+  }
+  
+  .safety-widget-mobile .safety-counter {
+    padding: 0.5rem;
+    gap: 0.5rem;
+  }
+  
+  .safety-widget-mobile .safety-counter-number {
+    font-size: 1.5rem;
+    line-height: 1.2;
+  }
+  
+  .safety-widget-mobile .safety-counter-label {
+    font-size: 0.625rem;
+    line-height: 1.1;
+  }
+  
+  .safety-widget-mobile .safety-counter-subtitle {
+    font-size: 0.5rem;
+    line-height: 1;
+  }
+  
+  /* Header optimizations for mobile */
+  .safety-widget-mobile .safety-header {
+    padding-bottom: 0.5rem;
+  }
+  
+  .safety-widget-mobile .safety-title {
+    font-size: 1rem;
+    line-height: 1.2;
+  }
+  
+  .safety-widget-mobile .safety-subtitle {
+    font-size: 0.75rem;
+    line-height: 1.1;
+  }
+  
+  .safety-widget-mobile .safety-phone {
+    font-size: 0.75rem;
+    padding: 0.25rem 0.5rem;
+  }
+  
+  .safety-widget-mobile .safety-phone-label {
+    font-size: 0.625rem;
+  }
+}
+
+/* Very small screens (320px-480px) */
+@media (max-width: 480px) {
+  .safety-widget-mobile .safety-counter-number {
+    font-size: 1.25rem;
+  }
+  
+  .safety-widget-mobile .safety-counter-label {
+    font-size: 0.5rem;
+  }
+  
+  .safety-widget-mobile .safety-counter-subtitle {
+    font-size: 0.4rem;
+  }
+}
+
+/* Restaurant menu mobile optimizations */
+@media (max-width: 640px) {
+  .restaurant-menu-mobile {
+    /* Scroll horizontal smooth */
+    scroll-behavior: smooth;
+    -webkit-overflow-scrolling: touch;
+  }
+  
+  .restaurant-menu-mobile::-webkit-scrollbar {
+    height: 4px;
+  }
+  
+  .restaurant-menu-mobile::-webkit-scrollbar-track {
+    background: rgba(0, 0, 0, 0.1);
+    border-radius: 2px;
+  }
+  
+  .restaurant-menu-mobile::-webkit-scrollbar-thumb {
+    background: rgba(59, 130, 246, 0.5);
+    border-radius: 2px;
+  }
+  
+  .restaurant-menu-mobile::-webkit-scrollbar-thumb:hover {
+    background: rgba(59, 130, 246, 0.7);
+  }
+  
+  /* Indicateur de scroll */
+  .restaurant-menu-mobile::after {
+    content: '← Glissez pour voir tous les jours →';
+    position: absolute;
+    bottom: 8px;
+    left: 50%;
+    transform: translateX(-50%);
+    background: rgba(0, 0, 0, 0.7);
+    color: white;
+    padding: 4px 8px;
+    border-radius: 12px;
+    font-size: 10px;
+    pointer-events: none;
+    opacity: 0.8;
+    animation: fadeInOut 3s ease-in-out infinite;
+  }
+}
+
+@keyframes fadeInOut {
+  0%, 100% { opacity: 0.8; }
+  50% { opacity: 0.4; }
+}
+
+/* News carousel mobile optimizations */
+@media (max-width: 640px) {
+  .news-carousel-mobile {
+    /* Améliorer la lisibilité sur mobile */
+    -webkit-font-smoothing: antialiased;
+    -moz-osx-font-smoothing: grayscale;
+  }
+  
+  .news-carousel-mobile .carousel-card {
+    /* Assurer une hauteur suffisante pour le contenu */
+    min-height: 20rem;
+    max-height: 24rem;
+  }
+  
+  .news-carousel-mobile .carousel-content {
+    /* Optimiser l'espacement du contenu */
+    padding: 0.75rem;
+  }
+  
+  .news-carousel-mobile .carousel-title {
+    /* Améliorer la lisibilité du titre */
+    font-size: 1rem;
+    line-height: 1.4;
+    font-weight: 700;
+  }
+  
+  .news-carousel-mobile .carousel-text {
+    /* Améliorer la lisibilité du texte avec scroll */
+    font-size: 0.75rem;
+    line-height: 1.5;
+    max-height: 8rem;
+    overflow-y: auto;
+    scrollbar-width: thin;
+    scrollbar-color: rgba(255, 255, 255, 0.3) transparent;
+  }
+  
+  .news-carousel-mobile .carousel-text::-webkit-scrollbar {
+    width: 3px;
+  }
+  
+  .news-carousel-mobile .carousel-text::-webkit-scrollbar-track {
+    background: transparent;
+  }
+  
+  .news-carousel-mobile .carousel-text::-webkit-scrollbar-thumb {
+    background: rgba(255, 255, 255, 0.3);
+    border-radius: 2px;
+  }
+  
+  .news-carousel-mobile .carousel-text::-webkit-scrollbar-thumb:hover {
+    background: rgba(255, 255, 255, 0.5);
+  }
+  
+  .news-carousel-mobile .carousel-button {
+    /* Améliorer l'accessibilité des boutons */
+    min-height: 1.5rem;
+    min-width: 1.5rem;
+    padding: 0.25rem;
+  }
+  
+  .news-carousel-mobile .carousel-indicators {
+    /* Améliorer la visibilité des indicateurs */
+    bottom: 0.75rem;
+  }
+  
+  .news-carousel-mobile .carousel-indicators button {
+    /* Rendre les indicateurs plus accessibles */
+    min-width: 0.5rem;
+    min-height: 0.5rem;
+  }
+}
+
+/* Très petits écrans (320px-480px) */
+@media (max-width: 480px) {
+  .news-carousel-mobile .carousel-card {
+    min-height: 18rem;
+    max-height: 22rem;
+  }
+  
+  .news-carousel-mobile .carousel-title {
+    font-size: 0.875rem;
+  }
+  
+  .news-carousel-mobile .carousel-text {
+    font-size: 0.6875rem;
+    max-height: 6rem;
+  }
+  
+  .news-carousel-mobile .carousel-button {
+    min-height: 1.25rem;
+    min-width: 1.25rem;
   }
 }
 
@@ -65,17 +1781,35 @@
 @media (max-width: 640px) {
   .carousel-card button[aria-label*="précédent"],
   .carousel-card button[aria-label*="suivant"] {
-    width: 2rem;
-    height: 2rem;
+    width: 1.5rem;
+    height: 1.5rem;
     padding: 0;
   }
   
   .carousel-card button[aria-label*="précédent"] {
-    left: 0.5rem;
+    left: 0.25rem;
   }
   
   .carousel-card button[aria-label*="suivant"] {
-    right: 0.5rem;
+    right: 0.25rem;
+  }
+}
+
+/* Extra small carousel controls */
+@media (max-width: 480px) {
+  .carousel-card button[aria-label*="précédent"],
+  .carousel-card button[aria-label*="suivant"] {
+    width: 1.25rem;
+    height: 1.25rem;
+    padding: 0;
+  }
+  
+  .carousel-card button[aria-label*="précédent"] {
+    left: 0.125rem;
+  }
+  
+  .carousel-card button[aria-label*="suivant"] {
+    right: 0.125rem;
   }
 }
 
@@ -746,21 +2480,76 @@
   }
 }
 
-/* Styles pour les widgets de différentes tailles */
+/* Styles pour les widgets de différentes tailles - Responsive */
 .widget-small {
-  @apply xl:col-span-3;
+  @apply col-span-1 sm:col-span-1 md:col-span-2 lg:col-span-3 xl:col-span-3;
 }
 
 .widget-medium {
-  @apply xl:col-span-4;
+  @apply col-span-1 sm:col-span-1 md:col-span-2 lg:col-span-4 xl:col-span-4;
 }
 
 .widget-large {
-  @apply xl:col-span-6;
+  @apply col-span-1 sm:col-span-2 md:col-span-3 lg:col-span-6 xl:col-span-8;
 }
 
 .widget-full {
-  @apply xl:col-span-12;
+  @apply col-span-1 sm:col-span-2 md:col-span-3 lg:col-span-6 xl:col-span-12;
+}
+
+/* Responsive widget heights */
+@media (max-width: 640px) {
+  .widget-small {
+    min-height: 16rem;
+  }
+  
+  .widget-medium {
+    min-height: 18rem;
+  }
+  
+  .widget-large {
+    min-height: 20rem;
+  }
+  
+  .widget-full {
+    min-height: 22rem;
+  }
+}
+
+@media (min-width: 641px) and (max-width: 1024px) {
+  .widget-small {
+    min-height: 18rem;
+  }
+  
+  .widget-medium {
+    min-height: 20rem;
+  }
+  
+  .widget-large {
+    min-height: 22rem;
+  }
+  
+  .widget-full {
+    min-height: 24rem;
+  }
+}
+
+@media (min-width: 1025px) {
+  .widget-small {
+    min-height: 20rem;
+  }
+  
+  .widget-medium {
+    min-height: 24rem;
+  }
+  
+  .widget-large {
+    min-height: 28rem;
+  }
+  
+  .widget-full {
+    min-height: 32rem;
+  }
 }
 
 /* Animation d'entrée pour les nouveaux widgets */

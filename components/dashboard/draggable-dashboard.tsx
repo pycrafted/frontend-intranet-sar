@@ -33,17 +33,20 @@ import { RestaurantMenu } from "./restaurant-menu"
 import { EventsCalendar } from "./events-calendar"
 import { AppsWidget } from "./apps-widget"
 import { DirectorMessageWidget } from "./director-message-widget"
+import { VideoWidget } from "./video-widget"
 import { WidgetManager } from "./widget-manager"
 import { DashboardTour, useDashboardTour } from "./dashboard-tour"
 import { useToast, ToastContainer } from "@/components/ui/toast"
 import { Badge } from "@/components/ui/badge"
 import { Button } from "@/components/ui/button"
 import { GripVertical, Plus, HelpCircle } from "lucide-react"
+import { useBrowserDetection } from "@/hooks/useBrowserDetection"
+import { useTabletDetection } from "@/hooks/useTabletDetection"
 
 // Types pour les widgets
 export interface DashboardWidget {
   id: string
-  type: 'news' | 'ideas' | 'safety' | 'menu' | 'calendar' | 'apps' | 'director'
+  type: 'news' | 'ideas' | 'safety' | 'menu' | 'calendar' | 'apps' | 'director' | 'video'
   title: string
   size: 'small' | 'medium' | 'large' | 'full'
   order: number
@@ -61,6 +64,11 @@ const WIDGET_CONFIG: Record<string, { size: string; component: React.ComponentTy
     size: 'medium', 
     component: DirectorMessageWidget, 
     title: 'Mot du Directeur' 
+  },
+  video: { 
+    size: 'medium', 
+    component: VideoWidget, 
+    title: 'Vidéo SAR' 
   },
   safety: { 
     size: 'medium', 
@@ -89,21 +97,31 @@ const WIDGET_CONFIG: Record<string, { size: string; component: React.ComponentTy
   }
 }
 
-// Configuration des tailles de grille
-const GRID_SIZES = {
-  small: 'xl:col-span-3',
-  medium: 'xl:col-span-4', 
-  large: 'xl:col-span-8', // 2x la taille medium (4 x 2 = 8)
-  full: 'xl:col-span-12'
-}
+// Configuration des tailles de grille - Responsive avec support tablettes
+const getGridSizes = (isTablet: boolean) => ({
+  small: isTablet 
+    ? 'col-span-1 tablet:col-span-12' 
+    : 'col-span-1 sm:col-span-1 md:col-span-2 lg:col-span-3 xl:col-span-3',
+  medium: isTablet 
+    ? 'col-span-1 tablet:col-span-12' 
+    : 'col-span-1 sm:col-span-1 md:col-span-2 lg:col-span-4 xl:col-span-4',
+  large: isTablet 
+    ? 'col-span-1 tablet:col-span-12' 
+    : 'col-span-1 sm:col-span-2 md:col-span-3 lg:col-span-6 xl:col-span-8',
+  full: isTablet 
+    ? 'col-span-1 tablet:col-span-12' 
+    : 'col-span-1 sm:col-span-2 md:col-span-3 lg:col-span-6 xl:col-span-12'
+})
 
 // Les hauteurs sont maintenant gérées directement dans les composants
 
 // Composant pour une card draggable
 function DraggableWidget({ 
-  widget
+  widget,
+  isTablet
 }: { 
   widget: DashboardWidget
+  isTablet: boolean
 }) {
   const {
     attributes,
@@ -120,7 +138,7 @@ function DraggableWidget({
   }
 
   const config = WIDGET_CONFIG[widget.type]
-  
+  const gridSizes = getGridSizes(isTablet)
   
   // Vérification de sécurité pour éviter les erreurs
   if (!config) {
@@ -137,27 +155,27 @@ function DraggableWidget({
       ref={setNodeRef}
       style={style}
       className={`
-        ${GRID_SIZES[widget.size as keyof typeof GRID_SIZES]}
+        ${gridSizes[widget.size as keyof typeof gridSizes]}
         ${isDragging ? 'opacity-50 z-50' : ''}
-        group relative
+        group relative w-full
       `}
     >
-      {/* Handle de drag */}
+      {/* Handle de drag - Responsive */}
       <div
         id="drag-handle"
         {...attributes}
         {...listeners}
         className="
-          absolute top-2 right-2 z-10
+          absolute top-1 right-1 sm:top-2 sm:right-2 z-10
           opacity-0 group-hover:opacity-100
           transition-opacity duration-200
           cursor-grab active:cursor-grabbing
-          p-1 rounded-md bg-white/90 backdrop-blur-sm
+          p-1 sm:p-1.5 rounded-md bg-white/90 backdrop-blur-sm
           shadow-sm border border-gray-200
           hover:bg-gray-50
         "
       >
-        <GripVertical className="h-4 w-4 text-gray-500" />
+        <GripVertical className="h-3 w-3 sm:h-4 sm:w-4 text-gray-500" />
       </div>
 
       
@@ -165,6 +183,7 @@ function DraggableWidget({
         ${isDragging ? 'shadow-2xl ring-2 ring-blue-500' : ''}
         transition-all duration-200 ease-in-out
         hover:shadow-lg rounded-lg overflow-hidden
+        w-full h-full
       `}>
         <Component />
       </div>
@@ -173,8 +192,15 @@ function DraggableWidget({
 }
 
 // Composant de prévisualisation pendant le drag
-function DragOverlayContent({ widget }: { widget: DashboardWidget }) {
+function DragOverlayContent({ 
+  widget, 
+  isTablet 
+}: { 
+  widget: DashboardWidget
+  isTablet: boolean
+}) {
   const config = WIDGET_CONFIG[widget.type]
+  const gridSizes = getGridSizes(isTablet)
   
   // Vérification de sécurité pour éviter les erreurs
   if (!config) {
@@ -186,7 +212,7 @@ function DragOverlayContent({ widget }: { widget: DashboardWidget }) {
 
   return (
     <div className={`
-      ${GRID_SIZES[widget.size as keyof typeof GRID_SIZES]}
+      ${gridSizes[widget.size as keyof typeof gridSizes]}
       opacity-90
     `}>
       <div className={`
@@ -220,6 +246,8 @@ export function DraggableDashboard() {
   const [showWidgetManager, setShowWidgetManager] = useState(false)
   const { toasts, success, error } = useToast()
   const { hasSeenTour, isTourOpen, startTour, completeTour } = useDashboardTour()
+  const { browserInfo, compatibleClasses, useFallbacks } = useBrowserDetection()
+  const { isTablet, isSpecificTablet, deviceType, screenSize, specificDevice } = useTabletDetection()
 
   const sensors = useSensors(
     useSensor(PointerSensor, {
@@ -270,6 +298,42 @@ export function DraggableDashboard() {
 
 
 
+    // S'assurer que le widget vidéo existe (juste avant sécurité)
+    const hasVideoWidget = migratedWidgets.some(widget => widget.type === 'video')
+    if (!hasVideoWidget) {
+      // Trouver l'ordre du widget sécurité et placer la vidéo juste avant
+      const safetyWidget = migratedWidgets.find(widget => widget.type === 'safety')
+      if (safetyWidget) {
+        const videoOrder = safetyWidget.order
+        // Décaler tous les widgets après la vidéo
+        migratedWidgets.forEach(widget => {
+          if (widget.order >= videoOrder) {
+            widget.order = widget.order + 1
+          }
+        })
+        // Ajouter le widget vidéo
+        migratedWidgets.push({
+          id: 'video',
+          type: 'video',
+          title: 'Vidéo SAR',
+          size: 'medium',
+          order: videoOrder,
+          isVisible: true
+        })
+      } else {
+        // Si pas de sécurité, ajouter à la fin
+        const maxOrder = Math.max(...migratedWidgets.map(w => w.order), 0)
+        migratedWidgets.push({
+          id: 'video',
+          type: 'video',
+          title: 'Vidéo SAR',
+          size: 'medium',
+          order: maxOrder + 1,
+          isVisible: true
+        })
+      }
+    }
+
     // S'assurer que le widget calendrier existe
     const hasCalendarWidget = migratedWidgets.some(widget => widget.type === 'calendar')
     if (!hasCalendarWidget) {
@@ -293,7 +357,7 @@ export function DraggableDashboard() {
     
     // Vérifier la version des widgets et forcer la migration si nécessaire
     const widgetVersion = localStorage.getItem('dashboard-widgets-version')
-    const currentVersion = '2.0' // Version avec widget directeur
+    const currentVersion = '3.0' // Version avec widget vidéo
     
     // Charger la configuration sauvegardée ou utiliser la configuration par défaut
     const savedWidgets = localStorage.getItem('dashboard-widgets')
@@ -347,11 +411,12 @@ export function DraggableDashboard() {
     return [
       { id: 'news', type: 'news', title: 'Actualités', size: 'large', order: 1, isVisible: true },
       { id: 'director', type: 'director', title: 'Mot du Directeur', size: 'medium', order: 2, isVisible: true },
-      { id: 'safety', type: 'safety', title: 'Sécurité du Travail', size: 'medium', order: 3, isVisible: true },
-      { id: 'apps', type: 'apps', title: 'Applications', size: 'medium', order: 4, isVisible: true },
-      { id: 'calendar', type: 'calendar', title: 'Événements', size: 'medium', order: 5, isVisible: true },
-      { id: 'ideas', type: 'ideas', title: 'Boîte à Idées', size: 'medium', order: 6, isVisible: true },
-      { id: 'menu', type: 'menu', title: 'Menu de la Semaine', size: 'full', order: 7, isVisible: true },
+      { id: 'video', type: 'video', title: 'Vidéo SAR', size: 'medium', order: 3, isVisible: true },
+      { id: 'safety', type: 'safety', title: 'Sécurité du Travail', size: 'medium', order: 4, isVisible: true },
+      { id: 'apps', type: 'apps', title: 'Applications', size: 'medium', order: 5, isVisible: true },
+      { id: 'calendar', type: 'calendar', title: 'Événements', size: 'medium', order: 6, isVisible: true },
+      { id: 'ideas', type: 'ideas', title: 'Boîte à Idées', size: 'medium', order: 7, isVisible: true },
+      { id: 'menu', type: 'menu', title: 'Menu de la Semaine', size: 'full', order: 8, isVisible: true },
     ]
   }
 
@@ -391,8 +456,9 @@ export function DraggableDashboard() {
           {getDefaultWidgets().map((widget) => {
             const config = WIDGET_CONFIG[widget.type]
             const Component = config.component
+            const gridSizes = getGridSizes(isTablet)
             return (
-              <div key={widget.id} className={GRID_SIZES[widget.size as keyof typeof GRID_SIZES]}>
+              <div key={widget.id} className={gridSizes[widget.size as keyof typeof gridSizes]}>
                 <Component />
               </div>
             )
@@ -440,15 +506,15 @@ export function DraggableDashboard() {
         </div>
       </div>
 
-      {/* Dashboard draggable */}
+      {/* Dashboard draggable - Responsive */}
       <DndContext
         sensors={sensors}
         collisionDetection={customCollisionDetection}
         onDragStart={handleDragStart}
         onDragEnd={handleDragEnd}
       >
-        <div className="min-h-[calc(100vh-16rem)]">
-          <div className="grid grid-cols-1 xl:grid-cols-12 gap-4">
+        <div className="min-h-[calc(100vh-12rem)] sm:min-h-[calc(100vh-14rem)] lg:min-h-[calc(100vh-16rem)]">
+          <div className={`${compatibleClasses.grid} grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-6 xl:grid-cols-12 tablet:grid-cols-1 gap-3 sm:gap-4 lg:gap-6 tablet:gap-4`}>
             <SortableContext 
               items={visibleWidgets.map(w => w.id)}
               strategy={rectSortingStrategy}
@@ -458,7 +524,8 @@ export function DraggableDashboard() {
                 .map((widget) => (
                   <DraggableWidget 
                     key={widget.id} 
-                    widget={widget} 
+                    widget={widget}
+                    isTablet={isTablet}
                   />
                 ))}
             </SortableContext>
@@ -467,7 +534,7 @@ export function DraggableDashboard() {
 
         <DragOverlay>
           {activeWidget ? (
-            <DragOverlayContent widget={activeWidget} />
+            <DragOverlayContent widget={activeWidget} isTablet={isTablet} />
           ) : null}
         </DragOverlay>
       </DndContext>

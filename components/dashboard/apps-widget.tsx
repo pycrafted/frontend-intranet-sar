@@ -277,7 +277,7 @@ export function AppsWidget() {
             </div>
             <div>
               <CardTitle className="text-xl font-bold text-slate-800 group-hover:text-blue-700 transition-colors duration-300">
-                ⚡ Accès Rapide
+                Accès Rapide
               </CardTitle>
               <p className="text-sm text-slate-600 font-medium">
                 Applications & Services

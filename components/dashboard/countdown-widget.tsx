@@ -84,7 +84,7 @@ export function CountdownWidget() {
         <CardHeader className="pb-3 flex-shrink-0">
           <CardTitle className="text-lg font-semibold flex items-center gap-2">
             <Clock className="h-5 w-5 text-blue-600" />
-            Prochain Événement
+            Aucun événement à venir
           </CardTitle>
         </CardHeader>
         <CardContent className="flex-1 flex flex-col justify-center">
@@ -103,7 +103,7 @@ export function CountdownWidget() {
         <div className="flex items-center justify-between">
           <CardTitle className="text-lg font-semibold flex items-center gap-2">
             <Clock className="h-5 w-5 text-blue-600" />
-            Prochain Événement
+            Événement à venir dans {countdown.days} jours
           </CardTitle>
           <Badge 
             variant="outline" 
@@ -161,7 +161,7 @@ export function CountdownWidget() {
               <h4 className="text-sm font-medium mb-4 opacity-90">
                 {countdown.days === 0 && countdown.hours === 0 && countdown.minutes === 0 && countdown.seconds === 0
                   ? "L'événement a commencé !"
-                  : "Temps restant"
+                  : "Détail du temps restant"
                 }
               </h4>
               

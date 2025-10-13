@@ -124,7 +124,7 @@ export function EventsCalendar() {
     })
     
     if (futureEvents.length === 0) {
-      return { event: null, daysRemaining: null, message: "Aucun événement prévu" }
+      return { event: null, daysRemaining: null }
     }
     
     // Trier par date croissante pour obtenir le prochain
@@ -139,8 +139,7 @@ export function EventsCalendar() {
     
     return { 
       event: nextEvent, 
-      daysRemaining, 
-      message: daysRemaining === 0 ? "Aujourd'hui" : `${daysRemaining} jour${daysRemaining > 1 ? 's' : ''} restant${daysRemaining > 1 ? 's' : ''}`
+      daysRemaining
     }
   }
 
@@ -235,7 +234,7 @@ export function EventsCalendar() {
             </div>
             <div>
               <CardTitle className="text-xl font-bold text-gray-900 group-hover:text-rose-700 transition-colors duration-300">
-                📅 Événements
+                Événements
               </CardTitle>
               <p className="text-sm text-gray-600 font-medium">
                 {futureEvents.length} événement{futureEvents.length > 1 ? 's' : ''} à venir
@@ -245,30 +244,12 @@ export function EventsCalendar() {
           <div className="flex flex-col items-end">
             {(() => {
               const nextEventInfo = getNextEventInfo()
-              const isUrgent = nextEventInfo.daysRemaining !== null && nextEventInfo.daysRemaining <= 3
-              const isToday = nextEventInfo.daysRemaining === 0
               
               return (
                 <div className="text-right">
                   <div className="flex items-center gap-1 mb-1">
                     <Timer className="h-3 w-3 text-gray-500" />
-                    <span className="text-xs text-gray-600">Prochain événement</span>
-                  </div>
-                  <div className="flex flex-col items-end gap-1">
-                    <div className={`text-sm font-bold px-2 py-1 rounded-full ${
-                      isToday 
-                        ? 'bg-red-100 text-red-700 border border-red-200' 
-                        : isUrgent 
-                        ? 'bg-orange-100 text-orange-700 border border-orange-200'
-                        : 'bg-rose-100 text-rose-700 border border-rose-200'
-                    }`}>
-                      {nextEventInfo.message}
-                    </div>
-                    {nextEventInfo.event && (
-                      <div className="text-xs text-gray-500 max-w-40 truncate bg-white/50 px-2 py-1 rounded border border-gray-200">
-                        {nextEventInfo.event.title}
-                      </div>
-                    )}
+                    <span className="text-xs text-gray-600 metadata-text">Événement J-{nextEventInfo.daysRemaining}</span>
                   </div>
                 </div>
               )
@@ -287,7 +268,7 @@ export function EventsCalendar() {
             <ChevronLeft className="h-4 w-4" />
           </Button>
           
-          <h3 className="text-lg font-semibold text-gray-800">
+          <h3 className="text-lg font-semibold text-gray-800 widget-title">
             {MONTHS[currentMonth]} {currentYear}
           </h3>
           

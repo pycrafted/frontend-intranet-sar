@@ -154,20 +154,20 @@ export function NewsCarousel({ autoScrollInterval = 4000, className = "" }: News
 
   if (loading) {
     return (
-      <Card className={`h-[28rem] flex flex-col ${className}`}>
-        <CardHeader className="pb-3 flex-shrink-0">
-          <CardTitle className="text-lg font-semibold flex items-center gap-2">
-            <Newspaper className="h-5 w-5 text-blue-600" />
+      <Card className={`min-h-[20rem] max-h-[24rem] sm:min-h-[24rem] sm:max-h-[28rem] lg:min-h-[28rem] lg:max-h-[32rem] flex flex-col ${className}`}>
+        <CardHeader className="pb-2 sm:pb-3 flex-shrink-0 p-3 sm:p-6">
+          <CardTitle className="text-base sm:text-lg font-semibold flex items-center gap-2">
+            <Newspaper className="h-4 w-4 sm:h-5 sm:w-5 text-blue-600" />
             Actualités
           </CardTitle>
         </CardHeader>
-        <CardContent className="flex-1 flex flex-col justify-center">
-          <div className="space-y-4">
+        <CardContent className="flex-1 flex flex-col justify-center p-3 sm:p-6">
+          <div className="space-y-3 sm:space-y-4">
             {[...Array(1)].map((_, i) => (
               <div key={i} className="animate-pulse">
-                <div className="h-4 bg-gray-200 rounded w-3/4 mb-2" />
-                <div className="h-3 bg-gray-200 rounded w-1/2 mb-3" />
-                <div className="h-3 bg-gray-200 rounded w-full" />
+                <div className="h-3 sm:h-4 bg-gray-200 rounded w-3/4 mb-2" />
+                <div className="h-2 sm:h-3 bg-gray-200 rounded w-1/2 mb-2 sm:mb-3" />
+                <div className="h-2 sm:h-3 bg-gray-200 rounded w-full" />
               </div>
             ))}
           </div>
@@ -178,21 +178,21 @@ export function NewsCarousel({ autoScrollInterval = 4000, className = "" }: News
 
   if (error) {
     return (
-      <Card className={`h-[28rem] flex flex-col ${className}`}>
-        <CardHeader className="pb-3 flex-shrink-0">
-          <CardTitle className="text-lg font-semibold flex items-center gap-2">
-            <Newspaper className="h-5 w-5 text-blue-600" />
+      <Card className={`min-h-[20rem] max-h-[24rem] sm:min-h-[24rem] sm:max-h-[28rem] lg:min-h-[28rem] lg:max-h-[32rem] flex flex-col ${className}`}>
+        <CardHeader className="pb-2 sm:pb-3 flex-shrink-0 p-3 sm:p-6">
+          <CardTitle className="text-base sm:text-lg font-semibold flex items-center gap-2">
+            <Newspaper className="h-4 w-4 sm:h-5 sm:w-5 text-blue-600" />
             Actualités
           </CardTitle>
         </CardHeader>
-        <CardContent className="flex-1 flex flex-col justify-center">
-          <div className="text-center py-6">
-            <div className="text-red-500 mb-2">⚠️</div>
-            <p className="text-sm text-gray-500">Erreur lors du chargement</p>
+        <CardContent className="flex-1 flex flex-col justify-center p-3 sm:p-6">
+          <div className="text-center py-4 sm:py-6">
+            <div className="text-red-500 mb-2 text-2xl sm:text-3xl">⚠️</div>
+            <p className="text-xs sm:text-sm text-gray-500 mb-3">Erreur lors du chargement</p>
             <Button 
               variant="outline" 
               size="sm" 
-              className="mt-2"
+              className="text-xs sm:text-sm"
               onClick={() => window.location.reload()}
             >
               Réessayer
@@ -205,17 +205,17 @@ export function NewsCarousel({ autoScrollInterval = 4000, className = "" }: News
 
   if (sortedArticles.length === 0) {
     return (
-      <Card className={`h-[28rem] flex flex-col ${className}`}>
-        <CardHeader className="pb-3 flex-shrink-0">
-          <CardTitle className="text-lg font-semibold flex items-center gap-2">
-            <Newspaper className="h-5 w-5 text-blue-600" />
+      <Card className={`min-h-[20rem] max-h-[24rem] sm:min-h-[24rem] sm:max-h-[28rem] lg:min-h-[28rem] lg:max-h-[32rem] flex flex-col ${className}`}>
+        <CardHeader className="pb-2 sm:pb-3 flex-shrink-0 p-3 sm:p-6">
+          <CardTitle className="text-base sm:text-lg font-semibold flex items-center gap-2">
+            <Newspaper className="h-4 w-4 sm:h-5 sm:w-5 text-blue-600" />
             Actualités
           </CardTitle>
         </CardHeader>
-        <CardContent className="flex-1 flex flex-col justify-center">
-          <div className="text-center py-6">
-            <Newspaper className="h-8 w-8 text-gray-400 mx-auto mb-2" />
-            <p className="text-sm text-gray-500">Aucune actualité publiée</p>
+        <CardContent className="flex-1 flex flex-col justify-center p-3 sm:p-6">
+          <div className="text-center py-4 sm:py-6">
+            <Newspaper className="h-6 w-6 sm:h-8 sm:w-8 text-gray-400 mx-auto mb-2" />
+            <p className="text-xs sm:text-sm text-gray-500">Aucune actualité publiée</p>
           </div>
         </CardContent>
       </Card>
@@ -227,7 +227,7 @@ export function NewsCarousel({ autoScrollInterval = 4000, className = "" }: News
   return (
     <Card 
       ref={carouselRef}
-      className={`h-[28rem] flex flex-col overflow-hidden relative carousel-card ${className}`}
+      className={`min-h-[20rem] max-h-[24rem] sm:min-h-[24rem] sm:max-h-[28rem] lg:min-h-[28rem] lg:max-h-[32rem] flex flex-col overflow-hidden relative carousel-card news-carousel-mobile ${className}`}
       tabIndex={0}
       onMouseEnter={() => setIsHovered(true)}
       onMouseLeave={() => setIsHovered(false)}
@@ -250,79 +250,81 @@ export function NewsCarousel({ autoScrollInterval = 4000, className = "" }: News
         </div>
       )}
 
-      {/* Contrôles de navigation */}
+      {/* Contrôles de navigation - Responsive */}
       {sortedArticles.length > 1 && (
         <>
           <Button
             variant="ghost"
             size="sm"
-            className="absolute left-2 top-1/2 -translate-y-1/2 z-10 bg-black/20 hover:bg-black/40 text-white border border-white/30"
+            className="absolute left-1 top-1/2 -translate-y-1/2 z-10 bg-black/20 hover:bg-black/40 text-white border border-white/30 h-6 w-6 sm:h-8 sm:w-8 p-0"
             onClick={goToPrevious}
             aria-label="Article précédent"
           >
-            <ChevronLeft className="h-4 w-4" />
+            <ChevronLeft className="h-3 w-3 sm:h-4 sm:w-4" />
           </Button>
           
           <Button
             variant="ghost"
             size="sm"
-            className="absolute right-2 top-1/2 -translate-y-1/2 z-10 bg-black/20 hover:bg-black/40 text-white border border-white/30"
+            className="absolute right-1 top-1/2 -translate-y-1/2 z-10 bg-black/20 hover:bg-black/40 text-white border border-white/30 h-6 w-6 sm:h-8 sm:w-8 p-0"
             onClick={goToNext}
             aria-label="Article suivant"
           >
-            <ChevronRight className="h-4 w-4" />
+            <ChevronRight className="h-3 w-3 sm:h-4 sm:w-4" />
           </Button>
         </>
       )}
 
-      <CardHeader className="relative pb-3 flex-shrink-0">
-        <CardTitle className="text-lg font-semibold flex items-center gap-2 text-white drop-shadow-lg">
-          <Newspaper className="h-5 w-5" />
+      <CardHeader className="relative pb-2 sm:pb-3 flex-shrink-0 p-3 sm:p-6">
+        <CardTitle className="text-base sm:text-lg font-semibold flex items-center gap-2 text-white drop-shadow-lg">
+          <Newspaper className="h-4 w-4 sm:h-5 sm:w-5" />
           Actualités
           {sortedArticles.length > 1 && (
-            <span className="text-sm font-normal text-white/70">
+            <span className="text-xs sm:text-sm font-normal text-white/70">
               ({currentIndex + 1}/{sortedArticles.length})
             </span>
           )}
         </CardTitle>
       </CardHeader>
       
-      <CardContent className="relative flex-1 flex flex-col justify-center">
-        <div className="space-y-4">
+      <CardContent className="relative flex-1 flex flex-col p-3 sm:p-6 overflow-hidden carousel-content">
+        <div className="flex flex-col h-full">
           <div
-            className="p-6 rounded-lg bg-white/10 backdrop-blur-sm border border-white/20 hover:bg-white/20 transition-all duration-300 group"
+            className="flex-1 p-3 sm:p-6 rounded-lg bg-white/10 backdrop-blur-sm border border-white/20 hover:bg-white/20 transition-all duration-300 group flex flex-col overflow-hidden"
           >
-            <div className="space-y-4">
+            <div className="flex flex-col h-full space-y-2 sm:space-y-3">
               {/* En-tête de l'article */}
-              <div className="flex items-center gap-2">
+              <div className="flex flex-wrap items-center gap-2 flex-shrink-0">
                 <Badge 
                   variant="outline" 
-                  className={`text-xs font-semibold ${getCategoryColor(currentArticle.category)}`}
+                  className={`text-xs font-semibold ${getCategoryColor(currentArticle.category)} badge-text`}
                 >
                   {currentArticle.category}
                 </Badge>
                 {currentArticle.is_pinned && (
-                  <Badge variant="secondary" className="text-xs font-semibold bg-yellow-500 text-white border-yellow-500 shadow-lg">
-                    📌 Épinglé
+                  <Badge variant="secondary" className="text-xs font-semibold bg-yellow-500 text-white border-yellow-500 shadow-lg badge-text">
+                    Épinglé
                   </Badge>
                 )}
               </div>
               
               {/* Titre */}
-              <h3 className="text-xl font-bold text-white line-clamp-2 group-hover:text-yellow-200 transition-colors drop-shadow-lg">
+              <h3 className="text-base sm:text-lg lg:text-xl font-bold text-white line-clamp-2 group-hover:text-yellow-200 transition-colors drop-shadow-lg flex-shrink-0 carousel-title">
                 {currentArticle.title}
               </h3>
               
-              {/* Contenu */}
-              <p className="text-sm text-white/90 line-clamp-3 drop-shadow-md">
-                {currentArticle.content}
-              </p>
+              {/* Contenu - Scrollable sur mobile */}
+              <div className="flex-1 overflow-hidden">
+                <p className="text-xs sm:text-sm text-white/90 line-clamp-3 sm:line-clamp-4 lg:line-clamp-5 drop-shadow-md h-full overflow-y-auto custom-scrollbar carousel-text">
+                  {currentArticle.content}
+                </p>
+              </div>
               
-              {/* Métadonnées */}
-              <div className="flex items-center justify-between text-sm text-white/80">
-                <div className="flex items-center gap-4">
+              {/* Métadonnées - Toujours en bas */}
+              <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-2 sm:gap-4 text-xs sm:text-sm text-white/80 flex-shrink-0 mt-2 metadata-text">
+                <div className="flex items-center gap-2 sm:gap-4">
                   <div className="flex items-center gap-1">
-                    <Clock className="h-4 w-4" />
+                    <Clock className="h-3 w-3 sm:h-4 sm:w-4" />
                     <span className="drop-shadow-md">{formatDate(currentArticle.date)}</span>
                   </div>
                 </div>
@@ -330,12 +332,12 @@ export function NewsCarousel({ autoScrollInterval = 4000, className = "" }: News
                 <Button
                   variant="ghost"
                   size="sm"
-                  className="h-8 px-3 text-sm text-white hover:bg-white/20 border border-white/30"
+                  className="h-6 sm:h-8 px-2 sm:px-3 text-xs sm:text-sm text-white hover:bg-white/20 border border-white/30 self-start sm:self-auto flex-shrink-0 carousel-button"
                   asChild
                 >
                   <Link href="/actualites">
                     Lire la suite
-                    <ExternalLink className="h-4 w-4 ml-1" />
+                    <ExternalLink className="h-3 w-3 sm:h-4 sm:w-4 ml-1" />
                   </Link>
                 </Button>
               </div>
@@ -344,13 +346,13 @@ export function NewsCarousel({ autoScrollInterval = 4000, className = "" }: News
         </div>
       </CardContent>
 
-      {/* Indicateurs de pagination */}
+      {/* Indicateurs de pagination - Responsive */}
       {sortedArticles.length > 1 && (
-        <div className="absolute bottom-4 left-1/2 -translate-x-1/2 flex space-x-2 z-10">
+        <div className="absolute bottom-2 sm:bottom-4 left-1/2 -translate-x-1/2 flex space-x-1 sm:space-x-2 z-10 carousel-indicators">
           {sortedArticles.map((_, index) => (
             <button
               key={index}
-              className={`w-2 h-2 rounded-full transition-all duration-300 ${
+              className={`w-1.5 h-1.5 sm:w-2 sm:h-2 rounded-full transition-all duration-300 ${
                 index === currentIndex 
                   ? 'bg-white' 
                   : 'bg-white/50 hover:bg-white/70'
