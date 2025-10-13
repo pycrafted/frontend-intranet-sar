@@ -92,7 +92,9 @@ export const api = {
 
     const url = `${API_BASE_URL}/${searchParams.toString() ? `?${searchParams.toString()}` : ''}`;
     
-    const response = await fetch(url);
+    const response = await fetch(url, {
+      credentials: 'omit' // Désactiver l'authentification temporairement
+    });
     if (!response.ok) {
       throw new Error(`Erreur API: ${response.status}`);
     }
@@ -102,7 +104,9 @@ export const api = {
 
   // Récupérer le détail d'un article
   async getArticle(id: number): Promise<Article> {
-    const response = await fetch(`${API_BASE_URL}/${id}/`);
+    const response = await fetch(`${API_BASE_URL}/${id}/`, {
+      credentials: 'omit' // Désactiver l'authentification temporairement
+    });
     if (!response.ok) {
       throw new Error(`Erreur API: ${response.status}`);
     }
@@ -112,7 +116,9 @@ export const api = {
 
   // Récupérer les statistiques
   async getStats(): Promise<ArticleStats> {
-    const response = await fetch(`${API_BASE_URL}/stats/`);
+    const response = await fetch(`${API_BASE_URL}/stats/`, {
+      credentials: 'omit' // Désactiver l'authentification temporairement
+    });
     if (!response.ok) {
       throw new Error(`Erreur API: ${response.status}`);
     }
