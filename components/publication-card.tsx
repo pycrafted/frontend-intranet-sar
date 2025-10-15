@@ -64,7 +64,7 @@ export function PublicationCard({
     });
 
     // Déterminer le type de média basé sur les données disponibles
-    let mediaType: 'image' | 'gallery' | 'video' | 'checklist' = 'image'
+    let mediaType: 'image' | 'video' | 'checklist' = 'image'
     let mediaProps: any = {}
 
     if ((article as any).type === "checklist" && (article as any).checklist_items) {
@@ -76,9 +76,6 @@ export function PublicationCard({
         videoUrl: (article as any).video_url, 
         videoPoster: article.image_url || article.image 
       }
-    } else if ((article as any).gallery_images && (article as any).gallery_images.length > 0) {
-      mediaType = 'gallery'
-      mediaProps = { images: (article as any).gallery_images }
     } else if (article.image_url || article.image) {
       mediaType = 'image'
       const imageUrl = article.image_url || article.image;
@@ -121,11 +118,6 @@ export function PublicationCard({
             </div>
             
             <div className="flex items-center gap-1">
-              {article.is_pinned && (
-                <Badge className="bg-yellow-100 text-yellow-800 border-yellow-200 text-xs">
-                  📌 Épinglé
-                </Badge>
-              )}
               <Button variant="ghost" size="sm" className="h-8 w-8 p-0 opacity-0 group-hover:opacity-100 transition-opacity">
                 <MoreHorizontal className="w-4 h-4" />
               </Button>
@@ -136,7 +128,6 @@ export function PublicationCard({
           <div className="flex items-center gap-2 mb-4">
             <Badge className={cn("text-xs px-3 py-1", getTypeColor(article.type))}>
               {getTypeIcon(article.type)}
-              <span className="ml-1">{article.category}</span>
             </Badge>
             <Badge variant="outline" className="text-xs">
               {article.type === "event" ? "Événement" : 

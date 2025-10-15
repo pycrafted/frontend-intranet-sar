@@ -8,17 +8,10 @@ interface Article {
   content: string | null;
   date: string;
   time: string;
-  author: string | null;
-  author_role: string | null;
-  author_avatar_url: string | null;
-  category: string;
   image_url: string | null;
-  is_pinned: boolean;
   content_type: string;
   video_url: string | null;
   video_poster_url: string | null;
-  gallery_images: string[] | null;
-  gallery_title: string | null;
   created_at: string;
   updated_at: string;
 }
@@ -29,14 +22,8 @@ interface ArticleFormData {
   content: string;
   date: string;
   time: string;
-  author: string;
-  author_role: string;
-  category: string;
-  is_pinned: boolean;
-  content_type: 'text_only' | 'image_only' | 'text_image' | 'gallery' | 'video';
-  gallery_title: string;
+  content_type: 'text_only' | 'image_only' | 'text_image' | 'video';
   // Fichiers
-  author_avatar?: File;
   image?: File;
   video?: File;
   video_poster?: File;
@@ -44,8 +31,6 @@ interface ArticleFormData {
 
 interface Filters {
   type: string;
-  category: string;
-  pinned: string;
   time_filter: string;
   search: string;
   page: number;
@@ -75,8 +60,6 @@ export const useArticlesAdmin = () => {
   });
   const [filters, setFilters] = useState<Filters>({
     type: 'all',
-    category: 'Toutes',
-    pinned: 'all',
     time_filter: 'all',
     search: '',
     page: 1,
@@ -93,12 +76,6 @@ export const useArticlesAdmin = () => {
     
     if (filters.type && filters.type !== 'all') {
       params.append('type', filters.type);
-    }
-    if (filters.category && filters.category !== 'Toutes') {
-      params.append('category', filters.category);
-    }
-    if (filters.pinned && filters.pinned !== 'all') {
-      params.append('pinned', filters.pinned);
     }
     if (filters.time_filter && filters.time_filter !== 'all') {
       params.append('time_filter', filters.time_filter);
@@ -163,10 +140,7 @@ export const useArticlesAdmin = () => {
       formData.append('time', data.time);
       formData.append('author', data.author);
       formData.append('author_role', data.author_role);
-      formData.append('category', data.category);
-      formData.append('is_pinned', data.is_pinned.toString());
       formData.append('content_type', data.content_type);
-      formData.append('gallery_title', data.gallery_title);
       
       // Ajouter les fichiers
       if (data.author_avatar) {
@@ -217,10 +191,7 @@ export const useArticlesAdmin = () => {
       formData.append('time', data.time);
       formData.append('author', data.author);
       formData.append('author_role', data.author_role);
-      formData.append('category', data.category);
-      formData.append('is_pinned', data.is_pinned.toString());
       formData.append('content_type', data.content_type);
-      formData.append('gallery_title', data.gallery_title);
       
       // Ajouter les fichiers
       if (data.author_avatar) {
@@ -300,72 +271,7 @@ export const useArticlesAdmin = () => {
     }
   };
 
-  // Basculer l'état épinglé d'un article
-  const togglePinArticle = async (id: number) => {
-    setLoading(true);
-    setError(null);
-    
-    try {
-      const article = articles.find(a => a.id === id);
-      if (!article) {
-        throw new Error('Article non trouvé');
-      }
 
-      const formData = new FormData();
-      formData.append('is_pinned', (!article.is_pinned).toString());
-
-      await axios.patch(`${ARTICLES_URL}${id}/`, formData, {
-        headers: {
-          'Content-Type': 'multipart/form-data',
-        },
-      });
-
-      // Rafraîchir la liste des articles
-      await fetchArticles();
-      
-      return { success: true };
-    } catch (err: any) {
-      console.error('Erreur lors du basculement de l\'état épinglé:', err);
-      setError(err.response?.data?.error || 'Erreur lors du basculement de l\'état épinglé');
-      return { success: false, error: err.response?.data || err.message };
-    } finally {
-      setLoading(false);
-    }
-  };
-
-  // Basculer l'état épinglé de plusieurs articles
-  const togglePinMultipleArticles = async (ids: number[]) => {
-    setLoading(true);
-    setError(null);
-    
-    try {
-      // Basculer l'état épinglé pour chaque article
-      for (const id of ids) {
-        const article = articles.find(a => a.id === id);
-        if (article) {
-          const formData = new FormData();
-          formData.append('is_pinned', (!article.is_pinned).toString());
-
-          await axios.patch(`${ARTICLES_URL}${id}/`, formData, {
-            headers: {
-              'Content-Type': 'multipart/form-data',
-            },
-          });
-        }
-      }
-
-      // Rafraîchir la liste des articles
-      await fetchArticles();
-      
-      return { success: true };
-    } catch (err: any) {
-      console.error('Erreur lors du basculement de l\'état épinglé:', err);
-      setError(err.response?.data?.error || 'Erreur lors du basculement de l\'état épinglé');
-      return { success: false, error: err.response?.data || err.message };
-    } finally {
-      setLoading(false);
-    }
-  };
 
   // Effacer la sélection
   const clearSelection = () => {
@@ -389,8 +295,6 @@ export const useArticlesAdmin = () => {
     updateArticle,
     deleteArticle,
     deleteMultipleArticles,
-    togglePinArticle,
-    togglePinMultipleArticles,
     setFilters,
     setSelectedArticles,
     clearSelection

@@ -65,7 +65,7 @@ export class APIClient {
     // Configuration de la requête
     const requestConfig: RequestInit = {
       method,
-      credentials: requireAuth ? 'include' : 'omit', // Inclure les cookies seulement si auth requise
+      credentials: 'omit', // Désactiver l'authentification temporairement
       headers: finalHeaders,
     }
 

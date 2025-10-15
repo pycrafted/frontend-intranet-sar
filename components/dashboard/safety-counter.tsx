@@ -68,85 +68,68 @@ export function SafetyCounter() {
     })
   }
 
-  // Configuration responsive basée sur la taille du widget
+  // Configuration responsive basée sur la taille du widget et l'écran
   const getResponsiveConfig = () => {
-    switch (widgetSize) {
-      case 'small':
-        return {
-          cardHeight: 'h-[20rem]',
-          headerPadding: 'pb-2',
-          contentPadding: 'p-3',
-          titleSize: 'text-lg',
-          subtitleSize: 'text-xs',
-          counterSize: 'text-4xl',
-          labelSize: 'text-sm',
-          smallLabelSize: 'text-xs',
-          iconSize: 'h-4 w-4',
-          gridCols: 'grid-cols-1',
-          counterPadding: 'p-3',
-          spaceY: 'space-y-2'
-        }
-      case 'medium':
-        return {
-          cardHeight: 'h-[28rem]',
-          headerPadding: 'pb-3',
-          contentPadding: 'p-4',
-          titleSize: 'text-xl',
-          subtitleSize: 'text-sm',
-          counterSize: 'text-5xl',
-          labelSize: 'text-base',
-          smallLabelSize: 'text-sm',
-          iconSize: 'h-5 w-5',
-          gridCols: 'grid-cols-2',
-          counterPadding: 'p-4',
-          spaceY: 'space-y-3'
-        }
-      case 'large':
-        return {
-          cardHeight: 'h-[28rem]',
-          headerPadding: 'pb-4',
-          contentPadding: 'p-6',
-          titleSize: 'text-2xl',
-          subtitleSize: 'text-base',
-          counterSize: 'text-6xl',
-          labelSize: 'text-lg',
-          smallLabelSize: 'text-sm',
-          iconSize: 'h-6 w-6',
-          gridCols: 'grid-cols-2',
-          counterPadding: 'p-6',
-          spaceY: 'space-y-4'
-        }
-      case 'full':
-        return {
-          cardHeight: 'h-[32rem]',
-          headerPadding: 'pb-6',
-          contentPadding: 'p-8',
-          titleSize: 'text-3xl',
-          subtitleSize: 'text-lg',
-          counterSize: 'text-7xl',
-          labelSize: 'text-xl',
-          smallLabelSize: 'text-base',
-          iconSize: 'h-8 w-8',
-          gridCols: 'grid-cols-2',
-          counterPadding: 'p-8',
-          spaceY: 'space-y-6'
-        }
-      default:
-        return {
-          cardHeight: 'h-[28rem]',
-          headerPadding: 'pb-3',
-          contentPadding: 'p-4',
-          titleSize: 'text-xl',
-          subtitleSize: 'text-sm',
-          counterSize: 'text-5xl',
-          labelSize: 'text-base',
-          smallLabelSize: 'text-sm',
-          iconSize: 'h-5 w-5',
-          gridCols: 'grid-cols-2',
-          counterPadding: 'p-4',
-          spaceY: 'space-y-3'
-        }
+    const baseConfig = {
+      small: {
+        cardHeight: 'h-[20rem] sm:h-[22rem]',
+        headerPadding: 'pb-2 sm:pb-3',
+        contentPadding: 'p-2 sm:p-3',
+        titleSize: 'text-base sm:text-xl', // Même taille que "Accès Rapide" sur desktop
+        subtitleSize: 'text-xs sm:text-sm', // Même taille que "Applications & Services" sur mobile
+        counterSize: 'text-2xl sm:text-3xl',
+        labelSize: 'text-xs sm:text-sm',
+        smallLabelSize: 'text-xs',
+        iconSize: 'h-4 w-4 sm:h-5 sm:w-5',
+        gridCols: 'grid-cols-2', // Toujours 2 colonnes même sur mobile
+        counterPadding: 'p-1.5 sm:p-2',
+        spaceY: 'space-y-1'
+      },
+      medium: {
+        cardHeight: 'h-[22rem] sm:h-[24rem] lg:h-[28rem]',
+        headerPadding: 'pb-2 sm:pb-3 lg:pb-4',
+        contentPadding: 'p-2 sm:p-3 lg:p-4',
+        titleSize: 'text-lg sm:text-xl', // Même taille que "Accès Rapide" sur desktop
+        subtitleSize: 'text-sm', // Même taille que "Applications & Services"
+        counterSize: 'text-3xl sm:text-4xl lg:text-5xl',
+        labelSize: 'text-sm sm:text-base lg:text-lg',
+        smallLabelSize: 'text-xs sm:text-sm',
+        iconSize: 'h-4 w-4 sm:h-5 sm:w-5 lg:h-6 lg:w-6',
+        gridCols: 'grid-cols-2', // Toujours 2 colonnes
+        counterPadding: 'p-2 sm:p-3 lg:p-4',
+        spaceY: 'space-y-1 sm:space-y-2'
+      },
+      large: {
+        cardHeight: 'h-[22rem] sm:h-[24rem] lg:h-[28rem]',
+        headerPadding: 'pb-3 sm:pb-4 lg:pb-6',
+        contentPadding: 'p-3 sm:p-4 lg:p-6',
+        titleSize: 'text-xl', // Même taille que "Accès Rapide" sur desktop
+        subtitleSize: 'text-sm', // Même taille que "Applications & Services"
+        counterSize: 'text-4xl sm:text-5xl lg:text-6xl',
+        labelSize: 'text-base sm:text-lg lg:text-xl',
+        smallLabelSize: 'text-sm sm:text-base',
+        iconSize: 'h-5 w-5 sm:h-6 sm:w-6 lg:h-8 lg:w-8',
+        gridCols: 'grid-cols-2', // Toujours 2 colonnes
+        counterPadding: 'p-3 sm:p-4 lg:p-6',
+        spaceY: 'space-y-2 sm:space-y-3'
+      },
+      full: {
+        cardHeight: 'h-[24rem] sm:h-[28rem] lg:h-[32rem]',
+        headerPadding: 'pb-4 sm:pb-6 lg:pb-8',
+        contentPadding: 'p-3 sm:p-4 lg:p-6 xl:p-8',
+        titleSize: 'text-xl', // Même taille que "Accès Rapide" sur desktop
+        subtitleSize: 'text-sm', // Même taille que "Applications & Services"
+        counterSize: 'text-5xl sm:text-6xl lg:text-7xl',
+        labelSize: 'text-lg sm:text-xl lg:text-2xl',
+        smallLabelSize: 'text-sm sm:text-base lg:text-lg',
+        iconSize: 'h-6 w-6 sm:h-8 sm:w-8 lg:h-10 lg:w-10',
+        gridCols: 'grid-cols-2', // Toujours 2 colonnes
+        counterPadding: 'p-4 sm:p-6 lg:p-8',
+        spaceY: 'space-y-3 sm:space-y-4 lg:space-y-6'
+      }
     }
+    
+    return baseConfig[widgetSize] || baseConfig.medium
   }
 
   const config = getResponsiveConfig()
@@ -238,7 +221,7 @@ export function SafetyCounter() {
   }
 
   return (
-    <Card className={`${config.cardHeight} flex flex-col overflow-hidden relative bg-gradient-to-br from-slate-900 via-blue-900 to-indigo-900 border-0 hover:shadow-2xl transition-all duration-500 group`} data-widget-id="safety">
+    <Card className={`${config.cardHeight} flex flex-col overflow-hidden relative bg-gradient-to-br from-slate-900 via-blue-900 to-indigo-900 border-0 hover:shadow-2xl transition-all duration-500 group safety-widget-mobile`} data-widget-id="safety">
       {/* Image de fond avec overlay */}
       <div className="absolute inset-0">
         <Image
@@ -255,29 +238,29 @@ export function SafetyCounter() {
         <div className="absolute bottom-0 left-0 w-24 h-24 bg-indigo-500/10 rounded-full translate-y-12 -translate-x-12" />
       </div>
 
-      <CardHeader className={`relative ${config.headerPadding} flex-shrink-0 z-10`}>
-        <div className="flex items-center justify-between">
-          <div className="flex items-center gap-3">
-            <div className={`${config.counterPadding} bg-gradient-to-br from-blue-500 to-indigo-600 rounded-xl shadow-lg group-hover:shadow-blue-200/50 group-hover:scale-105 transition-all duration-300`}>
+      <CardHeader className={`relative ${config.headerPadding} flex-shrink-0 z-10 p-3 sm:p-4 lg:p-6 safety-header`}>
+        <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3 sm:gap-4">
+          <div className="flex items-center gap-2 sm:gap-3">
+            <div className={`${config.counterPadding} bg-gradient-to-br from-blue-500 to-indigo-600 rounded-lg sm:rounded-xl shadow-lg group-hover:shadow-blue-200/50 group-hover:scale-105 transition-all duration-300`}>
               <Shield className={`${config.iconSize} text-white`} />
             </div>
-            <div>
-              <CardTitle className={`${config.titleSize} font-bold text-white group-hover:text-blue-200 transition-colors duration-300`}>
-                🛡️ Sécurité du Travail
+            <div className="min-w-0 flex-1">
+              <CardTitle className={`${config.titleSize} font-bold text-white group-hover:text-blue-200 transition-colors duration-300 leading-tight safety-title widget-title safety-widget-title`}>
+                Sécurité du Travail
               </CardTitle>
-              <p className={`${config.subtitleSize} text-blue-200/80 font-medium`}>
+              <p className={`${config.subtitleSize} text-blue-200/80 font-medium leading-tight mt-1 safety-subtitle widget-subtitle safety-widget-subtitle`}>
                 Compteurs de jours sans accident
               </p>
             </div>
           </div>
           
-          {/* Numéro vert SAR - masqué sur petit écran */}
+          {/* Numéro vert SAR - Responsive */}
           {widgetSize !== 'small' && (
-            <div className="text-right">
-              <div className={`${config.labelSize} font-bold text-green-800 drop-shadow-lg bg-green-100/90 px-3 py-1 rounded-lg`}>
+            <div className="text-center sm:text-right flex-shrink-0">
+              <div className={`${config.labelSize} font-bold text-green-800 drop-shadow-lg bg-green-100/90 px-2 sm:px-3 py-1 rounded-lg inline-block safety-phone`}>
                 📞 800 00 34 34
               </div>
-              <div className={`${config.smallLabelSize} text-green-700 font-semibold mt-1`}>
+              <div className={`${config.smallLabelSize} text-green-700 font-semibold mt-1 safety-phone-label`}>
                 Numéro vert SAR
               </div>
             </div>
@@ -287,37 +270,37 @@ export function SafetyCounter() {
       
       <CardContent className={`relative flex-1 flex flex-col justify-center ${config.contentPadding} z-10`}>
         {/* Les deux compteurs côte à côte */}
-        <div className={`grid ${config.gridCols} gap-4 h-full`}>
+        <div className={`grid ${config.gridCols} gap-2 sm:gap-3 lg:gap-4 h-full safety-counter`}>
           {/* Compteur SAR */}
-          <div className={`flex flex-col justify-center items-center ${config.spaceY} bg-gradient-to-br from-blue-500/20 to-blue-600/30 rounded-2xl ${config.counterPadding} border border-blue-400/30 backdrop-blur-sm group-hover:from-blue-500/30 group-hover:to-blue-600/40 transition-all duration-500`}>
-            <div className="flex items-center gap-2 mb-2">
+          <div className={`flex flex-col justify-center items-center ${config.spaceY} bg-gradient-to-br from-blue-500/20 to-blue-600/30 rounded-xl sm:rounded-2xl ${config.counterPadding} border border-blue-400/30 backdrop-blur-sm group-hover:from-blue-500/30 group-hover:to-blue-600/40 transition-all duration-500`}>
+            <div className="flex items-center gap-1 sm:gap-2 mb-1 sm:mb-2">
               <Building2 className={`${config.iconSize} text-blue-300`} />
               <span className={`${config.smallLabelSize} font-semibold text-blue-200 uppercase tracking-wide`}>
                 SAR
               </span>
             </div>
             
-            <div className={`${config.counterSize} font-black text-white mb-2 transition-all duration-1000 drop-shadow-2xl ${
+            <div className={`${config.counterSize} font-black text-white mb-1 sm:mb-2 transition-all duration-1000 drop-shadow-2xl safety-counter-number ${
               isAnimating ? 'scale-110' : 'scale-100'
             }`}>
               {safetyData.daysWithoutIncidentSAR}
             </div>
             
-            <div className="text-center space-y-1">
-              <div className={`${config.labelSize} font-bold text-blue-100`}>
+            <div className="text-center space-y-0.5 sm:space-y-1">
+              <div className={`${config.labelSize} font-bold text-blue-100 safety-counter-label`}>
                 {safetyData.daysWithoutIncidentSAR === 1 ? 'Jour' : 'Jours'}
               </div>
-              <div className={`${config.smallLabelSize} text-blue-200/80`}>
+              <div className={`${config.smallLabelSize} text-blue-200/80 safety-counter-subtitle`}>
                 sans accident
               </div>
-              <div className={`${config.smallLabelSize} text-blue-300/70`}>
+              <div className={`${config.smallLabelSize} text-blue-300/70 safety-counter-subtitle`}>
                 interne
               </div>
             </div>
             
             {/* Indicateur de performance */}
-            <div className="flex items-center gap-1 mt-2">
-              <CheckCircle className="h-4 w-4 text-green-400" />
+            <div className="flex items-center gap-1 mt-1 sm:mt-2">
+              <CheckCircle className="h-3 w-3 sm:h-4 sm:w-4 text-green-400" />
               <span className={`${config.smallLabelSize} text-green-300 font-medium`}>
                 {safetyData.appreciation_sar}
               </span>
@@ -325,35 +308,35 @@ export function SafetyCounter() {
           </div>
 
           {/* Compteur EE */}
-          <div className={`flex flex-col justify-center items-center ${config.spaceY} bg-gradient-to-br from-emerald-500/20 to-emerald-600/30 rounded-2xl ${config.counterPadding} border border-emerald-400/30 backdrop-blur-sm group-hover:from-emerald-500/30 group-hover:to-emerald-600/40 transition-all duration-500`}>
-            <div className="flex items-center gap-2 mb-2">
+          <div className={`flex flex-col justify-center items-center ${config.spaceY} bg-gradient-to-br from-emerald-500/20 to-emerald-600/30 rounded-xl sm:rounded-2xl ${config.counterPadding} border border-emerald-400/30 backdrop-blur-sm group-hover:from-emerald-500/30 group-hover:to-emerald-600/40 transition-all duration-500`}>
+            <div className="flex items-center gap-1 sm:gap-2 mb-1 sm:mb-2">
               <Users className={`${config.iconSize} text-emerald-300`} />
               <span className={`${config.smallLabelSize} font-semibold text-emerald-200 uppercase tracking-wide`}>
                 EE
               </span>
             </div>
             
-            <div className={`${config.counterSize} font-black text-white mb-2 transition-all duration-1000 drop-shadow-2xl ${
+            <div className={`${config.counterSize} font-black text-white mb-1 sm:mb-2 transition-all duration-1000 drop-shadow-2xl safety-counter-number ${
               isAnimating ? 'scale-110' : 'scale-100'
             }`}>
               {safetyData.daysWithoutIncidentEE}
             </div>
             
-            <div className="text-center space-y-1">
-              <div className={`${config.labelSize} font-bold text-emerald-100`}>
+            <div className="text-center space-y-0.5 sm:space-y-1">
+              <div className={`${config.labelSize} font-bold text-emerald-100 safety-counter-label`}>
                 {safetyData.daysWithoutIncidentEE === 1 ? 'Jour' : 'Jours'}
               </div>
-              <div className={`${config.smallLabelSize} text-emerald-200/80`}>
+              <div className={`${config.smallLabelSize} text-emerald-200/80 safety-counter-subtitle`}>
                 sans accident
               </div>
-              <div className={`${config.smallLabelSize} text-emerald-300/70`}>
+              <div className={`${config.smallLabelSize} text-emerald-300/70 safety-counter-subtitle`}>
                 externe
               </div>
             </div>
             
             {/* Indicateur de performance */}
-            <div className="flex items-center gap-1 mt-2">
-              <CheckCircle className="h-4 w-4 text-green-400" />
+            <div className="flex items-center gap-1 mt-1 sm:mt-2">
+              <CheckCircle className="h-3 w-3 sm:h-4 sm:w-4 text-green-400" />
               <span className={`${config.smallLabelSize} text-green-300 font-medium`}>
                 {safetyData.appreciation_ee}
               </span>

@@ -64,14 +64,20 @@ export function RestaurantMenu() {
     const days = ['monday', 'tuesday', 'wednesday', 'thursday', 'friday']
     const dayNames = ['Lundi', 'Mardi', 'Mercredi', 'Jeudi', 'Vendredi']
     
+    // Obtenir la date d'aujourd'hui
+    const today = new Date()
+    const todayString = today.toISOString().split('T')[0]
+    
     return days.map((day, index) => {
       const date = new Date(weekStart)
       date.setDate(weekStart.getDate() + index)
+      const dateString = date.toISOString().split('T')[0]
       
       return {
         day,
         dayName: dayNames[index],
-        date: date.toISOString().split('T')[0]
+        date: dateString,
+        isToday: dateString === todayString
       }
     })
   }
@@ -115,29 +121,30 @@ export function RestaurantMenu() {
   // Gestion des états de chargement et d'erreur
   if (loading) {
     return (
-      <Card className="min-h-[24rem] max-h-[32rem] sm:h-[28rem] bg-gradient-to-br from-slate-100 via-gray-100 to-blue-100 border-0 hover:shadow-xl transition-all duration-500 cursor-pointer group flex flex-col overflow-hidden relative">
+      <Card className="min-h-[20rem] max-h-[32rem] sm:h-[28rem] bg-gradient-to-br from-slate-100 via-gray-100 to-blue-100 border-0 hover:shadow-xl transition-all duration-500 cursor-pointer group flex flex-col overflow-hidden relative">
         {/* Effet de brillance subtil */}
         <div className="absolute inset-0 bg-gradient-to-br from-slate-200/40 via-transparent to-blue-200/40 opacity-0 group-hover:opacity-100 transition-opacity duration-500"></div>
         
-        {/* Icônes décoratives */}
-        <div className="absolute top-4 right-4 w-16 h-16 bg-gradient-to-br from-slate-400 to-blue-500 rounded-full flex items-center justify-center opacity-60 group-hover:opacity-80 transition-opacity duration-300">
-          <ChefHat className="h-8 w-8 text-white" />
+        {/* Icônes décoratives - Responsive */}
+        <div className="absolute top-2 right-2 sm:top-4 sm:right-4 w-12 h-12 sm:w-16 sm:h-16 bg-gradient-to-br from-slate-400 to-blue-500 rounded-full flex items-center justify-center opacity-60 group-hover:opacity-80 transition-opacity duration-300">
+          <ChefHat className="h-6 w-6 sm:h-8 sm:w-8 text-white" />
         </div>
-        <div className="absolute bottom-4 left-4 w-12 h-12 bg-gradient-to-br from-blue-500 to-indigo-500 rounded-full flex items-center justify-center opacity-40 group-hover:opacity-60 transition-opacity duration-300">
-          <Utensils className="h-6 w-6 text-white" />
+        <div className="absolute bottom-2 left-2 sm:bottom-4 sm:left-4 w-8 h-8 sm:w-12 sm:h-12 bg-gradient-to-br from-blue-500 to-indigo-500 rounded-full flex items-center justify-center opacity-40 group-hover:opacity-60 transition-opacity duration-300">
+          <Utensils className="h-4 w-4 sm:h-6 sm:w-6 text-white" />
         </div>
         
-        <CardHeader className="pb-4 flex-shrink-0 relative z-10">
+        <CardHeader className="pb-2 sm:pb-4 flex-shrink-0 relative z-10 p-3 sm:p-6">
           <div className="flex items-center justify-between">
-            <div className="flex items-center space-x-3">
-              <div className="p-3 bg-gradient-to-br from-slate-500 to-blue-600 rounded-xl shadow-lg group-hover:shadow-slate-200 group-hover:scale-110 transition-all duration-300">
-                <ChefHat className="h-6 w-6 text-white" />
+            <div className="flex items-center space-x-2 sm:space-x-3">
+              <div className="p-2 sm:p-3 bg-gradient-to-br from-slate-500 to-blue-600 rounded-lg sm:rounded-xl shadow-lg group-hover:shadow-slate-200 group-hover:scale-110 transition-all duration-300">
+                <ChefHat className="h-4 w-4 sm:h-6 sm:w-6 text-white" />
               </div>
               <div>
-                <CardTitle className="text-xl font-bold text-gray-900 group-hover:text-blue-700 transition-colors duration-300">
-                  🍽️ Menu de la Semaine
+                <CardTitle className="text-lg sm:text-xl font-bold text-gray-900 group-hover:text-blue-700 transition-colors duration-300">
+                  <span className="hidden sm:inline">Menu de la Semaine</span>
+                  <span className="sm:hidden">Menu</span>
                 </CardTitle>
-                <p className="text-sm text-gray-600 font-medium">
+                <p className="text-xs sm:text-sm text-gray-600 font-medium">
                   Préparation en cours...
                 </p>
               </div>
@@ -145,14 +152,14 @@ export function RestaurantMenu() {
           </div>
         </CardHeader>
         
-        <CardContent className="flex-1 flex items-center justify-center p-8 relative z-10">
+        <CardContent className="flex-1 flex items-center justify-center p-4 sm:p-8 relative z-10">
           <div className="text-center">
-            <div className="w-20 h-20 bg-gradient-to-br from-slate-500 to-blue-600 rounded-full flex items-center justify-center mx-auto mb-6 shadow-lg group-hover:scale-110 transition-transform duration-300">
-              <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-white"></div>
+            <div className="w-16 h-16 sm:w-20 sm:h-20 bg-gradient-to-br from-slate-500 to-blue-600 rounded-full flex items-center justify-center mx-auto mb-4 sm:mb-6 shadow-lg group-hover:scale-110 transition-transform duration-300">
+              <div className="animate-spin rounded-full h-6 w-6 sm:h-8 sm:w-8 border-b-2 border-white"></div>
             </div>
-            <div className="bg-white/60 backdrop-blur-sm rounded-xl p-6 border border-white/50 shadow-sm">
-              <h3 className="text-lg font-bold text-gray-900 mb-2">🍳 Cuisine en action</h3>
-              <p className="text-sm text-gray-600">Nos chefs préparent le menu de la semaine...</p>
+            <div className="bg-white/60 backdrop-blur-sm rounded-xl p-4 sm:p-6 border border-white/50 shadow-sm">
+              <h3 className="text-base sm:text-lg font-bold text-gray-900 mb-2">🍳 Cuisine en action</h3>
+              <p className="text-xs sm:text-sm text-gray-600">Nos chefs préparent le menu de la semaine...</p>
             </div>
           </div>
         </CardContent>
@@ -162,29 +169,30 @@ export function RestaurantMenu() {
 
   if (error) {
     return (
-      <Card className="min-h-[24rem] max-h-[32rem] sm:h-[28rem] bg-gradient-to-br from-slate-100 via-gray-100 to-blue-100 border-0 hover:shadow-xl transition-all duration-500 cursor-pointer group flex flex-col overflow-hidden relative">
+      <Card className="min-h-[20rem] max-h-[32rem] sm:h-[28rem] bg-gradient-to-br from-slate-100 via-gray-100 to-blue-100 border-0 hover:shadow-xl transition-all duration-500 cursor-pointer group flex flex-col overflow-hidden relative">
         {/* Effet de brillance subtil */}
         <div className="absolute inset-0 bg-gradient-to-br from-slate-200/40 via-transparent to-blue-200/40 opacity-0 group-hover:opacity-100 transition-opacity duration-500"></div>
         
-        {/* Icônes décoratives */}
-        <div className="absolute top-4 right-4 w-16 h-16 bg-gradient-to-br from-slate-400 to-blue-500 rounded-full flex items-center justify-center opacity-60 group-hover:opacity-80 transition-opacity duration-300">
-          <ChefHat className="h-8 w-8 text-white" />
+        {/* Icônes décoratives - Responsive */}
+        <div className="absolute top-2 right-2 sm:top-4 sm:right-4 w-12 h-12 sm:w-16 sm:h-16 bg-gradient-to-br from-slate-400 to-blue-500 rounded-full flex items-center justify-center opacity-60 group-hover:opacity-80 transition-opacity duration-300">
+          <ChefHat className="h-6 w-6 sm:h-8 sm:w-8 text-white" />
         </div>
-        <div className="absolute bottom-4 left-4 w-12 h-12 bg-gradient-to-br from-blue-500 to-indigo-500 rounded-full flex items-center justify-center opacity-40 group-hover:opacity-60 transition-opacity duration-300">
-          <Utensils className="h-6 w-6 text-white" />
+        <div className="absolute bottom-2 left-2 sm:bottom-4 sm:left-4 w-8 h-8 sm:w-12 sm:h-12 bg-gradient-to-br from-blue-500 to-indigo-500 rounded-full flex items-center justify-center opacity-40 group-hover:opacity-60 transition-opacity duration-300">
+          <Utensils className="h-4 w-4 sm:h-6 sm:w-6 text-white" />
         </div>
         
-        <CardHeader className="pb-4 flex-shrink-0 relative z-10">
+        <CardHeader className="pb-2 sm:pb-4 flex-shrink-0 relative z-10 p-3 sm:p-6">
           <div className="flex items-center justify-between">
-            <div className="flex items-center space-x-3">
-              <div className="p-3 bg-gradient-to-br from-slate-500 to-blue-600 rounded-xl shadow-lg group-hover:shadow-slate-200 group-hover:scale-110 transition-all duration-300">
-                <ChefHat className="h-6 w-6 text-white" />
+            <div className="flex items-center space-x-2 sm:space-x-3">
+              <div className="p-2 sm:p-3 bg-gradient-to-br from-slate-500 to-blue-600 rounded-lg sm:rounded-xl shadow-lg group-hover:shadow-slate-200 group-hover:scale-110 transition-all duration-300">
+                <ChefHat className="h-4 w-4 sm:h-6 sm:w-6 text-white" />
               </div>
               <div>
-                <CardTitle className="text-xl font-bold text-gray-900 group-hover:text-blue-700 transition-colors duration-300">
-                  🍽️ Menu de la Semaine
+                <CardTitle className="text-lg sm:text-xl font-bold text-gray-900 group-hover:text-blue-700 transition-colors duration-300">
+                  <span className="hidden sm:inline">Menu de la Semaine</span>
+                  <span className="sm:hidden">Menu</span>
                 </CardTitle>
-                <p className="text-sm text-gray-600 font-medium">
+                <p className="text-xs sm:text-sm text-gray-600 font-medium">
                   Problème de connexion
                 </p>
               </div>
@@ -192,21 +200,22 @@ export function RestaurantMenu() {
           </div>
         </CardHeader>
         
-        <CardContent className="flex-1 flex items-center justify-center p-8 relative z-10">
+        <CardContent className="flex-1 flex items-center justify-center p-4 sm:p-8 relative z-10">
           <div className="text-center">
-            <div className="w-20 h-20 bg-gradient-to-br from-slate-500 to-blue-600 rounded-full flex items-center justify-center mx-auto mb-6 shadow-lg group-hover:scale-110 transition-transform duration-300">
-              <span className="text-4xl">⚠️</span>
+            <div className="w-16 h-16 sm:w-20 sm:h-20 bg-gradient-to-br from-slate-500 to-blue-600 rounded-full flex items-center justify-center mx-auto mb-4 sm:mb-6 shadow-lg group-hover:scale-110 transition-transform duration-300">
+              <span className="text-2xl sm:text-4xl">⚠️</span>
             </div>
-            <div className="bg-white/60 backdrop-blur-sm rounded-xl p-6 border border-white/50 shadow-sm">
-              <h3 className="text-lg font-bold text-gray-900 mb-2">❌ Erreur de chargement</h3>
-              <p className="text-sm text-gray-600 mb-4">{error}</p>
+            <div className="bg-white/60 backdrop-blur-sm rounded-xl p-4 sm:p-6 border border-white/50 shadow-sm">
+              <h3 className="text-base sm:text-lg font-bold text-gray-900 mb-2">❌ Erreur de chargement</h3>
+              <p className="text-xs sm:text-sm text-gray-600 mb-4">{error}</p>
               <Button 
                 onClick={() => fetchWeekMenu()}
-                className="bg-gradient-to-r from-slate-500 to-blue-600 hover:from-slate-600 hover:to-blue-700 text-white rounded-xl shadow-lg hover:shadow-xl transition-all duration-300 transform hover:scale-105"
+                className="bg-gradient-to-r from-slate-500 to-blue-600 hover:from-slate-600 hover:to-blue-700 text-white rounded-xl shadow-lg hover:shadow-xl transition-all duration-300 transform hover:scale-105 text-xs sm:text-sm px-3 sm:px-4 py-2"
                 size="sm"
               >
-                <span className="flex items-center gap-2">
-                  🔄 Réessayer
+                <span className="flex items-center gap-1 sm:gap-2">
+                  🔄 <span className="hidden sm:inline">Réessayer</span>
+                  <span className="sm:hidden">Retry</span>
                 </span>
               </Button>
             </div>
@@ -218,29 +227,30 @@ export function RestaurantMenu() {
 
   if (!weekMenu || !weekMenu.days || weekMenu.days.length === 0) {
     return (
-      <Card className="min-h-[24rem] max-h-[32rem] sm:h-[28rem] bg-gradient-to-br from-slate-100 via-gray-100 to-blue-100 border-0 hover:shadow-xl transition-all duration-500 cursor-pointer group flex flex-col overflow-hidden relative">
+      <Card className="min-h-[20rem] max-h-[32rem] sm:h-[28rem] bg-gradient-to-br from-slate-100 via-gray-100 to-blue-100 border-0 hover:shadow-xl transition-all duration-500 cursor-pointer group flex flex-col overflow-hidden relative">
         {/* Effet de brillance subtil */}
         <div className="absolute inset-0 bg-gradient-to-br from-slate-200/40 via-transparent to-blue-200/40 opacity-0 group-hover:opacity-100 transition-opacity duration-500"></div>
         
-        {/* Icônes décoratives */}
-        <div className="absolute top-4 right-4 w-16 h-16 bg-gradient-to-br from-slate-400 to-blue-500 rounded-full flex items-center justify-center opacity-60 group-hover:opacity-80 transition-opacity duration-300">
-          <ChefHat className="h-8 w-8 text-white" />
+        {/* Icônes décoratives - Responsive */}
+        <div className="absolute top-2 right-2 sm:top-4 sm:right-4 w-12 h-12 sm:w-16 sm:h-16 bg-gradient-to-br from-slate-400 to-blue-500 rounded-full flex items-center justify-center opacity-60 group-hover:opacity-80 transition-opacity duration-300">
+          <ChefHat className="h-6 w-6 sm:h-8 sm:w-8 text-white" />
         </div>
-        <div className="absolute bottom-4 left-4 w-12 h-12 bg-gradient-to-br from-blue-500 to-indigo-500 rounded-full flex items-center justify-center opacity-40 group-hover:opacity-60 transition-opacity duration-300">
-          <Utensils className="h-6 w-6 text-white" />
+        <div className="absolute bottom-2 left-2 sm:bottom-4 sm:left-4 w-8 h-8 sm:w-12 sm:h-12 bg-gradient-to-br from-blue-500 to-indigo-500 rounded-full flex items-center justify-center opacity-40 group-hover:opacity-60 transition-opacity duration-300">
+          <Utensils className="h-4 w-4 sm:h-6 sm:w-6 text-white" />
         </div>
         
-        <CardHeader className="pb-4 flex-shrink-0 relative z-10">
+        <CardHeader className="pb-2 sm:pb-4 flex-shrink-0 relative z-10 p-3 sm:p-6">
           <div className="flex items-center justify-between">
-            <div className="flex items-center space-x-3">
-              <div className="p-3 bg-gradient-to-br from-slate-500 to-blue-600 rounded-xl shadow-lg group-hover:shadow-slate-200 group-hover:scale-110 transition-all duration-300">
-                <ChefHat className="h-6 w-6 text-white" />
+            <div className="flex items-center space-x-2 sm:space-x-3">
+              <div className="p-2 sm:p-3 bg-gradient-to-br from-slate-500 to-blue-600 rounded-lg sm:rounded-xl shadow-lg group-hover:shadow-slate-200 group-hover:scale-110 transition-all duration-300">
+                <ChefHat className="h-4 w-4 sm:h-6 sm:w-6 text-white" />
               </div>
               <div>
-                <CardTitle className="text-xl font-bold text-gray-900 group-hover:text-blue-700 transition-colors duration-300">
-                  🍽️ Menu de la Semaine
+                <CardTitle className="text-lg sm:text-xl font-bold text-gray-900 group-hover:text-blue-700 transition-colors duration-300">
+                  <span className="hidden sm:inline">Menu de la Semaine</span>
+                  <span className="sm:hidden">Menu</span>
                 </CardTitle>
-                <p className="text-sm text-gray-600 font-medium">
+                <p className="text-xs sm:text-sm text-gray-600 font-medium">
                   Aucun menu disponible
                 </p>
               </div>
@@ -248,14 +258,14 @@ export function RestaurantMenu() {
           </div>
         </CardHeader>
         
-        <CardContent className="flex-1 flex items-center justify-center p-8 relative z-10">
+        <CardContent className="flex-1 flex items-center justify-center p-4 sm:p-8 relative z-10">
           <div className="text-center">
-            <div className="w-20 h-20 bg-gradient-to-br from-slate-500 to-blue-600 rounded-full flex items-center justify-center mx-auto mb-6 shadow-lg group-hover:scale-110 transition-transform duration-300">
-              <span className="text-4xl">🍽️</span>
+            <div className="w-16 h-16 sm:w-20 sm:h-20 bg-gradient-to-br from-slate-500 to-blue-600 rounded-full flex items-center justify-center mx-auto mb-4 sm:mb-6 shadow-lg group-hover:scale-110 transition-transform duration-300">
+              <span className="text-2xl sm:text-4xl">🍽️</span>
             </div>
-            <div className="bg-white/60 backdrop-blur-sm rounded-xl p-6 border border-white/50 shadow-sm">
-              <h3 className="text-lg font-bold text-gray-900 mb-2">📅 Menu en préparation</h3>
-              <p className="text-sm text-gray-600">Aucun menu disponible pour cette semaine. Revenez bientôt !</p>
+            <div className="bg-white/60 backdrop-blur-sm rounded-xl p-4 sm:p-6 border border-white/50 shadow-sm">
+              <h3 className="text-base sm:text-lg font-bold text-gray-900 mb-2">Menu en préparation</h3>
+              <p className="text-xs sm:text-sm text-gray-600">Aucun menu disponible pour cette semaine. Revenez bientôt !</p>
             </div>
           </div>
         </CardContent>
@@ -268,33 +278,120 @@ export function RestaurantMenu() {
       {/* Effet de brillance subtil */}
       <div className="absolute inset-0 bg-gradient-to-br from-slate-200/40 via-transparent to-blue-200/40 opacity-0 group-hover:opacity-100 transition-opacity duration-500"></div>
       
-      {/* Icônes décoratives */}
-      <div className="absolute top-4 right-4 w-16 h-16 bg-gradient-to-br from-slate-400 to-blue-500 rounded-full flex items-center justify-center opacity-60 group-hover:opacity-80 transition-opacity duration-300">
-        <ChefHat className="h-8 w-8 text-white" />
+      {/* Icônes décoratives - Responsive */}
+      <div className="absolute top-2 right-2 sm:top-4 sm:right-4 w-12 h-12 sm:w-16 sm:h-16 bg-gradient-to-br from-slate-400 to-blue-500 rounded-full flex items-center justify-center opacity-60 group-hover:opacity-80 transition-opacity duration-300">
+        <ChefHat className="h-6 w-6 sm:h-8 sm:w-8 text-white" />
       </div>
-      <div className="absolute bottom-4 left-4 w-12 h-12 bg-gradient-to-br from-blue-500 to-indigo-500 rounded-full flex items-center justify-center opacity-40 group-hover:opacity-60 transition-opacity duration-300">
-        <Utensils className="h-6 w-6 text-white" />
+      <div className="absolute bottom-2 left-2 sm:bottom-4 sm:left-4 w-8 h-8 sm:w-12 sm:h-12 bg-gradient-to-br from-blue-500 to-indigo-500 rounded-full flex items-center justify-center opacity-40 group-hover:opacity-60 transition-opacity duration-300">
+        <Utensils className="h-4 w-4 sm:h-6 sm:w-6 text-white" />
       </div>
       
-      <CardHeader className="pb-4 flex-shrink-0 relative z-10">
+      <CardHeader className="pb-2 sm:pb-4 flex-shrink-0 relative z-10 p-3 sm:p-6">
         <div className="flex items-center justify-between">
-          <div className="flex items-center space-x-3">
-            <div className="p-3 bg-gradient-to-br from-slate-500 to-blue-600 rounded-xl shadow-lg group-hover:shadow-slate-200 group-hover:scale-110 transition-all duration-300">
-              <ChefHat className="h-6 w-6 text-white" />
+          <div className="flex items-center space-x-2 sm:space-x-3">
+            <div className="p-2 sm:p-3 bg-gradient-to-br from-slate-500 to-blue-600 rounded-lg sm:rounded-xl shadow-lg group-hover:shadow-slate-200 group-hover:scale-110 transition-all duration-300">
+              <ChefHat className="h-4 w-4 sm:h-6 sm:w-6 text-white" />
             </div>
             <div>
-              <CardTitle className="text-xl font-bold text-gray-900 group-hover:text-blue-700 transition-colors duration-300">
-                🍽️ Menu de la Semaine
+              <CardTitle className="text-lg sm:text-xl font-bold text-gray-900 group-hover:text-blue-700 transition-colors duration-300">
+                <span className="hidden sm:inline">🍽️ Menu de la Semaine</span>
+                <span className="sm:hidden">🍽️ Menu</span>
               </CardTitle>
-              <p className="text-sm text-gray-600 font-medium">
-                Restaurant SAR • 12h-14h
+              <p className="text-xs sm:text-sm text-gray-600 font-medium">
+                <span className="hidden sm:inline">Restaurant SAR • 12h-14h</span>
+                <span className="sm:hidden">SAR • 12h-14h</span>
               </p>
             </div>
           </div>
         </div>
       </CardHeader>
       
-      <CardContent className="flex-1 overflow-hidden relative z-10">
+      <CardContent className="flex-1 overflow-hidden relative z-10 p-3 sm:p-6">
+        {/* Design responsive : Horizontal scroll sur mobile, grille sur desktop */}
+        <div className="block sm:hidden">
+          {/* Version mobile : Scroll horizontal */}
+          <div className="flex gap-2 overflow-x-auto pb-2 custom-scrollbar restaurant-menu-mobile relative" style={{ scrollbarWidth: 'thin' }}>
+            {getWeekDays().map((dayInfo, index) => {
+              const dayMenu = weekMenu.days.find(menu => menu.day === dayInfo.day)
+              const senegaleseInfo = getCuisineInfo('senegalese')
+              const europeanInfo = getCuisineInfo('european')
+              
+              return (
+                <div 
+                  key={dayInfo.day} 
+                  className={`flex-shrink-0 w-64 backdrop-blur-sm rounded-lg border transition-all duration-300 overflow-hidden ${
+                    dayInfo.isToday 
+                      ? 'bg-gradient-to-br from-red-50 to-orange-50 border-2 border-red-400 shadow-lg ring-2 ring-red-100' 
+                      : 'bg-white/90 border-slate-300 hover:bg-white hover:shadow-lg'
+                  }`}
+                >
+                  {/* En-tête du jour compact */}
+                  <div className={`p-3 text-gray-900 ${
+                    dayInfo.isToday 
+                      ? 'bg-gradient-to-r from-red-100 to-orange-100' 
+                      : 'bg-gradient-to-r from-slate-100 to-blue-100'
+                  }`}>
+                    <h3 className={`font-bold text-sm text-center ${
+                      dayInfo.isToday ? 'text-red-800' : ''
+                    }`}>
+                      {dayInfo.dayName}
+                    </h3>
+                    <p className={`text-xs text-center ${
+                      dayInfo.isToday ? 'text-red-600 font-semibold' : 'text-gray-600'
+                    }`}>
+                      {formatDate(dayInfo.date)}
+                    </p>
+                  </div>
+
+                  {/* Contenu du jour compact */}
+                  <div className="p-3 space-y-3">
+                    {dayMenu ? (
+                      <>
+                        {/* Plat sénégalais compact */}
+                        <div className={`${senegaleseInfo.bgColor} ${senegaleseInfo.borderColor} border rounded p-2`}>
+                          <div className="flex items-center gap-1 mb-1">
+                            <div className={`w-2 h-2 rounded-full bg-gradient-to-r ${senegaleseInfo.color}`}></div>
+                            <span className={`text-xs font-bold ${senegaleseInfo.textColor} flex items-center gap-1`}>
+                              <span className="text-xs">{senegaleseInfo.emoji}</span>
+                              {senegaleseInfo.name}
+                            </span>
+                          </div>
+                          <p className="text-xs font-semibold text-gray-900 leading-tight">
+                            {dayMenu.senegalese.name}
+                          </p>
+                        </div>
+
+                        {/* Plat européen compact */}
+                        <div className={`${europeanInfo.bgColor} ${europeanInfo.borderColor} border rounded p-2`}>
+                          <div className="flex items-center gap-1 mb-1">
+                            <div className={`w-2 h-2 rounded-full bg-gradient-to-r ${europeanInfo.color}`}></div>
+                            <span className={`text-xs font-bold ${europeanInfo.textColor} flex items-center gap-1`}>
+                              <span className="text-xs">{europeanInfo.emoji}</span>
+                              {europeanInfo.name}
+                            </span>
+                          </div>
+                          <p className="text-xs font-semibold text-gray-900 leading-tight">
+                            {dayMenu.european.name}
+                          </p>
+                        </div>
+                      </>
+                    ) : (
+                      <div className="bg-gradient-to-br from-slate-50 to-gray-100 border border-slate-200 rounded p-3 text-center">
+                        <div className="w-8 h-8 bg-gradient-to-br from-slate-300 to-slate-400 rounded-full flex items-center justify-center mx-auto mb-2">
+                          <span className="text-sm">📝</span>
+                        </div>
+                        <p className="text-xs text-slate-600">Menu en attente</p>
+                      </div>
+                    )}
+                  </div>
+                </div>
+              )
+            })}
+          </div>
+        </div>
+
+        {/* Version desktop : Grille classique */}
+        <div className="hidden sm:block">
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-5 gap-3 h-full overflow-y-auto custom-scrollbar pr-2">
           {getWeekDays().map((dayInfo, index) => {
             const dayMenu = weekMenu.days.find(menu => menu.day === dayInfo.day)
@@ -304,24 +401,38 @@ export function RestaurantMenu() {
             return (
               <div 
                 key={dayInfo.day} 
-                className="bg-white/80 backdrop-blur-sm rounded-xl border-2 border-slate-400 hover:bg-white/90 hover:shadow-lg transition-all duration-300 group/day overflow-hidden"
+                className={`backdrop-blur-sm rounded-xl border-2 transition-all duration-300 group/day overflow-hidden ${
+                  dayInfo.isToday 
+                    ? 'bg-gradient-to-br from-red-50 to-orange-50 border-red-400 shadow-xl ring-4 ring-red-100' 
+                    : 'bg-white/80 border-slate-400 hover:bg-white/90 hover:shadow-lg'
+                }`}
               >
                 {/* En-tête du jour avec gradient */}
-                <div className="bg-gradient-to-br from-slate-100 via-gray-100 to-blue-100 p-4 text-gray-900 relative overflow-hidden">
+                <div className={`p-4 text-gray-900 relative overflow-hidden ${
+                  dayInfo.isToday 
+                    ? 'bg-gradient-to-br from-red-100 via-orange-100 to-red-100' 
+                    : 'bg-gradient-to-br from-slate-100 via-gray-100 to-blue-100'
+                }`}>
                   <div className="absolute top-0 right-0 w-16 h-16 bg-white/10 rounded-full -translate-y-8 translate-x-8"></div>
                   <div className="absolute bottom-0 left-0 w-12 h-12 bg-white/10 rounded-full translate-y-6 -translate-x-6"></div>
                   <div className="relative z-10">
-                    <h3 className="font-bold text-lg text-center group-hover/day:scale-105 transition-transform duration-300">
+                    <h3 className={`font-bold text-lg text-center group-hover/day:scale-105 transition-transform duration-300 ${
+                      dayInfo.isToday ? 'text-red-800' : ''
+                    }`}>
                       {dayInfo.dayName}
                     </h3>
-                    <p className="text-gray-600 text-sm text-center font-medium">
+                    <p className={`text-sm text-center font-medium ${
+                      dayInfo.isToday ? 'text-red-600' : 'text-gray-600'
+                    }`}>
                       {formatFullDate(dayInfo.date)}
                     </p>
                   </div>
                 </div>
 
                 {/* Trait de séparation */}
-                <div className="border-t-2 border-slate-400"></div>
+                <div className={`border-t-2 ${
+                  dayInfo.isToday ? 'border-red-300' : 'border-slate-400'
+                }`}></div>
 
                 {/* Contenu du jour */}
                 <div className="p-4 space-y-4">
@@ -329,15 +440,14 @@ export function RestaurantMenu() {
                     // Restaurant ouvert - Afficher les plats
                     <>
                       {/* Plat sénégalais */}
-                      <div className="space-y-2">
-                        <div className="flex items-center gap-2">
+                      <div className={`${senegaleseInfo.bgColor} ${senegaleseInfo.borderColor} border rounded-lg p-3 group-hover/day:scale-105 transition-transform duration-300`}>
+                        <div className="flex items-center gap-2 mb-2">
                           <div className={`w-3 h-3 rounded-full bg-gradient-to-r ${senegaleseInfo.color} shadow-sm`}></div>
                           <span className={`text-xs font-bold ${senegaleseInfo.textColor} flex items-center gap-1`}>
                             <span className="text-sm">{senegaleseInfo.emoji}</span>
                             {senegaleseInfo.name}
                           </span>
                         </div>
-                        <div className={`${senegaleseInfo.bgColor} ${senegaleseInfo.borderColor} border rounded-lg p-3 group-hover/day:scale-105 transition-transform duration-300`}>
                           <p className="text-sm font-semibold text-gray-900 leading-tight">
                             {dayMenu.senegalese.name}
                           </p>
@@ -346,19 +456,17 @@ export function RestaurantMenu() {
                               {dayMenu.senegalese.description}
                             </p>
                           )}
-                        </div>
                       </div>
 
                       {/* Plat européen */}
-                      <div className="space-y-2">
-                        <div className="flex items-center gap-2">
+                      <div className={`${europeanInfo.bgColor} ${europeanInfo.borderColor} border rounded-lg p-3 group-hover/day:scale-105 transition-transform duration-300`}>
+                        <div className="flex items-center gap-2 mb-2">
                           <div className={`w-3 h-3 rounded-full bg-gradient-to-r ${europeanInfo.color} shadow-sm`}></div>
                           <span className={`text-xs font-bold ${europeanInfo.textColor} flex items-center gap-1`}>
                             <span className="text-sm">{europeanInfo.emoji}</span>
                             {europeanInfo.name}
                           </span>
                         </div>
-                        <div className={`${europeanInfo.bgColor} ${europeanInfo.borderColor} border rounded-lg p-3 group-hover/day:scale-105 transition-transform duration-300`}>
                           <p className="text-sm font-semibold text-gray-900 leading-tight">
                             {dayMenu.european.name}
                           </p>
@@ -367,7 +475,6 @@ export function RestaurantMenu() {
                               {dayMenu.european.description}
                             </p>
                           )}
-                        </div>
                       </div>
                     </>
                   ) : (
@@ -404,6 +511,7 @@ export function RestaurantMenu() {
               </div>
             )
           })}
+          </div>
         </div>
       </CardContent>
     </Card>

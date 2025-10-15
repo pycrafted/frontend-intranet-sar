@@ -9,6 +9,16 @@ module.exports = {
     extend: {
       screens: {
         'xs': '320px',
+        // Breakpoints spécifiques pour les tablettes
+        'ipad-mini': '768px',      // iPad Mini 768x1024
+        'ipad-air': '820px',       // iPad Air 820x1180
+        'ipad-pro': '1024px',      // iPad Pro 1024x1366
+        'surface-pro': '912px',    // Surface Pro 7 912x1368
+        'zenbook-fold': '853px',   // ASUS ZenBook Fold 853x1280
+        'nest-hub': '1024px',      // Nest Hub 1024x600
+        // Breakpoints génériques pour tablettes
+        'tablet': '768px',
+        'tablet-lg': '1024px',
       },
       colors: {
         background: 'hsl(var(--background))',

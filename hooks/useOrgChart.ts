@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react'
+import { useState, useEffect, useCallback } from 'react'
 
 export interface Employee {
   id: number
@@ -7,8 +7,9 @@ export interface Employee {
   full_name: string
   initials: string
   email: string
-  phone: string | null
-  employee_id: string | null
+  phone_fixed: string | null
+  phone_mobile: string | null
+  matricule: string
   position: number
   position_title: string
   department_name: string
@@ -19,8 +20,6 @@ export interface Employee {
   is_active: boolean
   avatar: string | null
   office_location: string | null
-  work_schedule: string
-  hire_date: string
   created_at: string
   updated_at: string
   children?: Employee[]
@@ -29,6 +28,7 @@ export interface Employee {
 export interface Department {
   id: number
   name: string
+  slug: string
   employee_count: number
   created_at: string
   updated_at: string
@@ -323,6 +323,8 @@ const staticDepartments: Department[] = [
   }
 ]
 
+const API_BASE_URL = `${process.env.NEXT_PUBLIC_API_URL || 'http://localhost:8000/api'}/organigramme`
+
 export const useOrgChart = () => {
   const [employees, setEmployees] = useState<Employee[]>([])
   const [departments, setDepartments] = useState<Department[]>([])
@@ -330,22 +332,26 @@ export const useOrgChart = () => {
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState<string | null>(null)
 
-  // Simuler le chargement des données
+  // Charger les données depuis l'API
   const fetchEmployees = async () => {
     try {
-      console.log('🏢 [ORGCHART_HOOK] fetchEmployees - UTILISATION DE DONNÉES STATIQUES (pas de base de données)')
+      console.log('🏢 [ORGCHART_HOOK] fetchEmployees - UTILISATION DE L API ORGANIGRAMME')
       setLoading(true)
-      // Simuler un délai de chargement
-      await new Promise(resolve => setTimeout(resolve, 500))
+      const response = await fetch(`${API_BASE_URL}/agents/`)
+      if (!response.ok) throw new Error('Erreur lors du chargement des employés')
+      const data = await response.json()
       console.log('📊 [ORGCHART_HOOK] Données employés chargées:', {
-        source: 'STATIC_DATA',
-        count: staticEmployees.length,
-        employees: staticEmployees.map(emp => ({ id: emp.id, name: emp.full_name, department: emp.department_name }))
+        source: 'API_ORGANIGRAMME',
+        count: Array.isArray(data) ? data.length : 0,
+        employees: Array.isArray(data) ? data.map((emp: any) => ({ id: emp.id, name: emp.full_name, department: emp.department_name })) : []
       })
-      setEmployees(staticEmployees)
+      setEmployees(Array.isArray(data) ? data : data.results || [])
     } catch (err) {
       console.error('❌ [ORGCHART_HOOK] Erreur fetchEmployees:', err)
       setError(err instanceof Error ? err.message : 'Erreur inconnue')
+      // Fallback sur les données statiques en cas d'erreur
+      console.log('🔄 [ORGCHART_HOOK] Fallback sur les données statiques')
+      setEmployees(staticEmployees)
     } finally {
       setLoading(false)
     }
@@ -353,35 +359,96 @@ export const useOrgChart = () => {
 
   const fetchDepartments = async () => {
     try {
-      console.log('🏢 [ORGCHART_HOOK] fetchDepartments - UTILISATION DE DONNÉES STATIQUES (pas de base de données)')
-      // Simuler un délai de chargement
-      await new Promise(resolve => setTimeout(resolve, 300))
+      console.log('🏢 [ORGCHART_HOOK] fetchDepartments - UTILISATION DE L API ORGANIGRAMME')
+      const response = await fetch(`${API_BASE_URL}/directions/`)
+      if (!response.ok) throw new Error('Erreur lors du chargement des départements')
+      const data = await response.json()
+      // L'API retourne les données dans un format paginé avec 'results'
+      const departmentsData = data.results || data
+      // Convertir les directions en format attendu
+      const departmentsList = Array.isArray(departmentsData) ? departmentsData.map((dept: any) => ({
+        id: dept.id,
+        name: dept.name,
+        slug: dept.slug,
+        employee_count: 0,
+        created_at: new Date().toISOString(),
+        updated_at: new Date().toISOString()
+      })) : []
       console.log('📊 [ORGCHART_HOOK] Données départements chargées:', {
-        source: 'STATIC_DATA',
-        count: staticDepartments.length,
-        departments: staticDepartments.map(dept => ({ id: dept.id, name: dept.name, employee_count: dept.employee_count }))
+        source: 'API_ORGANIGRAMME',
+        count: departmentsList.length,
+        departments: departmentsList.map(dept => ({ id: dept.id, name: dept.name, slug: dept.slug, employee_count: dept.employee_count }))
       })
-      setDepartments(staticDepartments)
+      setDepartments(departmentsList)
     } catch (err) {
       console.error('❌ [ORGCHART_HOOK] Erreur fetchDepartments:', err)
       setError(err instanceof Error ? err.message : 'Erreur inconnue')
+      // Fallback sur les données statiques en cas d'erreur
+      setDepartments(staticDepartments)
     }
   }
 
   const fetchOrgChartData = async () => {
     try {
-      console.log('🏢 [ORGCHART_HOOK] fetchOrgChartData - UTILISATION DE DONNÉES STATIQUES (pas de base de données)')
-      // Simuler un délai de chargement
-      await new Promise(resolve => setTimeout(resolve, 200))
-      // Construire les données d'organigramme à partir des employés statiques
+      console.log('🏢 [ORGCHART_HOOK] fetchOrgChartData - UTILISATION DE L API ORGANIGRAMME')
+      const response = await fetch(`${API_BASE_URL}/tree/`)
+      if (!response.ok) throw new Error('Erreur lors du chargement de l\'organigramme')
+      const data = await response.json()
+      
+      // Construire les données d'organigramme à partir de l'API
       const chartData: OrgChartData = {}
       
+      const buildChartData = (employee: any, level: number = 1) => {
+        const levelKey = level.toString()
+        if (!chartData[levelKey]) {
+          chartData[levelKey] = []
+        }
+        
+        chartData[levelKey].push({
+          id: employee.id,
+          name: employee.full_name,
+          role: employee.position_title,
+          department: employee.department_name,
+          email: employee.email,
+          phone: employee.phone || '',
+          location: employee.office_location,
+          avatar: employee.avatar,
+          initials: employee.initials,
+          level: level,
+          parentId: employee.manager,
+          children: []
+        })
+        
+        // Traiter les subordonnés récursivement
+        if (employee.subordinates && employee.subordinates.length > 0) {
+          employee.subordinates.forEach((sub: any) => buildChartData(sub, level + 1))
+        }
+      }
+      
+      buildChartData(data)
+      
+      console.log('📊 [ORGCHART_HOOK] Données organigramme construites:', {
+        source: 'API_ORGANIGRAMME',
+        levels: Object.keys(chartData).length,
+        totalNodes: Object.values(chartData).flat().length,
+        hierarchy: Object.entries(chartData).map(([level, nodes]) => ({
+          level: parseInt(level),
+          count: nodes.length,
+          employees: nodes.map(n => n.name)
+        }))
+      })
+      
+      setOrgChartData(chartData)
+    } catch (err) {
+      console.error('❌ [ORGCHART_HOOK] Erreur fetchOrgChartData:', err)
+      setError(err instanceof Error ? err.message : 'Erreur inconnue')
+      // Fallback sur les données statiques en cas d'erreur
+      const chartData: OrgChartData = {}
       staticEmployees.forEach(employee => {
         const level = employee.hierarchy_level.toString()
         if (!chartData[level]) {
           chartData[level] = []
         }
-        
         chartData[level].push({
           id: employee.id,
           name: employee.full_name,
@@ -397,36 +464,47 @@ export const useOrgChart = () => {
           children: []
         })
       })
-      
-      console.log('📊 [ORGCHART_HOOK] Données organigramme construites:', {
-        source: 'STATIC_DATA',
-        levels: Object.keys(chartData).length,
-        totalNodes: Object.values(chartData).flat().length,
-        hierarchy: Object.entries(chartData).map(([level, nodes]) => ({
-          level: parseInt(level),
-          count: nodes.length,
-          employees: nodes.map(n => n.name)
-        }))
-      })
-      
       setOrgChartData(chartData)
-    } catch (err) {
-      console.error('❌ [ORGCHART_HOOK] Erreur fetchOrgChartData:', err)
-      setError(err instanceof Error ? err.message : 'Erreur inconnue')
     }
   }
 
-  const searchEmployees = async (query: string, department?: string) => {
+  const searchEmployees = useCallback(async (query: string, department?: string) => {
     try {
-      console.log('🔍 [ORGCHART_HOOK] searchEmployees - RECHERCHE DANS DONNÉES STATIQUES (pas de base de données)', {
+      console.log('🔍 [ORGCHART_HOOK] searchEmployees - RECHERCHE VIA API ORGANIGRAMME', {
         query,
         department,
-        source: 'STATIC_DATA'
+        source: 'API_ORGANIGRAMME'
       })
       setLoading(true)
-      // Simuler un délai de recherche
-      await new Promise(resolve => setTimeout(resolve, 300))
       
+      const params = new URLSearchParams()
+      if (query) params.append('search', query)
+      if (department && department !== 'Tous') {
+        // Trouver le slug du département par son nom
+        const dept = departments.find(d => d.name === department)
+        if (dept) {
+          params.append('direction', dept.slug)
+        }
+      }
+      
+      const response = await fetch(`${API_BASE_URL}/agents/search/?${params}`)
+      if (!response.ok) throw new Error('Erreur lors de la recherche')
+      const data = await response.json()
+      
+      console.log('🔍 [ORGCHART_HOOK] Résultats de recherche:', {
+        source: 'API_ORGANIGRAMME',
+        query,
+        department,
+        resultsCount: data.length,
+        results: data.map((emp: any) => ({ id: emp.id, name: emp.full_name, department: emp.department_name }))
+      })
+      
+      const results = Array.isArray(data) ? data : data.results || []
+      return results
+    } catch (err) {
+      console.error('❌ [ORGCHART_HOOK] Erreur searchEmployees:', err)
+      setError(err instanceof Error ? err.message : 'Erreur inconnue')
+      // Fallback sur les données statiques en cas d'erreur
       let filteredEmployees = staticEmployees
       
       // Filtrer par terme de recherche
@@ -447,68 +525,76 @@ export const useOrgChart = () => {
         )
       }
       
-      console.log('📊 [ORGCHART_HOOK] Résultats de recherche:', {
+      console.log('📊 [ORGCHART_HOOK] Résultats de recherche (fallback):', {
         source: 'STATIC_DATA',
         originalCount: staticEmployees.length,
         filteredCount: filteredEmployees.length,
         results: filteredEmployees.map(emp => ({ id: emp.id, name: emp.full_name, department: emp.department_name }))
       })
       
-      setEmployees(filteredEmployees)
-    } catch (err) {
-      console.error('❌ [ORGCHART_HOOK] Erreur searchEmployees:', err)
-      setError(err instanceof Error ? err.message : 'Erreur inconnue')
+      return filteredEmployees
     } finally {
       setLoading(false)
     }
-  }
+  }, [departments])
 
   const getEmployeeById = async (id: number) => {
     try {
-      // Simuler un délai de recherche
-      await new Promise(resolve => setTimeout(resolve, 200))
-      return staticEmployees.find(emp => emp.id === id) || null
+      const response = await fetch(`${API_BASE_URL}/agents/${id}/`)
+      if (!response.ok) throw new Error('Employé non trouvé')
+      return await response.json()
     } catch (err) {
       setError(err instanceof Error ? err.message : 'Erreur inconnue')
-      return null
+      // Fallback sur les données statiques
+      return staticEmployees.find(emp => emp.id === id) || null
     }
   }
 
   const getEmployeeSubordinates = async (id: number) => {
     try {
-      // Simuler un délai de recherche
-      await new Promise(resolve => setTimeout(resolve, 200))
-      return staticEmployees.filter(emp => emp.manager === id)
+      const response = await fetch(`${API_BASE_URL}/agents/${id}/subordinates/`)
+      if (!response.ok) throw new Error('Erreur lors du chargement des subordonnés')
+      const data = await response.json()
+      return data.results || data
     } catch (err) {
       setError(err instanceof Error ? err.message : 'Erreur inconnue')
-      return []
+      // Fallback sur les données statiques
+      return staticEmployees.filter(emp => emp.manager === id)
     }
   }
 
   const getDepartmentStatistics = async () => {
     try {
-      // Simuler un délai de calcul
-      await new Promise(resolve => setTimeout(resolve, 200))
+      const response = await fetch(`${API_BASE_URL}/directions/`)
+      if (!response.ok) throw new Error('Erreur lors du chargement des statistiques')
+      const data = await response.json()
+      return data.map((dept: any) => ({
+        id: dept.id,
+        name: dept.name,
+        employee_count: 0, // À calculer côté backend si nécessaire
+        created_at: new Date().toISOString(),
+        updated_at: new Date().toISOString()
+      }))
+    } catch (err) {
+      setError(err instanceof Error ? err.message : 'Erreur inconnue')
+      // Fallback sur les données statiques
       return staticDepartments.map(dept => ({
         ...dept,
         employee_count: staticEmployees.filter(emp => emp.department_name === dept.name).length
       }))
-    } catch (err) {
-      setError(err instanceof Error ? err.message : 'Erreur inconnue')
-      return []
     }
   }
 
   // Charger les données au montage du composant
   useEffect(() => {
     const loadData = async () => {
-      console.log('🚀 [ORGCHART_HOOK] Initialisation - CHARGEMENT DE DONNÉES STATIQUES (pas de base de données)')
+      console.log('🚀 [ORGCHART_HOOK] Initialisation - CHARGEMENT VIA API ORGANIGRAMME')
       await Promise.all([
         fetchEmployees(),
         fetchDepartments(),
         fetchOrgChartData()
       ])
-      console.log('✅ [ORGCHART_HOOK] Initialisation terminée - TOUTES LES DONNÉES PROVIENNENT DE DONNÉES STATIQUES')
+      console.log('✅ [ORGCHART_HOOK] Initialisation terminée - DONNÉES CHARGÉES VIA API ORGANIGRAMME')
     }
     loadData()
   }, [])

@@ -93,17 +93,17 @@ export function SecondaryNavbar({
           {/* Filtres - conditionnels */}
           {showFilter && (
             <div className="flex items-center gap-3">
-              {/* Filtre par période */}
+              {/* Filtre par département */}
               <div className="flex items-center gap-2">
-                <Calendar className="h-5 w-5 text-slate-500" />
-                <Select value={selectedTimeFilter} onValueChange={onTimeFilterChange}>
+                <Building className="h-5 w-5 text-slate-500" />
+                <Select value={selectedDepartment} onValueChange={onDepartmentChange}>
                   <SelectTrigger className="w-48 h-12 border-slate-300 focus:border-blue-500 focus:ring-blue-500">
-                    <SelectValue placeholder="Période" />
+                    <SelectValue placeholder="Département" />
                   </SelectTrigger>
                   <SelectContent>
-                    {timeFilterOptions.map((option, index) => (
-                      <SelectItem key={`${option.id}-${index}`} value={option.id}>
-                        {option.name}
+                    {departmentOptions.map((dept, index) => (
+                      <SelectItem key={`${dept}-${index}`} value={dept}>
+                        {dept}
                       </SelectItem>
                     ))}
                   </SelectContent>

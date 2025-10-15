@@ -20,7 +20,6 @@ import {
   Clock,
   User,
   Tag,
-  Pin,
   AlertCircle,
   CheckCircle
 } from "lucide-react"
@@ -34,17 +33,10 @@ interface Article {
   content: string | null
   date: string
   time: string
-  author: string | null
-  author_role: string | null
-  author_avatar_url: string | null
-  category: string
   image_url: string | null
-  is_pinned: boolean
   content_type: string
   video_url: string | null
   video_poster_url: string | null
-  gallery_images: string[] | null
-  gallery_title: string | null
   created_at?: string
   updated_at?: string
 }
@@ -55,14 +47,8 @@ interface ArticleFormData {
   content: string
   date: string
   time: string
-  author: string
-  author_role: string
-  category: string
-  is_pinned: boolean
-  content_type: 'text_only' | 'image_only' | 'text_image' | 'gallery' | 'video'
-  gallery_title: string
+  content_type: 'text_only' | 'image_only' | 'text_image' | 'video'
   // Fichiers
-  author_avatar?: File
   image?: File
   video?: File
   video_poster?: File
@@ -81,12 +67,7 @@ export function ArticleForm({ article, onSubmit, onCancel }: ArticleFormProps) {
     content: '',
     date: format(new Date(), 'yyyy-MM-dd'),
     time: format(new Date(), 'HH:mm'),
-    author: '',
-    author_role: '',
-    category: 'Toutes',
-    is_pinned: false,
     content_type: 'text_only',
-    gallery_title: ''
   })
 
   const [errors, setErrors] = useState<Record<string, string>>({})
@@ -102,18 +83,9 @@ export function ArticleForm({ article, onSubmit, onCancel }: ArticleFormProps) {
         content: article.content || '',
         date: article.date,
         time: article.time,
-        author: article.author || '',
-        author_role: article.author_role || '',
-        category: article.category,
-        is_pinned: article.is_pinned,
         content_type: article.content_type as any,
-        gallery_title: article.gallery_title || ''
       })
       
-      // Prévisualisation des images de galerie existantes
-      if (article.gallery_images && article.gallery_images.length > 0) {
-        setPreviewImages(article.gallery_images)
-      }
     }
   }, [article])
 
@@ -125,31 +97,10 @@ export function ArticleForm({ article, onSubmit, onCancel }: ArticleFormProps) {
     }
   }
 
-  const handleFileChange = (field: 'author_avatar' | 'image' | 'video' | 'video_poster', file: File | null) => {
+  const handleFileChange = (field: 'image' | 'video' | 'video_poster', file: File | null) => {
     setFormData(prev => ({ ...prev, [field]: file || undefined }))
   }
 
-  const handleGalleryImagesChange = (files: FileList | null) => {
-    if (files) {
-      const newImages: string[] = []
-      Array.from(files).forEach(file => {
-        const reader = new FileReader()
-        reader.onload = (e) => {
-          if (e.target?.result) {
-            newImages.push(e.target.result as string)
-            if (newImages.length === files.length) {
-              setPreviewImages(prev => [...prev, ...newImages])
-            }
-          }
-        }
-        reader.readAsDataURL(file)
-      })
-    }
-  }
-
-  const removeGalleryImage = (index: number) => {
-    setPreviewImages(prev => prev.filter((_, i) => i !== index))
-  }
 
   const validateForm = (): boolean => {
     const newErrors: Record<string, string> = {}
@@ -174,14 +125,7 @@ export function ArticleForm({ article, onSubmit, onCancel }: ArticleFormProps) {
       newErrors.video = 'Une vidéo est obligatoire pour ce type d\'article'
     }
 
-    if (formData.content_type === 'gallery' && previewImages.length === 0) {
-      newErrors.gallery = 'Au moins une image est obligatoire pour la galerie'
-    }
 
-    // Validation de l'auteur
-    if (!formData.author.trim()) {
-      newErrors.author = 'L\'auteur est obligatoire'
-    }
 
     setErrors(newErrors)
     return Object.keys(newErrors).length === 0
@@ -210,8 +154,6 @@ export function ArticleForm({ article, onSubmit, onCancel }: ArticleFormProps) {
         return <ImageIcon className="h-4 w-4" />
       case 'video':
         return <Video className="h-4 w-4" />
-      case 'gallery':
-        return <ImageIcon className="h-4 w-4" />
       default:
         return <FileText className="h-4 w-4" />
     }
@@ -220,11 +162,10 @@ export function ArticleForm({ article, onSubmit, onCancel }: ArticleFormProps) {
   return (
     <form onSubmit={handleSubmit} className="space-y-6">
       <Tabs defaultValue="general" className="w-full">
-        <TabsList className="grid w-full grid-cols-4">
+        <TabsList className="grid w-full grid-cols-3">
           <TabsTrigger value="general">Général</TabsTrigger>
           <TabsTrigger value="content">Contenu</TabsTrigger>
           <TabsTrigger value="media">Médias</TabsTrigger>
-          <TabsTrigger value="settings">Paramètres</TabsTrigger>
         </TabsList>
 
         {/* Onglet Général */}
@@ -254,27 +195,6 @@ export function ArticleForm({ article, onSubmit, onCancel }: ArticleFormProps) {
                   </Select>
                 </div>
 
-                <div>
-                  <Label htmlFor="category">Catégorie *</Label>
-                  <Select
-                    value={formData.category}
-                    onValueChange={(value) => handleInputChange('category', value)}
-                  >
-                    <SelectTrigger>
-                      <SelectValue />
-                    </SelectTrigger>
-                    <SelectContent>
-                      <SelectItem value="Toutes">Toutes</SelectItem>
-                      <SelectItem value="Sécurité">Sécurité</SelectItem>
-                      <SelectItem value="Finance">Finance</SelectItem>
-                      <SelectItem value="Formation">Formation</SelectItem>
-                      <SelectItem value="Production">Production</SelectItem>
-                      <SelectItem value="Partenariat">Partenariat</SelectItem>
-                      <SelectItem value="Environnement">Environnement</SelectItem>
-                      <SelectItem value="RH">Ressources Humaines</SelectItem>
-                    </SelectContent>
-                  </Select>
-                </div>
               </div>
 
               <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
@@ -307,46 +227,7 @@ export function ArticleForm({ article, onSubmit, onCancel }: ArticleFormProps) {
                 </div>
               </div>
 
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                <div>
-                  <Label htmlFor="author">Auteur *</Label>
-                  <div className="relative">
-                    <User className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-gray-400" />
-                    <Input
-                      id="author"
-                      value={formData.author}
-                      onChange={(e) => handleInputChange('author', e.target.value)}
-                      placeholder="Nom de l'auteur"
-                      className="pl-10"
-                    />
-                  </div>
-                  {errors.author && (
-                    <p className="text-sm text-red-600 mt-1">{errors.author}</p>
-                  )}
-                </div>
 
-                <div>
-                  <Label htmlFor="author_role">Rôle de l'auteur</Label>
-                  <Input
-                    id="author_role"
-                    value={formData.author_role}
-                    onChange={(e) => handleInputChange('author_role', e.target.value)}
-                    placeholder="Rôle ou fonction"
-                  />
-                </div>
-              </div>
-
-              <div className="flex items-center space-x-2">
-                <Checkbox
-                  id="is_pinned"
-                  checked={formData.is_pinned}
-                  onCheckedChange={(checked) => handleInputChange('is_pinned', checked)}
-                />
-                <Label htmlFor="is_pinned" className="flex items-center gap-2">
-                  <Pin className="h-4 w-4" />
-                  Épingler cet article
-                </Label>
-              </div>
             </CardContent>
           </Card>
         </TabsContent>
@@ -403,12 +284,6 @@ export function ArticleForm({ article, onSubmit, onCancel }: ArticleFormProps) {
                         Texte + Image
                       </div>
                     </SelectItem>
-                    <SelectItem value="gallery">
-                      <div className="flex items-center gap-2">
-                        <ImageIcon className="h-4 w-4" />
-                        Galerie de photos
-                      </div>
-                    </SelectItem>
                     <SelectItem value="video">
                       <div className="flex items-center gap-2">
                         <Video className="h-4 w-4" />
@@ -435,17 +310,6 @@ export function ArticleForm({ article, onSubmit, onCancel }: ArticleFormProps) {
                 </div>
               )}
 
-              {formData.content_type === 'gallery' && (
-                <div>
-                  <Label htmlFor="gallery_title">Titre de la galerie</Label>
-                  <Input
-                    id="gallery_title"
-                    value={formData.gallery_title}
-                    onChange={(e) => handleInputChange('gallery_title', e.target.value)}
-                    placeholder="Titre de la galerie de photos"
-                  />
-                </div>
-              )}
             </CardContent>
           </Card>
         </TabsContent>
@@ -460,18 +324,6 @@ export function ArticleForm({ article, onSubmit, onCancel }: ArticleFormProps) {
               </CardTitle>
             </CardHeader>
             <CardContent className="space-y-6">
-              {/* Avatar de l'auteur */}
-              <div>
-                <Label>Avatar de l'auteur</Label>
-                <div className="mt-2">
-                  <Input
-                    type="file"
-                    accept="image/*"
-                    onChange={(e) => handleFileChange('author_avatar', e.target.files?.[0] || null)}
-                    className="file:mr-4 file:py-2 file:px-4 file:rounded-full file:border-0 file:text-sm file:font-semibold file:bg-blue-50 file:text-blue-700 hover:file:bg-blue-100"
-                  />
-                </div>
-              </div>
 
               {/* Image principale */}
               {(formData.content_type === 'image_only' || formData.content_type === 'text_image') && (
@@ -492,50 +344,6 @@ export function ArticleForm({ article, onSubmit, onCancel }: ArticleFormProps) {
               )}
 
               {/* Galerie d'images */}
-              {formData.content_type === 'gallery' && (
-                <div>
-                  <Label>Images de la galerie *</Label>
-                  <div className="mt-2">
-                    <Input
-                      type="file"
-                      accept="image/*"
-                      multiple
-                      onChange={(e) => handleGalleryImagesChange(e.target.files)}
-                      className="file:mr-4 file:py-2 file:px-4 file:rounded-full file:border-0 file:text-sm file:font-semibold file:bg-blue-50 file:text-blue-700 hover:file:bg-blue-100"
-                    />
-                  </div>
-                  {errors.gallery && (
-                    <p className="text-sm text-red-600 mt-1">{errors.gallery}</p>
-                  )}
-                  
-                  {/* Prévisualisation des images de galerie */}
-                  {previewImages.length > 0 && (
-                    <div className="mt-4">
-                      <Label>Prévisualisation des images</Label>
-                      <div className="grid grid-cols-4 gap-2 mt-2">
-                        {previewImages.map((image, index) => (
-                          <div key={index} className="relative">
-                            <img
-                              src={image}
-                              alt={`Galerie ${index + 1}`}
-                              className="w-full h-20 object-cover rounded-lg"
-                            />
-                            <Button
-                              type="button"
-                              variant="destructive"
-                              size="sm"
-                              className="absolute -top-2 -right-2 h-6 w-6 rounded-full p-0"
-                              onClick={() => removeGalleryImage(index)}
-                            >
-                              <X className="h-3 w-3" />
-                            </Button>
-                          </div>
-                        ))}
-                      </div>
-                    </div>
-                  )}
-                </div>
-              )}
 
               {/* Vidéo */}
               {formData.content_type === 'video' && (
@@ -572,45 +380,6 @@ export function ArticleForm({ article, onSubmit, onCancel }: ArticleFormProps) {
           </Card>
         </TabsContent>
 
-        {/* Onglet Paramètres */}
-        <TabsContent value="settings" className="space-y-4">
-          <Card>
-            <CardHeader>
-              <CardTitle className="flex items-center gap-2">
-                <Tag className="h-5 w-5" />
-                Paramètres avancés
-              </CardTitle>
-            </CardHeader>
-            <CardContent className="space-y-4">
-              <Alert>
-                <AlertCircle className="h-4 w-4" />
-                <AlertDescription>
-                  Les paramètres avancés permettent de personnaliser l'affichage et le comportement de l'article.
-                </AlertDescription>
-              </Alert>
-
-              <div className="space-y-4">
-                <div className="flex items-center space-x-2">
-                  <Checkbox
-                    id="is_pinned_advanced"
-                    checked={formData.is_pinned}
-                    onCheckedChange={(checked) => handleInputChange('is_pinned', checked)}
-                  />
-                  <Label htmlFor="is_pinned_advanced" className="flex items-center gap-2">
-                    <Pin className="h-4 w-4" />
-                    Épingler cet article en haut de la liste
-                  </Label>
-                </div>
-
-                <div className="text-sm text-gray-600">
-                  <p><strong>Type de contenu :</strong> {getContentTypeIcon(formData.content_type)} {formData.content_type.replace('_', ' ')}</p>
-                  <p><strong>Catégorie :</strong> {formData.category}</p>
-                  <p><strong>Date de publication :</strong> {format(new Date(formData.date), 'dd MMMM yyyy', { locale: fr })} à {formData.time}</p>
-                </div>
-              </div>
-            </CardContent>
-          </Card>
-        </TabsContent>
       </Tabs>
 
       {/* Actions du formulaire */}

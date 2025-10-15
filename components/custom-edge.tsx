@@ -1,7 +1,6 @@
 "use client"
 
 import type React from "react"
-
 import { useCallback } from "react"
 import { BaseEdge, EdgeLabelRenderer, type EdgeProps, getBezierPath, useReactFlow } from "@xyflow/react"
 
@@ -69,4 +68,3 @@ export default function CustomEdge({
     </>
   )
 }
-

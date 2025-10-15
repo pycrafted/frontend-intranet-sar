@@ -52,7 +52,6 @@ export function AnnouncementModal({ isOpen, onClose }: AnnouncementModalProps) {
     priority: "",
     targetAudience: "",
     endDate: "",
-    isPinned: true, // Les annonces sont épinglées par défaut
     image: null as File | null,
     video: null as File | null,
     videoPoster: null as File | null
@@ -122,10 +121,6 @@ export function AnnouncementModal({ isOpen, onClose }: AnnouncementModalProps) {
         type: "announcement",
         title: hasTitle ? formData.title : undefined,
         content: hasContent ? formData.content : undefined,
-        author: "Utilisateur Actuel", // TODO: Récupérer depuis le contexte utilisateur
-        author_role: "Employé", // TODO: Récupérer depuis le contexte utilisateur
-        category: "Toutes", // Les annonces sont généralement pour tous
-        is_pinned: formData.isPinned,
         end_date: formData.endDate || undefined,
         content_type: contentType,
         image: hasImage ? formData.image : undefined,
@@ -146,7 +141,6 @@ export function AnnouncementModal({ isOpen, onClose }: AnnouncementModalProps) {
         priority: "",
         targetAudience: "",
         endDate: "",
-        isPinned: true,
         image: null,
         video: null,
         videoPoster: null
@@ -388,16 +382,6 @@ export function AnnouncementModal({ isOpen, onClose }: AnnouncementModalProps) {
                 </div>
 
                 <div className="flex items-center gap-2">
-                  <input
-                    type="checkbox"
-                    id="isPinned"
-                    checked={formData.isPinned}
-                    onChange={(e) => handleInputChange("isPinned", e.target.checked)}
-                    className="w-4 h-4 text-orange-600 border-gray-300 rounded focus:ring-orange-500"
-                  />
-                  <Label htmlFor="isPinned" className="text-sm text-gray-700">
-                    Épingler cette annonce en haut de la liste
-                  </Label>
                 </div>
 
                 {/* Aperçu de l'annonce */}

@@ -28,28 +28,16 @@ interface PublicationModalProps {
   onClose: () => void
 }
 
-const categories = [
-  "Toutes",
-  "Sécurité",
-  "Finance", 
-  "Formation",
-  "Production",
-  "Partenariat",
-  "Environnement",
-  "Ressources Humaines"
-]
 
 export function PublicationModal({ isOpen, onClose }: PublicationModalProps) {
   const [step, setStep] = useState(1)
   const [formData, setFormData] = useState({
     title: "",
     content: "",
-    category: "",
     type: "news",
     image: null as File | null,
     video: null as File | null,
     videoPoster: null as File | null,
-    isPinned: false
   })
   const [isSubmitting, setIsSubmitting] = useState(false)
   const [hasUnsavedChanges, setHasUnsavedChanges] = useState(false)
@@ -88,12 +76,10 @@ export function PublicationModal({ isOpen, onClose }: PublicationModalProps) {
     setFormData({
       title: "",
       content: "",
-      category: "",
       type: "news",
       image: null,
       video: null,
       videoPoster: null,
-      isPinned: false
     })
     setStep(1)
     setHasUnsavedChanges(false)
@@ -133,10 +119,6 @@ export function PublicationModal({ isOpen, onClose }: PublicationModalProps) {
         type: "news",
         title: formData.title.trim() || undefined,
         content: formData.content.trim() || undefined,
-        author: "Utilisateur Actuel", // TODO: Récupérer depuis le contexte utilisateur
-        author_role: "Employé", // TODO: Récupérer depuis le contexte utilisateur
-        category: formData.category,
-        is_pinned: formData.isPinned,
         content_type: contentType,
         image: formData.image || undefined,
         video: formData.video || undefined,
@@ -166,21 +148,21 @@ export function PublicationModal({ isOpen, onClose }: PublicationModalProps) {
   // Validation : au moins un contenu (titre, contenu, image ou vidéo) + catégorie
   const hasContent = formData.title.trim() || formData.content.trim() || formData.image || formData.video
   const canProceedToStep2 = hasContent
-  const canSubmit = canProceedToStep2 && formData.category
+  const canSubmit = canProceedToStep2
 
   return (
     <Dialog open={isOpen} onOpenChange={handleClose}>
-      <DialogContent className="max-w-2xl max-h-[90vh] overflow-y-auto">
-        <DialogHeader className="pb-4">
-          <DialogTitle className="text-xl font-semibold flex items-center gap-2">
-            <FileText className="w-5 h-5 text-blue-600" />
+      <DialogContent className="max-w-xs sm:max-w-lg lg:max-w-2xl max-h-[95vh] overflow-y-auto mx-2 sm:mx-4">
+        <DialogHeader className="pb-3 sm:pb-4 p-4 sm:p-6">
+          <DialogTitle className="text-lg sm:text-xl font-semibold flex items-center gap-2">
+            <FileText className="w-4 h-4 sm:w-5 sm:h-5 text-blue-600" />
             Nouvelle Actualité
           </DialogTitle>
           
-          {/* Indicateur de progression */}
-          <div className="flex items-center gap-2 mt-4">
+          {/* Indicateur de progression - Responsive */}
+          <div className="flex items-center gap-1 sm:gap-2 mt-3 sm:mt-4">
             <div className={cn(
-              "w-8 h-8 rounded-full flex items-center justify-center text-sm font-medium",
+              "w-6 h-6 sm:w-8 sm:h-8 rounded-full flex items-center justify-center text-xs sm:text-sm font-medium",
               step >= 1 ? "bg-blue-600 text-white" : "bg-gray-200 text-gray-500"
             )}>
               1
@@ -192,7 +174,7 @@ export function PublicationModal({ isOpen, onClose }: PublicationModalProps) {
               )} />
             </div>
             <div className={cn(
-              "w-8 h-8 rounded-full flex items-center justify-center text-sm font-medium",
+              "w-6 h-6 sm:w-8 sm:h-8 rounded-full flex items-center justify-center text-xs sm:text-sm font-medium",
               step >= 2 ? "bg-blue-600 text-white" : "bg-gray-200 text-gray-500"
             )}>
               2
@@ -200,18 +182,18 @@ export function PublicationModal({ isOpen, onClose }: PublicationModalProps) {
           </div>
         </DialogHeader>
 
-        <div className="space-y-6">
+        <div className="space-y-4 sm:space-y-6 p-4 sm:p-6">
           {step === 1 && (
             <>
-              {/* Étape 1: Contenu principal */}
-              <div className="space-y-4">
-                <div className="p-4 bg-blue-50 border border-blue-200 rounded-lg">
+              {/* Étape 1: Contenu principal - Responsive */}
+              <div className="space-y-3 sm:space-y-4">
+                <div className="p-3 sm:p-4 bg-blue-50 border border-blue-200 rounded-lg">
                   <div className="flex items-start gap-2">
-                    <AlertCircle className="w-5 h-5 text-blue-600 mt-0.5 flex-shrink-0" />
-                    <div className="text-sm text-blue-800">
+                    <AlertCircle className="w-4 h-4 sm:w-5 sm:h-5 text-blue-600 mt-0.5 flex-shrink-0" />
+                    <div className="text-xs sm:text-sm text-blue-800">
                       <p className="font-medium mb-1">Créer une publication</p>
                       <p>Vous pouvez publier :</p>
-                      <ul className="list-disc list-inside mt-1 space-y-1">
+                      <ul className="list-disc list-inside mt-1 space-y-1 text-xs">
                         <li>Un titre et/ou du contenu textuel</li>
                         <li>Une image seule (avec type et catégorie)</li>
                         <li>Une vidéo seule (avec type et catégorie)</li>
@@ -222,7 +204,7 @@ export function PublicationModal({ isOpen, onClose }: PublicationModalProps) {
                   </div>
                 </div>
                 <div>
-                  <Label htmlFor="title" className="text-sm font-medium text-gray-700">
+                  <Label htmlFor="title" className="text-xs sm:text-sm font-medium text-gray-700">
                     Titre de l'actualité (optionnel)
                   </Label>
                   <Input
@@ -230,12 +212,12 @@ export function PublicationModal({ isOpen, onClose }: PublicationModalProps) {
                     placeholder="Donnez un titre accrocheur à votre actualité..."
                     value={formData.title}
                     onChange={(e) => handleInputChange("title", e.target.value)}
-                    className="mt-1"
+                    className="mt-1 text-sm"
                   />
                 </div>
 
                 <div>
-                  <Label htmlFor="content" className="text-sm font-medium text-gray-700">
+                  <Label htmlFor="content" className="text-xs sm:text-sm font-medium text-gray-700">
                     Contenu (optionnel)
                   </Label>
                   <Textarea
@@ -243,16 +225,16 @@ export function PublicationModal({ isOpen, onClose }: PublicationModalProps) {
                     placeholder="Rédigez le contenu de votre actualité..."
                     value={formData.content}
                     onChange={(e) => handleInputChange("content", e.target.value)}
-                    className="mt-1 min-h-[120px] resize-none"
+                    className="mt-1 min-h-[80px] sm:min-h-[120px] resize-none text-sm"
                   />
                   <div className="text-xs text-gray-500 mt-1">
                     {formData.content.length} caractères
                   </div>
                 </div>
 
-                {/* Upload d'image */}
+                {/* Upload d'image - Responsive */}
                 <div>
-                  <Label className="text-sm font-medium text-gray-700">
+                  <Label className="text-xs sm:text-sm font-medium text-gray-700">
                     Image (optionnel)
                   </Label>
                   <div className="mt-1">
@@ -265,19 +247,19 @@ export function PublicationModal({ isOpen, onClose }: PublicationModalProps) {
                     />
                     <label
                       htmlFor="image"
-                      className="flex items-center gap-2 p-4 border-2 border-dashed border-gray-300 rounded-lg cursor-pointer hover:border-blue-400 hover:bg-blue-50 transition-colors duration-200"
+                      className="flex items-center gap-2 p-3 sm:p-4 border-2 border-dashed border-gray-300 rounded-lg cursor-pointer hover:border-blue-400 hover:bg-blue-50 transition-colors duration-200"
                     >
-                      <Image className="w-5 h-5 text-gray-400" />
-                      <span className="text-sm text-gray-600">
+                      <Image className="w-4 h-4 sm:w-5 sm:h-5 text-gray-400" />
+                      <span className="text-xs sm:text-sm text-gray-600 truncate">
                         {formData.image ? formData.image.name : "Cliquez pour ajouter une image"}
                       </span>
                     </label>
                   </div>
                 </div>
 
-                {/* Upload de vidéo */}
+                {/* Upload de vidéo - Responsive */}
                 <div>
-                  <Label className="text-sm font-medium text-gray-700">
+                  <Label className="text-xs sm:text-sm font-medium text-gray-700">
                     Vidéo (optionnel)
                   </Label>
                   <div className="mt-1">
@@ -290,19 +272,19 @@ export function PublicationModal({ isOpen, onClose }: PublicationModalProps) {
                     />
                     <label
                       htmlFor="video"
-                      className="flex items-center gap-2 p-4 border-2 border-dashed border-gray-300 rounded-lg cursor-pointer hover:border-purple-400 hover:bg-purple-50 transition-colors duration-200"
+                      className="flex items-center gap-2 p-3 sm:p-4 border-2 border-dashed border-gray-300 rounded-lg cursor-pointer hover:border-purple-400 hover:bg-purple-50 transition-colors duration-200"
                     >
-                      <Video className="w-5 h-5 text-gray-400" />
-                      <span className="text-sm text-gray-600">
+                      <Video className="w-4 h-4 sm:w-5 sm:h-5 text-gray-400" />
+                      <span className="text-xs sm:text-sm text-gray-600 truncate">
                         {formData.video ? formData.video.name : "Cliquez pour ajouter une vidéo"}
                       </span>
                     </label>
                   </div>
                   
-                  {/* Upload d'image de couverture pour la vidéo */}
+                  {/* Upload d'image de couverture pour la vidéo - Responsive */}
                   {formData.video && (
                     <div className="mt-2">
-                      <Label className="text-sm font-medium text-gray-700">
+                      <Label className="text-xs sm:text-sm font-medium text-gray-700">
                         Image de couverture pour la vidéo (optionnel)
                       </Label>
                       <div className="mt-1">
@@ -315,10 +297,10 @@ export function PublicationModal({ isOpen, onClose }: PublicationModalProps) {
                         />
                         <label
                           htmlFor="videoPoster"
-                          className="flex items-center gap-2 p-3 border-2 border-dashed border-gray-300 rounded-lg cursor-pointer hover:border-orange-400 hover:bg-orange-50 transition-colors duration-200"
+                          className="flex items-center gap-2 p-2 sm:p-3 border-2 border-dashed border-gray-300 rounded-lg cursor-pointer hover:border-orange-400 hover:bg-orange-50 transition-colors duration-200"
                         >
-                          <Play className="w-4 h-4 text-gray-400" />
-                          <span className="text-sm text-gray-600">
+                          <Play className="w-3 h-3 sm:w-4 sm:h-4 text-gray-400" />
+                          <span className="text-xs sm:text-sm text-gray-600 truncate">
                             {formData.videoPoster ? formData.videoPoster.name : "Ajouter une image de couverture"}
                           </span>
                         </label>
@@ -334,35 +316,8 @@ export function PublicationModal({ isOpen, onClose }: PublicationModalProps) {
             <>
               {/* Étape 2: Configuration */}
               <div className="space-y-4">
-                <div>
-                  <Label htmlFor="category" className="text-sm font-medium text-gray-700">
-                    Catégorie *
-                  </Label>
-                  <Select value={formData.category} onValueChange={(value) => handleInputChange("category", value)}>
-                    <SelectTrigger className="mt-1">
-                      <SelectValue placeholder="Sélectionnez une catégorie" />
-                    </SelectTrigger>
-                    <SelectContent>
-                      {categories.map((category) => (
-                        <SelectItem key={category} value={category}>
-                          {category}
-                        </SelectItem>
-                      ))}
-                    </SelectContent>
-                  </Select>
-                </div>
 
                 <div className="flex items-center gap-2">
-                  <input
-                    type="checkbox"
-                    id="isPinned"
-                    checked={formData.isPinned}
-                    onChange={(e) => handleInputChange("isPinned", e.target.checked)}
-                    className="w-4 h-4 text-blue-600 border-gray-300 rounded focus:ring-blue-500"
-                  />
-                  <Label htmlFor="isPinned" className="text-sm text-gray-700">
-                    Épingler cette actualité en haut de la liste
-                  </Label>
                 </div>
 
                 {/* Aperçu de la publication */}
@@ -397,33 +352,34 @@ export function PublicationModal({ isOpen, onClose }: PublicationModalProps) {
                         Aucun contenu saisi
                       </div>
                     )}
-                    {formData.category && (
-                      <Badge variant="secondary" className="text-xs">
-                        {formData.category}
-                      </Badge>
-                    )}
                   </div>
                 </div>
               </div>
             </>
           )}
 
-          {/* Actions */}
-          <div className="flex justify-between pt-4 border-t border-gray-200">
+          {/* Actions - Responsive */}
+          <div className="flex flex-col sm:flex-row justify-between gap-3 sm:gap-0 pt-3 sm:pt-4 border-t border-gray-200">
             <div>
               {step > 1 && (
                 <Button
                   variant="outline"
                   onClick={() => setStep(step - 1)}
                   disabled={isSubmitting}
+                  className="w-full sm:w-auto text-sm"
                 >
                   Précédent
                 </Button>
               )}
             </div>
             
-            <div className="flex gap-2">
-              <Button variant="outline" onClick={onClose} disabled={isSubmitting}>
+            <div className="flex flex-col sm:flex-row gap-2">
+              <Button 
+                variant="outline" 
+                onClick={onClose} 
+                disabled={isSubmitting}
+                className="w-full sm:w-auto text-sm"
+              >
                 Annuler
               </Button>
               
@@ -431,7 +387,7 @@ export function PublicationModal({ isOpen, onClose }: PublicationModalProps) {
                 <Button
                   onClick={() => setStep(2)}
                   disabled={!canProceedToStep2 || isSubmitting}
-                  className="bg-blue-600 hover:bg-blue-700"
+                  className="bg-blue-600 hover:bg-blue-700 w-full sm:w-auto text-sm"
                 >
                   Suivant
                 </Button>
@@ -439,15 +395,19 @@ export function PublicationModal({ isOpen, onClose }: PublicationModalProps) {
                 <Button
                   onClick={handleSubmit}
                   disabled={!canSubmit || isSubmitting}
-                  className="bg-blue-600 hover:bg-blue-700"
+                  className="bg-blue-600 hover:bg-blue-700 w-full sm:w-auto text-sm"
                 >
                   {isSubmitting ? (
                     <>
-                      <div className="w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin mr-2" />
-                      Publication...
+                      <div className="w-3 h-3 sm:w-4 sm:h-4 border-2 border-white border-t-transparent rounded-full animate-spin mr-2" />
+                      <span className="hidden sm:inline">Publication...</span>
+                      <span className="sm:hidden">Publication...</span>
                     </>
                   ) : (
-                    "Publier l'actualité"
+                    <>
+                      <span className="hidden sm:inline">Publier l'actualité</span>
+                      <span className="sm:hidden">Publier</span>
+                    </>
                   )}
                 </Button>
               )}
