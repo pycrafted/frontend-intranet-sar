@@ -1127,7 +1127,7 @@ export default function WorkflowBuilder() {
                   <span>Contact</span>
                   <div className="h-px flex-1 bg-slate-200"></div>
                 </h3>
-                <div className="grid grid-cols-2 gap-4">
+                <div className="grid grid-cols-1 gap-4">
                   <a
                     href={`mailto:${selectedNode.data.email}`}
                     className="flex items-start gap-4 p-4 rounded-xl hover:bg-slate-50 transition-colors group"
@@ -1141,18 +1141,33 @@ export default function WorkflowBuilder() {
                     </div>
                   </a>
 
-                  <a
-                    href={`tel:${selectedNode.data.phone}`}
-                    className="flex items-start gap-4 p-4 rounded-xl hover:bg-slate-50 transition-colors group"
-                  >
-                    <div className="flex-shrink-0 w-10 h-10 rounded-lg bg-green-50 flex items-center justify-center group-hover:bg-green-100 transition-colors">
-                      <Phone className="h-5 w-5 text-green-600" />
-                    </div>
-                    <div className="flex-1 min-w-0">
-                      <p className="text-xs text-slate-500 mb-0.5">Téléphone</p>
-                      <p className="text-sm font-medium text-slate-900">{selectedNode.data.phone}</p>
-                    </div>
-                  </a>
+                  <div className="grid grid-cols-2 gap-4">
+                    <a
+                      href={`tel:${selectedNode.data.phone}`}
+                      className="flex items-start gap-4 p-4 rounded-xl hover:bg-slate-50 transition-colors group"
+                    >
+                      <div className="flex-shrink-0 w-10 h-10 rounded-lg bg-green-50 flex items-center justify-center group-hover:bg-green-100 transition-colors">
+                        <Phone className="h-5 w-5 text-green-600" />
+                      </div>
+                      <div className="flex-1 min-w-0">
+                        <p className="text-xs text-slate-500 mb-0.5">Mobile</p>
+                        <p className="text-sm font-medium text-slate-900">{selectedNode.data.phone}</p>
+                      </div>
+                    </a>
+
+                    <a
+                      href={`tel:${selectedNode.data.office_phone || selectedNode.data.phone_fixe}`}
+                      className="flex items-start gap-4 p-4 rounded-xl hover:bg-slate-50 transition-colors group"
+                    >
+                      <div className="flex-shrink-0 w-10 h-10 rounded-lg bg-emerald-50 flex items-center justify-center group-hover:bg-emerald-100 transition-colors">
+                        <Phone className="h-5 w-5 text-emerald-600" />
+                      </div>
+                      <div className="flex-1 min-w-0">
+                        <p className="text-xs text-slate-500 mb-0.5">Fixe</p>
+                        <p className="text-sm font-medium text-slate-900">{selectedNode.data.office_phone || selectedNode.data.phone_fixe || "Non renseigné"}</p>
+                      </div>
+                    </a>
+                  </div>
                 </div>
               </div>
 

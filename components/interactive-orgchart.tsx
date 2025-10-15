@@ -1,6 +1,6 @@
 "use client"
 
-import React, { useState, useRef, useEffect } from "react"
+import React, { useState, useRef, useEffect, useMemo } from "react"
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
 import { Button } from "@/components/ui/button"
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar"
@@ -22,14 +22,15 @@ import {
   MessageCircle
 } from "lucide-react"
 import { cn } from "@/lib/utils"
-import { useOrgChart, Employee, OrgChartData } from "@/hooks/useOrgChart"
+import { Employee } from "@/hooks/useOrgChart"
 
 interface OrgChartProps {
-  // Props optionnelles pour compatibilité
-  employees?: Employee[]
+  employees: Employee[]
+  loading?: boolean
+  error?: string | null
 }
 
-const InteractiveOrgChart: React.FC<OrgChartProps> = ({ employees: propEmployees }) => {
+const InteractiveOrgChart: React.FC<OrgChartProps> = ({ employees, loading = false, error = null }) => {
   const [zoom, setZoom] = useState(1)
   const [position, setPosition] = useState({ x: 0, y: 0 })
   const [isInitialized, setIsInitialized] = useState(false)
@@ -42,29 +43,24 @@ const InteractiveOrgChart: React.FC<OrgChartProps> = ({ employees: propEmployees
   const containerRef = useRef<HTMLDivElement>(null)
   const animationRef = useRef<number>()
 
-  console.log('🏢 [INTERACTIVE_ORGCHART] Initialisation - UTILISATION DU HOOK DÉDIÉ (pas de base de données)')
-
-  // Utiliser le hook dédié à l'organigramme ou les props en fallback
-  const { employees: apiEmployees, orgChartData, loading, error } = useOrgChart()
-  const employees = propEmployees || apiEmployees
+  console.log('🏢 [INTERACTIVE_ORGCHART] Initialisation - DONNÉES VIA PROPS')
 
   console.log('📊 [INTERACTIVE_ORGCHART] Données reçues:', {
-    source: 'ORGCHART_HOOK',
+    source: 'PROPS',
     employeesCount: employees?.length || 0,
-    orgChartDataLevels: Object.keys(orgChartData || {}).length,
     loading,
     error: error || 'Aucune erreur',
-    usingProps: !!propEmployees
+    employees: employees?.map(emp => ({ id: emp.id, name: emp.full_name, manager: emp.manager })) || []
   })
 
   // Convertir les données de l'API en structure hiérarchique
   const buildOrgStructure = (): Employee[] => {
-    console.log('🏗️ [INTERACTIVE_ORGCHART] Construction de la structure hiérarchique - DONNÉES STATIQUES')
+    console.log('🏗️ [INTERACTIVE_ORGCHART] Construction de la structure hiérarchique - DONNÉES VIA API')
     
     // Utiliser les données des employés pour construire la hiérarchie
     if (employees && employees.length > 0) {
       console.log('📊 [INTERACTIVE_ORGCHART] Données employés disponibles:', {
-        source: 'STATIC_DATA',
+        source: 'API_DATA',
         count: employees.length,
         employees: employees.map(emp => ({ id: emp.id, name: emp.full_name, manager: emp.manager }))
       })
@@ -85,7 +81,7 @@ const InteractiveOrgChart: React.FC<OrgChartProps> = ({ employees: propEmployees
       console.log('👑 [INTERACTIVE_ORGCHART] CEO identifié:', {
         id: ceo.id,
         name: ceo.full_name,
-        source: 'STATIC_DATA'
+        source: 'API_DATA'
       })
       
       // Construire la hiérarchie récursivement
@@ -113,7 +109,7 @@ const InteractiveOrgChart: React.FC<OrgChartProps> = ({ employees: propEmployees
       ceoEmployee.children = buildHierarchy(ceo.id)
       
       console.log('✅ [INTERACTIVE_ORGCHART] Structure hiérarchique construite:', {
-        source: 'STATIC_DATA',
+        source: 'API_DATA',
         ceo: ceoEmployee.full_name,
         totalSubordinates: ceoEmployee.children.length
       })
@@ -148,7 +144,14 @@ const InteractiveOrgChart: React.FC<OrgChartProps> = ({ employees: propEmployees
   }
 
 
-  const orgStructure = buildOrgStructure()
+  const orgStructure = useMemo(() => {
+    const structure = buildOrgStructure()
+    console.log('🏗️ [INTERACTIVE_ORGCHART] Structure hiérarchique construite:', {
+      orgStructureLength: structure?.length || 0,
+      orgStructure: structure?.map(emp => ({ id: emp.id, name: emp.full_name, children: emp.children?.length || 0 })) || []
+    })
+    return structure
+  }, [employees])
 
   // Effet pour calculer la largeur du conteneur et centrer l'organigramme
   useEffect(() => {
@@ -497,6 +500,12 @@ const InteractiveOrgChart: React.FC<OrgChartProps> = ({ employees: propEmployees
   }
 
   if (!orgStructure || orgStructure.length === 0) {
+    console.log('⚠️ [INTERACTIVE_ORGCHART] Aucune structure hiérarchique trouvée:', {
+      orgStructure,
+      orgStructureLength: orgStructure?.length,
+      employeesCount: employees?.length,
+      employees: employees?.map(emp => ({ id: emp.id, name: emp.full_name, manager: emp.manager }))
+    })
     return (
       <div className="relative w-full h-full overflow-hidden flex items-center justify-center" style={{ backgroundColor: '#e5e7eb' }}>
         <div className="text-center text-slate-600">
@@ -505,16 +514,27 @@ const InteractiveOrgChart: React.FC<OrgChartProps> = ({ employees: propEmployees
           </div>
           <p className="text-lg mb-2">Aucun employé trouvé</p>
           <p className="text-sm opacity-80">Ajoutez des employés dans l'administration Django</p>
+          <p className="text-xs opacity-60 mt-2">
+            Debug: {employees?.length || 0} employés reçus
+          </p>
         </div>
       </div>
     )
   }
 
+  console.log('🎨 [INTERACTIVE_ORGCHART] Rendu principal de l\'organigramme:', {
+    orgStructureLength: orgStructure?.length,
+    isInitialized,
+    containerWidth,
+    zoom,
+    position
+  })
+
   return (
     <div 
       ref={containerRef}
       className={`relative w-full overflow-hidden ${isFullscreen ? 'h-screen' : 'h-full'}`} 
-      style={{ backgroundColor: '#e5e7eb' }}
+      style={{ backgroundColor: '#e5e7eb', minHeight: '600px' }}
     >
 
       {/* Contrôles */}

@@ -53,7 +53,7 @@ export interface OrgChartData {
   }>
 }
 
-const API_BASE_URL = `${process.env.NEXT_PUBLIC_API_URL || 'http://localhost:8000/api'}/annuaire`
+const API_BASE_URL = `${process.env.NEXT_PUBLIC_API_URL || 'http://localhost:8000/api'}/organigramme`
 
 export const useEmployees = () => {
   const [employees, setEmployees] = useState<Employee[]>([])
@@ -65,8 +65,8 @@ export const useEmployees = () => {
   const fetchEmployees = async () => {
     try {
       setLoading(true)
-      // Utiliser le nouvel endpoint pour les employés (modèles annuaire)
-      const response = await fetch(`${API_BASE_URL}/employees/`)
+      // Utiliser l'endpoint organigramme pour les employés
+      const response = await fetch(`${API_BASE_URL}/agents/`)
       if (!response.ok) throw new Error('Erreur lors du chargement des employés')
       const data = await response.json()
       setEmployees(data.results || data) // Gérer la pagination
@@ -79,14 +79,14 @@ export const useEmployees = () => {
 
   const fetchDepartments = async () => {
     try {
-      // Utiliser le nouvel endpoint corrigé pour les départements
-      const response = await fetch(`${API_BASE_URL}/departments-list-corrected/`)
+      // Utiliser l'endpoint organigramme pour les directions
+      const response = await fetch(`${API_BASE_URL}/directions/`)
       if (!response.ok) throw new Error('Erreur lors du chargement des départements')
       const data = await response.json()
-      // Convertir la liste de départements en format attendu
-      const departmentsList = data.map((dept: string, index: number) => ({
-        id: index + 1,
-        name: dept,
+      // Convertir les directions en format attendu
+      const departmentsList = data.map((dept: any) => ({
+        id: dept.id,
+        name: dept.name,
         description: null,
         location: null,
         employee_count: 0,
@@ -101,8 +101,8 @@ export const useEmployees = () => {
 
   const fetchOrgChartData = async () => {
     try {
-      // Utiliser le nouvel endpoint corrigé pour l'organigramme
-      const response = await fetch(`${API_BASE_URL}/hierarchy-data-corrected/`)
+      // Utiliser l'endpoint organigramme pour l'arborescence
+      const response = await fetch(`${API_BASE_URL}/tree/`)
       if (!response.ok) throw new Error('Erreur lors du chargement de l\'organigramme')
       const data = await response.json()
       setOrgChartData(data)
@@ -125,8 +125,8 @@ export const useEmployees = () => {
         }
       }
       
-      // Utiliser le nouvel endpoint pour la recherche d'employés
-      const response = await fetch(`${API_BASE_URL}/employees/search/?${params}`)
+      // Utiliser l'endpoint organigramme pour la recherche d'agents
+      const response = await fetch(`${API_BASE_URL}/agents/search/?${params}`)
       if (!response.ok) throw new Error('Erreur lors de la recherche')
       const data = await response.json()
       
@@ -141,8 +141,8 @@ export const useEmployees = () => {
 
   const getEmployeeById = async (id: number) => {
     try {
-      // Utiliser le nouvel endpoint pour les détails d'employé
-      const response = await fetch(`${API_BASE_URL}/employees/${id}/`)
+      // Utiliser l'endpoint organigramme pour les détails d'agent
+      const response = await fetch(`${API_BASE_URL}/agents/${id}/`)
       if (!response.ok) throw new Error('Employé non trouvé')
       return await response.json()
     } catch (err) {
@@ -153,7 +153,7 @@ export const useEmployees = () => {
 
   const getEmployeeSubordinates = async (id: number) => {
     try {
-      const response = await fetch(`${API_BASE_URL}/employees/${id}/subordinates/`)
+      const response = await fetch(`${API_BASE_URL}/agents/${id}/subordinates/`)
       if (!response.ok) throw new Error('Erreur lors du chargement des subordonnés')
       return await response.json()
     } catch (err) {
