@@ -24,3 +24,4 @@ export function ComingSoonCard({ icon: Icon, title, description = "Cette fonctio
     </Card>
   )
 }
+

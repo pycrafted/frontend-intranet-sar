@@ -44,3 +44,4 @@ export interface Workflow {
   nodes: WorkflowNode[]
   edges: any[]
 }
+

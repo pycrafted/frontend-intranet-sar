@@ -47,3 +47,4 @@ export const ConditionalNode = memo(({ data, isConnectable }: NodeProps<NodeData
 })
 
 ConditionalNode.displayName = "ConditionalNode"
+

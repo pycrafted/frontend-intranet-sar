@@ -112,3 +112,4 @@ const getDefaultDescription = (type: string): string => {
       return "Workflow node"
   }
 }
+

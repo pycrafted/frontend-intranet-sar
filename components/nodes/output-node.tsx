@@ -51,3 +51,4 @@ export const OutputNode = memo(({ data, isConnectable }: NodeProps<NodeData>) =>
 })
 
 OutputNode.displayName = "OutputNode"
+
