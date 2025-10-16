@@ -190,7 +190,6 @@ export default function ActualitesPage() {
                     onDelete={handleDeleteArticle}
                     onUpdate={handleUpdateArticle}
                     searchTerm={searchTerm}
-                    isPublic={true} // Page publique - pas d'actions de modification/suppression
                   />
                 ))}
               </div>

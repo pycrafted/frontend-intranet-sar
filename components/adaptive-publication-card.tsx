@@ -33,10 +33,9 @@ interface AdaptivePublicationCardProps {
   onDelete?: (articleId: number) => void
   onUpdate?: (updatedArticle: Article) => void
   searchTerm?: string
-  isPublic?: boolean // Nouveau prop pour indiquer si c'est une page publique
 }
 
-export function AdaptivePublicationCard({ article, onDelete, onUpdate, searchTerm, isPublic = false }: AdaptivePublicationCardProps) {
+export function AdaptivePublicationCard({ article, onDelete, onUpdate, searchTerm }: AdaptivePublicationCardProps) {
   const [showFullContent, setShowFullContent] = useState(false)
   const [showDeleteModal, setShowDeleteModal] = useState(false)
   const [showEditModal, setShowEditModal] = useState(false)
@@ -157,19 +156,17 @@ export function AdaptivePublicationCard({ article, onDelete, onUpdate, searchTer
               </span>
             </div>
             
-            {/* Actions en haut à droite - seulement si authentifié */}
-            {!isPublic && (
-              <div className="flex items-center gap-1 relative">
-                <VisibleDropdownMenu
-                  onEdit={() => {
-                    setShowEditModal(true)
-                  }}
-                  onDelete={() => {
-                    setShowDeleteModal(true)
-                  }}
-                />
-              </div>
-            )}
+            {/* Actions en haut à droite */}
+            <div className="flex items-center gap-1 relative">
+              <VisibleDropdownMenu
+                onEdit={() => {
+                  setShowEditModal(true)
+                }}
+                onDelete={() => {
+                  setShowDeleteModal(true)
+                }}
+              />
+            </div>
           </div>
 
           {/* Type */}
@@ -192,27 +189,22 @@ export function AdaptivePublicationCard({ article, onDelete, onUpdate, searchTer
         {renderContent()}
       </CardContent>
       
-      {/* Modals - seulement si pas en mode public */}
-      {!isPublic && (
-        <>
-          {/* Modal de confirmation de suppression */}
-          <DeleteConfirmationModal
-            isOpen={showDeleteModal}
-            onClose={() => setShowDeleteModal(false)}
-            onConfirm={handleDelete}
-            article={article}
-            isDeleting={isDeleting}
-          />
-          
-          {/* Modal de modification d'article */}
-          <EditArticleModal
-            isOpen={showEditModal}
-            onClose={() => setShowEditModal(false)}
-            article={article}
-            onUpdate={handleUpdate}
-          />
-        </>
-      )}
+      {/* Modal de confirmation de suppression */}
+      <DeleteConfirmationModal
+        isOpen={showDeleteModal}
+        onClose={() => setShowDeleteModal(false)}
+        onConfirm={handleDelete}
+        article={article}
+        isDeleting={isDeleting}
+      />
+      
+      {/* Modal de modification d'article */}
+      <EditArticleModal
+        isOpen={showEditModal}
+        onClose={() => setShowEditModal(false)}
+        article={article}
+        onUpdate={handleUpdate}
+      />
     </Card>
   )
 }
