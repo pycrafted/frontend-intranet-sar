@@ -12,7 +12,7 @@ export interface Employee {
   employee_id: string | null
   matricule: string | null  // Ajout du champ matricule (alias de employee_id)
   position: number  // ID de la position
-  position_title: string
+  job_title: string
   department_name: string
   manager: number | null
   manager_name: string | null
@@ -53,7 +53,7 @@ export interface OrgChartData {
   }>
 }
 
-const API_BASE_URL = `${process.env.NEXT_PUBLIC_API_URL || 'http://localhost:8000/api'}/organigramme`
+const API_BASE_URL = `${process.env.NEXT_PUBLIC_API_URL || 'http://localhost:8000/api'}/annuaire`
 
 export const useEmployees = () => {
   const [employees, setEmployees] = useState<Employee[]>([])
@@ -65,12 +65,18 @@ export const useEmployees = () => {
   const fetchEmployees = async () => {
     try {
       setLoading(true)
-      // Utiliser l'endpoint organigramme pour les employés
-      const response = await fetch(`${API_BASE_URL}/agents/`)
-      if (!response.ok) throw new Error('Erreur lors du chargement des employés')
+      console.log('🔍 [ANNUAIRE] Récupération des employés depuis:', `${API_BASE_URL}/employees/`)
+      // Utiliser l'endpoint annuaire pour les employés
+      const response = await fetch(`${API_BASE_URL}/employees/`)
+      if (!response.ok) {
+        console.error('❌ [ANNUAIRE] Erreur HTTP:', response.status, response.statusText)
+        throw new Error(`Erreur ${response.status}: ${response.statusText}`)
+      }
       const data = await response.json()
+      console.log('✅ [ANNUAIRE] Employés récupérés:', data.length || data.results?.length || 0)
       setEmployees(data.results || data) // Gérer la pagination
     } catch (err) {
+      console.error('❌ [ANNUAIRE] Erreur lors du chargement des employés:', err)
       setError(err instanceof Error ? err.message : 'Erreur inconnue')
     } finally {
       setLoading(false)
@@ -79,34 +85,37 @@ export const useEmployees = () => {
 
   const fetchDepartments = async () => {
     try {
-      // Utiliser l'endpoint organigramme pour les directions
-      const response = await fetch(`${API_BASE_URL}/directions/`)
-      if (!response.ok) throw new Error('Erreur lors du chargement des départements')
+      console.log('🔍 [ANNUAIRE] Récupération des départements depuis:', `${API_BASE_URL}/departments/`)
+      // Utiliser l'endpoint annuaire pour les départements
+      const response = await fetch(`${API_BASE_URL}/departments/`)
+      if (!response.ok) {
+        console.error('❌ [ANNUAIRE] Erreur HTTP départements:', response.status, response.statusText)
+        throw new Error(`Erreur ${response.status}: ${response.statusText}`)
+      }
       const data = await response.json()
-      // Convertir les directions en format attendu
-      const departmentsList = data.map((dept: any) => ({
-        id: dept.id,
-        name: dept.name,
-        description: null,
-        location: null,
-        employee_count: 0,
-        created_at: new Date().toISOString(),
-        updated_at: new Date().toISOString()
-      }))
-      setDepartments(departmentsList)
+      console.log('✅ [ANNUAIRE] Départements récupérés:', data.length || data.results?.length || 0)
+      // Les départements de l'app annuaire ont déjà le bon format
+      setDepartments(data.results || data)
     } catch (err) {
+      console.error('❌ [ANNUAIRE] Erreur lors du chargement des départements:', err)
       setError(err instanceof Error ? err.message : 'Erreur inconnue')
     }
   }
 
   const fetchOrgChartData = async () => {
     try {
-      // Utiliser l'endpoint organigramme pour l'arborescence
-      const response = await fetch(`${API_BASE_URL}/tree/`)
-      if (!response.ok) throw new Error('Erreur lors du chargement de l\'organigramme')
+      console.log('🔍 [ANNUAIRE] Récupération de l\'organigramme depuis:', `${API_BASE_URL}/hierarchy-data/`)
+      // Utiliser l'endpoint annuaire pour l'organigramme
+      const response = await fetch(`${API_BASE_URL}/hierarchy-data/`)
+      if (!response.ok) {
+        console.error('❌ [ANNUAIRE] Erreur HTTP organigramme:', response.status, response.statusText)
+        throw new Error(`Erreur ${response.status}: ${response.statusText}`)
+      }
       const data = await response.json()
+      console.log('✅ [ANNUAIRE] Organigramme récupéré:', Object.keys(data).length, 'niveaux')
       setOrgChartData(data)
     } catch (err) {
+      console.error('❌ [ANNUAIRE] Erreur lors du chargement de l\'organigramme:', err)
       setError(err instanceof Error ? err.message : 'Erreur inconnue')
     }
   }
@@ -125,14 +134,19 @@ export const useEmployees = () => {
         }
       }
       
-      // Utiliser l'endpoint organigramme pour la recherche d'agents
-      const response = await fetch(`${API_BASE_URL}/agents/search/?${params}`)
-      if (!response.ok) throw new Error('Erreur lors de la recherche')
+      console.log('🔍 [ANNUAIRE] Recherche d\'employés:', `${API_BASE_URL}/employees/search/?${params}`)
+      // Utiliser l'endpoint annuaire pour la recherche d'employés
+      const response = await fetch(`${API_BASE_URL}/employees/search/?${params}`)
+      if (!response.ok) {
+        console.error('❌ [ANNUAIRE] Erreur HTTP recherche:', response.status, response.statusText)
+        throw new Error(`Erreur ${response.status}: ${response.statusText}`)
+      }
       const data = await response.json()
-      
+      console.log('✅ [ANNUAIRE] Recherche terminée:', data.length || data.results?.length || 0, 'résultats')
       
       setEmployees(data.results || data) // Gérer la pagination
     } catch (err) {
+      console.error('❌ [ANNUAIRE] Erreur lors de la recherche:', err)
       setError(err instanceof Error ? err.message : 'Erreur inconnue')
     } finally {
       setLoading(false)
@@ -141,11 +155,16 @@ export const useEmployees = () => {
 
   const getEmployeeById = async (id: number) => {
     try {
-      // Utiliser l'endpoint organigramme pour les détails d'agent
-      const response = await fetch(`${API_BASE_URL}/agents/${id}/`)
-      if (!response.ok) throw new Error('Employé non trouvé')
+      console.log('🔍 [ANNUAIRE] Récupération employé ID:', id)
+      // Utiliser l'endpoint annuaire pour les détails d'employé
+      const response = await fetch(`${API_BASE_URL}/employees/${id}/`)
+      if (!response.ok) {
+        console.error('❌ [ANNUAIRE] Erreur HTTP employé:', response.status, response.statusText)
+        throw new Error('Employé non trouvé')
+      }
       return await response.json()
     } catch (err) {
+      console.error('❌ [ANNUAIRE] Erreur lors de la récupération de l\'employé:', err)
       setError(err instanceof Error ? err.message : 'Erreur inconnue')
       return null
     }
@@ -153,10 +172,12 @@ export const useEmployees = () => {
 
   const getEmployeeSubordinates = async (id: number) => {
     try {
-      const response = await fetch(`${API_BASE_URL}/agents/${id}/subordinates/`)
-      if (!response.ok) throw new Error('Erreur lors du chargement des subordonnés')
-      return await response.json()
+      console.log('🔍 [ANNUAIRE] Récupération subordonnés pour employé ID:', id)
+      // L'app annuaire n'a pas de hiérarchie, retourner un tableau vide
+      console.log('ℹ️ [ANNUAIRE] L\'app annuaire ne gère pas la hiérarchie, retour d\'un tableau vide')
+      return []
     } catch (err) {
+      console.error('❌ [ANNUAIRE] Erreur lors de la récupération des subordonnés:', err)
       setError(err instanceof Error ? err.message : 'Erreur inconnue')
       return []
     }
@@ -164,10 +185,17 @@ export const useEmployees = () => {
 
   const getDepartmentStatistics = async () => {
     try {
+      console.log('🔍 [ANNUAIRE] Récupération statistiques départements depuis:', `${API_BASE_URL}/statistics/departments/`)
       const response = await fetch(`${API_BASE_URL}/statistics/departments/`)
-      if (!response.ok) throw new Error('Erreur lors du chargement des statistiques')
-      return await response.json()
+      if (!response.ok) {
+        console.error('❌ [ANNUAIRE] Erreur HTTP statistiques:', response.status, response.statusText)
+        throw new Error(`Erreur ${response.status}: ${response.statusText}`)
+      }
+      const data = await response.json()
+      console.log('✅ [ANNUAIRE] Statistiques récupérées:', data.length || 0, 'départements')
+      return data
     } catch (err) {
+      console.error('❌ [ANNUAIRE] Erreur lors du chargement des statistiques:', err)
       setError(err instanceof Error ? err.message : 'Erreur inconnue')
       return []
     }

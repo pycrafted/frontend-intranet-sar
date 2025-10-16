@@ -11,7 +11,7 @@ export interface Employee {
   phone_mobile: string | null
   matricule: string
   position: number
-  position_title: string
+  job_title: string
   department_name: string
   manager: number | null
   manager_name: string | null
@@ -28,7 +28,6 @@ export interface Employee {
 export interface Department {
   id: number
   name: string
-  slug: string
   employee_count: number
   created_at: string
   updated_at: string
@@ -63,7 +62,7 @@ const staticEmployees: Employee[] = [
     phone: "+1 555 123 4567",
     employee_id: "EMP001",
     position: 1,
-    position_title: "Chief Executive Officer",
+    job_title: "Chief Executive Officer",
     department_name: "Executive",
     manager: null,
     manager_name: null,
@@ -87,7 +86,7 @@ const staticEmployees: Employee[] = [
     phone: "+1 555 234 5678",
     employee_id: "EMP002",
     position: 2,
-    position_title: "Chief Operating Officer",
+    job_title: "Chief Operating Officer",
     department_name: "Operations",
     manager: 1,
     manager_name: "John Smith",
@@ -111,7 +110,7 @@ const staticEmployees: Employee[] = [
     phone: "+1 555 345 6789",
     employee_id: "EMP003",
     position: 3,
-    position_title: "Chief Marketing Officer",
+    job_title: "Chief Marketing Officer",
     department_name: "Marketing",
     manager: 1,
     manager_name: "John Smith",
@@ -135,7 +134,7 @@ const staticEmployees: Employee[] = [
     phone: "+1 555 456 7890",
     employee_id: "EMP004",
     position: 4,
-    position_title: "Chief Human Resources Officer",
+    job_title: "Chief Human Resources Officer",
     department_name: "Human Resources",
     manager: 1,
     manager_name: "John Smith",
@@ -159,7 +158,7 @@ const staticEmployees: Employee[] = [
     phone: "+1 555 567 8901",
     employee_id: "EMP005",
     position: 5,
-    position_title: "Chief Technology Officer",
+    job_title: "Chief Technology Officer",
     department_name: "Technology",
     manager: 1,
     manager_name: "John Smith",
@@ -183,7 +182,7 @@ const staticEmployees: Employee[] = [
     phone: "+1 555 678 9012",
     employee_id: "EMP006",
     position: 6,
-    position_title: "Chief Financial Officer",
+    job_title: "Chief Financial Officer",
     department_name: "Finance",
     manager: 1,
     manager_name: "John Smith",
@@ -207,7 +206,7 @@ const staticEmployees: Employee[] = [
     phone: "+1 555 789 0123",
     employee_id: "EMP007",
     position: 7,
-    position_title: "Quality Assurance Manager",
+    job_title: "Quality Assurance Manager",
     department_name: "Quality Assurance",
     manager: 4,
     manager_name: "Emily Davis",
@@ -231,7 +230,7 @@ const staticEmployees: Employee[] = [
     phone: "+1 555 890 1234",
     employee_id: "EMP008",
     position: 8,
-    position_title: "Project Manager",
+    job_title: "Project Manager",
     department_name: "Technology",
     manager: 5,
     manager_name: "David Wilson",
@@ -255,7 +254,7 @@ const staticEmployees: Employee[] = [
     phone: "+1 555 901 2345",
     employee_id: "EMP009",
     position: 9,
-    position_title: "Financial Analyst",
+    job_title: "Financial Analyst",
     department_name: "Finance",
     manager: 6,
     manager_name: "Jessica Miller",
@@ -369,7 +368,6 @@ export const useOrgChart = () => {
       const departmentsList = Array.isArray(departmentsData) ? departmentsData.map((dept: any) => ({
         id: dept.id,
         name: dept.name,
-        slug: dept.slug,
         employee_count: 0,
         created_at: new Date().toISOString(),
         updated_at: new Date().toISOString()
@@ -377,7 +375,7 @@ export const useOrgChart = () => {
       console.log('📊 [ORGCHART_HOOK] Données départements chargées:', {
         source: 'API_ORGANIGRAMME',
         count: departmentsList.length,
-        departments: departmentsList.map(dept => ({ id: dept.id, name: dept.name, slug: dept.slug, employee_count: dept.employee_count }))
+        departments: departmentsList.map(dept => ({ id: dept.id, name: dept.name, employee_count: dept.employee_count }))
       })
       setDepartments(departmentsList)
     } catch (err) {
@@ -407,7 +405,7 @@ export const useOrgChart = () => {
         chartData[levelKey].push({
           id: employee.id,
           name: employee.full_name,
-          role: employee.position_title,
+          role: employee.job_title,
           department: employee.department_name,
           email: employee.email,
           phone: employee.phone || '',
@@ -452,7 +450,7 @@ export const useOrgChart = () => {
         chartData[level].push({
           id: employee.id,
           name: employee.full_name,
-          role: employee.position_title,
+          role: employee.job_title,
           department: employee.department_name,
           email: employee.email,
           phone: employee.phone || '',
@@ -480,11 +478,8 @@ export const useOrgChart = () => {
       const params = new URLSearchParams()
       if (query) params.append('search', query)
       if (department && department !== 'Tous') {
-        // Trouver le slug du département par son nom
-        const dept = departments.find(d => d.name === department)
-        if (dept) {
-          params.append('direction', dept.slug)
-        }
+        // Utiliser directement le nom du département
+        params.append('direction', department)
       }
       
       const response = await fetch(`${API_BASE_URL}/agents/search/?${params}`)
@@ -496,7 +491,12 @@ export const useOrgChart = () => {
         query,
         department,
         resultsCount: data.length,
-        results: data.map((emp: any) => ({ id: emp.id, name: emp.full_name, department: emp.department_name }))
+        results: data.map((emp: any) => ({ 
+          id: emp.id, 
+          name: emp.full_name, 
+          department: emp.department_name,
+          directions: emp.directions?.map((d: any) => d.name) || []
+        }))
       })
       
       const results = Array.isArray(data) ? data : data.results || []
@@ -512,7 +512,7 @@ export const useOrgChart = () => {
         const searchTerm = query.toLowerCase()
         filteredEmployees = filteredEmployees.filter(employee =>
           employee.full_name.toLowerCase().includes(searchTerm) ||
-          employee.position_title.toLowerCase().includes(searchTerm) ||
+          employee.job_title.toLowerCase().includes(searchTerm) ||
           employee.department_name.toLowerCase().includes(searchTerm) ||
           employee.email.toLowerCase().includes(searchTerm)
         )

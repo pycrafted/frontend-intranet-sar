@@ -24,7 +24,7 @@ const fallbackEmployees: Employee[] = [
     phone_mobile: "77 459 63 21",
     employee_id: "SAR001",
     position: 1,
-    position_title: "Directrice Commerciale et Marketing",
+    job_title: "Directrice Commerciale et Marketing",
     department_name: "Direction Commerciale et Marketing",
     matricule: "SAR001",
     manager: null,
@@ -50,7 +50,7 @@ const fallbackEmployees: Employee[] = [
     phone_mobile: "77 250 31 20",
     employee_id: "SAR002",
     position: 2,
-    position_title: "Directeur général",
+    job_title: "Directeur général",
     department_name: "Administration",
     matricule: "SAR002",
     manager: null,
@@ -76,7 +76,7 @@ const fallbackEmployees: Employee[] = [
     phone_mobile: null,
     employee_id: "SAR003",
     position: 3,
-    position_title: "Directeur des Ressources Humaines",
+    job_title: "Directeur des Ressources Humaines",
     department_name: "Direction des Ressources Humaines",
     matricule: "SAR003",
     manager: null,
@@ -102,7 +102,7 @@ const fallbackEmployees: Employee[] = [
     phone_mobile: "77 145 93 13",
     employee_id: "SAR004",
     position: 4,
-    position_title: "Directeur EXECUTIVE - SUPPORT",
+    job_title: "Directeur EXECUTIVE - SUPPORT",
     department_name: "Direction EXECUTIVE - SUPPORT",
     matricule: "SAR004",
     manager: null,
@@ -128,7 +128,7 @@ const fallbackEmployees: Employee[] = [
     phone_mobile: "77 514 96 38",
     employee_id: "SAR005",
     position: 5,
-    position_title: "Directeur Technique",
+    job_title: "Directeur Technique",
     department_name: "Direction Technique",
     matricule: "SAR005",
     manager: null,
@@ -154,7 +154,7 @@ const fallbackEmployees: Employee[] = [
     phone_mobile: "77 256 39 20",
     employee_id: "SAR006",
     position: 6,
-    position_title: "Directeur EXECUTIVE OPERATIONS",
+    job_title: "Directeur EXECUTIVE OPERATIONS",
     department_name: "Direction Executif",
     matricule: "SAR006",
     manager: null,
@@ -180,7 +180,7 @@ const fallbackEmployees: Employee[] = [
     phone_mobile: null,
     employee_id: "SAR007",
     position: 7,
-    position_title: "Responsable Qualité",
+    job_title: "Responsable Qualité",
     department_name: "Direction Qualité",
     matricule: "SAR007",
     manager: null,
@@ -206,7 +206,7 @@ const fallbackEmployees: Employee[] = [
     phone_mobile: "77 456 78 90",
     employee_id: "SAR008",
     position: 8,
-    position_title: "Chef de Projet",
+    job_title: "Chef de Projet",
     department_name: "Direction Technique",
     matricule: "SAR008",
     manager: null,
@@ -232,7 +232,7 @@ const fallbackEmployees: Employee[] = [
     phone_mobile: "77 567 89 01",
     employee_id: "SAR009",
     position: 9,
-    position_title: "Analyste Financier",
+    job_title: "Analyste Financier",
     department_name: "Direction Financière",
     matricule: "SAR009",
     manager: null,
@@ -479,7 +479,7 @@ export default function AnnuairePage() {
                           <h3 className="text-xl font-semibold text-foreground text-balance">
                             {employee.full_name}
                           </h3>
-                          <p className="text-sm text-muted-foreground mt-1 text-balance">{employee.position_title}</p>
+                          <p className="text-sm text-muted-foreground mt-1 text-balance">{employee.job_title}</p>
                         </div>
 
                         <div className="w-full space-y-3 mb-5">

@@ -1,31 +1,29 @@
 "use client"
 
 import type React from "react"
+
 import { useCallback } from "react"
-import { BaseEdge, EdgeLabelRenderer, type EdgeProps, getBezierPath, useReactFlow } from "@xyflow/react"
+import { BaseEdge, EdgeLabelRenderer, type EdgeProps, useReactFlow } from "@xyflow/react"
 
-export default function CustomEdge({
-  id,
-  sourceX,
-  sourceY,
-  targetX,
-  targetY,
-  sourcePosition,
-  targetPosition,
-  data,
-  style = {},
-  markerEnd,
-}: EdgeProps) {
-  const [edgePath, labelX, labelY] = getBezierPath({
-    sourceX,
-    sourceY,
-    sourcePosition,
-    targetX,
-    targetY,
-    targetPosition,
-  })
-
+export default function CustomEdge({ id, sourceX, sourceY, targetX, targetY, data, style = {}, markerEnd }: EdgeProps) {
   const { setEdges } = useReactFlow()
+
+  // 1. Ligne verticale du parent vers le milieu
+  // 2. Ligne horizontale au milieu
+  // 3. Ligne verticale du milieu vers l'enfant
+  const midY = sourceY + (targetY - sourceY) / 2
+
+  // Créer le chemin SVG en forme de T
+  const edgePath = `
+    M ${sourceX} ${sourceY}
+    L ${sourceX} ${midY}
+    L ${targetX} ${midY}
+    L ${targetX} ${targetY}
+  `
+
+  // Position du label au milieu de la ligne
+  const labelX = (sourceX + targetX) / 2
+  const labelY = midY
 
   const onEdgeClick = useCallback(
     (evt: React.MouseEvent<SVGGElement, MouseEvent>, id: string) => {
@@ -35,16 +33,17 @@ export default function CustomEdge({
     [setEdges],
   )
 
-  const edgeStyle = {
-    ...style,
-    stroke: data?.isHighlighted ? "#3b82f6" : "#94a3b8",
-    strokeWidth: data?.isHighlighted ? 3 : 2,
-    transition: "all 0.2s ease",
-  }
-
   return (
     <>
-      <BaseEdge path={edgePath} markerEnd={markerEnd} style={edgeStyle} />
+      <BaseEdge
+        path={edgePath}
+        markerEnd={markerEnd}
+        style={{
+          ...style,
+          strokeWidth: 2,
+          stroke: "#94a3b8", // Couleur grise élégante
+        }}
+      />
       <EdgeLabelRenderer>
         {data?.label && (
           <div

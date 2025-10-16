@@ -1,8 +1,8 @@
 "use client"
 
 import { LayoutWrapper } from "@/components/layout-wrapper"
-import ReactFlowOrganigramme from "@/components/react-flow-organigramme"
-import { useState, useEffect, useCallback } from "react"
+import ReactFlowOrganigramme, { ReactFlowOrganigrammeRef } from "@/components/react-flow-organigramme"
+import { useState, useEffect, useCallback, useRef } from "react"
 import { useOrgChart, Employee } from "@/hooks/useOrgChart"
 
 export default function OrganigrammePage() {
@@ -10,9 +10,11 @@ export default function OrganigrammePage() {
   const [selectedDepartment, setSelectedDepartment] = useState("Tous")
   const [isTyping, setIsTyping] = useState(false)
   const [debouncedSearchTerm, setDebouncedSearchTerm] = useState("")
+  const [selectedEmployee, setSelectedEmployee] = useState<Employee | null>(null)
   
   const { employees, departments, loading, error, searchEmployees } = useOrgChart()
   const [filteredEmployees, setFilteredEmployees] = useState<Employee[]>([])
+  const reactFlowRef = useRef<ReactFlowOrganigrammeRef>(null)
 
   // Debounce de la recherche
   useEffect(() => {
@@ -42,14 +44,30 @@ export default function OrganigrammePage() {
         try {
           console.log('🔍 [ORGANIGRAMME_PAGE] Recherche avec filtres:', { debouncedSearchTerm, selectedDepartment })
           const results = await searchEmployees(debouncedSearchTerm, selectedDepartment)
-          console.log('✅ [ORGANIGRAMME_PAGE] Résultats de recherche:', { count: results.length })
+          console.log('✅ [ORGANIGRAMME_PAGE] Résultats de recherche:', { 
+            count: results.length,
+            results: results.map((emp: any) => ({ 
+              id: emp.id, 
+              name: emp.full_name, 
+              department: emp.department_name,
+              directions: emp.directions?.map((d: any) => d.name) || []
+            }))
+          })
           setFilteredEmployees(results)
         } catch (err) {
           console.error('❌ [ORGANIGRAMME_PAGE] Erreur lors de la recherche:', err)
           setFilteredEmployees(employees)
         }
       } else {
-        console.log('📋 [ORGANIGRAMME_PAGE] Affichage de tous les employés:', { count: employees.length })
+        console.log('📋 [ORGANIGRAMME_PAGE] Affichage de tous les employés:', { 
+          count: employees.length,
+          employees: employees.map((emp: any) => ({ 
+            id: emp.id, 
+            name: emp.full_name, 
+            department: emp.department_name,
+            directions: emp.directions?.map((d: any) => d.name) || []
+          }))
+        })
         setFilteredEmployees(employees)
       }
     }
@@ -61,6 +79,11 @@ export default function OrganigrammePage() {
   const handleSearchChange = (value: string) => {
     setSearchTerm(value)
     setIsTyping(value.length > 0)
+    
+    // Si on tape un nom d'employé, essayer de le sélectionner
+    if (value.length > 2 && employees && reactFlowRef.current) {
+      reactFlowRef.current.selectEmployeeByName(value)
+    }
   }
 
   const handleSearchKeyDown = (e: React.KeyboardEvent<HTMLInputElement>) => {
@@ -68,8 +91,18 @@ export default function OrganigrammePage() {
       e.preventDefault()
       setIsTyping(false)
       setDebouncedSearchTerm(searchTerm)
+      
+      // Rechercher et sélectionner l'employé
+      if (searchTerm.length > 0 && employees && reactFlowRef.current) {
+        reactFlowRef.current.selectEmployeeByName(searchTerm)
+      }
     }
   }
+
+  // Gestion de la sélection d'employé
+  const handleEmployeeSelect = useCallback((employee: Employee) => {
+    setSelectedEmployee(employee)
+  }, [])
 
   // Options des départements
   const departmentOptions = ["Tous", ...departments.map(dept => dept.name)]
@@ -87,25 +120,14 @@ export default function OrganigrammePage() {
         departmentOptions
       }}
     >
-      <div className="min-h-screen" style={{ backgroundColor: '#e5e7eb' }}>
-        {/* Debug info */}
-        {process.env.NODE_ENV === 'development' && (
-          <div className="fixed top-20 right-4 bg-black bg-opacity-75 text-white p-2 rounded text-xs z-50">
-            <div>Loading: {loading ? 'true' : 'false'}</div>
-            <div>Error: {error || 'none'}</div>
-            <div>Employees: {employees?.length || 0}</div>
-            <div>Filtered: {filteredEmployees?.length || 0}</div>
-            <div>Departments: {departments?.length || 0}</div>
-            <div>Dept Names: {departments?.map(d => d.name).join(', ') || 'none'}</div>
-            <div>Selected: {selectedDepartment}</div>
-          </div>
-        )}
-        
+      <div className="min-h-screen bg-gray-100">
         {/* Organigramme React Flow */}
         <ReactFlowOrganigramme 
+          ref={reactFlowRef}
           employees={filteredEmployees} 
-          loading={loading}
+          loading={loading} 
           error={error}
+          onEmployeeSelect={handleEmployeeSelect}
         />
       </div>
     </LayoutWrapper>

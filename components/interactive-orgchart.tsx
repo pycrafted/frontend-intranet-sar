@@ -128,7 +128,7 @@ const InteractiveOrgChart: React.FC<OrgChartProps> = ({ employees, loading = fal
       phone: "+221 33 123 4567",
       employee_id: "SAR001",
       position: 1,
-      position_title: "Directeur Général",
+      job_title: "Directeur Général",
       department_name: "Direction",
       manager: null,
       manager_name: null,
@@ -375,7 +375,7 @@ const InteractiveOrgChart: React.FC<OrgChartProps> = ({ employees, loading = fal
             </h4>
             
             <p className="text-xs opacity-90 mb-1 leading-tight">
-              {employee.position_title || employee.role || "Poste inconnu"}
+              {employee.job_title || employee.role || "Poste inconnu"}
             </p>
           </CardContent>
         </Card>
@@ -636,7 +636,7 @@ const InteractiveOrgChart: React.FC<OrgChartProps> = ({ employees, loading = fal
                 {selectedNode.full_name || selectedNode.name || "Nom inconnu"}
               </CardTitle>
               <CardDescription className="text-sm font-medium text-blue-600">
-                {selectedNode.position_title || selectedNode.role || "Poste inconnu"}
+                {selectedNode.job_title || selectedNode.role || "Poste inconnu"}
               </CardDescription>
               <Badge variant="outline" className="w-fit mx-auto mt-2 border-slate-200 text-slate-600 bg-slate-50">
                 {selectedNode.department_name || selectedNode.department || "Département inconnu"}

@@ -77,7 +77,7 @@ export function EmployeesAdminTable({ onEmployeeSelect }: EmployeesAdminTablePro
     phone_fixed: '',
     phone_mobile: '',
     employee_id: '',
-    position_title: '',
+    job_title: '',
     department: '',
     avatar: null as File | null
   })
@@ -140,7 +140,7 @@ export function EmployeesAdminTable({ onEmployeeSelect }: EmployeesAdminTablePro
       phone_fixed: employee.phone_fixed || '',
       phone_mobile: employee.phone_mobile || '',
       employee_id: employee.employee_id,
-      position_title: employee.position_title,
+      job_title: employee.job_title,
       department: employee.department.toString(),
       avatar: null
     })
@@ -163,7 +163,7 @@ export function EmployeesAdminTable({ onEmployeeSelect }: EmployeesAdminTablePro
       phone_fixed: '',
       phone_mobile: '',
       employee_id: '',
-      position_title: '',
+      job_title: '',
       department: '',
       avatar: null
     })
@@ -182,7 +182,7 @@ export function EmployeesAdminTable({ onEmployeeSelect }: EmployeesAdminTablePro
       formDataToSend.append('phone_fixed', formData.phone_fixed || '')
       formDataToSend.append('phone_mobile', formData.phone_mobile || '')
       formDataToSend.append('employee_id', formData.employee_id)
-      formDataToSend.append('position_title', formData.position_title)
+      formDataToSend.append('job_title', formData.job_title)
       formDataToSend.append('department', formData.department)
       
       // Ajouter l'avatar si présent
@@ -207,7 +207,7 @@ export function EmployeesAdminTable({ onEmployeeSelect }: EmployeesAdminTablePro
         phone_fixed: '',
         phone_mobile: '',
         employee_id: '',
-        position_title: '',
+        job_title: '',
         department: '',
         avatar: null
       })
@@ -228,7 +228,7 @@ export function EmployeesAdminTable({ onEmployeeSelect }: EmployeesAdminTablePro
       phone_fixed: '',
       phone_mobile: '',
       employee_id: '',
-      position_title: '',
+      job_title: '',
       department: '',
       avatar: null
     })
@@ -581,7 +581,7 @@ export function EmployeesAdminTable({ onEmployeeSelect }: EmployeesAdminTablePro
                     </td>
                     <td className="px-4 py-3">
                       <Badge variant="outline" className="bg-blue-50 text-blue-700 border-blue-200">
-                        {employee.position_title}
+                        {employee.job_title}
                       </Badge>
                     </td>
                     <td className="px-4 py-3">
@@ -765,8 +765,8 @@ export function EmployeesAdminTable({ onEmployeeSelect }: EmployeesAdminTablePro
               <div>
                 <label className="text-sm font-medium mb-2 block text-gray-700">Poste *</label>
                 <Input
-                  value={formData.position_title}
-                  onChange={(e) => setFormData(prev => ({ ...prev, position_title: e.target.value }))}
+                  value={formData.job_title}
+                  onChange={(e) => setFormData(prev => ({ ...prev, job_title: e.target.value }))}
                   placeholder="Directeur, Manager, Employé..."
                   className="border-blue-200 focus:border-blue-400"
                   required
@@ -951,8 +951,8 @@ export function EmployeesAdminTable({ onEmployeeSelect }: EmployeesAdminTablePro
               <div>
                 <label className="text-sm font-medium mb-2 block text-gray-700">Poste *</label>
                 <Input
-                  value={formData.position_title}
-                  onChange={(e) => setFormData(prev => ({ ...prev, position_title: e.target.value }))}
+                  value={formData.job_title}
+                  onChange={(e) => setFormData(prev => ({ ...prev, job_title: e.target.value }))}
                   placeholder="Directeur, Manager, Employé..."
                   className="border-blue-200 focus:border-blue-400"
                   required

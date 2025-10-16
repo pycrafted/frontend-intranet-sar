@@ -13,7 +13,7 @@ interface Employee {
   phone_mobile: string | null
   employee_id: string
   matricule: string
-  position_title: string
+  job_title: string
   department: number
   department_name: string
   avatar: string | null
