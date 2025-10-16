@@ -49,13 +49,13 @@ interface LayoutWrapperProps {
     onUpdateFolder?: (folderId: number, folderData: any) => Promise<{ success: boolean; error?: string }>
     onDeleteFolder?: (folderId: number) => Promise<{ success: boolean; error?: string }>
     // Props spécifiques au recrutement
-    onFilterChange?: (filters: {
+    onRecruitmentFilterChange?: (filters: {
       department: string
       type: string
       urgency: string
       experience: string
     }) => void
-    onSearchChange?: (search: string) => void
+    onRecruitmentSearchChange?: (search: string) => void
     searchTerm?: string
     activeFilters?: {
       department: string
@@ -73,6 +73,10 @@ export function LayoutWrapper({ children, secondaryNavbarProps, sidebarProps }: 
   const [showPublicationModal, setShowPublicationModal] = useState(false)
   const [showAnnouncementModal, setShowAnnouncementModal] = useState(false)
   const pathname = usePathname()
+
+  // Pages publiques qui n'ont pas besoin d'authentification
+  const publicPages = ['/actualites']
+  const isPublicPage = publicPages.includes(pathname)
 
   // Synchroniser automatiquement le rétractement du sidebar secondaire avec le sidebar principal
   // Mais permettre aussi le contrôle indépendant
@@ -98,62 +102,77 @@ export function LayoutWrapper({ children, secondaryNavbarProps, sidebarProps }: 
     setIsSecondarySidebarCollapsed(true)
   }, [])
 
+  // Contenu du layout
+  const layoutContent = (
+    <div className="min-h-screen bg-background flex flex-col">
+      <Navbar onMenuClick={() => setSidebarOpen(!sidebarOpen)} />
+
+      <div className="flex flex-1">
+        <Navigation 
+          isOpen={sidebarOpen} 
+          onClose={() => setSidebarOpen(false)} 
+          onCollapseChange={setIsSidebarCollapsed}
+        />
+
+        <main className={`flex-1 flex flex-col transition-all duration-300 ${isSidebarCollapsed ? 'lg:ml-16' : 'lg:ml-64'}`}>
+          <div className={`flex-1 bg-gray-200 transition-all duration-300 ${
+            pathname === "/centre_de_controle" ? (
+              isSecondarySidebarCollapsed ? "lg:ml-0" : "lg:ml-80"
+            ) : ""}`}>
+      {/* Secondary Navbar pour les pages actualités, organigramme, annuaire, documents et recrutement - dans la zone de contenu */}
+      {(pathname === "/actualites" || pathname === "/organigramme" || pathname === "/annuaire" || pathname === "/documents" || pathname === "/recrutement") && (
+        <SecondaryNavbar 
+          {...secondaryNavbarProps} 
+          showFilter={pathname === "/organigramme" || pathname === "/actualites"} 
+        />
+      )}
+            
+            <div className={`mx-auto px-2 sm:px-4 py-4 sm:py-6 lg:px-8 ${pathname === "/" || pathname === "/securite" ? "max-w-none px-1 sm:px-2 lg:px-4" : pathname === "/organigramme" ? "max-w-none px-0" : "max-w-7xl"}`}>
+              {children}
+            </div>
+          </div>
+          {pathname === "/centre_de_controle" && <ControlCenterSidebar 
+            {...sidebarProps} 
+            isCollapsed={isSecondarySidebarCollapsed}
+            onCollapseChange={setIsSecondarySidebarCollapsed}
+            isMainSidebarCollapsed={isSidebarCollapsed}
+          />}
+          {/* Sidebar des documents supprimée */}
+          {/* Sidebar de recrutement supprimée */}
+          
+          {/* Footer - toujours en bas, après les sidebars */}
+          <Footer />
+        </main>
+      </div>
+
+      {/* Modals globaux - seulement pour les pages authentifiées */}
+      {!isPublicPage && (
+        <>
+          <PublicationModal 
+            isOpen={showPublicationModal} 
+            onClose={() => setShowPublicationModal(false)} 
+          />
+          <AnnouncementModal 
+            isOpen={showAnnouncementModal} 
+            onClose={() => setShowAnnouncementModal(false)} 
+          />
+        </>
+      )}
+      
+      {/* Chatbot MAÏ - seulement pour les pages authentifiées */}
+      {!isPublicPage && <MaiChatbot />}
+    </div>
+  )
+
+  // Si c'est une page publique, ne pas utiliser AuthGuard
+  if (isPublicPage) {
+    return layoutContent
+  }
+
+  // Pour les autres pages, utiliser AuthGuard
   return (
     <AuthGuard>
-      <div className="min-h-screen bg-background flex flex-col">
-        <Navbar onMenuClick={() => setSidebarOpen(!sidebarOpen)} />
-
-        <div className="flex flex-1">
-          <Navigation 
-            isOpen={sidebarOpen} 
-            onClose={() => setSidebarOpen(false)} 
-            onCollapseChange={setIsSidebarCollapsed}
-          />
-
-          <main className={`flex-1 flex flex-col transition-all duration-300 ${isSidebarCollapsed ? 'lg:ml-16' : 'lg:ml-64'}`}>
-            <div className={`flex-1 bg-gray-200 transition-all duration-300 ${
-              pathname === "/centre_de_controle" ? (
-                isSecondarySidebarCollapsed ? "lg:ml-0" : "lg:ml-80"
-              ) : ""}`}>
-        {/* Secondary Navbar pour les pages actualités, organigramme, annuaire, documents et recrutement - dans la zone de contenu */}
-        {(pathname === "/actualites" || pathname === "/organigramme" || pathname === "/annuaire" || pathname === "/documents" || pathname === "/recrutement") && (
-          <SecondaryNavbar 
-            {...secondaryNavbarProps} 
-            showFilter={pathname === "/organigramme" || pathname === "/actualites"} 
-          />
-        )}
-              
-              <div className={`mx-auto px-2 sm:px-4 py-4 sm:py-6 lg:px-8 ${pathname === "/" || pathname === "/securite" ? "max-w-none px-1 sm:px-2 lg:px-4" : pathname === "/organigramme" ? "max-w-none px-0" : "max-w-7xl"}`}>
-                {children}
-              </div>
-            </div>
-            {pathname === "/centre_de_controle" && <ControlCenterSidebar 
-              {...sidebarProps} 
-              isCollapsed={isSecondarySidebarCollapsed}
-              onCollapseChange={setIsSecondarySidebarCollapsed}
-              isMainSidebarCollapsed={isSidebarCollapsed}
-            />}
-            {/* Sidebar des documents supprimée */}
-            {/* Sidebar de recrutement supprimée */}
-            
-            {/* Footer - toujours en bas, après les sidebars */}
-            <Footer />
-          </main>
-        </div>
-
-        {/* Modals globaux */}
-        <PublicationModal 
-          isOpen={showPublicationModal} 
-          onClose={() => setShowPublicationModal(false)} 
-        />
-        <AnnouncementModal 
-          isOpen={showAnnouncementModal} 
-          onClose={() => setShowAnnouncementModal(false)} 
-        />
-        
-        {/* Chatbot MAÏ */}
-        <MaiChatbot />
-      </div>
+      {layoutContent}
     </AuthGuard>
   )
 }
