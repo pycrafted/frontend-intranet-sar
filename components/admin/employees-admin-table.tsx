@@ -575,8 +575,8 @@ export function EmployeesAdminTable({ onEmployeeSelect }: EmployeesAdminTablePro
                     </td>
                     <td className="px-4 py-3">
                       <div className="flex items-center gap-2">
-                        <span className="text-lg">{getDepartmentIcon(employee.department_name)}</span>
-                        <span className="text-sm text-gray-900">{employee.department_name}</span>
+                        <span className="text-lg">{getDepartmentIcon(employee.main_direction_name)}</span>
+                        <span className="text-sm text-gray-900">{employee.main_direction_name}</span>
                       </div>
                     </td>
                     <td className="px-4 py-3">

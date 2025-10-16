@@ -15,7 +15,7 @@ interface Employee {
   matricule: string
   job_title: string
   department: number
-  department_name: string
+  main_direction_name: string
   avatar: string | null
   created_at: string
   updated_at: string

@@ -45,14 +45,6 @@ export default function CentreDeControlePage() {
       }}
     >
       <div className="w-full space-y-6">
-        {/* Header avec style inspiré de la page actualités */}
-        <div className="space-y-4">
-          <div className="flex items-center gap-2 mb-4">
-            <div className="w-1 h-6 bg-gradient-to-b from-blue-400 to-indigo-400 rounded-full shadow-sm"></div>
-            <h3 className="text-lg font-semibold text-gray-900">Centre de Contrôle</h3>
-          </div>
-          
-        </div>
 
         {/* Interface d'administration avec onglets */}
         <div className="space-y-6 stagger-animation">

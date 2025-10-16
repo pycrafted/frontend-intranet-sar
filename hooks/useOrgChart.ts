@@ -10,16 +10,12 @@ export interface Employee {
   phone_fixed: string | null
   phone_mobile: string | null
   matricule: string
-  position: number
   job_title: string
-  department_name: string
+  main_direction_name: string
   manager: number | null
   manager_name: string | null
   hierarchy_level: number
-  is_manager: boolean
-  is_active: boolean
   avatar: string | null
-  office_location: string | null
   created_at: string
   updated_at: string
   children?: Employee[]
@@ -61,16 +57,12 @@ const staticEmployees: Employee[] = [
     email: "john.smith@company.com",
     phone: "+1 555 123 4567",
     employee_id: "EMP001",
-    position: 1,
     job_title: "Chief Executive Officer",
-    department_name: "Executive",
+    main_direction_name: "Executive",
     manager: null,
     manager_name: null,
     hierarchy_level: 1,
-    is_manager: true,
-    office_location: "New York - Headquarters",
     work_schedule: "Full-time",
-    is_active: true,
     hire_date: "2020-01-01",
     avatar: "/placeholder-user.jpg",
     created_at: "2020-01-01T00:00:00Z",
@@ -85,16 +77,12 @@ const staticEmployees: Employee[] = [
     email: "sarah.johnson@company.com",
     phone: "+1 555 234 5678",
     employee_id: "EMP002",
-    position: 2,
     job_title: "Chief Operating Officer",
-    department_name: "Operations",
+    main_direction_name: "Operations",
     manager: 1,
     manager_name: "John Smith",
     hierarchy_level: 2,
-    is_manager: true,
-    office_location: "New York - Headquarters",
     work_schedule: "Full-time",
-    is_active: true,
     hire_date: "2020-06-01",
     avatar: "/placeholder-user.jpg",
     created_at: "2020-06-01T00:00:00Z",
@@ -109,16 +97,12 @@ const staticEmployees: Employee[] = [
     email: "michael.brown@company.com",
     phone: "+1 555 345 6789",
     employee_id: "EMP003",
-    position: 3,
     job_title: "Chief Marketing Officer",
-    department_name: "Marketing",
+    main_direction_name: "Marketing",
     manager: 1,
     manager_name: "John Smith",
     hierarchy_level: 2,
-    is_manager: true,
-    office_location: "New York - Headquarters",
     work_schedule: "Full-time",
-    is_active: true,
     hire_date: "2020-03-15",
     avatar: "/placeholder-user.jpg",
     created_at: "2020-03-15T00:00:00Z",
@@ -133,16 +117,12 @@ const staticEmployees: Employee[] = [
     email: "emily.davis@company.com",
     phone: "+1 555 456 7890",
     employee_id: "EMP004",
-    position: 4,
     job_title: "Chief Human Resources Officer",
-    department_name: "Human Resources",
+    main_direction_name: "Human Resources",
     manager: 1,
     manager_name: "John Smith",
     hierarchy_level: 2,
-    is_manager: true,
-    office_location: "New York - Headquarters",
     work_schedule: "Full-time",
-    is_active: true,
     hire_date: "2020-02-01",
     avatar: "/placeholder-user.jpg",
     created_at: "2020-02-01T00:00:00Z",
@@ -157,16 +137,12 @@ const staticEmployees: Employee[] = [
     email: "david.wilson@company.com",
     phone: "+1 555 567 8901",
     employee_id: "EMP005",
-    position: 5,
     job_title: "Chief Technology Officer",
-    department_name: "Technology",
+    main_direction_name: "Technology",
     manager: 1,
     manager_name: "John Smith",
     hierarchy_level: 2,
-    is_manager: true,
-    office_location: "New York - Headquarters",
     work_schedule: "Full-time",
-    is_active: true,
     hire_date: "2020-04-01",
     avatar: "/placeholder-user.jpg",
     created_at: "2020-04-01T00:00:00Z",
@@ -181,16 +157,12 @@ const staticEmployees: Employee[] = [
     email: "jessica.miller@company.com",
     phone: "+1 555 678 9012",
     employee_id: "EMP006",
-    position: 6,
     job_title: "Chief Financial Officer",
-    department_name: "Finance",
+    main_direction_name: "Finance",
     manager: 1,
     manager_name: "John Smith",
     hierarchy_level: 2,
-    is_manager: true,
-    office_location: "New York - Headquarters",
     work_schedule: "Full-time",
-    is_active: true,
     hire_date: "2020-05-01",
     avatar: "/placeholder-user.jpg",
     created_at: "2020-05-01T00:00:00Z",
@@ -207,14 +179,11 @@ const staticEmployees: Employee[] = [
     employee_id: "EMP007",
     position: 7,
     job_title: "Quality Assurance Manager",
-    department_name: "Quality Assurance",
+    main_direction_name: "Quality Assurance",
     manager: 4,
     manager_name: "Emily Davis",
     hierarchy_level: 3,
-    is_manager: false,
-    office_location: "New York - Headquarters",
     work_schedule: "Full-time",
-    is_active: true,
     hire_date: "2021-03-15",
     avatar: "/placeholder-user.jpg",
     created_at: "2021-03-15T00:00:00Z",
@@ -231,14 +200,11 @@ const staticEmployees: Employee[] = [
     employee_id: "EMP008",
     position: 8,
     job_title: "Project Manager",
-    department_name: "Technology",
+    main_direction_name: "Technology",
     manager: 5,
     manager_name: "David Wilson",
     hierarchy_level: 3,
-    is_manager: false,
-    office_location: "New York - Headquarters",
     work_schedule: "Full-time",
-    is_active: true,
     hire_date: "2021-06-01",
     avatar: "/placeholder-user.jpg",
     created_at: "2021-06-01T00:00:00Z",
@@ -255,14 +221,11 @@ const staticEmployees: Employee[] = [
     employee_id: "EMP009",
     position: 9,
     job_title: "Financial Analyst",
-    department_name: "Finance",
+    main_direction_name: "Finance",
     manager: 6,
     manager_name: "Jessica Miller",
     hierarchy_level: 3,
-    is_manager: false,
-    office_location: "New York - Headquarters",
     work_schedule: "Full-time",
-    is_active: true,
     hire_date: "2022-01-10",
     avatar: "/placeholder-user.jpg",
     created_at: "2022-01-10T00:00:00Z",
@@ -406,7 +369,7 @@ export const useOrgChart = () => {
           id: employee.id,
           name: employee.full_name,
           role: employee.job_title,
-          department: employee.department_name,
+          department: employee.main_direction_name,
           email: employee.email,
           phone: employee.phone || '',
           location: employee.office_location,
@@ -451,7 +414,7 @@ export const useOrgChart = () => {
           id: employee.id,
           name: employee.full_name,
           role: employee.job_title,
-          department: employee.department_name,
+          department: employee.main_direction_name,
           email: employee.email,
           phone: employee.phone || '',
           location: employee.office_location,
@@ -494,7 +457,7 @@ export const useOrgChart = () => {
         results: data.map((emp: any) => ({ 
           id: emp.id, 
           name: emp.full_name, 
-          department: emp.department_name,
+          department: emp.main_direction_name,
           directions: emp.directions?.map((d: any) => d.name) || []
         }))
       })
@@ -513,7 +476,7 @@ export const useOrgChart = () => {
         filteredEmployees = filteredEmployees.filter(employee =>
           employee.full_name.toLowerCase().includes(searchTerm) ||
           employee.job_title.toLowerCase().includes(searchTerm) ||
-          employee.department_name.toLowerCase().includes(searchTerm) ||
+          employee.main_direction_name.toLowerCase().includes(searchTerm) ||
           employee.email.toLowerCase().includes(searchTerm)
         )
       }
@@ -521,7 +484,7 @@ export const useOrgChart = () => {
       // Filtrer par département
       if (department && department !== 'Tous') {
         filteredEmployees = filteredEmployees.filter(employee =>
-          employee.department_name === department
+          employee.main_direction_name === department
         )
       }
       
@@ -529,7 +492,7 @@ export const useOrgChart = () => {
         source: 'STATIC_DATA',
         originalCount: staticEmployees.length,
         filteredCount: filteredEmployees.length,
-        results: filteredEmployees.map(emp => ({ id: emp.id, name: emp.full_name, department: emp.department_name }))
+        results: filteredEmployees.map(emp => ({ id: emp.id, name: emp.full_name, department: emp.main_direction_name }))
       })
       
       return filteredEmployees
@@ -580,7 +543,7 @@ export const useOrgChart = () => {
       // Fallback sur les données statiques
       return staticDepartments.map(dept => ({
         ...dept,
-        employee_count: staticEmployees.filter(emp => emp.department_name === dept.name).length
+        employee_count: staticEmployees.filter(emp => emp.main_direction_name === dept.name).length
       }))
     }
   }

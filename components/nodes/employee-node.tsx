@@ -29,7 +29,9 @@ export const EmployeeNode = memo(({ data, isConnectable }: NodeProps) => {
     <div
       className={`rounded-xl border-2 overflow-hidden transition-all duration-300 relative ${
         isCEO 
-          ? "bg-gradient-to-br from-amber-50 to-yellow-50 border-amber-400 shadow-lg shadow-amber-200 ring-2 ring-amber-200" 
+          ? isHighlighted
+            ? "bg-gradient-to-br from-amber-100 to-yellow-100 border-amber-500 shadow-xl shadow-amber-300 ring-4 ring-amber-300" 
+            : "bg-gradient-to-br from-amber-50 to-yellow-50 border-amber-400 shadow-lg shadow-amber-200 ring-2 ring-amber-200"
           : isHighlighted 
             ? "bg-white border-blue-500 shadow-lg shadow-blue-200 ring-2 ring-blue-200" 
             : "bg-white border-gray-200"
@@ -63,7 +65,9 @@ export const EmployeeNode = memo(({ data, isConnectable }: NodeProps) => {
           alt={employee.full_name}
           className={`rounded-full object-cover ring-4 transition-all duration-300 ${
             isCEO 
-              ? "ring-amber-300 shadow-lg" 
+              ? isHighlighted
+                ? "ring-amber-400 shadow-xl" 
+                : "ring-amber-300 shadow-lg"
               : isHighlighted 
                 ? "ring-blue-200" 
                 : "ring-gray-100"
@@ -100,11 +104,13 @@ export const EmployeeNode = memo(({ data, isConnectable }: NodeProps) => {
           {employee.full_name}
         </p>
 
-        {employee.department_name && (
+        {employee.main_direction_name && (
           <div
             className={`mt-3 inline-block px-3 py-1.5 rounded-full font-medium transition-all duration-300 ${
               isCEO 
-                ? "bg-amber-200 text-amber-800 border border-amber-300" 
+                ? isHighlighted
+                  ? "bg-amber-300 text-amber-900 border-2 border-amber-400" 
+                  : "bg-amber-200 text-amber-800 border border-amber-300"
                 : isHighlighted 
                   ? "bg-blue-100 text-blue-700" 
                   : "bg-gray-100 text-gray-700"
@@ -113,7 +119,7 @@ export const EmployeeNode = memo(({ data, isConnectable }: NodeProps) => {
               fontSize: `${Math.max(nodeWidth * 0.04, 8)}px`
             }}
           >
-            {employee.department_name}
+            {employee.main_direction_name}
           </div>
         )}
       </div>
@@ -122,16 +128,28 @@ export const EmployeeNode = memo(({ data, isConnectable }: NodeProps) => {
         type="target"
         position={Position.Top}
         isConnectable={isConnectable}
-        className={`w-3 h-3 !border-2 !border-white ${
-          isCEO ? "!bg-amber-500" : "!bg-gray-400"
+        className={`w-3 h-3 !border-2 !border-white transition-all duration-300 ${
+          isCEO 
+            ? isHighlighted 
+              ? "!bg-amber-600" 
+              : "!bg-amber-500"
+            : isHighlighted 
+              ? "!bg-blue-500" 
+              : "!bg-gray-400"
         }`}
       />
       <Handle
         type="source"
         position={Position.Bottom}
         isConnectable={isConnectable}
-        className={`w-3 h-3 !border-2 !border-white ${
-          isCEO ? "!bg-amber-500" : "!bg-gray-400"
+        className={`w-3 h-3 !border-2 !border-white transition-all duration-300 ${
+          isCEO 
+            ? isHighlighted 
+              ? "!bg-amber-600" 
+              : "!bg-amber-500"
+            : isHighlighted 
+              ? "!bg-blue-500" 
+              : "!bg-gray-400"
         }`}
       />
     </div>

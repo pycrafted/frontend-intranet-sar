@@ -7,7 +7,7 @@ import { useOrgChart, Employee } from "@/hooks/useOrgChart"
 
 export default function OrganigrammePage() {
   const [searchTerm, setSearchTerm] = useState("")
-  const [selectedDepartment, setSelectedDepartment] = useState("Tous")
+  const [selectedDepartment, setSelectedDepartment] = useState("ADMINISTRATION")
   const [isTyping, setIsTyping] = useState(false)
   const [debouncedSearchTerm, setDebouncedSearchTerm] = useState("")
   const [selectedEmployee, setSelectedEmployee] = useState<Employee | null>(null)
@@ -49,7 +49,7 @@ export default function OrganigrammePage() {
             results: results.map((emp: any) => ({ 
               id: emp.id, 
               name: emp.full_name, 
-              department: emp.department_name,
+              department: emp.main_direction_name,
               directions: emp.directions?.map((d: any) => d.name) || []
             }))
           })
@@ -64,7 +64,7 @@ export default function OrganigrammePage() {
           employees: employees.map((emp: any) => ({ 
             id: emp.id, 
             name: emp.full_name, 
-            department: emp.department_name,
+            department: emp.main_direction_name,
             directions: emp.directions?.map((d: any) => d.name) || []
           }))
         })

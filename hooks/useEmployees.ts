@@ -13,12 +13,10 @@ export interface Employee {
   matricule: string | null  // Ajout du champ matricule (alias de employee_id)
   position: number  // ID de la position
   job_title: string
-  department_name: string
+  main_direction_name: string
   manager: number | null
   manager_name: string | null
   hierarchy_level: number
-  is_manager: boolean
-  is_active: boolean
   avatar: string | null  // URL complète de l'avatar
   office_location: string | null
   work_schedule: string

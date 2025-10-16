@@ -1,4 +1,4 @@
-"use client"
+ "use client"
 
 import type React from "react"
 import { useState, useCallback, useRef, useMemo, useEffect, forwardRef, useImperativeHandle } from "react"
@@ -56,7 +56,7 @@ const ReactFlowOrganigramme = forwardRef<ReactFlowOrganigrammeRef, ReactFlowOrga
     employees: employees?.map(emp => ({
       id: emp.id,
       name: emp.full_name,
-      department: emp.department_name,
+      department: emp.main_direction_name,
       directions: []
     })) || []
   })
@@ -149,10 +149,112 @@ const ReactFlowOrganigramme = forwardRef<ReactFlowOrganigrammeRef, ReactFlowOrga
     }
 
     return config
-  }, [employees?.length])
+  }, [])
 
   const config = getResponsiveConfig()
   console.log('📐 [REACT_FLOW] Configuration responsive:', config)
+
+  // Fonction pour calculer la largeur totale d'un sous-arbre
+  const calculateTotalWidth = (emp: Employee, level: number = 0): number => {
+    const subordinates = employees?.filter(e => e.manager === emp.id) || []
+    if (subordinates.length === 0) return config.nodeWidth
+    
+    // Calculer la largeur totale nécessaire pour tous les subordonnés
+    let totalChildrenWidth = 0
+    subordinates.forEach(sub => {
+      const subWidth = calculateTotalWidth(sub, level + 1)
+      totalChildrenWidth += subWidth
+    })
+    
+    // Ajouter l'espacement entre les enfants (nombre d'enfants - 1) * espacement
+    if (subordinates.length > 1) {
+      totalChildrenWidth += (subordinates.length - 1) * config.horizontalSpacing
+    }
+    
+    return Math.max(config.nodeWidth, totalChildrenWidth)
+  }
+
+  // Callbacks pour les événements de souris
+  const handleMouseEnter = useCallback((nodeId: string) => {
+    setHoveredNodeId(nodeId)
+  }, [])
+
+  const handleMouseLeave = useCallback(() => {
+    setHoveredNodeId(null)
+  }, [])
+
+  // Fonction pour construire la hiérarchie récursivement
+  const buildHierarchy = (employee: Employee, level: number = 0, x: number = 0, y: number = 0): { nodes: Node[], edges: Edge[], optimalViewport: { x: number, y: number, zoom: number } } => {
+      const node: Node = {
+        id: employee.id.toString(),
+        type: "employee",
+        position: { x, y },
+      style: {
+        width: config.nodeWidth,
+        height: config.nodeHeight,
+      },
+        data: {
+          employee,
+        onMouseEnter: () => handleMouseEnter(employee.id.toString()),
+        onMouseLeave: handleMouseLeave,
+          isHighlighted: false,
+        config: config, // Passer la config au composant
+        },
+      }
+
+      const nodes = [node]
+      const edges: Edge[] = []
+
+      // Trouver les subordonnés
+    const subordinates = employees?.filter(emp => emp.manager === employee.id) || []
+      
+      if (subordinates.length > 0) {
+      // Calculer la largeur totale nécessaire pour tous les subordonnés
+      let totalChildrenWidth = 0
+      const childWidths: number[] = []
+      
+      subordinates.forEach(sub => {
+        const subWidth = calculateTotalWidth(sub)
+        childWidths.push(subWidth)
+        totalChildrenWidth += subWidth
+      })
+      
+      // Ajouter l'espacement entre les enfants
+      if (subordinates.length > 1) {
+        totalChildrenWidth += (subordinates.length - 1) * config.horizontalSpacing
+      }
+      
+      // Centrer les subordonnés sous le manager
+      const startX = x - totalChildrenWidth / 2
+      const startY = y + config.verticalSpacing
+      
+      let currentX = startX
+        
+        subordinates.forEach((sub, index) => {
+        const subWidth = childWidths[index]
+        const subX = currentX + subWidth / 2 - config.nodeWidth / 2
+        const subY = startY
+          
+          const subResult = buildHierarchy(sub, level + 1, subX, subY)
+          nodes.push(...subResult.nodes)
+          edges.push(...subResult.edges)
+          
+          // Ajouter l'edge vers le subordonné
+          edges.push({
+            id: `e-${employee.id}-${sub.id}`,
+            source: employee.id.toString(),
+            target: sub.id.toString(),
+            type: "custom",
+            data: { isHighlighted: false }
+          })
+        
+        // Déplacer la position pour le prochain enfant
+        currentX += subWidth + config.horizontalSpacing
+      })
+    }
+
+    return { nodes, edges, optimalViewport: { x: 0, y: 0, zoom: 1 } }
+  }
 
   // Convertir les employés en nœuds React Flow et calculer le viewport optimal
   const { nodes, edges, optimalViewport } = useMemo((): { nodes: Node[], edges: Edge[], optimalViewport: { x: number, y: number, zoom: number } } => {
@@ -173,153 +275,101 @@ const ReactFlowOrganigramme = forwardRef<ReactFlowOrganigrammeRef, ReactFlowOrga
     const ceo = employees.find(emp => !emp.manager)
     console.log('👑 [REACT_FLOW] CEO trouvé:', ceo ? { id: ceo.id, name: ceo.full_name } : 'Aucun')
     
-    // Si pas de CEO, afficher tous les employés de la direction en grille
+    // Si pas de CEO dans la liste filtrée, essayer de construire une hiérarchie partielle
     if (!ceo) {
-      console.log('🔄 [REACT_FLOW] Pas de CEO, affichage de tous les employés de la direction en grille')
+      console.log('🔄 [REACT_FLOW] Pas de CEO dans la liste filtrée, construction d\'une hiérarchie partielle')
+      
+      // Trouver les employés de plus haut niveau dans la liste filtrée
+      const topLevelEmployees = employees.filter(emp => {
+        // Un employé est de plus haut niveau si son manager n'est pas dans la liste filtrée
+        return !emp.manager || !employees.find(e => e.id === emp.manager)
+      })
+      
+      console.log('🏢 [REACT_FLOW] Employés de plus haut niveau trouvés:', topLevelEmployees.map(emp => ({
+        id: emp.id,
+        name: emp.full_name,
+        level: emp.hierarchy_level
+      })))
+      
       const nodes: Node[] = []
       const edges: Edge[] = []
       
-      // Calculer les positions en grille
-      const cols = config.gridCols
-      const rows = Math.ceil(employees.length / cols)
-      
-      // Centrer la grille sur l'axe X uniquement
-      // Calculer la largeur totale nécessaire : (nombre de colonnes - 1) * espacement + largeur d'une carte
-      const totalWidth = (cols - 1) * config.horizontalSpacing + config.nodeWidth
-      const totalHeight = (rows - 1) * config.verticalSpacing + config.nodeHeight
-      const startX = -totalWidth / 2
-      const startY = 0
-      
-      console.log('📐 [REACT_FLOW] Calcul de la grille:', {
-        cols,
-        rows,
-        totalWidth,
-        totalHeight,
-        startX,
-        startY,
-        horizontalSpacing: config.horizontalSpacing,
-        nodeWidth: config.nodeWidth
+      // Construire la hiérarchie à partir de chaque employé de plus haut niveau
+      topLevelEmployees.forEach((topEmployee, topIndex) => {
+        const result = buildHierarchy(topEmployee, 0, topIndex * 400, 0)
+        nodes.push(...result.nodes)
+        edges.push(...result.edges)
       })
       
-      employees.forEach((employee, index) => {
-        const row = Math.floor(index / cols)
-        const col = index % cols
+      // Si aucun employé de plus haut niveau trouvé, utiliser une grille simple
+      if (topLevelEmployees.length === 0) {
+        console.log('📐 [REACT_FLOW] Aucun employé de plus haut niveau, utilisation d\'une grille simple')
         
-        const x = startX + col * config.horizontalSpacing
-        const y = startY + row * config.verticalSpacing
+        const cols = config.gridCols
+        const rows = Math.ceil(employees.length / cols)
+        const totalWidth = (cols - 1) * config.horizontalSpacing + config.nodeWidth
+        const startX = -totalWidth / 2
+        const startY = 0
         
-        const node: Node = {
-          id: employee.id.toString(),
-          type: 'employee',
-          position: { x, y },
-          style: {
-            width: config.nodeWidth,
-            height: config.nodeHeight,
-          },
-          data: { 
-            employee,
-            config: config
+        employees.forEach((employee, index) => {
+          const row = Math.floor(index / cols)
+          const col = index % cols
+          const x = startX + col * config.horizontalSpacing
+          const y = startY + row * config.verticalSpacing
+          
+          const node: Node = {
+            id: employee.id.toString(),
+            type: 'employee',
+            position: { x, y },
+            style: {
+              width: config.nodeWidth,
+              height: config.nodeHeight,
+            },
+            data: { 
+              employee,
+              config: config
+            }
+          }
+          nodes.push(node)
+        })
+      }
+      
+      // Générer les edges pour tous les employés
+      employees.forEach(employee => {
+        if (employee.manager) {
+          // Vérifier que le manager est aussi dans la liste filtrée
+          const managerInFiltered = employees.find(emp => emp.id === employee.manager)
+          if (managerInFiltered) {
+            const edge: Edge = {
+              id: `edge-${employee.manager}-${employee.id}`,
+              source: employee.manager.toString(),
+              target: employee.id.toString(),
+              type: "custom",
+              data: {
+                sourceEmployee: managerInFiltered,
+                targetEmployee: employee
+              }
+            }
+            edges.push(edge)
           }
         }
-        nodes.push(node)
+      })
+      
+      console.log('🔗 [REACT_FLOW] Edges générés pour le filtrage:', { 
+        edgesCount: edges.length,
+        edges: edges.map(e => ({ 
+          id: e.id, 
+          source: e.source, 
+          target: e.target,
+          sourceName: (e.data as any)?.sourceEmployee?.full_name,
+          targetName: (e.data as any)?.targetEmployee?.full_name
+        }))
       })
       
       // Le viewport sera géré par fitView et les useEffect
       return { nodes, edges, optimalViewport: { x: 0, y: 0, zoom: 1 } }
     }
 
-    // Construire la hiérarchie récursivement
-    const buildHierarchy = (employee: Employee, level: number = 0, x: number = 0, y: number = 0): { nodes: Node[], edges: Edge[], optimalViewport: { x: number, y: number, zoom: number } } => {
-      const node: Node = {
-        id: employee.id.toString(),
-        type: "employee",
-        position: { x, y },
-        style: {
-          width: config.nodeWidth,
-          height: config.nodeHeight,
-        },
-        data: {
-          employee,
-          onMouseEnter: () => setHoveredNodeId(employee.id.toString()),
-          onMouseLeave: () => setHoveredNodeId(null),
-          isHighlighted: false,
-          config: config, // Passer la config au composant
-        },
-      }
-
-      const nodes = [node]
-      const edges: Edge[] = []
-
-      // Trouver les subordonnés
-      const subordinates = employees.filter(emp => emp.manager === employee.id)
-      
-      if (subordinates.length > 0) {
-        // Calculer la largeur totale nécessaire pour tous les subordonnés
-        let totalChildrenWidth = 0
-        const childWidths: number[] = []
-        
-        subordinates.forEach(sub => {
-          const subWidth = calculateTotalWidth(sub)
-          childWidths.push(subWidth)
-          totalChildrenWidth += subWidth
-        })
-        
-        // Ajouter l'espacement entre les enfants
-        if (subordinates.length > 1) {
-          totalChildrenWidth += (subordinates.length - 1) * config.horizontalSpacing
-        }
-        
-        // Centrer les subordonnés sous le manager
-        const startX = x - totalChildrenWidth / 2
-        const startY = y + config.verticalSpacing
-        
-        let currentX = startX
-        
-        subordinates.forEach((sub, index) => {
-          const subWidth = childWidths[index]
-          const subX = currentX + subWidth / 2 - config.nodeWidth / 2
-          const subY = startY
-          
-          const subResult = buildHierarchy(sub, level + 1, subX, subY)
-          nodes.push(...subResult.nodes)
-          edges.push(...subResult.edges)
-          
-          // Ajouter l'edge vers le subordonné
-          edges.push({
-            id: `e-${employee.id}-${sub.id}`,
-            source: employee.id.toString(),
-            target: sub.id.toString(),
-            type: "custom",
-            data: { isHighlighted: false }
-          })
-          
-          // Déplacer la position pour le prochain enfant
-          currentX += subWidth + config.horizontalSpacing
-        })
-      }
-
-      return { nodes, edges, optimalViewport: { x: 0, y: 0, zoom: 1 } }
-    }
-
-    // Calculer la largeur totale de l'organigramme pour centrer le CEO
-    const calculateTotalWidth = (emp: Employee, level: number = 0): number => {
-      const subordinates = employees.filter(e => e.manager === emp.id)
-      if (subordinates.length === 0) return config.nodeWidth
-      
-      // Calculer la largeur totale nécessaire pour tous les subordonnés
-      let totalChildrenWidth = 0
-      subordinates.forEach(sub => {
-        const subWidth = calculateTotalWidth(sub, level + 1)
-        totalChildrenWidth += subWidth
-      })
-      
-      // Ajouter l'espacement entre les enfants (nombre d'enfants - 1) * espacement
-      if (subordinates.length > 1) {
-        totalChildrenWidth += (subordinates.length - 1) * config.horizontalSpacing
-      }
-      
-      return Math.max(config.nodeWidth, totalChildrenWidth)
-    }
     
     const totalOrgWidth = calculateTotalWidth(ceo)
     const ceoX = -totalOrgWidth / 2
@@ -537,13 +587,11 @@ const ReactFlowOrganigramme = forwardRef<ReactFlowOrganigrammeRef, ReactFlowOrga
     const edgeIds: string[] = []
     const nodeIds: string[] = [nodeId]
     let currentNodeId = nodeId
-    const ceoId = nodes.find(n => (n.data.employee as Employee).manager === null)?.id
-
-    if (!ceoId) return { edgeIds, nodeIds }
 
     const visited = new Set<string>()
 
-    while (currentNodeId !== ceoId && !visited.has(currentNodeId)) {
+    // Remonter la hiérarchie jusqu'à ce qu'on ne trouve plus de parent
+    while (!visited.has(currentNodeId)) {
       visited.add(currentNodeId)
 
       const parentEdge = edges.find((edge) => edge.target === currentNodeId)
@@ -555,7 +603,7 @@ const ReactFlowOrganigramme = forwardRef<ReactFlowOrganigrammeRef, ReactFlowOrga
     }
 
     return { edgeIds, nodeIds }
-  }, [nodes])
+  }, [])
 
   const highlightedPath = useMemo(() => {
     if (!hoveredNodeId) return { edgeIds: new Set<string>(), nodeIds: new Set<string>() }
@@ -567,14 +615,20 @@ const ReactFlowOrganigramme = forwardRef<ReactFlowOrganigrammeRef, ReactFlowOrga
   }, [hoveredNodeId, edgesState, findPathToCEO])
 
   const edgesWithHighlight = useMemo(() => {
-    return edgesState.map((edge) => ({
-      ...edge,
-      data: {
-        ...edge.data,
-        isHighlighted: highlightedPath.edgeIds.has(edge.id),
-      },
-    }))
-  }, [edgesState, highlightedPath.edgeIds])
+    return edgesState.map((edge) => {
+      const isInPath = highlightedPath.edgeIds.has(edge.id)
+      const isConnectedToPath = highlightedPath.nodeIds.has(edge.source) || highlightedPath.nodeIds.has(edge.target)
+      
+      return {
+        ...edge,
+        data: {
+          ...edge.data,
+          isHighlighted: isInPath,
+          isConnected: isConnectedToPath && !isInPath, // Connecté au chemin mais pas dans le chemin
+        },
+      }
+    })
+  }, [edgesState, highlightedPath.edgeIds, highlightedPath.nodeIds])
 
   const nodesWithHoverHandler = useMemo(() => {
     return nodesState.map((node) => ({
@@ -712,23 +766,23 @@ const ReactFlowOrganigramme = forwardRef<ReactFlowOrganigrammeRef, ReactFlowOrga
                     ? "bg-gradient-to-br from-amber-50 to-yellow-50 border-2 border-amber-200" 
                     : "bg-white"
                 }`}
-                onClick={(e) => e.stopPropagation()}
-              >
+            onClick={(e) => e.stopPropagation()}
+          >
                 {/* Header Section with Photo - Responsive */}
                 <div className={`relative px-4 sm:px-6 lg:px-8 pt-8 sm:pt-10 lg:pt-12 pb-6 sm:pb-8 ${
                   isCEO 
                     ? "bg-gradient-to-br from-amber-100 to-yellow-100" 
                     : "bg-gradient-to-br from-slate-50 to-slate-100"
                 }`}>
-                  <button
-                    onClick={() => setSelectedNode(null)}
+              <button
+                onClick={() => setSelectedNode(null)}
                     className="absolute top-3 right-3 sm:top-4 sm:right-4 lg:top-6 lg:right-6 p-1.5 sm:p-2 hover:bg-white/80 rounded-full transition-all duration-200 group"
-                  >
+              >
                     <X className="h-4 w-4 sm:h-5 sm:w-5 text-slate-600 group-hover:text-slate-900" />
-                  </button>
+              </button>
 
                   {/* Photo and Basic Info - Responsive */}
-                  <div className="flex flex-col items-center text-center">
+              <div className="flex flex-col items-center text-center">
                     <div className="relative mb-4 sm:mb-6">
                       {/* Couronne pour le DG - Responsive */}
                       {isCEO && (
@@ -750,23 +804,23 @@ const ReactFlowOrganigramme = forwardRef<ReactFlowOrganigrammeRef, ReactFlowOrga
                         <img
                           src={employee.avatar || "/placeholder-user.jpg"}
                           alt={employee.full_name}
-                          className="w-full h-full object-cover"
-                          onError={(e) => {
-                            // Fallback vers l'avatar par défaut si l'image ne charge pas
-                            const target = e.target as HTMLImageElement;
-                            if (target.src !== "/placeholder-user.jpg") {
-                              target.src = "/placeholder-user.jpg";
-                            }
-                          }}
-                        />
-                      </div>
-                    </div>
+                      className="w-full h-full object-cover"
+                      onError={(e) => {
+                        // Fallback vers l'avatar par défaut si l'image ne charge pas
+                        const target = e.target as HTMLImageElement;
+                        if (target.src !== "/placeholder-user.jpg") {
+                          target.src = "/placeholder-user.jpg";
+                        }
+                      }}
+                    />
+                  </div>
+                </div>
 
                     <h2 className={`text-xl sm:text-2xl lg:text-3xl font-bold mb-1 sm:mb-2 tracking-tight ${
                       isCEO ? "text-amber-900" : "text-slate-900"
                     }`}>
                       {employee.full_name}
-                    </h2>
+                </h2>
                     <p className={`text-sm sm:text-base lg:text-lg mb-2 sm:mb-3 font-medium ${
                       isCEO ? "text-amber-800" : "text-slate-600"
                     }`}>
@@ -777,10 +831,10 @@ const ReactFlowOrganigramme = forwardRef<ReactFlowOrganigrammeRef, ReactFlowOrga
                         ? "bg-amber-200 text-amber-800 border border-amber-300" 
                         : "bg-white text-slate-700 border border-slate-200"
                     }`}>
-                      {employee.department_name}
-                    </span>
-                  </div>
-                </div>
+                      {employee.main_direction_name}
+                </span>
+              </div>
+            </div>
 
             {/* Content Section - Responsive */}
             <div className="px-4 sm:px-6 lg:px-8 py-4 sm:py-6 lg:py-8 overflow-y-auto max-h-[calc(90vh-200px)] sm:max-h-[calc(85vh-280px)]">
@@ -854,7 +908,7 @@ const ReactFlowOrganigramme = forwardRef<ReactFlowOrganigrammeRef, ReactFlowOrga
                 </div>
               </div>
             </div>
-              </div>
+          </div>
             )
           })()}
         </div>

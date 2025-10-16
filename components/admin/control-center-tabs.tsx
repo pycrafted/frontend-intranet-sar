@@ -27,13 +27,15 @@ import { MenuManagement } from './menu-management'
 import { EventManagement } from './event-management'
 import { EmployeesAdminTable } from './employees-admin-table'
 import { DepartmentsAdminTable } from './departments-admin-table'
+import { DirectionsAdminTable } from './directions-admin-table'
+import { AgentsAdminTable } from './agents-admin-table'
 
 interface ControlCenterTabsProps {
   className?: string
   activeSection?: string
 }
 
-type TabType = 'articles' | 'ideas' | 'safety' | 'users' | 'employees' | 'departments' | 'menu' | 'events'
+type TabType = 'articles' | 'ideas' | 'safety' | 'users' | 'employees' | 'departments' | 'organigramme-directions' | 'organigramme-agents' | 'menu' | 'events'
 
 interface Tab {
   id: TabType
@@ -111,6 +113,12 @@ export function ControlCenterTabs({ className, activeSection }: ControlCenterTab
       
       case 'departments':
         return <DepartmentsAdminTable />
+      
+      case 'organigramme-directions':
+        return <DirectionsAdminTable />
+      
+      case 'organigramme-agents':
+        return <AgentsAdminTable />
       
       case 'articles':
         return <ArticleAdminTable />

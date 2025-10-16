@@ -127,16 +127,12 @@ const InteractiveOrgChart: React.FC<OrgChartProps> = ({ employees, loading = fal
       email: "amadou.diallo@sar.sn",
       phone: "+221 33 123 4567",
       employee_id: "SAR001",
-      position: 1,
       job_title: "Directeur Général",
-      department_name: "Direction",
+      main_direction_name: "Direction",
       manager: null,
       manager_name: null,
       hierarchy_level: 1,
-      is_manager: true,
-      office_location: "Dakar - Siège",
       work_schedule: "Temps plein",
-      is_active: true,
       hire_date: "2020-01-01",
       avatar: "/media/avatars/directeur-general--2048x1657.jpg",
       children: []
@@ -639,7 +635,7 @@ const InteractiveOrgChart: React.FC<OrgChartProps> = ({ employees, loading = fal
                 {selectedNode.job_title || selectedNode.role || "Poste inconnu"}
               </CardDescription>
               <Badge variant="outline" className="w-fit mx-auto mt-2 border-slate-200 text-slate-600 bg-slate-50">
-                {selectedNode.department_name || selectedNode.department || "Département inconnu"}
+                {selectedNode.main_direction_name || selectedNode.department || "Département inconnu"}
               </Badge>
             </CardHeader>
             <CardContent className="space-y-4 px-6 pb-6">

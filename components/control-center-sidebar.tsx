@@ -35,6 +35,13 @@ const controlCenterSections = [
     ],
   },
   {
+    title: "Gestion de l'Organigramme",
+    items: [
+      { name: "Directions", section: "organigramme-directions", icon: Building2, badge: "12", count: 12 },
+      { name: "Agents", section: "organigramme-agents", icon: Users, badge: "67", count: 67 },
+    ],
+  },
+  {
     title: "Gestion de Contenu",
     items: [
       { name: "Articles", section: "articles", icon: FileText, badge: "156", count: 156 },
