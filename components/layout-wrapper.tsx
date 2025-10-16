@@ -123,7 +123,7 @@ export function LayoutWrapper({ children, secondaryNavbarProps, sidebarProps }: 
           />
         )}
               
-              <div className={`mx-auto px-2 sm:px-4 py-4 sm:py-6 lg:px-8 ${pathname === "/" ? "max-w-none px-1 sm:px-2 lg:px-4" : pathname === "/organigramme" ? "max-w-none px-0" : "max-w-7xl"}`}>
+              <div className={`mx-auto px-2 sm:px-4 py-4 sm:py-6 lg:px-8 ${pathname === "/" || pathname === "/securite" ? "max-w-none px-1 sm:px-2 lg:px-4" : pathname === "/organigramme" ? "max-w-none px-0" : "max-w-7xl"}`}>
                 {children}
               </div>
             </div>
