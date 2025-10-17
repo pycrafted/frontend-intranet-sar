@@ -808,9 +808,20 @@ const ReactFlowOrganigramme = forwardRef<ReactFlowOrganigrammeRef, ReactFlowOrga
                       onError={(e) => {
                         // Fallback vers l'avatar par défaut si l'image ne charge pas
                         const target = e.target as HTMLImageElement;
+                        console.log('❌ [REACT_FLOW] Erreur chargement avatar:', {
+                          employee: employee.full_name,
+                          avatarUrl: employee.avatar,
+                          errorSrc: target.src
+                        });
                         if (target.src !== "/placeholder-user.jpg") {
                           target.src = "/placeholder-user.jpg";
                         }
+                      }}
+                      onLoad={() => {
+                        console.log('✅ [REACT_FLOW] Avatar chargé:', {
+                          employee: employee.full_name,
+                          avatarUrl: employee.avatar
+                        });
                       }}
                     />
                   </div>

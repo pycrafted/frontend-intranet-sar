@@ -314,6 +314,14 @@ export const useOrgChart = () => {
       const data = await response.json()
       const employeesData = Array.isArray(data) ? data : data.results || []
       
+      // Log des URLs d'avatar pour débogage
+      console.log('🖼️ [ORGCHART_HOOK] URLs d\'avatar reçues:', 
+        employeesData.map((emp: any) => ({
+          name: emp.full_name,
+          avatar: emp.avatar
+        }))
+      )
+      
       // Si aucune donnée de l'API, utiliser les données statiques
       if (employeesData.length === 0) {
         setEmployees(staticEmployees)
