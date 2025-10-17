@@ -58,7 +58,7 @@ const initialPagination: Pagination = {
   end: 0
 }
 
-export function useIdeasAdmin() {
+export const useIdeasAdmin = () => {
   const [state, setState] = useState<IdeasAdminState>({
     ideas: [],
     loading: false,
@@ -253,3 +253,6 @@ export function useIdeasAdmin() {
     clearSelection
   }
 }
+
+// Export par défaut pour compatibilité
+export default useIdeasAdmin

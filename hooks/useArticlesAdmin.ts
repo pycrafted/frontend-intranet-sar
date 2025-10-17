@@ -300,3 +300,6 @@ export const useArticlesAdmin = () => {
     clearSelection
   };
 };
+
+// Export par défaut pour compatibilité
+export default useArticlesAdmin;

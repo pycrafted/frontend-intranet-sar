@@ -64,7 +64,7 @@ const initialFilters: EmployeesFilters = {
 
 const API_BASE_URL = `${process.env.NEXT_PUBLIC_API_URL || 'http://localhost:8000/api'}/annuaire`
 
-export function useEmployeesAdmin() {
+export const useEmployeesAdmin = () => {
   const [state, setState] = useState<EmployeesAdminState>({
     employees: [],
     departments: [],
@@ -293,3 +293,6 @@ export function useEmployeesAdmin() {
     clearSelection
   }
 }
+
+// Export par défaut pour compatibilité
+export default useEmployeesAdmin

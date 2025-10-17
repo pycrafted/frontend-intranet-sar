@@ -24,7 +24,7 @@ const initialState: DepartmentsAdminState = {
   selectedDepartments: []
 }
 
-export function useDepartmentsAdmin() {
+export const useDepartmentsAdmin = () => {
   const [state, setState] = useState<DepartmentsAdminState>(initialState)
 
   // Récupérer les départements
@@ -164,4 +164,7 @@ export function useDepartmentsAdmin() {
     clearSelection
   }
 }
+
+// Export par défaut pour compatibilité
+export default useDepartmentsAdmin
 
