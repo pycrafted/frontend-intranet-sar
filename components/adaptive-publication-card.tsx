@@ -352,17 +352,42 @@ function TextImageContent({ article, searchTerm }: { article: Article; searchTer
           alt={article.title || "Image"}
           className="publication-image-text"
           onLoad={() => {
-            // Image chargée avec succès
+            console.log('✅ [TEXT_IMAGE] Image chargée avec succès:', {
+              image_url: article.image_url,
+              image: article.image,
+              article_id: article.id,
+              article_title: article.title,
+              final_url: article.image_url || article.image
+            });
           }}
           onError={(e) => {
+            const target = e.currentTarget;
             console.error('❌ Erreur de chargement de l\'image (TextImage):', {
               image_url: article.image_url,
               image: article.image,
-              src: e.currentTarget.src,
+              src: target.src,
               article_id: article.id,
-              article_title: article.title
+              article_title: article.title,
+              final_url: article.image_url || article.image,
+              error_event: e,
+              target_element: target
             });
-            e.currentTarget.style.display = 'none';
+            
+            // Tester l'URL avec fetch pour plus de détails
+            fetch(target.src, { method: 'HEAD' })
+              .then(response => {
+                console.error('🔍 [TEXT_IMAGE] Détails de l\'erreur fetch:', {
+                  status: response.status,
+                  statusText: response.statusText,
+                  headers: Object.fromEntries(response.headers.entries()),
+                  url: response.url
+                });
+              })
+              .catch(fetchError => {
+                console.error('🔍 [TEXT_IMAGE] Erreur fetch:', fetchError);
+              });
+            
+            target.style.display = 'none';
           }}
         />
       </div>
@@ -515,11 +540,11 @@ function EventContent({ article, searchTerm }: { article: Article; searchTerm?: 
           </div>
         )}
         
-        {article.end_date && (
+        {(article as any).end_date && (
           <div className="flex items-center gap-2 p-3 bg-white rounded-lg border border-gray-200">
             <Calendar className="w-4 h-4 text-orange-500" />
             <span className="text-sm font-medium text-gray-700">
-              Fin des inscriptions: {new Date(article.end_date).toLocaleDateString("fr-FR")}
+              Fin des inscriptions: {new Date((article as any).end_date).toLocaleDateString("fr-FR")}
             </span>
           </div>
         )}

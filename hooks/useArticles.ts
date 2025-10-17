@@ -34,6 +34,45 @@ export function useArticles(params: UseArticlesParams = {}) {
       setTotalCount(response.count);
       setHasNext(!!response.next);
       setHasPrevious(!!response.previous);
+      
+      // Log des URLs d'images pour débogage
+      console.log('🖼️ [USE_ARTICLES] URLs d\'images reçues:', 
+        response.results.map((article: any) => ({
+          id: article.id,
+          title: article.title,
+          type: article.type,
+          content_type: article.content_type,
+          image_url: article.image_url,
+          image: article.image,
+          final_url: article.image_url || article.image,
+          has_image: !!(article.image_url || article.image)
+        }))
+      );
+      
+      // Tester une URL d'image si elle existe
+      const articleWithImage = response.results.find((article: any) => article.image_url || article.image);
+      if (articleWithImage) {
+        const imageUrl = articleWithImage.image_url || articleWithImage.image;
+        console.log('🔍 [USE_ARTICLES] Test de l\'URL d\'image:', imageUrl);
+        
+        // Tester l'URL avec fetch
+        fetch(imageUrl, { method: 'HEAD' })
+          .then(response => {
+            console.log('🔍 [USE_ARTICLES] Test fetch image:', {
+              url: imageUrl,
+              status: response.status,
+              statusText: response.statusText,
+              ok: response.ok,
+              contentType: response.headers.get('content-type')
+            });
+          })
+          .catch(error => {
+            console.error('❌ [USE_ARTICLES] Erreur fetch image:', {
+              url: imageUrl,
+              error: error.message
+            });
+          });
+      }
     } catch (err) {
       setError(err instanceof Error ? err.message : 'Erreur lors du chargement des articles');
       console.error('Erreur lors du chargement des articles:', err);
