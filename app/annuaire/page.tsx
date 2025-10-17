@@ -7,7 +7,7 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/com
 import { Button } from "@/components/ui/button"
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar"
 import { Input } from "@/components/ui/input"
-import { Mail, Phone, Smartphone, MessageCircle, ChevronLeft, ChevronRight, Search, Building2, User } from "lucide-react"
+import { Mail, Phone, Smartphone, MessageCircle, ChevronLeft, ChevronRight, Search } from "lucide-react"
 import { useEmployees, Employee, Department } from "@/hooks/useEmployees"
 import { StandardLoader } from "@/components/ui/standard-loader"
 
@@ -23,7 +23,7 @@ const fallbackEmployees: Employee[] = [
     phone_fixed: "+221 33 825 96 21",
     phone_mobile: "77 459 63 21",
     employee_id: "SAR001",
-    job_title: "Directrice Commerciale et Marketing",
+    position_title: "Directrice Commerciale et Marketing",
     main_direction_name: "Direction Commerciale et Marketing",
     matricule: "SAR001",
     manager: null,
@@ -32,6 +32,8 @@ const fallbackEmployees: Employee[] = [
     hire_date: "2020-01-01",
     work_schedule: "Temps plein",
     avatar: "/placeholder-user.jpg",
+    position: 1,
+    office_location: null,
     created_at: "2020-01-01T00:00:00Z",
     updated_at: "2020-01-01T00:00:00Z",
   },
@@ -45,7 +47,7 @@ const fallbackEmployees: Employee[] = [
     phone_fixed: "+221 33 825 03 20",
     phone_mobile: "77 250 31 20",
     employee_id: "SAR002",
-    job_title: "Directeur général",
+    position_title: "Directeur général",
     main_direction_name: "Administration",
     matricule: "SAR002",
     manager: null,
@@ -54,6 +56,8 @@ const fallbackEmployees: Employee[] = [
     hire_date: "2020-01-01",
     work_schedule: "Temps plein",
     avatar: "/placeholder-user.jpg",
+    position: 1,
+    office_location: null,
     created_at: "2020-01-01T00:00:00Z",
     updated_at: "2020-01-01T00:00:00Z",
   },
@@ -67,7 +71,7 @@ const fallbackEmployees: Employee[] = [
     phone_fixed: "+221 33 825 98 31",
     phone_mobile: null,
     employee_id: "SAR003",
-    job_title: "Directeur des Ressources Humaines",
+    position_title: "Directeur des Ressources Humaines",
     main_direction_name: "Direction des Ressources Humaines",
     matricule: "SAR003",
     manager: null,
@@ -76,6 +80,8 @@ const fallbackEmployees: Employee[] = [
     hire_date: "2020-01-01",
     work_schedule: "Temps plein",
     avatar: "/placeholder-user.jpg",
+    position: 1,
+    office_location: null,
     created_at: "2020-01-01T00:00:00Z",
     updated_at: "2020-01-01T00:00:00Z",
   },
@@ -89,7 +95,7 @@ const fallbackEmployees: Employee[] = [
     phone_fixed: "+221 33 825 59 13",
     phone_mobile: "77 145 93 13",
     employee_id: "SAR004",
-    job_title: "Directeur EXECUTIVE - SUPPORT",
+    position_title: "Directeur EXECUTIVE - SUPPORT",
     main_direction_name: "Direction EXECUTIVE - SUPPORT",
     matricule: "SAR004",
     manager: null,
@@ -98,6 +104,8 @@ const fallbackEmployees: Employee[] = [
     hire_date: "2020-01-01",
     work_schedule: "Temps plein",
     avatar: "/placeholder-user.jpg",
+    position: 1,
+    office_location: null,
     created_at: "2020-01-01T00:00:00Z",
     updated_at: "2020-01-01T00:00:00Z",
   },
@@ -111,7 +119,7 @@ const fallbackEmployees: Employee[] = [
     phone_fixed: null,
     phone_mobile: "77 514 96 38",
     employee_id: "SAR005",
-    job_title: "Directeur Technique",
+    position_title: "Directeur Technique",
     main_direction_name: "Direction Technique",
     matricule: "SAR005",
     manager: null,
@@ -120,6 +128,8 @@ const fallbackEmployees: Employee[] = [
     hire_date: "2020-01-01",
     work_schedule: "Temps plein",
     avatar: "/placeholder-user.jpg",
+    position: 1,
+    office_location: null,
     created_at: "2020-01-01T00:00:00Z",
     updated_at: "2020-01-01T00:00:00Z",
   },
@@ -133,7 +143,7 @@ const fallbackEmployees: Employee[] = [
     phone_fixed: "+221 33 825 63 20",
     phone_mobile: "77 256 39 20",
     employee_id: "SAR006",
-    job_title: "Directeur EXECUTIVE OPERATIONS",
+    position_title: "Directeur EXECUTIVE OPERATIONS",
     main_direction_name: "Direction Executif",
     matricule: "SAR006",
     manager: null,
@@ -142,6 +152,8 @@ const fallbackEmployees: Employee[] = [
     hire_date: "2020-01-01",
     work_schedule: "Temps plein",
     avatar: "/placeholder-user.jpg",
+    position: 1,
+    office_location: null,
     created_at: "2020-01-01T00:00:00Z",
     updated_at: "2020-01-01T00:00:00Z",
   },
@@ -155,7 +167,7 @@ const fallbackEmployees: Employee[] = [
     phone_fixed: null,
     phone_mobile: null,
     employee_id: "SAR007",
-    job_title: "Responsable Qualité",
+    position_title: "Responsable Qualité",
     main_direction_name: "Direction Qualité",
     matricule: "SAR007",
     manager: null,
@@ -164,6 +176,8 @@ const fallbackEmployees: Employee[] = [
     hire_date: "2021-03-15",
     work_schedule: "Temps plein",
     avatar: "/placeholder-user.jpg",
+    position: 1,
+    office_location: null,
     created_at: "2021-03-15T00:00:00Z",
     updated_at: "2021-03-15T00:00:00Z",
   },
@@ -177,7 +191,7 @@ const fallbackEmployees: Employee[] = [
     phone_fixed: "+221 33 825 67 90",
     phone_mobile: "77 456 78 90",
     employee_id: "SAR008",
-    job_title: "Chef de Projet",
+    position_title: "Chef de Projet",
     main_direction_name: "Direction Technique",
     matricule: "SAR008",
     manager: null,
@@ -186,6 +200,8 @@ const fallbackEmployees: Employee[] = [
     hire_date: "2021-06-01",
     work_schedule: "Temps plein",
     avatar: "/placeholder-user.jpg",
+    position: 1,
+    office_location: null,
     created_at: "2021-06-01T00:00:00Z",
     updated_at: "2021-06-01T00:00:00Z",
   },
@@ -199,7 +215,7 @@ const fallbackEmployees: Employee[] = [
     phone_fixed: "+221 33 825 78 01",
     phone_mobile: "77 567 89 01",
     employee_id: "SAR009",
-    job_title: "Analyste Financier",
+    position_title: "Analyste Financier",
     main_direction_name: "Direction Financière",
     matricule: "SAR009",
     manager: null,
@@ -208,6 +224,8 @@ const fallbackEmployees: Employee[] = [
     hire_date: "2022-01-10",
     work_schedule: "Temps plein",
     avatar: "/placeholder-user.jpg",
+    position: 1,
+    office_location: null,
     created_at: "2022-01-10T00:00:00Z",
     updated_at: "2022-01-10T00:00:00Z",
   }
@@ -222,7 +240,7 @@ export default function AnnuairePage() {
   const [selectedDepartment, setSelectedDepartment] = useState("Tous")
   const [filteredEmployees, setFilteredEmployees] = useState<Employee[]>([])
   const [currentPage, setCurrentPage] = useState(1)
-  const itemsPerPage = 6
+  const itemsPerPage = 12 // 4 cartes x 3 lignes en mobile pour éviter les cartes vides
 
   // Utiliser l'API
   const { 
@@ -249,7 +267,7 @@ export default function AnnuairePage() {
     const timer = setTimeout(() => {
       setDebouncedSearchTerm(searchTerm)
       setIsTyping(false)
-    }, 1000) // 1 seconde pour laisser le temps de finir d'écrire
+    }, 1500) // 1.5 secondes pour laisser le temps de finir d'écrire
     
     return () => clearTimeout(timer)
   }, [searchTerm])
@@ -290,9 +308,6 @@ export default function AnnuairePage() {
     window.location.href = `mailto:${email}`
   }
 
-  const handleEmployeeClick = (employee: Employee) => {
-    // Modal supprimé - pas d'action au clic
-  }
 
   const handleChatClick = (employee: Employee) => {
     // TODO: Implémenter la fonctionnalité de chat
@@ -309,7 +324,7 @@ export default function AnnuairePage() {
   const endIndex = startIndex + itemsPerPage
   const currentEmployees = displayData.slice(startIndex, endIndex)
   
-  // Créer un tableau de 8 éléments pour maintenir la grille
+  // Créer un tableau d'éléments pour maintenir la grille
   const displayEmployees = Array.from({ length: itemsPerPage }, (_, index) => 
     currentEmployees[index] || null
   )
@@ -385,6 +400,116 @@ export default function AnnuairePage() {
           -webkit-text-fill-color: transparent;
           background-clip: text;
         }
+        
+        .line-clamp-2 {
+          display: -webkit-box;
+          -webkit-line-clamp: 2;
+          -webkit-box-orient: vertical;
+          overflow: hidden;
+        }
+        
+        /* Amélioration de l'affichage mobile */
+        @media (max-width: 640px) {
+          .container {
+            padding-left: 0.75rem;
+            padding-right: 0.75rem;
+          }
+          
+          /* Assurer un espacement minimum entre les cartes */
+          .grid {
+            gap: 0.5rem !important;
+          }
+          
+          /* Réduire la taille des cartes en mobile */
+          .card-mobile {
+            min-height: 200px;
+            max-height: 280px;
+          }
+          
+          /* Optimiser les espacements internes */
+          .card-content-mobile {
+            padding: 0.5rem !important;
+          }
+          
+          /* Réduire la taille des avatars en mobile */
+          .avatar-mobile {
+            width: 2.5rem !important;
+            height: 2.5rem !important;
+          }
+        }
+        
+        /* Breakpoint pour très petits écrans */
+        @media (max-width: 480px) {
+          .container {
+            padding-left: 0.5rem;
+            padding-right: 0.5rem;
+          }
+          
+          .grid {
+            gap: 0.375rem !important;
+          }
+          
+          /* Ajustements supplémentaires pour très petits écrans */
+          .card-mobile {
+            min-height: 180px;
+            max-height: 250px;
+          }
+          
+          .avatar-mobile {
+            width: 2rem !important;
+            height: 2rem !important;
+          }
+        }
+        
+        /* Assurer que les cartes ne se chevauchent jamais */
+        .grid > * {
+          min-width: 0;
+          flex-shrink: 1;
+        }
+        
+        /* Animations personnalisées pour plus de dynamisme */
+        @keyframes bounce-subtle {
+          0%, 100% {
+            transform: translateY(0);
+          }
+          50% {
+            transform: translateY(-2px);
+          }
+        }
+        
+        @keyframes pulse-glow {
+          0%, 100% {
+            box-shadow: 0 0 5px rgba(255, 255, 255, 0.1);
+          }
+          50% {
+            box-shadow: 0 0 20px rgba(255, 255, 255, 0.3), 0 0 30px rgba(255, 255, 255, 0.1);
+          }
+        }
+        
+        @keyframes wiggle {
+          0%, 100% {
+            transform: rotate(0deg);
+          }
+          25% {
+            transform: rotate(1deg);
+          }
+          75% {
+            transform: rotate(-1deg);
+          }
+        }
+        
+        /* Effets de survol améliorés */
+        .group:hover .avatar-mobile {
+          animation: bounce-subtle 0.6s ease-in-out;
+        }
+        
+        .group:hover {
+          animation: pulse-glow 2s ease-in-out infinite;
+        }
+        
+        .group:hover .group-hover\\:scale-110 {
+          animation: wiggle 0.8s ease-in-out;
+        }
       `}</style>
       <LayoutWrapper 
         secondaryNavbarProps={{
@@ -413,19 +538,19 @@ export default function AnnuairePage() {
               </div>
             )}
 
-            {/* Grille des employés */}
-            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 mb-8">
+            {/* Grille des employés - Responsive avec 4 cartes en mobile */}
+            <div className="grid grid-cols-2 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-3 xl:grid-cols-4 gap-2 sm:gap-3 md:gap-4 lg:gap-6 mb-8">
               {displayEmployees.map((employee, index) => (
                 employee ? (
                   <Card 
                     key={employee.id} 
-                    className="overflow-hidden hover:shadow-2xl hover:-translate-y-2 hover:scale-105 transition-all duration-300 ease-out bg-card border-border cursor-pointer transform"
-                    onClick={() => handleEmployeeClick(employee)}
+                    className="overflow-hidden hover:shadow-2xl hover:-translate-y-4 hover:scale-110 hover:rotate-1 transition-all duration-500 ease-out border-border transform card-mobile group"
+                    style={{backgroundColor: "#344256"}}
                   >
-                    <div className="h-16" style={{backgroundColor: "#e7eaee"}} />
-                    <CardContent className="pt-0 px-6 pb-6">
-                      <div className="flex flex-col items-center -mt-10">
-                        <Avatar className="w-20 h-20 border-4 border-card shadow-md">
+                    <div className="h-12 sm:h-16" style={{backgroundColor: "#344256"}} />
+                    <CardContent className="pt-0 px-2 sm:px-4 md:px-6 pb-2 sm:pb-4 md:pb-6 card-content-mobile">
+                      <div className="flex flex-col items-center -mt-10 sm:-mt-12 md:-mt-14">
+                        <Avatar className="w-12 h-12 sm:w-16 sm:h-16 md:w-20 md:h-20 border-2 sm:border-4 border-white shadow-lg avatar-mobile group-hover:scale-110 group-hover:rotate-3 group-hover:shadow-2xl transition-all duration-500 ease-out">
                           <AvatarImage
                             src={employee.avatar || "/placeholder-user.jpg"}
                             alt={`${employee.full_name}`}
@@ -434,93 +559,106 @@ export default function AnnuairePage() {
                               target.style.display = 'none';
                             }}
                           />
-                          <AvatarFallback className="bg-primary text-primary-foreground text-xl font-semibold">
+                          <AvatarFallback className="bg-primary text-primary-foreground text-sm sm:text-lg md:text-xl font-semibold">
                             {employee.initials}
                           </AvatarFallback>
                         </Avatar>
 
-                        <div className="text-center mt-4 mb-4">
-                          <h3 className="text-xl font-semibold text-foreground text-balance">
+                        <div className="text-center mt-2 sm:mt-3 md:mt-4 mb-2 sm:mb-3 md:mb-4 group-hover:scale-105 transition-all duration-500 ease-out">
+                          <h3 className="text-sm sm:text-base md:text-lg lg:text-xl font-bold text-white text-balance leading-tight group-hover:text-yellow-200 transition-colors duration-500">
                             {employee.full_name}
                           </h3>
-                          <p className="text-sm text-muted-foreground mt-1 text-balance">{employee.job_title}</p>
+                          <div className="mt-1 sm:mt-2 group-hover:scale-110 transition-transform duration-500 ease-out">
+                            <span className="inline-block bg-white/10 text-white text-xs sm:text-sm font-medium px-2 py-1 rounded-full border border-white/20 group-hover:bg-yellow-400/20 group-hover:text-yellow-200 group-hover:border-yellow-300/40 group-hover:shadow-lg transition-all duration-500">
+                              {employee.position_title}
+                            </span>
+                          </div>
                         </div>
 
-                        <div className="w-full space-y-3 mb-5">
-                          <div className="flex items-start gap-3 text-sm">
-                            <Building2 className="w-4 h-4 text-muted-foreground mt-0.5 flex-shrink-0" />
-                            <span className="text-foreground text-pretty leading-relaxed">{employee.main_direction_name}</span>
-                          </div>
-
-                          <div className="flex items-center gap-3 text-sm">
-                            <Phone className="w-4 h-4 text-muted-foreground flex-shrink-0" />
-                            {employee.phone_fixed ? (
-                              <a href={`tel:${employee.phone_fixed}`} className="text-foreground hover:text-primary transition-colors">
-                                {employee.phone_fixed}
-                              </a>
-                            ) : (
-                              <span className="text-muted-foreground">Non renseigné</span>
-                            )}
-                          </div>
-
-                          <div className="flex items-center gap-3 text-sm">
-                            <Smartphone className="w-4 h-4 text-muted-foreground flex-shrink-0" />
-                            {employee.phone_mobile ? (
-                              <a href={`tel:${employee.phone_mobile}`} className="text-foreground hover:text-primary transition-colors">
-                                {employee.phone_mobile}
-                              </a>
-                            ) : (
-                              <span className="text-muted-foreground">Non renseigné</span>
-                            )}
-                          </div>
-
-                          <div className="flex items-center gap-3 text-sm">
-                            <Mail className="w-4 h-4 text-muted-foreground flex-shrink-0" />
+                        {/* Informations compactes pour mobile */}
+                        <div className="w-full space-y-1 sm:space-y-2 md:space-y-3 mb-2 sm:mb-3 md:mb-5 group-hover:translate-x-2 transition-transform duration-500 ease-out">
+                          <div className="flex items-center gap-2 sm:gap-3 text-xs sm:text-sm group-hover:scale-105 transition-transform duration-500 ease-out">
+                            <Mail className="w-3 h-3 sm:w-4 sm:h-4 text-white flex-shrink-0 group-hover:text-blue-300 group-hover:scale-125 transition-all duration-500 ease-out" />
                             <a
                               href={`mailto:${employee.email}`}
-                              className="text-foreground hover:text-primary transition-colors break-all"
+                              className="text-gray-200 hover:text-blue-300 transition-colors break-all text-xs sm:text-sm group-hover:text-blue-200"
                             >
                               {employee.email}
                             </a>
                           </div>
 
-                          <div className="flex items-center gap-3 text-sm">
-                            <User className="w-4 h-4 text-muted-foreground flex-shrink-0" />
-                            <span className="text-muted-foreground font-mono">{employee.matricule}</span>
+                          <div className="flex items-center gap-2 sm:gap-3 text-xs sm:text-sm group-hover:scale-105 transition-transform duration-500 ease-out">
+                            <Phone className="w-3 h-3 sm:w-4 sm:h-4 text-white flex-shrink-0 group-hover:text-green-300 group-hover:scale-125 transition-all duration-500 ease-out" />
+                            {employee.phone_fixed ? (
+                              <a href={`tel:${employee.phone_fixed}`} className="text-gray-200 hover:text-blue-300 transition-colors text-xs sm:text-sm group-hover:text-green-200">
+                                {employee.phone_fixed}
+                              </a>
+                            ) : (
+                              <span className="text-gray-400 text-xs sm:text-sm group-hover:text-gray-300">Non renseigné</span>
+                            )}
+                          </div>
+
+                          <div className="flex items-center gap-2 sm:gap-3 text-xs sm:text-sm group-hover:scale-105 transition-transform duration-500 ease-out">
+                            <Smartphone className="w-3 h-3 sm:w-4 sm:h-4 text-white flex-shrink-0 group-hover:text-purple-300 group-hover:scale-125 transition-all duration-500 ease-out" />
+                            {employee.phone_mobile ? (
+                              <a href={`tel:${employee.phone_mobile}`} className="text-gray-200 hover:text-blue-300 transition-colors text-xs sm:text-sm group-hover:text-purple-200">
+                                {employee.phone_mobile}
+                              </a>
+                            ) : (
+                              <span className="text-gray-400 text-xs sm:text-sm group-hover:text-gray-300">Non renseigné</span>
+                            )}
                           </div>
                         </div>
 
-                        <div className="flex gap-2 w-full">
+                        {/* Boutons compacts pour mobile */}
+                        <div className="flex gap-1 sm:gap-2 w-full mt-1 sm:mt-2 group-hover:scale-105 group-hover:-translate-y-1 transition-all duration-500 ease-out">
                           <Button
                             variant="outline"
                             size="sm"
-                            className="flex-1 gap-2"
+                            className="flex-1 gap-1 sm:gap-2 text-xs sm:text-sm h-8 sm:h-9"
                             style={{
                               backgroundColor: 'white',
-                              color: 'black',
-                              borderColor: 'black',
+                              color: '#344256',
+                              borderColor: 'white',
                               borderWidth: '1px'
                             }}
                             onMouseEnter={(e) => {
-                              e.currentTarget.style.backgroundColor = '#0e2f56';
+                              e.currentTarget.style.backgroundColor = '#4a5568';
                               e.currentTarget.style.color = 'white';
                             }}
                             onMouseLeave={(e) => {
                               e.currentTarget.style.backgroundColor = 'white';
-                              e.currentTarget.style.color = 'black';
+                              e.currentTarget.style.color = '#344256';
                             }}
-                            onClick={() => window.location.href = `mailto:${employee.email}`}
+                            onClick={(e) => {
+                              e.stopPropagation();
+                              window.location.href = `mailto:${employee.email}`;
+                            }}
                           >
-                            <Mail className="w-4 h-4" />
-                            Email
+                            <Mail className="w-3 h-3 sm:w-4 sm:h-4" />
+                            <span className="hidden sm:inline">Email</span>
                           </Button>
                           <Button 
                             size="sm" 
-                            className="flex-1 gap-2 bg-primary hover:bg-primary/90 text-primary-foreground"
-                            onClick={() => handleChatClick(employee)}
+                            className="flex-1 gap-1 sm:gap-2 text-xs sm:text-sm h-8 sm:h-9"
+                            style={{
+                              backgroundColor: '#4a5568',
+                              color: 'white',
+                              borderColor: '#4a5568'
+                            }}
+                            onMouseEnter={(e) => {
+                              e.currentTarget.style.backgroundColor = '#2d3748';
+                            }}
+                            onMouseLeave={(e) => {
+                              e.currentTarget.style.backgroundColor = '#4a5568';
+                            }}
+                            onClick={(e) => {
+                              e.stopPropagation();
+                              handleChatClick(employee);
+                            }}
                           >
-                            <MessageCircle className="w-4 h-4" />
-                            Chat
+                            <MessageCircle className="w-3 h-3 sm:w-4 sm:h-4" />
+                            <span className="hidden sm:inline">Chat</span>
                           </Button>
                         </div>
                       </div>
@@ -585,7 +723,7 @@ export default function AnnuairePage() {
           </main>
         </div>
 
-    </LayoutWrapper>
+      </LayoutWrapper>
     </>
   )
 }

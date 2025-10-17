@@ -12,7 +12,7 @@ export interface Employee {
   employee_id: string | null
   matricule: string | null  // Ajout du champ matricule (alias de employee_id)
   position: number  // ID de la position
-  job_title: string
+  position_title: string
   main_direction_name: string
   manager: number | null
   manager_name: string | null
