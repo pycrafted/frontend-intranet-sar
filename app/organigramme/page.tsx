@@ -2,6 +2,7 @@
 
 import { LayoutWrapper } from "@/components/layout-wrapper"
 import ReactFlowOrganigramme, { ReactFlowOrganigrammeRef } from "@/components/react-flow-organigramme"
+import { OrganigrammeDebug } from "@/components/organigramme-debug"
 import { useState, useEffect, useCallback, useRef } from "react"
 import { useOrgChart, Employee } from "@/hooks/useOrgChart"
 
@@ -15,6 +16,17 @@ export default function OrganigrammePage() {
   const { employees, departments, loading, error, searchEmployees } = useOrgChart()
   const [filteredEmployees, setFilteredEmployees] = useState<Employee[]>([])
   const reactFlowRef = useRef<ReactFlowOrganigrammeRef>(null)
+
+  // Logs de débogage pour identifier le problème
+  console.log('🏢 [ORGANIGRAMME_PAGE] État du composant:', {
+    employeesCount: employees?.length || 0,
+    departmentsCount: departments?.length || 0,
+    loading,
+    error,
+    filteredEmployeesCount: filteredEmployees.length,
+    environment: process.env.NODE_ENV,
+    apiUrl: process.env.NEXT_PUBLIC_API_URL
+  })
 
   // Debounce de la recherche
   useEffect(() => {
@@ -121,6 +133,11 @@ export default function OrganigrammePage() {
       }}
     >
       <div className="min-h-screen bg-gray-100">
+        {/* Composant de débogage */}
+        <div className="p-4">
+          <OrganigrammeDebug />
+        </div>
+        
         {/* Organigramme React Flow */}
         <ReactFlowOrganigramme 
           ref={reactFlowRef}

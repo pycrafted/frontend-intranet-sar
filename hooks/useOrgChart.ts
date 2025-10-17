@@ -297,19 +297,58 @@ export const useOrgChart = () => {
   // Charger les données depuis l'API
   const fetchEmployees = async () => {
     try {
-      console.log('🏢 [ORGCHART_HOOK] fetchEmployees - UTILISATION DE L API ORGANIGRAMME')
+      console.log('🏢 [ORGCHART_HOOK] fetchEmployees - UTILISATION DE L API ORGANIGRAMME', {
+        url: `${API_BASE_URL}/agents/`,
+        environment: process.env.NODE_ENV,
+        apiUrl: process.env.NEXT_PUBLIC_API_URL
+      })
       setLoading(true)
-      const response = await fetch(`${API_BASE_URL}/agents/`)
-      if (!response.ok) throw new Error('Erreur lors du chargement des employés')
+      
+      const response = await fetch(`${API_BASE_URL}/agents/`, {
+        method: 'GET',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        credentials: 'omit' // Pas d'authentification requise
+      })
+      
+      console.log('🌐 [ORGCHART_HOOK] Réponse API employés:', {
+        status: response.status,
+        statusText: response.statusText,
+        ok: response.ok,
+        url: response.url
+      })
+      
+      if (!response.ok) {
+        const errorText = await response.text()
+        console.error('❌ [ORGCHART_HOOK] Erreur API employés:', {
+          status: response.status,
+          statusText: response.statusText,
+          errorText: errorText
+        })
+        throw new Error(`Erreur ${response.status}: ${response.statusText}`)
+      }
+      
       const data = await response.json()
       console.log('📊 [ORGCHART_HOOK] Données employés chargées:', {
         source: 'API_ORGANIGRAMME',
         count: Array.isArray(data) ? data.length : 0,
-        employees: Array.isArray(data) ? data.map((emp: any) => ({ id: emp.id, name: emp.full_name, department: emp.department_name })) : []
+        isArray: Array.isArray(data),
+        hasResults: data.results ? true : false,
+        employees: Array.isArray(data) ? data.map((emp: any) => ({ 
+          id: emp.id, 
+          name: emp.full_name, 
+          department: emp.main_direction_name || emp.department_name,
+          job_title: emp.job_title
+        })) : []
       })
       setEmployees(Array.isArray(data) ? data : data.results || [])
     } catch (err) {
-      console.error('❌ [ORGCHART_HOOK] Erreur fetchEmployees:', err)
+      console.error('❌ [ORGCHART_HOOK] Erreur fetchEmployees:', {
+        error: err,
+        message: err instanceof Error ? err.message : 'Erreur inconnue',
+        stack: err instanceof Error ? err.stack : undefined
+      })
       setError(err instanceof Error ? err.message : 'Erreur inconnue')
       // Fallback sur les données statiques en cas d'erreur
       console.log('🔄 [ORGCHART_HOOK] Fallback sur les données statiques')
@@ -321,9 +360,36 @@ export const useOrgChart = () => {
 
   const fetchDepartments = async () => {
     try {
-      console.log('🏢 [ORGCHART_HOOK] fetchDepartments - UTILISATION DE L API ORGANIGRAMME')
-      const response = await fetch(`${API_BASE_URL}/directions/`)
-      if (!response.ok) throw new Error('Erreur lors du chargement des départements')
+      console.log('🏢 [ORGCHART_HOOK] fetchDepartments - UTILISATION DE L API ORGANIGRAMME', {
+        url: `${API_BASE_URL}/directions/`,
+        environment: process.env.NODE_ENV
+      })
+      
+      const response = await fetch(`${API_BASE_URL}/directions/`, {
+        method: 'GET',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        credentials: 'omit' // Pas d'authentification requise
+      })
+      
+      console.log('🌐 [ORGCHART_HOOK] Réponse API départements:', {
+        status: response.status,
+        statusText: response.statusText,
+        ok: response.ok,
+        url: response.url
+      })
+      
+      if (!response.ok) {
+        const errorText = await response.text()
+        console.error('❌ [ORGCHART_HOOK] Erreur API départements:', {
+          status: response.status,
+          statusText: response.statusText,
+          errorText: errorText
+        })
+        throw new Error(`Erreur ${response.status}: ${response.statusText}`)
+      }
+      
       const data = await response.json()
       // L'API retourne les données dans un format paginé avec 'results'
       const departmentsData = data.results || data
@@ -338,22 +404,56 @@ export const useOrgChart = () => {
       console.log('📊 [ORGCHART_HOOK] Données départements chargées:', {
         source: 'API_ORGANIGRAMME',
         count: departmentsList.length,
+        isArray: Array.isArray(departmentsData),
+        hasResults: data.results ? true : false,
         departments: departmentsList.map(dept => ({ id: dept.id, name: dept.name, employee_count: dept.employee_count }))
       })
       setDepartments(departmentsList)
     } catch (err) {
-      console.error('❌ [ORGCHART_HOOK] Erreur fetchDepartments:', err)
+      console.error('❌ [ORGCHART_HOOK] Erreur fetchDepartments:', {
+        error: err,
+        message: err instanceof Error ? err.message : 'Erreur inconnue',
+        stack: err instanceof Error ? err.stack : undefined
+      })
       setError(err instanceof Error ? err.message : 'Erreur inconnue')
       // Fallback sur les données statiques en cas d'erreur
+      console.log('🔄 [ORGCHART_HOOK] Fallback sur les données statiques pour départements')
       setDepartments(staticDepartments)
     }
   }
 
   const fetchOrgChartData = async () => {
     try {
-      console.log('🏢 [ORGCHART_HOOK] fetchOrgChartData - UTILISATION DE L API ORGANIGRAMME')
-      const response = await fetch(`${API_BASE_URL}/tree/`)
-      if (!response.ok) throw new Error('Erreur lors du chargement de l\'organigramme')
+      console.log('🏢 [ORGCHART_HOOK] fetchOrgChartData - UTILISATION DE L API ORGANIGRAMME', {
+        url: `${API_BASE_URL}/tree/`,
+        environment: process.env.NODE_ENV
+      })
+      
+      const response = await fetch(`${API_BASE_URL}/tree/`, {
+        method: 'GET',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        credentials: 'omit' // Pas d'authentification requise
+      })
+      
+      console.log('🌐 [ORGCHART_HOOK] Réponse API organigramme:', {
+        status: response.status,
+        statusText: response.statusText,
+        ok: response.ok,
+        url: response.url
+      })
+      
+      if (!response.ok) {
+        const errorText = await response.text()
+        console.error('❌ [ORGCHART_HOOK] Erreur API organigramme:', {
+          status: response.status,
+          statusText: response.statusText,
+          errorText: errorText
+        })
+        throw new Error(`Erreur ${response.status}: ${response.statusText}`)
+      }
+      
       const data = await response.json()
       
       // Construire les données d'organigramme à partir de l'API
