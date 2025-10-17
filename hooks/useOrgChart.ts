@@ -330,19 +330,28 @@ export const useOrgChart = () => {
       }
       
       const data = await response.json()
+      const employeesData = Array.isArray(data) ? data : data.results || []
+      
       console.log('📊 [ORGCHART_HOOK] Données employés chargées:', {
         source: 'API_ORGANIGRAMME',
-        count: Array.isArray(data) ? data.length : 0,
+        count: employeesData.length,
         isArray: Array.isArray(data),
         hasResults: data.results ? true : false,
-        employees: Array.isArray(data) ? data.map((emp: any) => ({ 
+        employees: employeesData.map((emp: any) => ({ 
           id: emp.id, 
           name: emp.full_name, 
           department: emp.main_direction_name || emp.department_name,
           job_title: emp.job_title
-        })) : []
+        }))
       })
-      setEmployees(Array.isArray(data) ? data : data.results || [])
+      
+      // Si aucune donnée de l'API, utiliser les données statiques
+      if (employeesData.length === 0) {
+        console.log('🔄 [ORGCHART_HOOK] Aucune donnée de l\'API, utilisation des données statiques')
+        setEmployees(staticEmployees)
+      } else {
+        setEmployees(employeesData)
+      }
     } catch (err) {
       console.error('❌ [ORGCHART_HOOK] Erreur fetchEmployees:', {
         error: err,
@@ -401,6 +410,7 @@ export const useOrgChart = () => {
         created_at: new Date().toISOString(),
         updated_at: new Date().toISOString()
       })) : []
+      
       console.log('📊 [ORGCHART_HOOK] Données départements chargées:', {
         source: 'API_ORGANIGRAMME',
         count: departmentsList.length,
@@ -408,7 +418,14 @@ export const useOrgChart = () => {
         hasResults: data.results ? true : false,
         departments: departmentsList.map(dept => ({ id: dept.id, name: dept.name, employee_count: dept.employee_count }))
       })
-      setDepartments(departmentsList)
+      
+      // Si aucune donnée de l'API, utiliser les données statiques
+      if (departmentsList.length === 0) {
+        console.log('🔄 [ORGCHART_HOOK] Aucune donnée de l\'API pour départements, utilisation des données statiques')
+        setDepartments(staticDepartments)
+      } else {
+        setDepartments(departmentsList)
+      }
     } catch (err) {
       console.error('❌ [ORGCHART_HOOK] Erreur fetchDepartments:', {
         error: err,
