@@ -78,7 +78,7 @@ const WIDGET_CONFIG: Record<string, { size: string; component: React.ComponentTy
   apps: { 
     size: 'medium', 
     component: AppsWidget, 
-    title: 'Applications' 
+    title: 'Accès Rapide' 
   },
   calendar: { 
     size: 'medium', 
@@ -409,13 +409,13 @@ export function DraggableDashboard() {
 
   function getDefaultWidgets(): DashboardWidget[] {
     return [
-      { id: 'news', type: 'news', title: 'Actualités', size: 'large', order: 1, isVisible: true },
+      { id: 'video', type: 'video', title: 'Vidéo SAR', size: 'medium', order: 1, isVisible: true },
       { id: 'director', type: 'director', title: 'Mot du Directeur', size: 'medium', order: 2, isVisible: true },
-      { id: 'video', type: 'video', title: 'Vidéo SAR', size: 'medium', order: 3, isVisible: true },
-      { id: 'safety', type: 'safety', title: 'Sécurité du Travail', size: 'medium', order: 4, isVisible: true },
-      { id: 'apps', type: 'apps', title: 'Applications', size: 'medium', order: 5, isVisible: true },
-      { id: 'calendar', type: 'calendar', title: 'Événements', size: 'medium', order: 6, isVisible: true },
-      { id: 'ideas', type: 'ideas', title: 'Boîte à Idées', size: 'medium', order: 7, isVisible: true },
+      { id: 'news', type: 'news', title: 'Actualités', size: 'medium', order: 3, isVisible: true },
+      { id: 'safety', type: 'safety', title: 'Sécurité du Travail', size: 'small', order: 4, isVisible: true },
+      { id: 'apps', type: 'apps', title: 'Accès Rapide', size: 'small', order: 5, isVisible: true },
+      { id: 'calendar', type: 'calendar', title: 'Événements', size: 'small', order: 6, isVisible: true },
+      { id: 'ideas', type: 'ideas', title: 'Boîte à Idées', size: 'small', order: 7, isVisible: true },
       { id: 'menu', type: 'menu', title: 'Menu de la Semaine', size: 'full', order: 8, isVisible: true },
     ]
   }

@@ -278,35 +278,7 @@ export function RestaurantMenu() {
       {/* Effet de brillance subtil */}
       <div className="absolute inset-0 bg-gradient-to-br from-slate-200/40 via-transparent to-blue-200/40 opacity-0 group-hover:opacity-100 transition-opacity duration-500"></div>
       
-      {/* Icônes décoratives - Responsive */}
-      <div className="absolute top-2 right-2 sm:top-4 sm:right-4 w-12 h-12 sm:w-16 sm:h-16 bg-gradient-to-br from-slate-400 to-blue-500 rounded-full flex items-center justify-center opacity-60 group-hover:opacity-80 transition-opacity duration-300">
-        <ChefHat className="h-6 w-6 sm:h-8 sm:w-8 text-white" />
-      </div>
-      <div className="absolute bottom-2 left-2 sm:bottom-4 sm:left-4 w-8 h-8 sm:w-12 sm:h-12 bg-gradient-to-br from-blue-500 to-indigo-500 rounded-full flex items-center justify-center opacity-40 group-hover:opacity-60 transition-opacity duration-300">
-        <Utensils className="h-4 w-4 sm:h-6 sm:w-6 text-white" />
-      </div>
-      
-      <CardHeader className="pb-2 sm:pb-4 flex-shrink-0 relative z-10 p-3 sm:p-6">
-        <div className="flex items-center justify-between">
-          <div className="flex items-center space-x-2 sm:space-x-3">
-            <div className="p-2 sm:p-3 bg-gradient-to-br from-slate-500 to-blue-600 rounded-lg sm:rounded-xl shadow-lg group-hover:shadow-slate-200 group-hover:scale-110 transition-all duration-300">
-              <ChefHat className="h-4 w-4 sm:h-6 sm:w-6 text-white" />
-            </div>
-            <div>
-              <CardTitle className="text-lg sm:text-xl font-bold text-gray-900 group-hover:text-blue-700 transition-colors duration-300">
-                <span className="hidden sm:inline">🍽️ Menu de la Semaine</span>
-                <span className="sm:hidden">🍽️ Menu</span>
-              </CardTitle>
-              <p className="text-xs sm:text-sm text-gray-600 font-medium">
-                <span className="hidden sm:inline">Restaurant SAR • 12h-14h</span>
-                <span className="sm:hidden">SAR • 12h-14h</span>
-              </p>
-            </div>
-          </div>
-        </div>
-      </CardHeader>
-      
-      <CardContent className="flex-1 overflow-hidden relative z-10 p-3 sm:p-6">
+      <CardContent className="flex-1 overflow-hidden relative z-10 p-3 sm:p-6 flex items-center justify-center">
         {/* Design responsive : Horizontal scroll sur mobile, grille sur desktop */}
         <div className="block sm:hidden">
           {/* Version mobile : Scroll horizontal */}
@@ -374,6 +346,20 @@ export function RestaurantMenu() {
                             {dayMenu.european.name}
                           </p>
                         </div>
+
+                        {/* Dessert compact */}
+                        <div className="bg-gradient-to-r from-pink-100 to-purple-100 border-pink-200 border rounded p-2">
+                          <div className="flex items-center gap-1 mb-1">
+                            <div className="w-2 h-2 rounded-full bg-gradient-to-r from-pink-500 to-purple-500"></div>
+                            <span className="text-xs font-bold text-pink-700 flex items-center gap-1">
+                              <span className="text-xs">🍰</span>
+                              Dessert
+                            </span>
+                          </div>
+                          <p className="text-xs font-semibold text-gray-900 leading-tight">
+                            Dessert du jour
+                          </p>
+                        </div>
                       </>
                     ) : (
                       <div className="bg-gradient-to-br from-slate-50 to-gray-100 border border-slate-200 rounded p-3 text-center">
@@ -391,7 +377,7 @@ export function RestaurantMenu() {
         </div>
 
         {/* Version desktop : Grille classique */}
-        <div className="hidden sm:block">
+        <div className="hidden sm:block w-full">
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-5 gap-3 h-full overflow-y-auto custom-scrollbar pr-2">
           {getWeekDays().map((dayInfo, index) => {
             const dayMenu = weekMenu.days.find(menu => menu.day === dayInfo.day)
@@ -476,6 +462,20 @@ export function RestaurantMenu() {
                             </p>
                           )}
                       </div>
+
+                      {/* Dessert */}
+                      <div className="bg-gradient-to-r from-pink-100 to-purple-100 border-pink-200 border rounded-lg p-3 group-hover/day:scale-105 transition-transform duration-300">
+                        <div className="flex items-center gap-2 mb-2">
+                          <div className="w-3 h-3 rounded-full bg-gradient-to-r from-pink-500 to-purple-500 shadow-sm"></div>
+                          <span className="text-xs font-bold text-pink-700 flex items-center gap-1">
+                            <span className="text-sm">🍰</span>
+                            Dessert
+                          </span>
+                        </div>
+                        <p className="text-sm font-semibold text-gray-900 leading-tight">
+                          Dessert du jour
+                        </p>
+                      </div>
                     </>
                   ) : (
                     // Menu non renseigné - Afficher l'indicateur
@@ -504,6 +504,20 @@ export function RestaurantMenu() {
                             </div>
                           </div>
                         </div>
+                      </div>
+
+                      {/* Dessert placeholder */}
+                      <div className="bg-gradient-to-r from-pink-100 to-purple-100 border-pink-200 border rounded-lg p-3 group-hover/day:scale-105 transition-transform duration-300">
+                        <div className="flex items-center gap-2 mb-2">
+                          <div className="w-3 h-3 rounded-full bg-gradient-to-r from-pink-500 to-purple-500 shadow-sm"></div>
+                          <span className="text-xs font-bold text-pink-700 flex items-center gap-1">
+                            <span className="text-sm">🍰</span>
+                            Dessert
+                          </span>
+                        </div>
+                        <p className="text-sm font-semibold text-gray-900 leading-tight">
+                          Dessert du jour
+                        </p>
                       </div>
                     </div>
                   )}
