@@ -3,23 +3,21 @@
 import { useState, useEffect } from "react"
 import { LayoutWrapper } from "@/components/layout-wrapper"
 import { VideoPlayer } from "@/components/security/video-player"
-import { SecurityCards } from "@/components/security/security-cards"
+import { SecurityCarousel } from "@/components/security/security-carousel"
 import { QuizModal } from "@/components/security/quiz-modal"
-import { Button } from "@/components/ui/button"
-import { FileText, ClipboardCheck } from "lucide-react"
 
 const videos = [
   {
     id: 1,
-    title: "Formation Sécurité - Partie 1",
+    title: "Vidéo Institutionnelle SAR",
     url: "https://customer-eas3f2kom74sgnh6.cloudflarestream.com/3f0c7ea611f5f970f280df7cf5c8587b/watch",
-    description: "Formation complète sur les équipements de protection",
+    description: "Découvrez l'histoire, les valeurs et la mission de la Société Africaine de Raffinage",
   },
   {
     id: 2,
-    title: "Formation Sécurité - Partie 2",
+    title: "Formation Sécurité",
     url: "https://customer-eas3f2kom74sgnh6.cloudflarestream.com/8acc2118f34340bfcfa5a667d3a0d95c/watch",
-    description: "Procédures de sécurité et signalement des dangers",
+    description: "Formation complète sur les équipements de protection et les procédures de sécurité",
   },
 ]
 
@@ -58,87 +56,64 @@ export default function SecuritePage() {
     setCurrentVideoIndex((prev) => (prev < videos.length - 1 ? prev + 1 : 0))
   }
 
-  const handleViewReglement = () => {
-    // Pour l'instant, on ouvre une nouvelle fenêtre avec un message
-    window.open("#", "_blank")
-  }
 
   return (
     <LayoutWrapper>
-      <div className="min-h-screen bg-[#e5e7eb] relative overflow-hidden -mx-1 sm:-mx-2 lg:-mx-4">
+      <div className="min-h-screen bg-[#e5e7eb] relative overflow-hidden">
+        {/* Background Effects - Responsive */}
         <div className="absolute inset-0 overflow-hidden pointer-events-none">
+          {/* Effet 1 - Top Right */}
           <div
-            className="absolute top-20 right-20 w-96 h-96 bg-gradient-to-br from-blue-400/20 via-cyan-400/15 to-transparent rounded-full blur-3xl animate-float transition-transform duration-1000 ease-out"
+            className="absolute top-10 right-4 sm:top-16 sm:right-8 md:top-20 md:right-12 lg:top-20 lg:right-20 w-48 h-48 sm:w-64 sm:h-64 md:w-80 md:h-80 lg:w-96 lg:h-96 bg-gradient-to-br from-blue-400/20 via-cyan-400/15 to-transparent rounded-full blur-3xl animate-float transition-transform duration-1000 ease-out"
             style={{
-              transform: `translate(${mousePosition.x * 2}px, ${mousePosition.y * 2 - scrollY * 0.3}px)`,
+              transform: `translate(${mousePosition.x * 1}px, ${mousePosition.y * 1 - scrollY * 0.2}px)`,
             }}
           />
+          {/* Effet 2 - Bottom Left */}
           <div
-            className="absolute bottom-20 left-20 w-80 h-80 bg-gradient-to-tr from-indigo-400/20 via-purple-400/15 to-transparent rounded-full blur-3xl animate-float transition-transform duration-1000 ease-out"
+            className="absolute bottom-10 left-4 sm:bottom-16 sm:left-8 md:bottom-20 md:left-12 lg:bottom-20 lg:left-20 w-40 h-40 sm:w-56 sm:h-56 md:w-72 md:h-72 lg:w-80 lg:h-80 bg-gradient-to-tr from-indigo-400/20 via-purple-400/15 to-transparent rounded-full blur-3xl animate-float transition-transform duration-1000 ease-out"
             style={{
               animationDelay: "1s",
-              transform: `translate(${-mousePosition.x * 1.5}px, ${-mousePosition.y * 1.5 - scrollY * 0.2}px)`,
+              transform: `translate(${-mousePosition.x * 0.8}px, ${-mousePosition.y * 0.8 - scrollY * 0.15}px)`,
             }}
           />
+          {/* Effet 3 - Center */}
           <div
-            className="absolute top-1/2 left-1/2 w-72 h-72 bg-gradient-to-br from-cyan-400/15 via-blue-400/10 to-transparent rounded-full blur-3xl animate-float transition-transform duration-1000 ease-out"
+            className="absolute top-1/2 left-1/2 w-36 h-36 sm:w-48 sm:h-48 md:w-60 md:h-60 lg:w-72 lg:h-72 bg-gradient-to-br from-cyan-400/15 via-blue-400/10 to-transparent rounded-full blur-3xl animate-float transition-transform duration-1000 ease-out"
             style={{
               animationDelay: "2s",
-              transform: `translate(${mousePosition.x}px, ${mousePosition.y - scrollY * 0.25}px)`,
+              transform: `translate(${mousePosition.x * 0.5}px, ${mousePosition.y * 0.5 - scrollY * 0.1}px)`,
             }}
           />
+          {/* Grille de fond */}
           <div
-            className="absolute inset-0 opacity-[0.03]"
+            className="absolute inset-0 opacity-[0.02] sm:opacity-[0.03]"
             style={{
               backgroundImage: `linear-gradient(to right, #3b82f6 1px, transparent 1px), linear-gradient(to bottom, #3b82f6 1px, transparent 1px)`,
-              backgroundSize: "60px 60px",
-              transform: `translate(${mousePosition.x * 0.5}px, ${mousePosition.y * 0.5}px)`,
+              backgroundSize: "40px 40px",
+              transform: `translate(${mousePosition.x * 0.3}px, ${mousePosition.y * 0.3}px)`,
               transition: "transform 0.3s ease-out",
             }}
           />
         </div>
 
-        <div className="w-full p-8 md:p-12 lg:p-16 relative z-10">
-          <div className="flex gap-4 mb-8 animate-in fade-in slide-in-from-top-4 duration-700">
-            <Button
-              onClick={() => setIsQuizOpen(true)}
-              variant="outline"
-              className="relative overflow-hidden bg-gradient-to-br from-white to-blue-50/50 backdrop-blur-md hover:from-blue-50 hover:to-white hover:shadow-xl hover:shadow-blue-500/20 border-blue-200/60 text-slate-700 font-semibold transition-all duration-300 hover:scale-105 hover:-translate-y-0.5 group"
-            >
-              <div className="absolute inset-0 bg-gradient-to-r from-transparent via-white/40 to-transparent translate-x-[-200%] group-hover:translate-x-[200%] transition-transform duration-1000" />
-              <ClipboardCheck className="h-4 w-4 mr-2 relative z-10" />
-              <span className="relative z-10">Questionnaire de Sécurité</span>
-            </Button>
-
-            <Button
-              onClick={handleViewReglement}
-              variant="outline"
-              className="relative overflow-hidden bg-gradient-to-br from-white to-indigo-50/50 backdrop-blur-md hover:from-indigo-50 hover:to-white hover:shadow-xl hover:shadow-indigo-500/20 border-indigo-200/60 text-slate-700 font-semibold transition-all duration-300 hover:scale-105 hover:-translate-y-0.5 group"
-            >
-              <div className="absolute inset-0 bg-gradient-to-r from-transparent via-white/40 to-transparent translate-x-[-200%] group-hover:translate-x-[200%] transition-transform duration-1000" />
-              <FileText className="h-4 w-4 mr-2 relative z-10" />
-              <span className="relative z-10">Règlement Intérieur</span>
-            </Button>
+        {/* Contenu principal - Responsive */}
+        <div className="w-full px-4 py-6 sm:px-6 sm:py-8 md:px-8 md:py-12 lg:px-12 lg:py-16 xl:px-16 xl:py-20 relative z-10">
+          {/* Vidéo centrée - Responsive */}
+          <div className="max-w-xs sm:max-w-lg md:max-w-2xl lg:max-w-4xl xl:max-w-6xl mx-auto mb-6 sm:mb-8 md:mb-10 lg:mb-12 animate-in fade-in slide-in-from-top-4 duration-700">
+            <VideoPlayer
+              video={videos[currentVideoIndex]}
+              onPrevious={handlePreviousVideo}
+              onNext={handleNextVideo}
+              currentIndex={currentVideoIndex}
+              totalVideos={videos.length}
+              onQuizClick={() => setIsQuizOpen(true)}
+            />
           </div>
 
-          <div className="grid grid-cols-1 lg:grid-cols-4 gap-8 mb-8">
-            <div className="lg:col-span-3 animate-in fade-in slide-in-from-left-8 duration-700">
-              <VideoPlayer
-                video={videos[currentVideoIndex]}
-                onPrevious={handlePreviousVideo}
-                onNext={handleNextVideo}
-                currentIndex={currentVideoIndex}
-                totalVideos={videos.length}
-              />
-            </div>
-
-            <div className="lg:col-span-1 animate-in fade-in slide-in-from-right-8 duration-700 delay-150">
-              <SecurityCards variant="stacked" />
-            </div>
-          </div>
-
+          {/* Carousel de cartes de sécurité - Responsive */}
           <div className="animate-in fade-in slide-in-from-bottom-8 duration-700 delay-300">
-            <SecurityCards />
+            <SecurityCarousel />
           </div>
         </div>
 
@@ -147,6 +122,7 @@ export default function SecuritePage() {
     </LayoutWrapper>
   )
 }
+
 
 
 

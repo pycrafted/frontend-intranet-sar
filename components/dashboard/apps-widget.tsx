@@ -137,7 +137,7 @@ const SAPFPIcon = () => (
 const MaarchCourrierIcon = () => (
   <div className="group relative w-16 h-16 bg-white rounded-lg flex items-center justify-center p-2 transition-all duration-300 hover:shadow-lg hover:scale-105 hover:bg-purple-50">
     <img 
-      src="/Courrier.png" 
+      src="/courrier.png" 
       alt="Maarch Courrier" 
       className="w-full h-full object-contain transition-transform duration-300 group-hover:scale-110"
     />

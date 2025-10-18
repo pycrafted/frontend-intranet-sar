@@ -157,9 +157,9 @@ export default function ActualitesPage() {
         onTimeFilterChange: handleTimeFilterChange
       }}
     >
-      <div className="w-full space-y-6">
+      <div className="w-full space-y-4 xs:space-y-6">
 
-        {/* État de chargement et d'erreur */}
+        {/* État de chargement et d'erreur - Responsive */}
         {(loading || error) && (
           <StandardLoader 
             title={loading ? "Chargement des actualités..." : undefined}
@@ -170,43 +170,46 @@ export default function ActualitesPage() {
           />
         )}
 
-        {/* Feed principal - Style Talkspirit */}
-                 {!loading && !error && (
-                   <div className="space-y-6 stagger-animation">
-                     {/* Toutes les publications */}
-                     {allArticles.length > 0 && (
-              <div className="space-y-4">
-                <div className="flex items-center gap-2 mb-4">
-                  <div className="w-1 h-6 bg-gradient-to-b from-blue-400 to-indigo-400 rounded-full shadow-sm"></div>
-                  <h3 className="text-lg font-semibold text-gray-900">Toutes les publications</h3>
-                  <Badge variant="secondary" className="ml-2 bg-blue-100 text-blue-800">
+        {/* Feed principal - Style Talkspirit - Responsive */}
+        {!loading && !error && (
+          <div className="space-y-4 xs:space-y-6 stagger-animation">
+            {/* Toutes les publications - Responsive */}
+            {allArticles.length > 0 && (
+              <div className="space-y-3 xs:space-y-4">
+                <div className="flex items-center gap-2 mb-3 xs:mb-4 px-1">
+                  <div className="w-1 h-4 xs:h-6 bg-gradient-to-b from-blue-400 to-indigo-400 rounded-full shadow-sm"></div>
+                  <h3 className="text-base xs:text-lg font-semibold text-gray-900">Toutes les publications</h3>
+                  <Badge variant="secondary" className="ml-2 bg-blue-100 text-blue-800 text-xs xs:text-sm px-2 py-1">
                     {allArticles.length}
                   </Badge>
                 </div>
-                {allArticles.map((article) => (
-                  <AdaptivePublicationCard
-                    key={article.id}
-                    article={article}
-                    onDelete={handleDeleteArticle}
-                    onUpdate={handleUpdateArticle}
-                    searchTerm={searchTerm}
-                    isPublic={true} // Page publique - pas d'actions de modification/suppression
-                  />
-                ))}
+                <div className="space-y-3 xs:space-y-4">
+                  {allArticles.map((article) => (
+                    <AdaptivePublicationCard
+                      key={article.id}
+                      article={article}
+                      onDelete={handleDeleteArticle}
+                      onUpdate={handleUpdateArticle}
+                      searchTerm={searchTerm}
+                      isPublic={true} // Page publique - pas d'actions de modification/suppression
+                    />
+                  ))}
+                </div>
               </div>
             )}
           </div>
         )}
 
-        {/* Empty State */}
+        {/* Empty State - Responsive */}
         {!loading && !error && articles.length === 0 && (
-          <Card className="p-12 text-center rounded-lg">
-            <div className="space-y-4">
-              <div className="w-16 h-16 bg-muted rounded-full flex items-center justify-center mx-auto">
-                <Search className="h-8 w-8 text-muted-foreground" />
+          <Card className="p-8 xs:p-12 text-center rounded-lg">
+            <div className="space-y-3 xs:space-y-4">
+              <div className="w-12 h-12 xs:w-16 xs:h-16 bg-muted rounded-full flex items-center justify-center mx-auto">
+                <Search className="h-6 w-6 xs:h-8 xs:w-8 text-muted-foreground" />
               </div>
               <div>
-                <h3 className="text-lg font-semibold">Aucune actualité ou annonce publiée</h3>
+                <h3 className="text-base xs:text-lg font-semibold">Aucune actualité ou annonce publiée</h3>
+                <p className="text-sm text-gray-500 mt-1">Vérifiez les filtres ou revenez plus tard</p>
               </div>
             </div>
           </Card>

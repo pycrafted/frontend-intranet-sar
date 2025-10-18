@@ -12,7 +12,7 @@ import {
 import { Button } from "@/components/ui/button"
 import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group"
 import { Label } from "@/components/ui/label"
-import { CheckCircle2, XCircle, RotateCcw } from "lucide-react"
+import { CheckCircle2, XCircle, RotateCcw, ClipboardCheck, ChevronRight, ChevronLeft } from "lucide-react"
 
 interface QuizModalProps {
   open: boolean
@@ -309,6 +309,13 @@ export function QuizModal({ open, onOpenChange }: QuizModalProps) {
     }
   }
 
+  const handlePrevious = () => {
+    if (currentQuestion > 0) {
+      setCurrentQuestion(currentQuestion - 1)
+      setSelectedAnswer(answers[currentQuestion - 1] || null)
+    }
+  }
+
   const handleReset = () => {
     const shuffled = shuffleArray(allQuestions)
     setSelectedQuestions(shuffled.slice(0, 10))
@@ -328,117 +335,209 @@ export function QuizModal({ open, onOpenChange }: QuizModalProps) {
 
   return (
     <Dialog open={open} onOpenChange={handleClose}>
-      <DialogContent className="sm:max-w-4xl max-h-[90vh] overflow-y-auto">
-        <DialogHeader>
-          <DialogTitle className="text-3xl font-bold text-slate-800">
-            {showResult ? "Résultats du Questionnaire" : "Questionnaire de Sécurité SAR"}
-          </DialogTitle>
-          <DialogDescription className="text-base text-slate-600">
-            {showResult ? "Voici vos résultats" : `Question ${currentQuestion + 1} sur ${selectedQuestions.length}`}
-          </DialogDescription>
+      <DialogContent className="w-[95vw] max-w-xs sm:max-w-lg md:max-w-2xl lg:max-w-4xl xl:max-w-5xl max-h-[95vh] overflow-y-auto bg-gradient-to-br from-slate-50 to-white border-0 shadow-2xl">
+        <DialogHeader className="text-center pb-4 sm:pb-6">
+          <div className="relative">
+            <div className="absolute inset-0 bg-gradient-to-r from-blue-500/10 to-indigo-500/10 rounded-full blur-3xl"></div>
+            <div className="relative text-white p-4 sm:p-6 rounded-2xl shadow-xl" style={{ backgroundColor: "#344256" }}>
+              <div className="flex items-center justify-center gap-2 sm:gap-3 mb-2">
+                <div className="p-1.5 sm:p-2 bg-white/20 rounded-full">
+                  <ClipboardCheck className="h-4 w-4 sm:h-6 sm:w-6" />
+                </div>
+                <DialogTitle className="text-lg sm:text-2xl md:text-3xl font-bold leading-tight">
+                  {showResult ? "Résultats du Questionnaire" : "Questionnaire de Sécurité SAR"}
+                </DialogTitle>
+              </div>
+              <DialogDescription className="text-white/80 text-sm sm:text-base md:text-lg">
+                {showResult ? "Voici vos résultats détaillés" : `Question ${currentQuestion + 1} sur ${selectedQuestions.length}`}
+              </DialogDescription>
+            </div>
+          </div>
         </DialogHeader>
 
         {!showResult && currentQ ? (
-          <div className="space-y-8 py-6">
-            <div className="bg-blue-50 border border-blue-200 rounded-lg p-4">
-              <p className="text-sm text-blue-700 font-medium">
-                Source : {currentQ.source}
-              </p>
+          <div className="space-y-4 sm:space-y-6 md:space-y-8 py-4 sm:py-6">
+            {/* Barre de progression - Responsive */}
+            <div className="w-full bg-slate-200 rounded-full h-1.5 sm:h-2 mb-4 sm:mb-6">
+              <div 
+                className="h-1.5 sm:h-2 rounded-full transition-all duration-500 ease-out"
+                style={{ 
+                  width: `${((currentQuestion + 1) / selectedQuestions.length) * 100}%`,
+                  backgroundColor: "#344256"
+                }}
+              />
             </div>
 
-            <h3 className="text-xl font-semibold text-foreground text-balance leading-relaxed">
-              {currentQ.question}
-            </h3>
+            {/* Source de la question - Responsive */}
+            <div className="rounded-xl p-3 sm:p-4 shadow-sm" style={{ backgroundColor: "#344256", color: "white" }}>
+              <div className="flex items-center gap-2">
+                <div className="w-1.5 h-1.5 sm:w-2 sm:h-2 bg-white rounded-full"></div>
+                <p className="text-xs sm:text-sm font-semibold">
+                  Source : {currentQ.source}
+                </p>
+              </div>
+            </div>
 
-            <RadioGroup
-              value={selectedAnswer || ""}
-              onValueChange={setSelectedAnswer}
-            >
-              {currentQ.options.map((option, index) => (
-                <div
-                  key={index}
-                  className="flex items-center space-x-4 p-4 rounded-xl hover:bg-slate-50 transition-all duration-200 border border-transparent hover:border-slate-200"
-                >
-                  <RadioGroupItem value={option} id={`option-${index}`} />
-                  <Label
-                    htmlFor={`option-${index}`}
-                    className="flex-1 cursor-pointer text-base leading-relaxed text-slate-700"
+            {/* Question - Responsive */}
+            <div className="bg-white rounded-2xl p-4 sm:p-6 md:p-8 shadow-lg border border-slate-200">
+              <h3 className="text-lg sm:text-xl md:text-2xl font-bold text-slate-800 text-balance leading-relaxed mb-4 sm:mb-6">
+                {currentQ.question}
+              </h3>
+
+              <RadioGroup
+                value={selectedAnswer || ""}
+                onValueChange={setSelectedAnswer}
+                className="space-y-2 sm:space-y-3"
+              >
+                {currentQ.options.map((option, index) => (
+                  <div
+                    key={index}
+                    className="group flex items-center space-x-3 sm:space-x-4 p-3 sm:p-4 md:p-5 rounded-xl hover:bg-gradient-to-r hover:from-blue-50 hover:to-indigo-50 transition-all duration-300 border border-slate-200 hover:border-blue-300 hover:shadow-md cursor-pointer"
                   >
-                    {option}
-                  </Label>
-                </div>
-              ))}
-            </RadioGroup>
+                    <RadioGroupItem 
+                      value={option} 
+                      id={`option-${index}`}
+                      className="w-4 h-4 sm:w-5 sm:h-5 border-2 border-slate-300 group-hover:border-slate-500 flex-shrink-0"
+                      style={{ color: "#344256" }}
+                    />
+                    <Label
+                      htmlFor={`option-${index}`}
+                      className="flex-1 cursor-pointer text-sm sm:text-base md:text-lg leading-relaxed text-slate-700 group-hover:text-slate-800 font-medium"
+                    >
+                      {option}
+                    </Label>
+                  </div>
+                ))}
+              </RadioGroup>
+            </div>
           </div>
         ) : showResult ? (
-          <div className="space-y-8 py-6">
-            <div className="text-center">
-              <div className="text-6xl mb-4">
+          <div className="space-y-4 sm:space-y-6 md:space-y-8 py-4 sm:py-6">
+            {/* Résultats principaux - Responsive */}
+            <div className="text-center bg-gradient-to-br from-white to-slate-50 rounded-2xl p-4 sm:p-6 md:p-8 shadow-lg border border-slate-200">
+              <div className="text-4xl sm:text-6xl md:text-8xl mb-4 sm:mb-6">
                 {getEmotionEmoji(score)}
               </div>
-              <h3 className="text-4xl font-bold text-slate-800 mb-3">
+              <h3 className="text-3xl sm:text-4xl md:text-5xl font-bold text-slate-800 mb-3 sm:mb-4">
                 {score} / 10
               </h3>
-              <p className="text-slate-600 text-lg leading-relaxed mb-6">
+              <p className="text-slate-600 text-sm sm:text-base md:text-xl leading-relaxed mb-6 sm:mb-8">
                 {getEncouragementMessage(score)}
               </p>
               
-              <div className="bg-gradient-to-r from-blue-50 to-indigo-50 border border-blue-200 rounded-lg p-6">
-                <h4 className="text-lg font-semibold text-slate-800 mb-3">Détail des réponses :</h4>
-                <div className="space-y-4">
-                  {selectedQuestions.map((question, qIndex) => {
-                    const userAnswer = answers[qIndex]
-                    const correct = isCorrect[qIndex]
-                    return (
-                      <div
-                        key={qIndex}
-                        className={`p-4 rounded-lg border-2 transition-all ${
-                          correct ? "border-green-200 bg-green-50/50" : "border-red-200 bg-red-50/50"
-                        }`}
-                      >
-                        <div className="flex items-start gap-3">
+              {/* Barre de score visuelle - Responsive */}
+              <div className="w-full bg-slate-200 rounded-full h-3 sm:h-4 mb-4 sm:mb-6">
+                <div 
+                  className={`h-3 sm:h-4 rounded-full transition-all duration-1000 ease-out ${
+                    score >= 8 ? 'bg-gradient-to-r from-green-500 to-green-600' :
+                    score >= 6 ? 'bg-gradient-to-r from-yellow-500 to-orange-500' :
+                    'bg-gradient-to-r from-red-500 to-red-600'
+                  }`}
+                  style={{ width: `${(score / 10) * 100}%` }}
+                />
+              </div>
+            </div>
+            
+            {/* Détail des réponses - Responsive */}
+            <div className="bg-gradient-to-br from-slate-50 to-white border border-slate-200 rounded-2xl p-4 sm:p-6 shadow-lg">
+              <h4 className="text-lg sm:text-xl md:text-2xl font-bold text-slate-800 mb-4 sm:mb-6 flex items-center gap-2 sm:gap-3">
+                <ClipboardCheck className="h-5 w-5 sm:h-6 sm:w-6 text-blue-600" />
+                Détail des réponses
+              </h4>
+              <div className="space-y-3 sm:space-y-4">
+                {selectedQuestions.map((question, qIndex) => {
+                  const userAnswer = answers[qIndex]
+                  const correct = isCorrect[qIndex]
+                  return (
+                    <div
+                      key={qIndex}
+                      className={`p-3 sm:p-4 md:p-6 rounded-xl border-2 transition-all duration-300 hover:shadow-md ${
+                        correct 
+                          ? "border-green-200 bg-gradient-to-r from-green-50 to-green-100/50" 
+                          : "border-red-200 bg-gradient-to-r from-red-50 to-red-100/50"
+                      }`}
+                    >
+                      <div className="flex items-start gap-3 sm:gap-4">
+                        <div className={`p-1.5 sm:p-2 rounded-full flex-shrink-0 ${
+                          correct ? 'bg-green-100' : 'bg-red-100'
+                        }`}>
                           {correct ? (
-                            <CheckCircle2 className="h-5 w-5 text-green-600 mt-0.5 flex-shrink-0" strokeWidth={2.5} />
+                            <CheckCircle2 className="h-4 w-4 sm:h-6 sm:w-6 text-green-600" strokeWidth={2.5} />
                           ) : (
-                            <XCircle className="h-5 w-5 text-red-600 mt-0.5 flex-shrink-0" strokeWidth={2.5} />
+                            <XCircle className="h-4 w-4 sm:h-6 sm:w-6 text-red-600" strokeWidth={2.5} />
                           )}
-                          <div className="flex-1">
-                            <p className="font-semibold text-sm text-slate-800 mb-1">Question {qIndex + 1}</p>
-                            <p className="text-sm text-slate-600 mb-2">{question.question}</p>
-                            <p className="text-xs text-slate-500 mb-1">
-                              <strong>Votre réponse :</strong> {userAnswer}
+                        </div>
+                        <div className="flex-1 min-w-0">
+                          <p className="font-bold text-sm sm:text-base md:text-lg text-slate-800 mb-2">Question {qIndex + 1}</p>
+                          <p className="text-slate-700 mb-3 sm:mb-4 font-medium text-sm sm:text-base">{question.question}</p>
+                          <div className="space-y-2">
+                            <p className="text-xs sm:text-sm text-slate-600">
+                              <span className="font-semibold">Votre réponse :</span> {userAnswer}
                             </p>
                             {!correct && (
-                              <p className="text-xs text-green-600 mb-1">
-                                <strong>Bonne réponse :</strong> {question.answer}
+                              <p className="text-xs sm:text-sm text-green-700 font-medium">
+                                <span className="font-semibold">Bonne réponse :</span> {question.answer}
                               </p>
                             )}
-                            <p className="text-xs text-slate-500 italic">
-                              <strong>Explication :</strong> {question.explanation}
+                            <p className="text-xs sm:text-sm text-slate-500 italic bg-slate-100 p-2 sm:p-3 rounded-lg">
+                              <span className="font-semibold">Explication :</span> {question.explanation}
                             </p>
                           </div>
                         </div>
                       </div>
-                    )
-                  })}
-                </div>
+                    </div>
+                  )
+                })}
               </div>
             </div>
           </div>
         ) : null}
 
-        <DialogFooter className="gap-3">
+        <DialogFooter className="gap-2 sm:gap-4 pt-4 sm:pt-6 flex-col sm:flex-row">
           {!showResult ? (
             <>
-              <Button variant="outline" onClick={handleClose} className="font-medium bg-transparent">
+              <Button 
+                variant="outline" 
+                onClick={handleClose} 
+                className="font-semibold px-4 py-2 sm:px-6 sm:py-3 border-2 border-slate-300 hover:border-slate-400 hover:bg-slate-50 transition-all duration-300 text-sm sm:text-base w-full sm:w-auto"
+              >
                 Annuler
               </Button>
+              
+              {currentQuestion > 0 && (
+                <Button
+                  onClick={handlePrevious}
+                  variant="outline"
+                  className="font-semibold px-4 py-2 sm:px-6 sm:py-3 border-2 text-slate-600 hover:bg-slate-50 transition-all duration-300 flex items-center justify-center gap-2 text-sm sm:text-base w-full sm:w-auto"
+                >
+                  <ChevronLeft className="h-3 w-3 sm:h-4 sm:w-4" />
+                  Précédent
+                </Button>
+              )}
+              
               <Button
                 onClick={handleNext}
                 disabled={selectedAnswer === null}
-                className="bg-primary hover:bg-primary/90 font-medium shadow-md hover:shadow-lg transition-all"
+                className="text-white font-semibold px-4 py-2 sm:px-6 sm:py-3 shadow-lg hover:shadow-xl transition-all duration-300 disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center gap-2 text-sm sm:text-base w-full sm:w-auto"
+                style={{ backgroundColor: "#344256" }}
+                onMouseEnter={(e) => {
+                  e.currentTarget.style.backgroundColor = "#2a3441"
+                }}
+                onMouseLeave={(e) => {
+                  e.currentTarget.style.backgroundColor = "#344256"
+                }}
               >
-                {currentQuestion < selectedQuestions.length - 1 ? "Suivant" : "Terminer"}
+                {currentQuestion < selectedQuestions.length - 1 ? (
+                  <>
+                    Suivant
+                    <ChevronRight className="h-3 w-3 sm:h-4 sm:w-4" />
+                  </>
+                ) : (
+                  <>
+                    Terminer
+                    <CheckCircle2 className="h-3 w-3 sm:h-4 sm:w-4" />
+                  </>
+                )}
               </Button>
             </>
           ) : (
@@ -446,15 +545,16 @@ export function QuizModal({ open, onOpenChange }: QuizModalProps) {
               <Button 
                 variant="outline" 
                 onClick={handleReset} 
-                className="font-medium bg-transparent flex items-center gap-2"
+                className="font-semibold px-4 py-2 sm:px-6 sm:py-3 border-2 border-blue-300 text-blue-600 hover:bg-blue-50 hover:border-blue-400 transition-all duration-300 flex items-center justify-center gap-2 text-sm sm:text-base w-full sm:w-auto"
               >
-                <RotateCcw className="h-4 w-4" />
+                <RotateCcw className="h-3 w-3 sm:h-4 sm:w-4" />
                 Nouveau Quiz
               </Button>
               <Button
                 onClick={handleClose}
-                className="bg-primary hover:bg-primary/90 font-medium shadow-md hover:shadow-lg transition-all"
+                className="bg-gradient-to-r from-green-600 to-green-700 hover:from-green-700 hover:to-green-800 text-white font-semibold px-4 py-2 sm:px-6 sm:py-3 shadow-lg hover:shadow-xl transition-all duration-300 flex items-center justify-center gap-2 text-sm sm:text-base w-full sm:w-auto"
               >
+                <CheckCircle2 className="h-3 w-3 sm:h-4 sm:w-4" />
                 Fermer
               </Button>
             </>

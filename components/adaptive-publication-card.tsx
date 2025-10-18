@@ -134,13 +134,13 @@ export function AdaptivePublicationCard({ article, onDelete, onUpdate, searchTer
         : "news-card"
     )}>
       <CardContent className="p-0 w-full">
-        {/* Header commun */}
-        <div className="px-6 pt-3 pb-1">
-          {/* Date de publication en haut à gauche */}
-          <div className="flex items-center justify-between mb-3">
-            <div className="publication-date">
-              <Calendar className="w-4 h-4" />
-              <span className="date-text">
+        {/* Header commun - Responsive */}
+        <div className="px-3 xs:px-4 sm:px-6 pt-2 xs:pt-3 pb-1">
+          {/* Date de publication en haut à gauche - Responsive */}
+          <div className="flex items-center justify-between mb-2 xs:mb-3">
+            <div className="publication-date flex items-center gap-1 xs:gap-2 text-xs xs:text-sm text-gray-500">
+              <Calendar className="w-3 h-3 xs:w-4 xs:h-4 flex-shrink-0" />
+              <span className="date-text font-medium text-gray-600 hidden xs:inline">
                 {new Date(article.date).toLocaleDateString("fr-FR", {
                   weekday: 'long',
                   year: 'numeric',
@@ -148,8 +148,15 @@ export function AdaptivePublicationCard({ article, onDelete, onUpdate, searchTer
                   day: 'numeric'
                 })}
               </span>
-              <span className="separator">•</span>
-              <span className="time-text">
+              <span className="date-text font-medium text-gray-600 xs:hidden">
+                {new Date(article.date).toLocaleDateString("fr-FR", {
+                  day: 'numeric',
+                  month: 'short',
+                  year: '2-digit'
+                })}
+              </span>
+              <span className="separator text-gray-400 hidden xs:inline">•</span>
+              <span className="time-text text-gray-500 hidden xs:inline">
                 {new Date(`2000-01-01T${article.time}`).toLocaleTimeString("fr-FR", {
                   hour: '2-digit',
                   minute: '2-digit'
@@ -157,7 +164,7 @@ export function AdaptivePublicationCard({ article, onDelete, onUpdate, searchTer
               </span>
             </div>
             
-            {/* Actions en haut à droite - seulement si authentifié */}
+            {/* Actions en haut à droite - seulement si authentifié - Responsive */}
             {!isPublic && (
               <div className="flex items-center gap-1 relative">
                 <VisibleDropdownMenu
@@ -172,17 +179,18 @@ export function AdaptivePublicationCard({ article, onDelete, onUpdate, searchTer
             )}
           </div>
 
-          {/* Type */}
-          <div className="flex items-center gap-2">
-            <Badge variant="outline" className="text-xs">
+          {/* Type - Responsive */}
+          <div className="flex items-center gap-1 xs:gap-2 flex-wrap">
+            <Badge variant="outline" className="text-xs px-2 py-1">
               {article.type === "event" ? "Événement" :
                article.type === "announcement" ? "Annonce" : 
                article.type === "news" ? "Actualité" : "Publication"}
             </Badge>
             {article.type === "announcement" && (
-              <Badge className="important-badge">
-                <AlertTriangle className="w-3 h-3 mr-1" />
-                IMPORTANT
+              <Badge className="important-badge text-xs px-2 py-1">
+                <AlertTriangle className="w-2 h-2 xs:w-3 xs:h-3 mr-1" />
+                <span className="hidden xs:inline">IMPORTANT</span>
+                <span className="xs:hidden">!</span>
               </Badge>
             )}
           </div>
@@ -217,14 +225,14 @@ export function AdaptivePublicationCard({ article, onDelete, onUpdate, searchTer
   )
 }
 
-// Composant pour le contenu texte seul
+// Composant pour le contenu texte seul - Responsive
 function TextOnlyContent({ article, searchTerm }: { article: Article; searchTerm?: string }) {
   const [showFullContent, setShowFullContent] = useState(false)
 
   return (
-    <div className="px-6 pb-6 w-full">
+    <div className="px-3 xs:px-4 sm:px-6 pb-4 xs:pb-6 w-full">
       {article.title && (
-        <h2 className="article-title mb-3 w-full block">
+        <h2 className="article-title mb-2 xs:mb-3 w-full block text-lg xs:text-xl font-bold text-gray-900 leading-tight">
           <HighlightText 
             text={article.title} 
             searchTerm={searchTerm || ""} 
@@ -232,7 +240,7 @@ function TextOnlyContent({ article, searchTerm }: { article: Article; searchTerm
         </h2>
       )}
       
-      <div className="text-gray-700 leading-relaxed">
+      <div className="text-gray-700 leading-relaxed text-sm xs:text-base">
         <div className={cn(
           "publication-content",
           !showFullContent && article.content && article.content.length > 200 ? "line-clamp-3" : ""
@@ -247,15 +255,15 @@ function TextOnlyContent({ article, searchTerm }: { article: Article; searchTerm
             variant="ghost"
             size="sm"
             onClick={() => setShowFullContent(!showFullContent)}
-            className="mt-2 p-0 h-auto text-blue-600 hover:text-blue-700"
+            className="mt-2 p-0 h-auto text-blue-600 hover:text-blue-700 text-xs xs:text-sm"
           >
             {showFullContent ? (
               <>
-                Voir moins <ChevronUp className="w-4 h-4 ml-1" />
+                Voir moins <ChevronUp className="w-3 h-3 xs:w-4 xs:h-4 ml-1" />
               </>
             ) : (
               <>
-                Voir plus <ChevronDown className="w-4 h-4 ml-1" />
+                Voir plus <ChevronDown className="w-3 h-3 xs:w-4 xs:h-4 ml-1" />
               </>
             )}
           </Button>
@@ -265,12 +273,12 @@ function TextOnlyContent({ article, searchTerm }: { article: Article; searchTerm
   )
 }
 
-// Composant pour le contenu image seule
+// Composant pour le contenu image seule - Responsive
 function ImageOnlyContent({ article, searchTerm }: { article: Article; searchTerm?: string }) {
   return (
-    <div className="px-6 pb-6 w-full">
+    <div className="px-3 xs:px-4 sm:px-6 pb-4 xs:pb-6 w-full">
       {article.title && (
-        <h2 className="article-title mb-4 w-full block">
+        <h2 className="article-title mb-3 xs:mb-4 w-full block text-lg xs:text-xl font-bold text-gray-900 leading-tight">
           <HighlightText 
             text={article.title} 
             searchTerm={searchTerm || ""} 
@@ -282,7 +290,7 @@ function ImageOnlyContent({ article, searchTerm }: { article: Article; searchTer
         <img
           src={article.image_url || article.image}
           alt={article.title || "Image"}
-          className="publication-image"
+          className="publication-image w-full rounded-lg max-h-64 xs:max-h-80 sm:max-h-96 object-cover"
           onLoad={() => {
             // Image chargée avec succès
           }}
@@ -302,14 +310,14 @@ function ImageOnlyContent({ article, searchTerm }: { article: Article; searchTer
   )
 }
 
-// Composant pour le contenu texte + image
+// Composant pour le contenu texte + image - Responsive
 function TextImageContent({ article, searchTerm }: { article: Article; searchTerm?: string }) {
   const [showFullContent, setShowFullContent] = useState(false)
 
   return (
-    <div className="px-6 pb-6 w-full">
+    <div className="px-3 xs:px-4 sm:px-6 pb-4 xs:pb-6 w-full">
       {article.title && (
-        <h2 className="article-title mb-3 w-full block">
+        <h2 className="article-title mb-2 xs:mb-3 w-full block text-lg xs:text-xl font-bold text-gray-900 leading-tight">
           <HighlightText 
             text={article.title} 
             searchTerm={searchTerm || ""} 
@@ -318,27 +326,30 @@ function TextImageContent({ article, searchTerm }: { article: Article; searchTer
       )}
       
       {article.content && (
-        <div className="text-gray-700 leading-relaxed mb-4">
+        <div className="text-gray-700 leading-relaxed mb-3 xs:mb-4 text-sm xs:text-base">
           <div className={cn(
             "publication-content",
             !showFullContent && article.content.length > 200 ? "line-clamp-3" : ""
           )}>
-            {article.content}
+            <HighlightText 
+              text={article.content} 
+              searchTerm={searchTerm || ""} 
+            />
           </div>
           {article.content.length > 200 && (
             <Button
               variant="ghost"
               size="sm"
               onClick={() => setShowFullContent(!showFullContent)}
-              className="mt-2 p-0 h-auto text-blue-600 hover:text-blue-700"
+              className="mt-2 p-0 h-auto text-blue-600 hover:text-blue-700 text-xs xs:text-sm"
             >
               {showFullContent ? (
                 <>
-                  Voir moins <ChevronUp className="w-4 h-4 ml-1" />
+                  Voir moins <ChevronUp className="w-3 h-3 xs:w-4 xs:h-4 ml-1" />
                 </>
               ) : (
                 <>
-                  Voir plus <ChevronDown className="w-4 h-4 ml-1" />
+                  Voir plus <ChevronDown className="w-3 h-3 xs:w-4 xs:h-4 ml-1" />
                 </>
               )}
             </Button>
@@ -350,7 +361,7 @@ function TextImageContent({ article, searchTerm }: { article: Article; searchTer
         <img
           src={article.image_url || article.image}
           alt={article.title || "Image"}
-          className="publication-image-text"
+          className="publication-image-text w-full rounded-lg max-h-64 xs:max-h-80 sm:max-h-96 object-cover"
           onLoad={() => {
             console.log('✅ [TEXT_IMAGE] Image chargée avec succès:', {
               image_url: article.image_url,
@@ -396,13 +407,13 @@ function TextImageContent({ article, searchTerm }: { article: Article; searchTer
 }
 
 
-// Composant pour le contenu vidéo
+// Composant pour le contenu vidéo - Responsive
 function VideoContent({ article, searchTerm }: { article: Article; searchTerm?: string }) {
   const [showFullContent, setShowFullContent] = useState(false)
 
   return (
-    <div className="px-6 pb-6 w-full">
-      <h2 className="article-title mb-3 w-full block">
+    <div className="px-3 xs:px-4 sm:px-6 pb-4 xs:pb-6 w-full">
+      <h2 className="article-title mb-2 xs:mb-3 w-full block text-lg xs:text-xl font-bold text-gray-900 leading-tight">
         <HighlightText 
           text={article.title} 
           searchTerm={searchTerm || ""} 
@@ -410,7 +421,7 @@ function VideoContent({ article, searchTerm }: { article: Article; searchTerm?: 
       </h2>
       
       {article.content && (
-        <div className="text-gray-700 leading-relaxed mb-4">
+        <div className="text-gray-700 leading-relaxed mb-3 xs:mb-4 text-sm xs:text-base">
          <div className={cn(
            "publication-content",
            !showFullContent && article.content.length > 200 ? "line-clamp-3" : ""
@@ -425,15 +436,15 @@ function VideoContent({ article, searchTerm }: { article: Article; searchTerm?: 
               variant="ghost"
               size="sm"
               onClick={() => setShowFullContent(!showFullContent)}
-              className="mt-2 p-0 h-auto text-blue-600 hover:text-blue-700"
+              className="mt-2 p-0 h-auto text-blue-600 hover:text-blue-700 text-xs xs:text-sm"
             >
               {showFullContent ? (
                 <>
-                  Voir moins <ChevronUp className="w-4 h-4 ml-1" />
+                  Voir moins <ChevronUp className="w-3 h-3 xs:w-4 xs:h-4 ml-1" />
                 </>
               ) : (
                 <>
-                  Voir plus <ChevronDown className="w-4 h-4 ml-1" />
+                  Voir plus <ChevronDown className="w-3 h-3 xs:w-4 xs:h-4 ml-1" />
                 </>
               )}
             </Button>
@@ -445,10 +456,10 @@ function VideoContent({ article, searchTerm }: { article: Article; searchTerm?: 
       <div className="relative group">
         {/* Vidéo avec contrôles */}
         {article.video_url || article.video ? (
-          <div className="publication-video-container">
+          <div className="publication-video-container w-full bg-black rounded-lg shadow-lg overflow-hidden">
             <video
               src={article.video_url || article.video}
-              className="publication-video"
+              className="w-full h-auto max-h-64 xs:max-h-80 sm:max-h-96 object-contain"
               poster={article.video_poster_url || article.video_poster}
               controls
               preload="metadata"
@@ -463,17 +474,17 @@ function VideoContent({ article, searchTerm }: { article: Article; searchTerm?: 
                 const video = e.target as HTMLVideoElement;
                 const aspectRatio = video.videoWidth / video.videoHeight;
                 const maxWidth = video.parentElement?.offsetWidth || 800;
-                const calculatedHeight = Math.min(maxWidth / aspectRatio, 600);
+                const calculatedHeight = Math.min(maxWidth / aspectRatio, 400);
                 video.style.height = `${calculatedHeight}px`;
               }}
             />
           </div>
         ) : (
-          <div className="w-full h-64 bg-gray-100 rounded-lg flex items-center justify-center shadow-lg">
-            <div className="text-center">
-              <Video className="w-16 h-16 text-gray-400 mx-auto mb-4" />
-              <p className="text-gray-500 text-lg">Aucune vidéo disponible</p>
-              <p className="text-gray-400 text-sm mt-2">
+          <div className="w-full h-48 xs:h-64 bg-gray-100 rounded-lg flex items-center justify-center shadow-lg">
+            <div className="text-center px-4">
+              <Video className="w-12 h-12 xs:w-16 xs:h-16 text-gray-400 mx-auto mb-2 xs:mb-4" />
+              <p className="text-gray-500 text-sm xs:text-lg">Aucune vidéo disponible</p>
+              <p className="text-gray-400 text-xs xs:text-sm mt-1 xs:mt-2">
                 {article.title.includes('Test Vidéo') ? 'Article de test - pas de fichier vidéo uploadé' : 'Vidéo non trouvée'}
               </p>
             </div>
@@ -485,78 +496,84 @@ function VideoContent({ article, searchTerm }: { article: Article; searchTerm?: 
 }
 
 
-// Composant pour le contenu événement
+// Composant pour le contenu événement - Responsive
 function EventContent({ article, searchTerm }: { article: Article; searchTerm?: string }) {
   const [showFullContent, setShowFullContent] = useState(false)
 
   return (
-    <div className="px-6 pb-6 w-full">
-      <h2 className="article-title mb-3 w-full block">
-        {article.title}
+    <div className="px-3 xs:px-4 sm:px-6 pb-4 xs:pb-6 w-full">
+      <h2 className="article-title mb-2 xs:mb-3 w-full block text-lg xs:text-xl font-bold text-gray-900 leading-tight">
+        <HighlightText 
+          text={article.title} 
+          searchTerm={searchTerm || ""} 
+        />
       </h2>
       
-      <div className="text-gray-700 leading-relaxed mb-4">
+      <div className="text-gray-700 leading-relaxed mb-3 xs:mb-4 text-sm xs:text-base">
          <div className={cn(
            "publication-content",
            !showFullContent && article.content.length > 200 ? "line-clamp-3" : ""
          )}>
-           {article.content}
+           <HighlightText 
+             text={article.content} 
+             searchTerm={searchTerm || ""} 
+           />
          </div>
         {article.content.length > 200 && (
           <Button
             variant="ghost"
             size="sm"
             onClick={() => setShowFullContent(!showFullContent)}
-            className="mt-2 p-0 h-auto text-blue-600 hover:text-blue-700"
+            className="mt-2 p-0 h-auto text-blue-600 hover:text-blue-700 text-xs xs:text-sm"
           >
             {showFullContent ? (
               <>
-                Voir moins <ChevronUp className="w-4 h-4 ml-1" />
+                Voir moins <ChevronUp className="w-3 h-3 xs:w-4 xs:h-4 ml-1" />
               </>
             ) : (
               <>
-                Voir plus <ChevronDown className="w-4 h-4 ml-1" />
+                Voir plus <ChevronDown className="w-3 h-3 xs:w-4 xs:h-4 ml-1" />
               </>
             )}
           </Button>
         )}
       </div>
       
-      {/* Informations de l'événement */}
-      <div className="space-y-4 p-6 bg-gradient-to-br from-green-50 to-emerald-50 rounded-xl border border-green-100">
-        <div className="flex items-center gap-3 text-lg font-semibold text-gray-800">
-          <div className="p-2 bg-green-100 rounded-lg">
-            <Calendar className="w-5 h-5 text-green-600" />
+      {/* Informations de l'événement - Responsive */}
+      <div className="space-y-3 xs:space-y-4 p-4 xs:p-6 bg-gradient-to-br from-green-50 to-emerald-50 rounded-xl border border-green-100">
+        <div className="flex items-center gap-2 xs:gap-3 text-base xs:text-lg font-semibold text-gray-800">
+          <div className="p-1.5 xs:p-2 bg-green-100 rounded-lg">
+            <Calendar className="w-4 h-4 xs:w-5 xs:h-5 text-green-600" />
           </div>
           <span>Détails de l'événement</span>
         </div>
         
         {article.event_date && (
-          <div className="flex items-center gap-2 p-3 bg-white rounded-lg border border-gray-200">
-            <Calendar className="w-4 h-4 text-green-500" />
-            <span className="text-sm font-medium text-gray-700">
+          <div className="flex items-center gap-2 p-2 xs:p-3 bg-white rounded-lg border border-gray-200">
+            <Calendar className="w-3 h-3 xs:w-4 xs:h-4 text-green-500 flex-shrink-0" />
+            <span className="text-xs xs:text-sm font-medium text-gray-700">
               Date: {new Date(article.event_date).toLocaleDateString("fr-FR")}
             </span>
           </div>
         )}
         
         {(article as any).end_date && (
-          <div className="flex items-center gap-2 p-3 bg-white rounded-lg border border-gray-200">
-            <Calendar className="w-4 h-4 text-orange-500" />
-            <span className="text-sm font-medium text-gray-700">
+          <div className="flex items-center gap-2 p-2 xs:p-3 bg-white rounded-lg border border-gray-200">
+            <Calendar className="w-3 h-3 xs:w-4 xs:h-4 text-orange-500 flex-shrink-0" />
+            <span className="text-xs xs:text-sm font-medium text-gray-700">
               Fin des inscriptions: {new Date((article as any).end_date).toLocaleDateString("fr-FR")}
             </span>
           </div>
         )}
       </div>
       
-      {/* Image de l'événement si disponible */}
+      {/* Image de l'événement si disponible - Responsive */}
       {(article.image_url || article.image) && (
-        <div className="mt-4 relative group">
+        <div className="mt-3 xs:mt-4 relative group">
           <img
             src={article.image_url || article.image}
             alt={article.title || "Image"}
-            className="publication-image-text"
+            className="publication-image-text w-full rounded-lg max-h-64 xs:max-h-80 sm:max-h-96 object-cover"
           />
         </div>
       )}
