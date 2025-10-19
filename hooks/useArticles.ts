@@ -55,21 +55,52 @@ export function useArticles(params: UseArticlesParams = {}) {
         const imageUrl = articleWithImage.image_url || articleWithImage.image;
         console.log('🔍 [USE_ARTICLES] Test de l\'URL d\'image:', imageUrl);
         
-        // Tester l'URL avec fetch
-        fetch(imageUrl, { method: 'HEAD' })
+        // Tester l'URL avec fetch HEAD
+        fetch(imageUrl, { 
+          method: 'HEAD',
+          mode: 'cors',
+          credentials: 'omit'
+        })
           .then(response => {
-            console.log('🔍 [USE_ARTICLES] Test fetch image:', {
+            console.log('🔍 [USE_ARTICLES] Test fetch HEAD image:', {
               url: imageUrl,
               status: response.status,
               statusText: response.statusText,
               ok: response.ok,
-              contentType: response.headers.get('content-type')
+              contentType: response.headers.get('content-type'),
+              contentLength: response.headers.get('content-length'),
+              headers: Object.fromEntries(response.headers.entries())
             });
+            
+            // Si HEAD échoue, essayer GET
+            if (!response.ok) {
+              console.log('🔄 [USE_ARTICLES] Tentative avec GET...');
+              return fetch(imageUrl, { 
+                method: 'GET',
+                mode: 'cors',
+                credentials: 'omit'
+              });
+            }
+            return response;
+          })
+          .then(response => {
+            if (response) {
+              console.log('✅ [USE_ARTICLES] Test GET réussi:', {
+                url: imageUrl,
+                status: response.status,
+                statusText: response.statusText,
+                ok: response.ok,
+                contentType: response.headers.get('content-type'),
+                contentLength: response.headers.get('content-length')
+              });
+            }
           })
           .catch(error => {
             console.error('❌ [USE_ARTICLES] Erreur fetch image:', {
               url: imageUrl,
-              error: error.message
+              error: error.message,
+              name: error.name,
+              stack: error.stack
             });
           });
       }

@@ -27,6 +27,8 @@ import { DeleteConfirmationModal } from "./delete-confirmation-modal"
 import { EditArticleModal } from "./edit-article-modal"
 import { VisibleDropdownMenu } from "./visible-dropdown-menu"
 import { HighlightText } from "./ui/highlight-text"
+import { ImageDebugger } from "./image-debugger"
+import { ImageFallback } from "./image-fallback"
 
 interface AdaptivePublicationCardProps {
   article: Article
@@ -287,23 +289,32 @@ function ImageOnlyContent({ article, searchTerm }: { article: Article; searchTer
       )}
       
       <div className="relative group">
-        <img
+        <ImageFallback
           src={article.image_url || article.image}
           alt={article.title || "Image"}
           className="publication-image w-full rounded-lg max-h-64 xs:max-h-80 sm:max-h-96 object-cover"
           onLoad={() => {
-            // Image chargée avec succès
-          }}
-          onError={(e) => {
-            console.error('❌ Erreur de chargement de l\'image (ImageOnly):', {
+            console.log('✅ [IMAGE_ONLY] Image chargée avec succès:', {
               image_url: article.image_url,
               image: article.image,
-              src: e.currentTarget.src,
               article_id: article.id,
               article_title: article.title
             });
-            e.currentTarget.style.display = 'none';
           }}
+          onError={(error) => {
+            console.error('❌ Erreur de chargement de l\'image (ImageOnly):', {
+              image_url: article.image_url,
+              image: article.image,
+              article_id: article.id,
+              article_title: article.title,
+              error: error,
+              timestamp: new Date().toISOString(),
+              userAgent: navigator.userAgent,
+              location: window.location.href
+            });
+          }}
+          showRetryButton={true}
+          maxRetries={3}
         />
       </div>
     </div>
@@ -313,6 +324,7 @@ function ImageOnlyContent({ article, searchTerm }: { article: Article; searchTer
 // Composant pour le contenu texte + image - Responsive
 function TextImageContent({ article, searchTerm }: { article: Article; searchTerm?: string }) {
   const [showFullContent, setShowFullContent] = useState(false)
+  const [showDebugger, setShowDebugger] = useState(false)
 
   return (
     <div className="px-3 xs:px-4 sm:px-6 pb-4 xs:pb-6 w-full">
@@ -358,7 +370,19 @@ function TextImageContent({ article, searchTerm }: { article: Article; searchTer
       )}
       
       <div className="relative group">
-        <img
+        {/* Bouton de diagnostic */}
+        <div className="absolute top-2 right-2 z-10">
+          <Button
+            size="sm"
+            variant="outline"
+            onClick={() => setShowDebugger(!showDebugger)}
+            className="bg-white/90 hover:bg-white text-xs"
+          >
+            🔍 Debug
+          </Button>
+        </div>
+        
+        <ImageFallback
           src={article.image_url || article.image}
           alt={article.title || "Image"}
           className="publication-image-text w-full rounded-lg max-h-64 xs:max-h-80 sm:max-h-96 object-cover"
@@ -371,37 +395,34 @@ function TextImageContent({ article, searchTerm }: { article: Article; searchTer
               final_url: article.image_url || article.image
             });
           }}
-          onError={(e) => {
-            const target = e.currentTarget;
+          onError={(error) => {
             console.error('❌ Erreur de chargement de l\'image (TextImage):', {
               image_url: article.image_url,
               image: article.image,
-              src: target.src,
               article_id: article.id,
               article_title: article.title,
               final_url: article.image_url || article.image,
-              error_event: e,
-              target_element: target
+              error: error,
+              timestamp: new Date().toISOString(),
+              userAgent: navigator.userAgent,
+              location: window.location.href
             });
-            
-            // Tester l'URL avec fetch pour plus de détails
-            fetch(target.src, { method: 'HEAD' })
-              .then(response => {
-                console.error('🔍 [TEXT_IMAGE] Détails de l\'erreur fetch:', {
-                  status: response.status,
-                  statusText: response.statusText,
-                  headers: Object.fromEntries(response.headers.entries()),
-                  url: response.url
-                });
-              })
-              .catch(fetchError => {
-                console.error('🔍 [TEXT_IMAGE] Erreur fetch:', fetchError);
-              });
-            
-            target.style.display = 'none';
           }}
+          showRetryButton={true}
+          maxRetries={3}
         />
       </div>
+      
+      {/* Composant de diagnostic */}
+      {showDebugger && (article.image_url || article.image) && (
+        <div className="mt-4">
+          <ImageDebugger
+            imageUrl={article.image_url || article.image}
+            articleId={article.id}
+            articleTitle={article.title}
+          />
+        </div>
+      )}
     </div>
   )
 }
@@ -570,10 +591,29 @@ function EventContent({ article, searchTerm }: { article: Article; searchTerm?: 
       {/* Image de l'événement si disponible - Responsive */}
       {(article.image_url || article.image) && (
         <div className="mt-3 xs:mt-4 relative group">
-          <img
+          <ImageFallback
             src={article.image_url || article.image}
             alt={article.title || "Image"}
             className="publication-image-text w-full rounded-lg max-h-64 xs:max-h-80 sm:max-h-96 object-cover"
+            onLoad={() => {
+              console.log('✅ [EVENT] Image chargée avec succès:', {
+                image_url: article.image_url,
+                image: article.image,
+                article_id: article.id,
+                article_title: article.title
+              });
+            }}
+            onError={(error) => {
+              console.error('❌ Erreur de chargement de l\'image (Event):', {
+                image_url: article.image_url,
+                image: article.image,
+                article_id: article.id,
+                article_title: article.title,
+                error: error
+              });
+            }}
+            showRetryButton={true}
+            maxRetries={3}
           />
         </div>
       )}
