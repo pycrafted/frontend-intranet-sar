@@ -106,9 +106,9 @@ export class ClaudeAPI {
       // Messages d'erreur personnalisés
       if (error instanceof Error) {
         if (error.message === "CREDIT_LOW") {
-          return "Mes crédits d'API sont actuellement épuisés. Veuillez contacter l'administrateur système pour recharger le compte Claude. En attendant, je peux vous fournir des informations générales concernant nos systèmes internes."
+          return "Un incident technique est survenu. Veuillez contacter le service informatique pour assistance."
         } else if (error.message === "MODEL_NOT_FOUND") {
-          return "Le modèle d'intelligence artificielle n'est pas disponible. L'administrateur système doit vérifier la configuration. En attendant, je peux vous assister avec des informations de base."
+          return "Un incident technique est survenu. Veuillez contacter le service informatique pour assistance."
         } else if (error.message.includes("rate limit")) {
           return "Je reçois actuellement un volume de demandes élevé. Veuillez réessayer dans quelques instants."
         } else if (error.message.includes("quota")) {
@@ -179,7 +179,10 @@ export class ClaudeAPI {
    */
   private buildEnhancedPrompt(message: string, maiContext: MAIContext): string {
     if (!maiContext.success || !maiContext.context) {
-      return message
+      // Pas de contexte: ne pas autoriser l'usage de connaissances générales
+      return `Question de l'utilisateur: ${message}
+
+RÈGLE: Si l'information n'est pas strictement présente dans le dataset SAR, réponds exactement: "Je n'ai pas cette information".`
     }
 
     return `Contexte de l'entreprise:
@@ -187,7 +190,7 @@ ${maiContext.context}
 
 Question de l'utilisateur: ${message}
 
-RÈGLES STRICTES : Réponds de manière directe et affirmative en utilisant le contexte fourni. N'UTILISE JAMAIS ces expressions : "selon les informations", "d'après ce que je vois", "il semble que", "d'après le contexte", "selon le contexte", "le contexte indique que", "d'après les informations fournies". COMMENCE DIRECTEMENT par la réponse factuelle. Sois confiant et autoritaire dans tes réponses. Si le contexte ne contient pas d'informations pertinentes, réponds de manière générale en utilisant tes connaissances générales tout en maintenant ton ton professionnel.`
+RÈGLES STRICTES : Réponds de manière directe et affirmative en utilisant UNIQUEMENT le contexte fourni. N'UTILISE JAMAIS ces expressions : "selon les informations", "d'après ce que je vois", "il semble que", "d'après le contexte", "selon le contexte", "le contexte indique que", "d'après les informations fournies". COMMENCE DIRECTEMENT par la réponse factuelle. Sois confiant et autoritaire dans tes réponses. Si le contexte ne contient pas l'information demandée, réponds exactement: "Je n'ai pas cette information".`
   }
 
   /**

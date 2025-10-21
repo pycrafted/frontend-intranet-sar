@@ -254,7 +254,7 @@ export function MaiChatbot({ className }: MaiChatbotProps) {
                           <div className="h-2 w-2 bg-pink-500 rounded-full animate-bounce" style={{animationDelay: '0.1s'}}></div>
                           <div className="h-2 w-2 bg-orange-500 rounded-full animate-bounce" style={{animationDelay: '0.2s'}}></div>
                         </div>
-                        <span className="text-gray-600 font-medium">SARIA écrit...</span>
+                        {/* Texte supprimé pour ne laisser que l'animation des trois points */}
                       </div>
                     </div>
                   </div>

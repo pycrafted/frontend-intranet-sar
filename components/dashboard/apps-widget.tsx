@@ -127,11 +127,18 @@ const QualiproIcon = () => (
 )
 
 const SAPFPIcon = () => (
-  <img 
-    src="/css-3.png" 
-    alt="CSS3" 
-    className="w-8 h-8 object-contain"
-  />
+  <div className="group relative w-16 h-16 bg-white rounded-lg flex items-center justify-center p-2 transition-all duration-300 hover:shadow-lg hover:scale-105 hover:bg-blue-50">
+    <img 
+      src="/logo_hana.png" 
+      alt="SAP S/4HANA" 
+      className="w-full h-full object-contain transition-transform duration-300 group-hover:scale-110"
+    />
+    {/* Tooltip personnalisé */}
+    <div className="absolute -top-12 left-1/2 transform -translate-x-1/2 bg-gray-900 text-white text-xs font-medium px-3 py-2 rounded-lg opacity-0 group-hover:opacity-100 transition-opacity duration-300 pointer-events-none whitespace-nowrap z-50">
+      SAP S/4HANA
+      <div className="absolute top-full left-1/2 transform -translate-x-1/2 w-0 h-0 border-l-4 border-r-4 border-t-4 border-transparent border-t-gray-900"></div>
+    </div>
+  </div>
 )
 
 const MaarchCourrierIcon = () => (
