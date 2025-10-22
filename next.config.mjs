@@ -18,11 +18,34 @@ const nextConfig = {
       },
     ],
   },
-  // Configuration optimisée pour Vercel
+  // Configuration optimisée pour Vercel et Chrome
   experimental: {
     serverComponentsExternalPackages: ['@radix-ui/react-avatar'],
   },
-  // Headers de sécurité
+  // Optimisations pour Chrome
+  webpack: (config, { dev, isServer }) => {
+    if (!dev && !isServer) {
+      // Optimiser les chunks pour Chrome
+      config.optimization.splitChunks = {
+        chunks: 'all',
+        cacheGroups: {
+          default: {
+            minChunks: 2,
+            priority: -20,
+            reuseExistingChunk: true,
+          },
+          vendor: {
+            test: /[\\/]node_modules[\\/]/,
+            name: 'vendors',
+            priority: -10,
+            chunks: 'all',
+          },
+        },
+      };
+    }
+    return config;
+  },
+  // Headers de sécurité et compatibilité Chrome
   async headers() {
     return [
       {
@@ -39,6 +62,24 @@ const nextConfig = {
           {
             key: 'Referrer-Policy',
             value: 'origin-when-cross-origin',
+          },
+          // Headers pour améliorer la compatibilité Chrome
+          {
+            key: 'Cache-Control',
+            value: 'public, max-age=31536000, immutable',
+          },
+          {
+            key: 'X-DNS-Prefetch-Control',
+            value: 'on',
+          },
+        ],
+      },
+      {
+        source: '/_next/static/(.*)',
+        headers: [
+          {
+            key: 'Cache-Control',
+            value: 'public, max-age=31536000, immutable',
           },
         ],
       },
