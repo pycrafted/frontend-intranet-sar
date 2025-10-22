@@ -1,0 +1,104 @@
+/* Styles pour désactiver la navigation tactile sur l'organigramme */
+
+.organigramme-container {
+  /* Désactiver toutes les interactions tactiles */
+  touch-action: none !important;
+  user-select: none !important;
+  -webkit-user-select: none !important;
+  -moz-user-select: none !important;
+  -ms-user-select: none !important;
+  
+  /* Désactiver les événements de pointeur pour les gestes */
+  pointer-events: auto;
+  
+  /* Empêcher le zoom tactile */
+  -webkit-touch-callout: none !important;
+  -webkit-tap-highlight-color: transparent !important;
+}
+
+/* Désactiver la navigation tactile sur ReactFlow */
+.organigramme-container .react-flow {
+  touch-action: none !important;
+  user-select: none !important;
+  -webkit-user-select: none !important;
+  -moz-user-select: none !important;
+  -ms-user-select: none !important;
+}
+
+/* Désactiver les interactions tactiles sur les nœuds */
+.organigramme-container .react-flow__node {
+  touch-action: none !important;
+  user-select: none !important;
+  -webkit-user-select: none !important;
+  -moz-user-select: none !important;
+  -ms-user-select: none !important;
+}
+
+/* Désactiver les interactions tactiles sur les arêtes */
+.organigramme-container .react-flow__edge {
+  touch-action: none !important;
+  user-select: none !important;
+  -webkit-user-select: none !important;
+  -moz-user-select: none !important;
+  -ms-user-select: none !important;
+}
+
+/* Désactiver les interactions tactiles sur le viewport */
+.organigramme-container .react-flow__viewport {
+  touch-action: none !important;
+  user-select: none !important;
+  -webkit-user-select: none !important;
+  -moz-user-select: none !important;
+  -ms-user-select: none !important;
+}
+
+/* Désactiver les interactions tactiles sur le background */
+.organigramme-container .react-flow__background {
+  touch-action: none !important;
+  user-select: none !important;
+  -webkit-user-select: none !important;
+  -moz-user-select: none !important;
+  -ms-user-select: none !important;
+}
+
+/* Désactiver les interactions tactiles sur les contrôles */
+.organigramme-container .react-flow__controls {
+  touch-action: none !important;
+  user-select: none !important;
+  -webkit-user-select: none !important;
+  -moz-user-select: none !important;
+  -ms-user-select: none !important;
+}
+
+/* Désactiver les interactions tactiles sur la minimap */
+.organigramme-container .react-flow__minimap {
+  touch-action: none !important;
+  user-select: none !important;
+  -webkit-user-select: none !important;
+  -moz-user-select: none !important;
+  -ms-user-select: none !important;
+}
+
+/* Empêcher le scroll tactile sur l'organigramme */
+.organigramme-container {
+  overflow: hidden !important;
+  -webkit-overflow-scrolling: touch;
+}
+
+/* Désactiver les gestes de pincement */
+.organigramme-container * {
+  touch-action: none !important;
+}
+
+/* Réactiver les interactions pour les boutons et éléments interactifs */
+.organigramme-container button,
+.organigramme-container input,
+.organigramme-container select,
+.organigramme-container textarea,
+.organigramme-container a {
+  touch-action: manipulation !important;
+  user-select: text !important;
+  -webkit-user-select: text !important;
+  -moz-user-select: text !important;
+  -ms-user-select: text !important;
+}

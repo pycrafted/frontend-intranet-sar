@@ -1,4 +1,5 @@
 import { useState, useEffect } from 'react'
+import { useCachedFetch } from './useCache'
 
 export interface SafetyData {
   id: number
@@ -36,19 +37,15 @@ export function useSafetyData() {
   const [safetyData, setSafetyData] = useState<SafetyData | null>(null)
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState<string | null>(null)
+  const { fetchWithCache } = useCachedFetch<SafetyData>({ ttl: 2 * 60 * 1000 }) // Cache de 2 minutes
 
   const fetchSafetyData = async () => {
     try {
       setLoading(true)
       setError(null)
       
-      const response = await fetch(`${process.env.NEXT_PUBLIC_API_URL || 'http://localhost:8000/api'}/accueil/safety/current/`)
-      
-      if (!response.ok) {
-        throw new Error(`Erreur HTTP: ${response.status}`)
-      }
-      
-      const data = await response.json()
+      const url = `${process.env.NEXT_PUBLIC_API_URL || 'http://localhost:8000/api'}/accueil/safety/current/`
+      const data = await fetchWithCache(url, {}, 'safety-data')
       setSafetyData(data)
     } catch (err) {
       setError(err instanceof Error ? err.message : 'Erreur inconnue')

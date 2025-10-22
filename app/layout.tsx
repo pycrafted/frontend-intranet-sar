@@ -5,6 +5,7 @@ import { Analytics } from "@vercel/analytics/next"
 import { Suspense } from "react"
 import { Providers } from "@/components/providers"
 import { AuthProvider } from "@/contexts/AuthContext"
+import { RequestGuard } from "@/components/RequestGuard"
 import "./globals.css"
 
 const inter = Inter({
@@ -34,7 +35,9 @@ export default function RootLayout({
       <body className={`font-sans ${inter.variable} antialiased`}>
         <Providers>
           <AuthProvider>
-            <Suspense fallback={null}>{children}</Suspense>
+            <RequestGuard maxRequestsPerMinute={20}>
+              <Suspense fallback={null}>{children}</Suspense>
+            </RequestGuard>
             <Analytics />
           </AuthProvider>
         </Providers>

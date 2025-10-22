@@ -8,12 +8,19 @@ export const config = {
     maxHistory: 10
   },
   backend: {
-    apiUrl: process.env.NEXT_PUBLIC_API_URL || "https://backend-intranet-sar-1.onrender.com/api"
+    apiUrl: process.env.NEXT_PUBLIC_API_URL || "https://backend-intranet-sar-1.onrender.com/api",
+    baseUrl: process.env.NEXT_PUBLIC_API_URL || "https://backend-intranet-sar-1.onrender.com"
   },
   chatbot: {
     name: "MAI",
     description: "Assistant virtuel spécialisé SAR",
-    welcomeMessage: "Bonjour ! Je suis MAÏ, votre assistant virtuel de la SAR. Comment puis-je vous aider ?"
+    welcomeMessage: "Bonjour ! Je suis MAÏ, votre assistant virtuel de la SAR. Comment puis-je vous aider ?",
+    loadingMessages: {
+      enabled: true,
+      duration: 2000,
+      updateInterval: 500,
+      fallbackEnabled: true
+    }
   },
   oauth: {
     google: {

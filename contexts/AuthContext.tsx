@@ -375,6 +375,9 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
 
   // TEMPORAIREMENT : Simuler un utilisateur connecté sans authentification
   useEffect(() => {
+    // Éviter les re-exécutions multiples
+    if (user !== null) return
+    
     // Simuler un utilisateur de démonstration
     const mockUser: User = {
       id: 1,
@@ -406,11 +409,14 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
     
     // Simuler un chargement initial
     setIsLoading(true)
-    setTimeout(() => {
+    const timer = setTimeout(() => {
       setUser(mockUser)
       setIsLoading(false)
     }, 500)
-  }, [])
+    
+    // Nettoyer le timer si le composant est démonté
+    return () => clearTimeout(timer)
+  }, []) // Dépendances vides pour s'exécuter une seule fois
 
   // Valeur du contexte
   const value: AuthContextType = {

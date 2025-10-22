@@ -18,6 +18,7 @@ import {
   type Node,
 } from "@xyflow/react"
 import "@xyflow/react/dist/style.css"
+import "@/styles/organigramme.css"
 import { X, Mail, Phone, Award as IdCard, User } from "lucide-react"
 import CustomEdge from "./custom-edge"
 import { EmployeeNode } from "./nodes/employee-node"
@@ -684,7 +685,17 @@ const ReactFlowOrganigramme = forwardRef<ReactFlowOrganigrammeRef, ReactFlowOrga
   return (
     <div className="flex h-screen relative bg-gray-50">
       <div className="flex-1 flex flex-col">
-        <div className="flex-1 relative" ref={reactFlowWrapper}>
+        <div 
+          className="flex-1 relative organigramme-container" 
+          ref={reactFlowWrapper}
+          style={{
+            touchAction: 'none',
+            userSelect: 'none',
+            WebkitUserSelect: 'none',
+            MozUserSelect: 'none',
+            msUserSelect: 'none'
+          }}
+        >
           <ReactFlowProvider>
             <ReactFlow
               nodes={nodesWithHoverHandler}
@@ -710,10 +721,10 @@ const ReactFlowOrganigramme = forwardRef<ReactFlowOrganigrammeRef, ReactFlowOrga
               minZoom={0.1}
               maxZoom={2}
               translateExtent={[[-2000, -2000], [2000, 2000]]}
-              panOnScroll={true}
-              zoomOnScroll={true}
-              zoomOnPinch={true}
-              panOnDrag={true}
+              panOnScroll={false}
+              zoomOnScroll={false}
+              zoomOnPinch={false}
+              panOnDrag={false}
               selectNodesOnDrag={false}
             >
               <Background />

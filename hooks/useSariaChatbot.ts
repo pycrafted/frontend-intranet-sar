@@ -2,6 +2,7 @@ import { useState, useCallback } from 'react'
 import { claudeAPI } from '@/lib/claude-api'
 import { config } from '@/lib/config'
 import { findFallbackResponse } from '@/lib/fallback-responses'
+import { useLoadingMessages } from './useLoadingMessages'
 
 export interface Message {
   id: string
@@ -15,6 +16,8 @@ export interface SariaChatbotState {
   isOpen: boolean
   messages: Message[]
   isTyping: boolean
+  loadingMessage: string
+  loadingPhase: 'searching' | 'processing'
 }
 
 export interface SariaChatbotActions {
@@ -37,8 +40,12 @@ export function useSariaChatbot() {
   const [state, setState] = useState<SariaChatbotState>({
     isOpen: false,
     messages: initialMessages,
-    isTyping: false
+    isTyping: false,
+    loadingMessage: '',
+    loadingPhase: 'searching'
   })
+
+  const { startLoading, stopLoading, currentLoadingMessage, isLoading, loadingPhase } = useLoadingMessages()
 
   const toggleChat = useCallback(() => {
     setState(prev => ({
@@ -69,8 +76,16 @@ export function useSariaChatbot() {
       sender: 'user'
     })
 
+    // Démarrer les messages de chargement intelligents
+    await startLoading(content.trim(), 2000)
+    
     // Activer l'indicateur de frappe
-    setState(prev => ({ ...prev, isTyping: true }))
+    setState(prev => ({ 
+      ...prev, 
+      isTyping: true,
+      loadingMessage: currentLoadingMessage,
+      loadingPhase: loadingPhase
+    }))
 
     try {
       // Convertir l'historique des messages pour Claude
@@ -96,10 +111,18 @@ export function useSariaChatbot() {
         sender: 'mai'
       })
     } finally {
+      // Arrêter les messages de chargement
+      stopLoading()
+      
       // Désactiver l'indicateur de frappe
-      setState(prev => ({ ...prev, isTyping: false }))
+      setState(prev => ({ 
+        ...prev, 
+        isTyping: false,
+        loadingMessage: '',
+        loadingPhase: 'searching'
+      }))
     }
-  }, [addMessage, state.messages])
+  }, [addMessage, state.messages, startLoading, stopLoading, currentLoadingMessage, loadingPhase])
 
   const clearMessages = useCallback(() => {
     setState(prev => ({
