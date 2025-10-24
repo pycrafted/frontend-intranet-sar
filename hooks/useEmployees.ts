@@ -63,16 +63,22 @@ export const useEmployees = () => {
   const fetchEmployees = async () => {
     try {
       setLoading(true)
-      console.log('🔍 [ANNUAIRE] Récupération des employés depuis:', `${API_BASE_URL}/employees/`)
-      // Utiliser l'endpoint annuaire pour les employés
       const response = await fetch(`${API_BASE_URL}/employees/`)
       if (!response.ok) {
-        console.error('❌ [ANNUAIRE] Erreur HTTP:', response.status, response.statusText)
         throw new Error(`Erreur ${response.status}: ${response.statusText}`)
       }
       const data = await response.json()
-      console.log('✅ [ANNUAIRE] Employés récupérés:', data.length || data.results?.length || 0)
-      setEmployees(data.results || data) // Gérer la pagination
+      
+      // Logs spécifiques pour les avatars
+      const employeesData = data.results || data
+      console.log('🖼️ [ANNUAIRE] === ANALYSE DES AVATARS ===')
+      if (employeesData.length > 0) {
+        employeesData.forEach((emp: Employee, index: number) => {
+          console.log(`🖼️ [ANNUAIRE] ${index + 1}. ${emp.full_name}: ${emp.avatar || 'AUCUN'}`)
+        })
+      }
+      
+      setEmployees(employeesData)
     } catch (err) {
       console.error('❌ [ANNUAIRE] Erreur lors du chargement des employés:', err)
       setError(err instanceof Error ? err.message : 'Erreur inconnue')
@@ -83,16 +89,11 @@ export const useEmployees = () => {
 
   const fetchDepartments = async () => {
     try {
-      console.log('🔍 [ANNUAIRE] Récupération des départements depuis:', `${API_BASE_URL}/departments/`)
-      // Utiliser l'endpoint annuaire pour les départements
       const response = await fetch(`${API_BASE_URL}/departments/`)
       if (!response.ok) {
-        console.error('❌ [ANNUAIRE] Erreur HTTP départements:', response.status, response.statusText)
         throw new Error(`Erreur ${response.status}: ${response.statusText}`)
       }
       const data = await response.json()
-      console.log('✅ [ANNUAIRE] Départements récupérés:', data.length || data.results?.length || 0)
-      // Les départements de l'app annuaire ont déjà le bon format
       setDepartments(data.results || data)
     } catch (err) {
       console.error('❌ [ANNUAIRE] Erreur lors du chargement des départements:', err)

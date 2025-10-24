@@ -251,6 +251,8 @@ export default function AnnuairePage() {
     searchEmployees 
   } = useEmployees()
 
+  // Logs supprimés pour réduire le bruit
+
   // Construire la liste des départements pour le filtre
   const departmentOptions = ["Tous", ...(departments.map(dept => dept.name) || fallbackDepartments.slice(1))]
 
@@ -554,7 +556,11 @@ export default function AnnuairePage() {
                           <AvatarImage
                             src={employee.avatar || "/placeholder-user.jpg"}
                             alt={`${employee.full_name}`}
+                            onLoad={() => {
+                              console.log('🖼️ [ANNUAIRE] Image chargée avec succès:', employee.full_name, employee.avatar)
+                            }}
                             onError={(e) => {
+                              console.error('❌ [ANNUAIRE] Erreur de chargement d\'image:', employee.full_name, employee.avatar)
                               const target = e.target as HTMLImageElement;
                               target.style.display = 'none';
                             }}

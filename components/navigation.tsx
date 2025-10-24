@@ -27,6 +27,7 @@ import {
   Settings,
   Shield,
   Phone,
+  TestTube,
 } from "lucide-react"
 
 // Navigation sections - sans badges
@@ -53,6 +54,7 @@ const getNavigationSections = () => [
     items: [
       { name: "Documents", href: "/documents", icon: FileText },
       { name: "Recrutement Interne", href: "/recrutement", icon: UserPlus },
+      { name: "Test", href: "/test", icon: TestTube },
     ],
   },
   {

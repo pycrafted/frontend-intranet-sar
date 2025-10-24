@@ -79,7 +79,7 @@ export function EmployeeDetailModal({ employee, isOpen, onClose }: EmployeeDetai
                 {employee.full_name}
               </h2>
               <p className="text-lg text-muted-foreground mb-3">
-                {employee.job_title}
+                {employee.position_title}
               </p>
               <Badge variant="secondary" className="text-sm">
                 {employee.main_direction_name}

@@ -9,6 +9,7 @@ import { Checkbox } from "@/components/ui/checkbox"
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
 import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle, AlertDialogTrigger } from "@/components/ui/alert-dialog"
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog"
+import { Alert, AlertDescription } from "@/components/ui/alert"
 import { 
   Search, 
   Filter, 
@@ -66,6 +67,8 @@ export function EmployeesAdminTable({ onEmployeeSelect }: EmployeesAdminTablePro
   const [debouncedSearchTerm, setDebouncedSearchTerm] = useState("")
   const [isTyping, setIsTyping] = useState(false)
   const [searchFocused, setSearchFocused] = useState(false)
+  const [alertMessage, setAlertMessage] = useState<string | null>(null)
+  const [alertType, setAlertType] = useState<'success' | 'error' | 'warning'>('error')
   const [showFilters, setShowFilters] = useState(false)
   const [showCreateModal, setShowCreateModal] = useState(false)
   const [showEditModal, setShowEditModal] = useState(false)
@@ -77,7 +80,7 @@ export function EmployeesAdminTable({ onEmployeeSelect }: EmployeesAdminTablePro
     phone_fixed: '',
     phone_mobile: '',
     employee_id: '',
-    job_title: '',
+    position_title: '',
     department: '',
     avatar: null as File | null
   })
@@ -105,6 +108,19 @@ export function EmployeesAdminTable({ onEmployeeSelect }: EmployeesAdminTablePro
   useEffect(() => {
     setFilters({ search: debouncedSearchTerm })
   }, [debouncedSearchTerm, setFilters])
+
+  // Effet pour gérer les erreurs et afficher les alertes
+  useEffect(() => {
+    if (error) {
+      setAlertMessage(error)
+      setAlertType('error')
+      // Auto-masquer l'alerte après 5 secondes
+      const timer = setTimeout(() => {
+        setAlertMessage(null)
+      }, 5000)
+      return () => clearTimeout(timer)
+    }
+  }, [error])
 
   const handleDelete = async (employeeId: number) => {
     await deleteEmployee(employeeId)
@@ -140,7 +156,7 @@ export function EmployeesAdminTable({ onEmployeeSelect }: EmployeesAdminTablePro
       phone_fixed: employee.phone_fixed || '',
       phone_mobile: employee.phone_mobile || '',
       employee_id: employee.employee_id,
-      job_title: employee.job_title,
+      position_title: employee.position_title,
       department: employee.department.toString(),
       avatar: null
     })
@@ -163,7 +179,7 @@ export function EmployeesAdminTable({ onEmployeeSelect }: EmployeesAdminTablePro
       phone_fixed: '',
       phone_mobile: '',
       employee_id: '',
-      job_title: '',
+      position_title: '',
       department: '',
       avatar: null
     })
@@ -173,21 +189,51 @@ export function EmployeesAdminTable({ onEmployeeSelect }: EmployeesAdminTablePro
   const handleSubmitForm = async (e: React.FormEvent) => {
     e.preventDefault()
     
+    // Validation côté frontend
+    const requiredFields = ['first_name', 'last_name', 'email', 'position_title', 'department', 'employee_id']
+    const missingFields = requiredFields.filter(field => !formData[field as keyof typeof formData])
+    
+    if (missingFields.length > 0) {
+      alert(`Veuillez remplir tous les champs obligatoires: ${missingFields.join(', ')}`)
+      return
+    }
+    
     try {
       // Créer FormData pour gérer l'upload de fichier
       const formDataToSend = new FormData()
+      
       formDataToSend.append('first_name', formData.first_name)
       formDataToSend.append('last_name', formData.last_name)
       formDataToSend.append('email', formData.email)
       formDataToSend.append('phone_fixed', formData.phone_fixed || '')
       formDataToSend.append('phone_mobile', formData.phone_mobile || '')
       formDataToSend.append('employee_id', formData.employee_id)
-      formDataToSend.append('job_title', formData.job_title)
+      formDataToSend.append('position_title', formData.position_title)
       formDataToSend.append('department', formData.department)
       
       // Ajouter l'avatar si présent
+      console.log('🖼️ [FORM_DATA] === GESTION DE L\'AVATAR ===')
+      console.log('🖼️ [FORM_DATA] Avatar dans formData:', formData.avatar)
+      console.log('🖼️ [FORM_DATA] Type d\'avatar:', typeof formData.avatar)
+      console.log('🖼️ [FORM_DATA] Avatar est File:', formData.avatar instanceof File)
+      
       if (formData.avatar) {
+        console.log('🖼️ [FORM_DATA] Détails de l\'avatar:')
+        console.log('  - Nom:', formData.avatar.name)
+        console.log('  - Taille:', formData.avatar.size, 'bytes')
+        console.log('  - Type:', formData.avatar.type)
+        console.log('  - Dernière modification:', formData.avatar.lastModified)
+        
         formDataToSend.append('avatar', formData.avatar)
+        console.log('✅ [FORM_DATA] Avatar ajouté au FormData:', formData.avatar.name)
+        
+        // Vérifier que l'avatar est bien dans le FormData
+        const avatarInFormData = formDataToSend.get('avatar')
+        console.log('🔍 [FORM_DATA] Avatar dans FormData:', avatarInFormData)
+        console.log('🔍 [FORM_DATA] Type dans FormData:', typeof avatarInFormData)
+        console.log('🔍 [FORM_DATA] Est File dans FormData:', avatarInFormData instanceof File)
+      } else {
+        console.log('⚠️ [FORM_DATA] Pas d\'avatar à ajouter')
       }
 
       if (editingEmployee) {
@@ -196,6 +242,10 @@ export function EmployeesAdminTable({ onEmployeeSelect }: EmployeesAdminTablePro
         await createEmployee(formDataToSend as any)
       }
 
+      // Afficher un message de succès
+      setAlertMessage(editingEmployee ? 'Employé modifié avec succès !' : 'Employé créé avec succès !')
+      setAlertType('success')
+      
       setShowCreateModal(false)
       setShowEditModal(false)
       setEditingEmployee(null)
@@ -207,12 +257,23 @@ export function EmployeesAdminTable({ onEmployeeSelect }: EmployeesAdminTablePro
         phone_fixed: '',
         phone_mobile: '',
         employee_id: '',
-        job_title: '',
+        position_title: '',
         department: '',
         avatar: null
       })
     } catch (error) {
-      console.error('Erreur lors de la soumission:', error)
+      console.error('❌ [EMPLOYEE_FORM] === ERREUR LORS DE LA SOUMISSION ===')
+      console.error('❌ [EMPLOYEE_FORM] Erreur complète:', error)
+      console.error('❌ [EMPLOYEE_FORM] Type d\'erreur:', typeof error)
+      console.error('❌ [EMPLOYEE_FORM] Message d\'erreur:', error instanceof Error ? error.message : 'Erreur inconnue')
+      console.error('❌ [EMPLOYEE_FORM] Stack trace:', error instanceof Error ? error.stack : 'Pas de stack trace')
+      
+      // Afficher une alerte claire à l'utilisateur
+      const errorMessage = error instanceof Error ? error.message : 'Erreur inconnue'
+      setAlertMessage(errorMessage)
+      setAlertType('error')
+      
+        // Ne pas fermer le modal en cas d'erreur pour permettre la correction
     }
   }
 
@@ -228,35 +289,65 @@ export function EmployeesAdminTable({ onEmployeeSelect }: EmployeesAdminTablePro
       phone_fixed: '',
       phone_mobile: '',
       employee_id: '',
-      job_title: '',
+      position_title: '',
       department: '',
       avatar: null
     })
   }
 
   const handleAvatarChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    console.log('🖼️ [AVATAR_UPLOAD] === DÉBUT UPLOAD IMAGE ===')
+    console.log('🖼️ [AVATAR_UPLOAD] Événement:', e)
+    console.log('🖼️ [AVATAR_UPLOAD] Files:', e.target.files)
+    
     const file = e.target.files?.[0]
     if (file) {
+      console.log('🖼️ [AVATAR_UPLOAD] Fichier sélectionné:')
+      console.log('  - Nom:', file.name)
+      console.log('  - Taille:', file.size, 'bytes')
+      console.log('  - Type:', file.type)
+      console.log('  - Dernière modification:', file.lastModified)
+      console.log('  - Dernière modification (date):', new Date(file.lastModified))
+      
       // Vérifier le type de fichier
       if (!file.type.startsWith('image/')) {
+        console.error('❌ [AVATAR_UPLOAD] Type de fichier invalide:', file.type)
         alert('Veuillez sélectionner un fichier image valide')
         return
       }
+      console.log('✅ [AVATAR_UPLOAD] Type de fichier valide')
       
       // Vérifier la taille (max 5MB)
       if (file.size > 5 * 1024 * 1024) {
+        console.error('❌ [AVATAR_UPLOAD] Fichier trop volumineux:', file.size, 'bytes')
         alert('La taille du fichier ne doit pas dépasser 5MB')
         return
       }
+      console.log('✅ [AVATAR_UPLOAD] Taille de fichier valide')
 
-      setFormData(prev => ({ ...prev, avatar: file }))
+      console.log('🖼️ [AVATAR_UPLOAD] Mise à jour du formData...')
+      setFormData(prev => {
+        const newData = { ...prev, avatar: file }
+        console.log('🖼️ [AVATAR_UPLOAD] Nouveau formData:', newData)
+        return newData
+      })
       
       // Créer un aperçu de l'image
+      console.log('🖼️ [AVATAR_UPLOAD] Création de l\'aperçu...')
       const reader = new FileReader()
       reader.onload = (e) => {
-        setAvatarPreview(e.target?.result as string)
+        const result = e.target?.result as string
+        console.log('🖼️ [AVATAR_UPLOAD] Aperçu créé:', result ? 'OUI' : 'NON')
+        console.log('🖼️ [AVATAR_UPLOAD] Longueur de l\'aperçu:', result?.length)
+        setAvatarPreview(result)
+      }
+      reader.onerror = (error) => {
+        console.error('❌ [AVATAR_UPLOAD] Erreur lors de la lecture du fichier:', error)
       }
       reader.readAsDataURL(file)
+      console.log('✅ [AVATAR_UPLOAD] Upload d\'image terminé avec succès')
+    } else {
+      console.log('⚠️ [AVATAR_UPLOAD] Aucun fichier sélectionné')
     }
   }
 
@@ -276,6 +367,10 @@ export function EmployeesAdminTable({ onEmployeeSelect }: EmployeesAdminTablePro
       setIsTyping(false)
       setDebouncedSearchTerm(searchTerm)
     }
+  }
+
+  const handleCloseAlert = () => {
+    setAlertMessage(null)
   }
 
   const getDepartmentIcon = (departmentName: string) => {
@@ -343,6 +438,34 @@ export function EmployeesAdminTable({ onEmployeeSelect }: EmployeesAdminTablePro
 
   return (
     <div className="space-y-6">
+      {/* Alerte d'erreur */}
+      {alertMessage && (
+        <Alert className={`border-l-4 ${
+          alertType === 'error' 
+            ? 'border-red-500 bg-red-50 text-red-800' 
+            : alertType === 'success'
+            ? 'border-green-500 bg-green-50 text-green-800'
+            : 'border-yellow-500 bg-yellow-50 text-yellow-800'
+        }`}>
+          <div className="flex items-center justify-between w-full">
+            <div className="flex items-center gap-2">
+              <AlertCircle className="h-4 w-4" />
+              <AlertDescription className="font-medium">
+                {alertMessage}
+              </AlertDescription>
+            </div>
+            <Button
+              variant="ghost"
+              size="sm"
+              onClick={handleCloseAlert}
+              className="h-6 w-6 p-0 hover:bg-red-100"
+            >
+              <X className="h-4 w-4" />
+            </Button>
+          </div>
+        </Alert>
+      )}
+
       {/* Header avec style inspiré de la page actualités */}
       <Card className="bg-white border-0 shadow-sm">
         <CardHeader className="pb-4">
@@ -581,7 +704,7 @@ export function EmployeesAdminTable({ onEmployeeSelect }: EmployeesAdminTablePro
                     </td>
                     <td className="px-4 py-3">
                       <Badge variant="outline" className="bg-blue-50 text-blue-700 border-blue-200">
-                        {employee.job_title}
+                        {employee.position_title}
                       </Badge>
                     </td>
                     <td className="px-4 py-3">
@@ -701,7 +824,9 @@ export function EmployeesAdminTable({ onEmployeeSelect }: EmployeesAdminTablePro
                 <label className="text-sm font-medium mb-2 block text-gray-700">Prénom *</label>
                 <Input
                   value={formData.first_name}
-                  onChange={(e) => setFormData(prev => ({ ...prev, first_name: e.target.value }))}
+                    onChange={(e) => {
+                      setFormData(prev => ({ ...prev, first_name: e.target.value }))
+                    }}
                   placeholder="Prénom de l'employé"
                   className="border-blue-200 focus:border-blue-400"
                   required
@@ -712,7 +837,9 @@ export function EmployeesAdminTable({ onEmployeeSelect }: EmployeesAdminTablePro
                 <label className="text-sm font-medium mb-2 block text-gray-700">Nom *</label>
                 <Input
                   value={formData.last_name}
-                  onChange={(e) => setFormData(prev => ({ ...prev, last_name: e.target.value }))}
+                    onChange={(e) => {
+                      setFormData(prev => ({ ...prev, last_name: e.target.value }))
+                    }}
                   placeholder="Nom de l'employé"
                   className="border-blue-200 focus:border-blue-400"
                   required
@@ -724,7 +851,9 @@ export function EmployeesAdminTable({ onEmployeeSelect }: EmployeesAdminTablePro
                 <Input
                   type="email"
                   value={formData.email}
-                  onChange={(e) => setFormData(prev => ({ ...prev, email: e.target.value }))}
+                    onChange={(e) => {
+                      setFormData(prev => ({ ...prev, email: e.target.value }))
+                    }}
                   placeholder="email@entreprise.com"
                   className="border-blue-200 focus:border-blue-400"
                   required
@@ -735,7 +864,9 @@ export function EmployeesAdminTable({ onEmployeeSelect }: EmployeesAdminTablePro
                 <label className="text-sm font-medium mb-2 block text-gray-700">Matricule *</label>
                 <Input
                   value={formData.employee_id}
-                  onChange={(e) => setFormData(prev => ({ ...prev, employee_id: e.target.value }))}
+                    onChange={(e) => {
+                      setFormData(prev => ({ ...prev, employee_id: e.target.value }))
+                    }}
                   placeholder="SAR001"
                   className="border-blue-200 focus:border-blue-400"
                   required
@@ -765,8 +896,10 @@ export function EmployeesAdminTable({ onEmployeeSelect }: EmployeesAdminTablePro
               <div>
                 <label className="text-sm font-medium mb-2 block text-gray-700">Poste *</label>
                 <Input
-                  value={formData.job_title}
-                  onChange={(e) => setFormData(prev => ({ ...prev, job_title: e.target.value }))}
+                  value={formData.position_title}
+                    onChange={(e) => {
+                      setFormData(prev => ({ ...prev, position_title: e.target.value }))
+                    }}
                   placeholder="Directeur, Manager, Employé..."
                   className="border-blue-200 focus:border-blue-400"
                   required
@@ -777,7 +910,9 @@ export function EmployeesAdminTable({ onEmployeeSelect }: EmployeesAdminTablePro
                 <label className="text-sm font-medium mb-2 block text-gray-700">Département *</label>
                 <Select
                   value={formData.department}
-                  onValueChange={(value) => setFormData(prev => ({ ...prev, department: value }))}
+                    onValueChange={(value) => {
+                      setFormData(prev => ({ ...prev, department: value }))
+                    }}
                 >
                   <SelectTrigger className="border-blue-200 focus:border-blue-400">
                     <SelectValue placeholder="Sélectionner un département" />
@@ -852,6 +987,9 @@ export function EmployeesAdminTable({ onEmployeeSelect }: EmployeesAdminTablePro
               <Button
                 type="submit"
                 className="bg-gradient-to-r from-blue-600 to-indigo-600 hover:from-blue-700 hover:to-indigo-700 text-white shadow-sm"
+                  onClick={() => {
+                    // Logs supprimés pour réduire le bruit
+                  }}
               >
                 Créer l'employé
               </Button>
@@ -887,7 +1025,9 @@ export function EmployeesAdminTable({ onEmployeeSelect }: EmployeesAdminTablePro
                 <label className="text-sm font-medium mb-2 block text-gray-700">Prénom *</label>
                 <Input
                   value={formData.first_name}
-                  onChange={(e) => setFormData(prev => ({ ...prev, first_name: e.target.value }))}
+                    onChange={(e) => {
+                      setFormData(prev => ({ ...prev, first_name: e.target.value }))
+                    }}
                   placeholder="Prénom de l'employé"
                   className="border-blue-200 focus:border-blue-400"
                   required
@@ -898,7 +1038,9 @@ export function EmployeesAdminTable({ onEmployeeSelect }: EmployeesAdminTablePro
                 <label className="text-sm font-medium mb-2 block text-gray-700">Nom *</label>
                 <Input
                   value={formData.last_name}
-                  onChange={(e) => setFormData(prev => ({ ...prev, last_name: e.target.value }))}
+                    onChange={(e) => {
+                      setFormData(prev => ({ ...prev, last_name: e.target.value }))
+                    }}
                   placeholder="Nom de l'employé"
                   className="border-blue-200 focus:border-blue-400"
                   required
@@ -910,7 +1052,9 @@ export function EmployeesAdminTable({ onEmployeeSelect }: EmployeesAdminTablePro
                 <Input
                   type="email"
                   value={formData.email}
-                  onChange={(e) => setFormData(prev => ({ ...prev, email: e.target.value }))}
+                    onChange={(e) => {
+                      setFormData(prev => ({ ...prev, email: e.target.value }))
+                    }}
                   placeholder="email@entreprise.com"
                   className="border-blue-200 focus:border-blue-400"
                   required
@@ -921,7 +1065,9 @@ export function EmployeesAdminTable({ onEmployeeSelect }: EmployeesAdminTablePro
                 <label className="text-sm font-medium mb-2 block text-gray-700">Matricule *</label>
                 <Input
                   value={formData.employee_id}
-                  onChange={(e) => setFormData(prev => ({ ...prev, employee_id: e.target.value }))}
+                    onChange={(e) => {
+                      setFormData(prev => ({ ...prev, employee_id: e.target.value }))
+                    }}
                   placeholder="SAR001"
                   className="border-blue-200 focus:border-blue-400"
                   required
@@ -951,8 +1097,10 @@ export function EmployeesAdminTable({ onEmployeeSelect }: EmployeesAdminTablePro
               <div>
                 <label className="text-sm font-medium mb-2 block text-gray-700">Poste *</label>
                 <Input
-                  value={formData.job_title}
-                  onChange={(e) => setFormData(prev => ({ ...prev, job_title: e.target.value }))}
+                  value={formData.position_title}
+                    onChange={(e) => {
+                      setFormData(prev => ({ ...prev, position_title: e.target.value }))
+                    }}
                   placeholder="Directeur, Manager, Employé..."
                   className="border-blue-200 focus:border-blue-400"
                   required
@@ -963,7 +1111,9 @@ export function EmployeesAdminTable({ onEmployeeSelect }: EmployeesAdminTablePro
                 <label className="text-sm font-medium mb-2 block text-gray-700">Département *</label>
                 <Select
                   value={formData.department}
-                  onValueChange={(value) => setFormData(prev => ({ ...prev, department: value }))}
+                    onValueChange={(value) => {
+                      setFormData(prev => ({ ...prev, department: value }))
+                    }}
                 >
                   <SelectTrigger className="border-blue-200 focus:border-blue-400">
                     <SelectValue placeholder="Sélectionner un département" />

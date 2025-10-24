@@ -36,8 +36,16 @@ export function ChromeFix() {
 
       checkForChunkErrors()
 
-      // Nettoyer le cache si nécessaire
+      // Nettoyer le cache si nécessaire (seulement en production)
       const clearCacheIfNeeded = () => {
+        const isDev = window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1'
+        
+        // En développement, ne pas nettoyer automatiquement le cache
+        if (isDev) {
+          console.log('🔧 [CHROME_FIX] Mode développement - pas de nettoyage automatique du cache')
+          return
+        }
+        
         if (localStorage.getItem('chrome-cache-cleared') !== 'true') {
           console.log('🧹 [CHROME_FIX] Nettoyage du cache Chrome...')
           

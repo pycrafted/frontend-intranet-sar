@@ -19,6 +19,8 @@ interface SecondaryNavbarProps {
   onTimeFilterChange?: (timeFilter: string) => void
   timeFilterOptions?: Array<{id: string, name: string}>
   showFilter?: boolean
+  showTimeFilter?: boolean // Nouvelle prop pour contrôler l'affichage du filtre de période
+  showDepartmentFilter?: boolean // Nouvelle prop pour contrôler l'affichage du filtre département
 }
 
 export function SecondaryNavbar({ 
@@ -38,7 +40,9 @@ export function SecondaryNavbar({
     {id: "week", name: "Cette semaine"},
     {id: "month", name: "Ce mois"}
   ],
-  showFilter = true
+  showFilter = true,
+  showTimeFilter = true,
+  showDepartmentFilter = true
 }: SecondaryNavbarProps) {
   const [searchFocused, setSearchFocused] = useState(false)
 
@@ -94,39 +98,43 @@ export function SecondaryNavbar({
           {/* Filtres - conditionnels et responsive */}
           {showFilter && (
             <div className="flex items-center gap-2 xs:gap-3 w-full xs:w-auto">
-              {/* Filtre par département - responsive */}
-              <div className="flex items-center gap-1 xs:gap-2 flex-1 xs:flex-none">
-                <Building className="h-3 w-3 xs:h-4 xs:w-4 sm:h-5 sm:w-5 text-slate-500 flex-shrink-0" />
-                <Select value={selectedDepartment} onValueChange={onDepartmentChange}>
-                  <SelectTrigger className="w-full xs:w-32 sm:w-40 lg:w-48 h-8 xs:h-9 sm:h-10 lg:h-12 border-slate-300 focus:border-blue-500 focus:ring-blue-500 text-xs xs:text-sm">
-                    <SelectValue placeholder="Département" />
-                  </SelectTrigger>
-                  <SelectContent>
-                    {departmentOptions.map((dept, index) => (
-                      <SelectItem key={`${dept}-${index}`} value={dept} className="text-xs xs:text-sm">
-                        {dept}
-                      </SelectItem>
-                    ))}
-                  </SelectContent>
-                </Select>
-              </div>
+              {/* Filtre par département - responsive - seulement si showDepartmentFilter est true */}
+              {showDepartmentFilter && (
+                <div className="flex items-center gap-1 xs:gap-2 flex-1 xs:flex-none">
+                  <Building className="h-3 w-3 xs:h-4 xs:w-4 sm:h-5 sm:w-5 text-slate-500 flex-shrink-0" />
+                  <Select value={selectedDepartment} onValueChange={onDepartmentChange}>
+                    <SelectTrigger className="w-full xs:w-32 sm:w-40 lg:w-48 h-8 xs:h-9 sm:h-10 lg:h-12 border-slate-300 focus:border-blue-500 focus:ring-blue-500 text-xs xs:text-sm">
+                      <SelectValue placeholder="Département" />
+                    </SelectTrigger>
+                    <SelectContent>
+                      {departmentOptions.map((dept, index) => (
+                        <SelectItem key={`${dept}-${index}`} value={dept} className="text-xs xs:text-sm">
+                          {dept}
+                        </SelectItem>
+                      ))}
+                    </SelectContent>
+                  </Select>
+                </div>
+              )}
 
-              {/* Filtre par période - responsive */}
-              <div className="flex items-center gap-1 xs:gap-2 flex-1 xs:flex-none">
-                <Calendar className="h-3 w-3 xs:h-4 xs:w-4 sm:h-5 sm:w-5 text-slate-500 flex-shrink-0" />
-                <Select value={selectedTimeFilter} onValueChange={onTimeFilterChange}>
-                  <SelectTrigger className="w-full xs:w-32 sm:w-36 lg:w-40 h-8 xs:h-9 sm:h-10 lg:h-12 border-slate-300 focus:border-blue-500 focus:ring-blue-500 text-xs xs:text-sm">
-                    <SelectValue placeholder="Période" />
-                  </SelectTrigger>
-                  <SelectContent>
-                    {timeFilterOptions.map((option) => (
-                      <SelectItem key={option.id} value={option.id} className="text-xs xs:text-sm">
-                        {option.name}
-                      </SelectItem>
-                    ))}
-                  </SelectContent>
-                </Select>
-              </div>
+              {/* Filtre par période - responsive - seulement si showTimeFilter est true */}
+              {showTimeFilter && (
+                <div className="flex items-center gap-1 xs:gap-2 flex-1 xs:flex-none">
+                  <Calendar className="h-3 w-3 xs:h-4 xs:w-4 sm:h-5 sm:w-5 text-slate-500 flex-shrink-0" />
+                  <Select value={selectedTimeFilter} onValueChange={onTimeFilterChange}>
+                    <SelectTrigger className="w-full xs:w-32 sm:w-36 lg:w-40 h-8 xs:h-9 sm:h-10 lg:h-12 border-slate-300 focus:border-blue-500 focus:ring-blue-500 text-xs xs:text-sm">
+                      <SelectValue placeholder="Période" />
+                    </SelectTrigger>
+                    <SelectContent>
+                      {timeFilterOptions.map((option) => (
+                        <SelectItem key={option.id} value={option.id} className="text-xs xs:text-sm">
+                          {option.name}
+                        </SelectItem>
+                      ))}
+                    </SelectContent>
+                  </Select>
+                </div>
+              )}
             </div>
           )}
         </div>

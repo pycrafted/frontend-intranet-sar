@@ -1,6 +1,6 @@
 "use client"
 
-import { useState } from "react"
+import { useState, useEffect } from "react"
 import { LayoutWrapper } from "@/components/layout-wrapper"
 import { StandardLoader } from "@/components/ui/standard-loader"
 import { ControlCenterTabs } from "@/components/admin/control-center-tabs"
@@ -22,7 +22,27 @@ import {
 
 export default function CentreDeControlePage() {
   const [error, setError] = useState<string | null>(null)
-  const [activeSection, setActiveSection] = useState("users")
+  const [activeSection, setActiveSection] = useState("employees")
+
+  // Persistance de l'état actif
+  useEffect(() => {
+    // Récupérer l'état sauvegardé au chargement
+    const savedSection = localStorage.getItem('control-center-active-section')
+    if (savedSection) {
+      console.log('🔄 [CONTROL_CENTER] Restauration de l\'état:', savedSection)
+      setActiveSection(savedSection)
+    } else {
+      console.log('🔄 [CONTROL_CENTER] Aucun état sauvegardé, utilisation par défaut: employees (Annuaire)')
+      console.log('📋 [CONTROL_CENTER] Section par défaut: Annuaire des employés')
+    }
+  }, [])
+
+  // Sauvegarder l'état quand il change
+  const handleSectionChange = (section: string) => {
+    console.log('💾 [CONTROL_CENTER] Sauvegarde de l\'état:', section)
+    setActiveSection(section)
+    localStorage.setItem('control-center-active-section', section)
+  }
 
   // Gestion des erreurs
   if (error) {
@@ -41,7 +61,7 @@ export default function CentreDeControlePage() {
     <LayoutWrapper 
       sidebarProps={{
         activeSection,
-        onSectionChange: setActiveSection
+        onSectionChange: handleSectionChange
       }}
     >
       <div className="w-full space-y-6">

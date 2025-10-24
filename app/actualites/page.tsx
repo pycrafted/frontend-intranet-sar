@@ -130,20 +130,6 @@ export default function ActualitesPage() {
         onSearchKeyDown: handleSearchKeyDown,
         searchPlaceholder: "Rechercher dans les actualités...",
         isTyping,
-        selectedDepartment: (() => {
-          const departmentMap: { [key: string]: string } = {
-            "all": "Tous",
-            "securite": "Sécurité",
-            "finance": "Finance",
-            "formation": "Formation",
-            "production": "Production",
-            "partenariat": "Partenariat",
-            "environnement": "Environnement",
-            "rh": "RH",
-          }
-          return departmentMap[activeDepartment] || "Tous"
-        })(),
-        onDepartmentChange: handleDepartmentChange,
         selectedTimeFilter: activeTimeFilter,
         onTimeFilterChange: handleTimeFilterChange,
         timeFilterOptions

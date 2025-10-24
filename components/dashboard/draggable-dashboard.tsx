@@ -34,6 +34,7 @@ import { EventsCalendar } from "./events-calendar"
 import { AppsWidget } from "./apps-widget"
 import { DirectorMessageWidget } from "./director-message-widget"
 import { VideoWidget } from "./video-widget"
+import { RecruitmentWidget } from "./recruitment-widget"
 import { WidgetManager } from "./widget-manager"
 import { DashboardTour, useDashboardTour } from "./dashboard-tour"
 import { useToast, ToastContainer } from "@/components/ui/toast"
@@ -46,7 +47,7 @@ import { useTabletDetection } from "@/hooks/useTabletDetection"
 // Types pour les widgets
 export interface DashboardWidget {
   id: string
-  type: 'news' | 'ideas' | 'safety' | 'menu' | 'calendar' | 'apps' | 'director' | 'video'
+  type: 'news' | 'ideas' | 'safety' | 'menu' | 'calendar' | 'apps' | 'director' | 'video' | 'recruitment'
   title: string
   size: 'small' | 'medium' | 'large' | 'full'
   order: number
@@ -94,6 +95,11 @@ const WIDGET_CONFIG: Record<string, { size: string; component: React.ComponentTy
     size: 'full', 
     component: RestaurantMenu, 
     title: 'Menu de la Semaine' 
+  },
+  recruitment: { 
+    size: 'medium', 
+    component: RecruitmentWidget, 
+    title: 'Recrutements Internes' 
   }
 }
 
@@ -348,6 +354,42 @@ export function DraggableDashboard() {
       })
     }
 
+    // S'assurer que le widget recrutement existe
+    const hasRecruitmentWidget = migratedWidgets.some(widget => widget.type === 'recruitment')
+    if (!hasRecruitmentWidget) {
+      // Placer le widget recrutement après le directeur
+      const directorWidget = migratedWidgets.find(widget => widget.type === 'director')
+      if (directorWidget) {
+        const recruitmentOrder = directorWidget.order + 1
+        // Décaler tous les widgets après le recrutement
+        migratedWidgets.forEach(widget => {
+          if (widget.order >= recruitmentOrder) {
+            widget.order = widget.order + 1
+          }
+        })
+        // Ajouter le widget recrutement
+        migratedWidgets.push({
+          id: 'recruitment',
+          type: 'recruitment',
+          title: 'Recrutements Internes',
+          size: 'medium',
+          order: recruitmentOrder,
+          isVisible: true
+        })
+      } else {
+        // Si pas de directeur, ajouter à la fin
+        const maxOrder = Math.max(...migratedWidgets.map(w => w.order), 0)
+        migratedWidgets.push({
+          id: 'recruitment',
+          type: 'recruitment',
+          title: 'Recrutements Internes',
+          size: 'medium',
+          order: maxOrder + 1,
+          isVisible: true
+        })
+      }
+    }
+
     return migratedWidgets
   }
 
@@ -357,7 +399,7 @@ export function DraggableDashboard() {
     
     // Vérifier la version des widgets et forcer la migration si nécessaire
     const widgetVersion = localStorage.getItem('dashboard-widgets-version')
-    const currentVersion = '3.0' // Version avec widget vidéo
+    const currentVersion = '4.0' // Version avec widget recrutement
     
     // Charger la configuration sauvegardée ou utiliser la configuration par défaut
     const savedWidgets = localStorage.getItem('dashboard-widgets')
@@ -411,12 +453,13 @@ export function DraggableDashboard() {
     return [
       { id: 'video', type: 'video', title: 'Vidéo SAR', size: 'medium', order: 1, isVisible: true },
       { id: 'director', type: 'director', title: 'Mot du Directeur', size: 'medium', order: 2, isVisible: true },
-      { id: 'news', type: 'news', title: 'Actualités', size: 'medium', order: 3, isVisible: true },
-      { id: 'safety', type: 'safety', title: 'Sécurité du Travail', size: 'medium', order: 4, isVisible: true },
-      { id: 'apps', type: 'apps', title: 'Accès Rapide', size: 'medium', order: 5, isVisible: true },
-      { id: 'calendar', type: 'calendar', title: 'Événements', size: 'medium', order: 6, isVisible: true },
-      { id: 'ideas', type: 'ideas', title: 'Boîte à Idées', size: 'medium', order: 7, isVisible: true },
-      { id: 'menu', type: 'menu', title: 'Menu de la Semaine', size: 'full', order: 8, isVisible: true },
+      { id: 'recruitment', type: 'recruitment', title: 'Recrutements Internes', size: 'medium', order: 3, isVisible: true },
+      { id: 'news', type: 'news', title: 'Actualités', size: 'medium', order: 4, isVisible: true },
+      { id: 'safety', type: 'safety', title: 'Sécurité du Travail', size: 'medium', order: 5, isVisible: true },
+      { id: 'apps', type: 'apps', title: 'Accès Rapide', size: 'medium', order: 6, isVisible: true },
+      { id: 'calendar', type: 'calendar', title: 'Événements', size: 'medium', order: 7, isVisible: true },
+      { id: 'ideas', type: 'ideas', title: 'Boîte à Idées', size: 'medium', order: 8, isVisible: true },
+      { id: 'menu', type: 'menu', title: 'Menu de la Semaine', size: 'full', order: 9, isVisible: true },
     ]
   }
 

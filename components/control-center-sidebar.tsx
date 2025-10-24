@@ -22,16 +22,16 @@ import {
 
 const controlCenterSections = [
   {
-    title: "Gestion des Utilisateurs",
-    items: [
-      { name: "Utilisateurs", section: "users", icon: Users, badge: "24", count: 24 },
-    ],
-  },
-  {
     title: "Gestion de l'Annuaire",
     items: [
       { name: "Employés", section: "employees", icon: Users, badge: "45", count: 45 },
       { name: "Départements", section: "departments", icon: Building2, badge: "8", count: 8 },
+    ],
+  },
+  {
+    title: "Gestion des Utilisateurs",
+    items: [
+      { name: "Utilisateurs", section: "users", icon: Users, badge: "24", count: 24 },
     ],
   },
   {
@@ -68,7 +68,7 @@ interface ControlCenterSidebarProps {
 }
 
 export function ControlCenterSidebar({ 
-  activeSection = "users", 
+  activeSection = "employees", 
   onSectionChange,
   onCollapseChange,
   isCollapsed: externalIsCollapsed,

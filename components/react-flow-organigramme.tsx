@@ -846,7 +846,7 @@ const ReactFlowOrganigramme = forwardRef<ReactFlowOrganigrammeRef, ReactFlowOrga
                     <p className={`text-sm sm:text-base lg:text-lg mb-2 sm:mb-3 font-medium ${
                       isCEO ? "text-amber-800" : "text-slate-600"
                     }`}>
-                      {employee.job_title}
+                      {employee.position_title}
                     </p>
                     <span className={`inline-flex items-center px-3 py-1 sm:px-4 sm:py-1.5 text-xs sm:text-sm font-medium rounded-full shadow-sm ${
                       isCEO 

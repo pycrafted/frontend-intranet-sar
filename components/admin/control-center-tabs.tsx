@@ -96,12 +96,23 @@ const tabs: Tab[] = [
 ]
 
 export function ControlCenterTabs({ className, activeSection }: ControlCenterTabsProps) {
-  const [activeTab, setActiveTab] = useState<TabType>('users')
+  const [activeTab, setActiveTab] = useState<TabType>('employees')
+  
+  // Persistance de l'onglet actif
+  React.useEffect(() => {
+    // Récupérer l'onglet sauvegardé au chargement
+    const savedTab = localStorage.getItem('control-center-active-tab')
+    if (savedTab && savedTab !== activeTab) {
+      setActiveTab(savedTab as TabType)
+    }
+  }, [])
   
   // Mettre à jour l'onglet actif basé sur la section du sidebar
   React.useEffect(() => {
     if (activeSection && activeSection !== activeTab) {
       setActiveTab(activeSection as TabType)
+      // Sauvegarder l'onglet actif
+      localStorage.setItem('control-center-active-tab', activeSection)
     }
   }, [activeSection, activeTab])
 

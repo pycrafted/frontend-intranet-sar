@@ -18,6 +18,7 @@ interface EmployeeNodeData {
 export const EmployeeNode = memo(({ data, isConnectable }: NodeProps) => {
   const { employee, onMouseEnter, onMouseLeave, isHighlighted, config } = data as unknown as EmployeeNodeData
   
+  
   // Détecter si c'est le DG (pas de manager)
   const isCEO = !employee.manager
 

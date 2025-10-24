@@ -371,7 +371,7 @@ const InteractiveOrgChart: React.FC<OrgChartProps> = ({ employees, loading = fal
             </h4>
             
             <p className="text-xs opacity-90 mb-1 leading-tight">
-              {employee.job_title || employee.role || "Poste inconnu"}
+              {employee.position_title || employee.role || "Poste inconnu"}
             </p>
           </CardContent>
         </Card>
@@ -632,7 +632,7 @@ const InteractiveOrgChart: React.FC<OrgChartProps> = ({ employees, loading = fal
                 {selectedNode.full_name || selectedNode.name || "Nom inconnu"}
               </CardTitle>
               <CardDescription className="text-sm font-medium text-blue-600">
-                {selectedNode.job_title || selectedNode.role || "Poste inconnu"}
+                {selectedNode.position_title || selectedNode.role || "Poste inconnu"}
               </CardDescription>
               <Badge variant="outline" className="w-fit mx-auto mt-2 border-slate-200 text-slate-600 bg-slate-50">
                 {selectedNode.main_direction_name || selectedNode.department || "Département inconnu"}

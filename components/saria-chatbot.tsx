@@ -126,13 +126,13 @@ export function MaiChatbot({ className }: MaiChatbotProps) {
       {isOpen && (
         <div className={getChatbotClasses()}>
           <Card className={getChatWindowClasses()}>
-            {/* Header avec gradient */}
+          {/* Header avec gradient */}
             <ResponsiveChatHeader
               onClose={toggleChat}
               className="bg-gradient-to-r from-red-600 via-pink-600 to-orange-500"
             />
 
-            {/* Zone des messages */}
+          {/* Zone des messages */}
             <ResponsiveMessagesArea
               messages={messages}
               isTyping={isTyping}
@@ -142,17 +142,17 @@ export function MaiChatbot({ className }: MaiChatbotProps) {
               messagesEndRef={messagesEndRef}
             />
 
-            {/* Zone de saisie */}
+          {/* Zone de saisie */}
             <ResponsiveInputArea
               inputValue={inputValue}
               setInputValue={setInputValue}
               onSendMessage={handleSendMessage}
-              onKeyPress={handleKeyPress}
+                      onKeyPress={handleKeyPress}
               isTyping={isTyping}
               inputRef={inputRef}
             />
           </Card>
-        </div>
+          </div>
       )}
     </>
   )

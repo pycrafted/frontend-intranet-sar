@@ -57,7 +57,7 @@ const staticEmployees: Employee[] = [
     email: "john.smith@company.com",
     phone: "+1 555 123 4567",
     employee_id: "EMP001",
-    job_title: "Chief Executive Officer",
+    position_title: "Chief Executive Officer",
     main_direction_name: "Executive",
     manager: null,
     manager_name: null,
@@ -77,7 +77,7 @@ const staticEmployees: Employee[] = [
     email: "sarah.johnson@company.com",
     phone: "+1 555 234 5678",
     employee_id: "EMP002",
-    job_title: "Chief Operating Officer",
+    position_title: "Chief Operating Officer",
     main_direction_name: "Operations",
     manager: 1,
     manager_name: "John Smith",
@@ -97,7 +97,7 @@ const staticEmployees: Employee[] = [
     email: "michael.brown@company.com",
     phone: "+1 555 345 6789",
     employee_id: "EMP003",
-    job_title: "Chief Marketing Officer",
+    position_title: "Chief Marketing Officer",
     main_direction_name: "Marketing",
     manager: 1,
     manager_name: "John Smith",
@@ -117,7 +117,7 @@ const staticEmployees: Employee[] = [
     email: "emily.davis@company.com",
     phone: "+1 555 456 7890",
     employee_id: "EMP004",
-    job_title: "Chief Human Resources Officer",
+    position_title: "Chief Human Resources Officer",
     main_direction_name: "Human Resources",
     manager: 1,
     manager_name: "John Smith",
@@ -137,7 +137,7 @@ const staticEmployees: Employee[] = [
     email: "david.wilson@company.com",
     phone: "+1 555 567 8901",
     employee_id: "EMP005",
-    job_title: "Chief Technology Officer",
+    position_title: "Chief Technology Officer",
     main_direction_name: "Technology",
     manager: 1,
     manager_name: "John Smith",
@@ -157,7 +157,7 @@ const staticEmployees: Employee[] = [
     email: "jessica.miller@company.com",
     phone: "+1 555 678 9012",
     employee_id: "EMP006",
-    job_title: "Chief Financial Officer",
+    position_title: "Chief Financial Officer",
     main_direction_name: "Finance",
     manager: 1,
     manager_name: "John Smith",
@@ -178,7 +178,7 @@ const staticEmployees: Employee[] = [
     phone: "+1 555 789 0123",
     employee_id: "EMP007",
     position: 7,
-    job_title: "Quality Assurance Manager",
+    position_title: "Quality Assurance Manager",
     main_direction_name: "Quality Assurance",
     manager: 4,
     manager_name: "Emily Davis",
@@ -199,7 +199,7 @@ const staticEmployees: Employee[] = [
     phone: "+1 555 890 1234",
     employee_id: "EMP008",
     position: 8,
-    job_title: "Project Manager",
+    position_title: "Project Manager",
     main_direction_name: "Technology",
     manager: 5,
     manager_name: "David Wilson",
@@ -220,7 +220,7 @@ const staticEmployees: Employee[] = [
     phone: "+1 555 901 2345",
     employee_id: "EMP009",
     position: 9,
-    job_title: "Financial Analyst",
+    position_title: "Financial Analyst",
     main_direction_name: "Finance",
     manager: 6,
     manager_name: "Jessica Miller",
@@ -314,6 +314,7 @@ export const useOrgChart = () => {
       const data = await response.json()
       const employeesData = Array.isArray(data) ? data : data.results || []
       
+      
       // Log des URLs d'avatar pour débogage
       console.log('🖼️ [ORGCHART_HOOK] URLs d\'avatar reçues:', 
         employeesData.map((emp: any) => ({
@@ -406,7 +407,7 @@ export const useOrgChart = () => {
         chartData[levelKey].push({
           id: employee.id,
           name: employee.full_name,
-          role: employee.job_title,
+          role: employee.position_title,
           department: employee.main_direction_name,
           email: employee.email,
           phone: employee.phone || '',
@@ -451,7 +452,7 @@ export const useOrgChart = () => {
         chartData[level].push({
           id: employee.id,
           name: employee.full_name,
-          role: employee.job_title,
+          role: employee.position_title,
           department: employee.main_direction_name,
           email: employee.email,
           phone: employee.phone || '',
@@ -513,7 +514,7 @@ export const useOrgChart = () => {
         const searchTerm = query.toLowerCase()
         filteredEmployees = filteredEmployees.filter(employee =>
           employee.full_name.toLowerCase().includes(searchTerm) ||
-          employee.job_title.toLowerCase().includes(searchTerm) ||
+          employee.position_title.toLowerCase().includes(searchTerm) ||
           employee.main_direction_name.toLowerCase().includes(searchTerm) ||
           employee.email.toLowerCase().includes(searchTerm)
         )

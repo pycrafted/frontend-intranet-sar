@@ -47,6 +47,8 @@ const nextConfig = {
   },
   // Headers de sécurité et compatibilité Chrome
   async headers() {
+    const isDev = process.env.NODE_ENV === 'development'
+    
     return [
       {
         source: '/(.*)',
@@ -63,10 +65,12 @@ const nextConfig = {
             key: 'Referrer-Policy',
             value: 'origin-when-cross-origin',
           },
-          // Headers pour améliorer la compatibilité Chrome
+          // Headers de cache adaptés à l'environnement
           {
             key: 'Cache-Control',
-            value: 'public, max-age=31536000, immutable',
+            value: isDev 
+              ? 'public, max-age=0, must-revalidate' 
+              : 'public, max-age=3600, must-revalidate',
           },
           {
             key: 'X-DNS-Prefetch-Control',
@@ -79,7 +83,9 @@ const nextConfig = {
         headers: [
           {
             key: 'Cache-Control',
-            value: 'public, max-age=31536000, immutable',
+            value: isDev 
+              ? 'public, max-age=0, must-revalidate' 
+              : 'public, max-age=86400, immutable',
           },
         ],
       },
