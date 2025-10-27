@@ -21,15 +21,5 @@ export const config = {
       updateInterval: 500,
       fallbackEnabled: true
     }
-  },
-  oauth: {
-    google: {
-      clientId: process.env.GOOGLE_CLIENT_ID || "1097497114713-d41if19v9680foj5rk6su0vdbm8708bd.apps.googleusercontent.com",
-      clientSecret: process.env.GOOGLE_CLIENT_SECRET || "",
-    },
-    nextauth: {
-      url: process.env.NEXTAUTH_URL || "http://localhost:3000",
-      secret: process.env.NEXTAUTH_SECRET || "your-secret-key-change-in-production",
-    }
   }
 }

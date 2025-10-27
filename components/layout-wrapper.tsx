@@ -119,8 +119,8 @@ export function LayoutWrapper({ children, secondaryNavbarProps, sidebarProps }: 
             pathname === "/centre_de_controle" ? (
               isSecondarySidebarCollapsed ? "lg:ml-0" : "lg:ml-80"
             ) : ""}`}>
-      {/* Secondary Navbar pour les pages actualités, organigramme, annuaire, documents et recrutement - dans la zone de contenu */}
-      {(pathname === "/actualites" || pathname === "/organigramme" || pathname === "/annuaire" || pathname === "/documents" || pathname === "/recrutement") && (
+      {/* Secondary Navbar pour les pages actualités, organigramme, annuaire, documents - dans la zone de contenu */}
+      {(pathname === "/actualites" || pathname === "/organigramme" || pathname === "/annuaire" || pathname === "/documents") && (
         <SecondaryNavbar 
           {...secondaryNavbarProps} 
           showFilter={pathname === "/organigramme" || pathname === "/actualites"}
@@ -129,7 +129,7 @@ export function LayoutWrapper({ children, secondaryNavbarProps, sidebarProps }: 
         />
       )}
             
-            <div className={`mx-auto px-2 xs:px-3 sm:px-4 py-3 xs:py-4 sm:py-6 lg:px-8 ${pathname === "/" || pathname === "/securite" || pathname === "/test" ? "max-w-none px-1 xs:px-1.5 sm:px-2 lg:px-4" : pathname === "/organigramme" ? "max-w-none px-0" : "max-w-7xl"}`}>
+            <div className={`mx-auto px-2 xs:px-3 sm:px-4 py-3 xs:py-4 sm:py-6 lg:px-8 ${pathname === "/" || pathname === "/securite" || pathname === "/recrutement" ? "max-w-none px-1 xs:px-1.5 sm:px-2 lg:px-4" : pathname === "/organigramme" ? "max-w-none px-0" : "max-w-7xl"}`}>
               {children}
             </div>
           </div>

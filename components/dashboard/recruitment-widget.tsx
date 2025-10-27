@@ -17,7 +17,8 @@ import {
   Target,
   Award,
   CheckCircle,
-  ExternalLink
+  ExternalLink,
+  Sparkles
 } from "lucide-react"
 
 // Types pour les postes
@@ -57,21 +58,13 @@ const jobPostings: JobPosting[] = [
       "Superviser l'administration et l'exploitation du réseau informatique afin d'assurer sa performance, sa sécurité et sa disponibilité",
       "Piloter la gestion de l'infrastructure matérielle (serveurs, équipements réseau, systèmes de stockage, etc.)",
       "Encadrer l'installation, la configuration et la maintenance des réseaux locaux et des services associés (messagerie, DNS, DHCP, etc.)",
-      "Garantir la disponibilité et la continuité des services informatiques mis à disposition des utilisateurs",
-      "Assurer la veille technologique sur les systèmes et réseaux, et proposer des solutions d'optimisation",
-      "Veiller au respect des normes de sécurité informatique et des consignes SSTE",
-      "Superviser le personnel technique affecté au service et coordonner leurs activités",
-      "Coordonner les projets d'évolution ou de modernisation de l'infrastructure informatique"
+      "Garantir la disponibilité et la continuité des services informatiques mis à disposition des utilisateurs"
     ],
     requirements: [
       "Formation : Diplôme de niveau Bac +4/5 (École d'ingénieur en informatique avec spécialisation en systèmes et réseaux ou Master en informatique)",
       "Expérience : Minimum 5 ans dans un poste similaire, idéalement en environnement critique ou industriel",
       "Maîtrise des environnements systèmes (Windows Server, Linux) et des services réseau associés (Active Directory, DNS, DHCP, etc.)",
-      "Compétence en scripting pour l'automatisation des tâches (PowerShell, Bash, ou Python)",
-      "Connaissances de base en administration de bases de données (SQL Server, MySQL)",
-      "Connaissance des outils de supervision et de gestion des incidents (Orion de SolarWinds, etc.)",
-      "Bonne capacité d'adaptation à un environnement industriel ou technique",
-      "Esprit d'équipe, sens de l'organisation et aptitude à coordonner une petite équipe technique"
+      "Compétence en scripting pour l'automatisation des tâches (PowerShell, Bash, ou Python)"
     ],
     benefits: [
       "Salaire compétitif selon profil et expérience",
@@ -208,52 +201,56 @@ function JobDetailsModal({ job, isOpen, onClose }: { job: JobPosting | null, isO
 
   return (
     <Dialog open={isOpen} onOpenChange={onClose}>
-      <DialogContent className="max-w-4xl max-h-[90vh] overflow-y-auto">
+      <DialogContent className="max-w-4xl max-h-[90vh] overflow-y-auto bg-gradient-to-br from-orange-50 via-red-50 to-pink-50 border-0 [&>button]:hidden">
         <DialogHeader>
-          <DialogTitle className="text-xl font-bold text-gray-900 mb-2">
+          <DialogTitle className="text-2xl font-bold text-gray-900 mb-3 bg-gradient-to-r from-orange-600 to-red-600 bg-clip-text text-transparent">
             {job.title}
           </DialogTitle>
-          <div className="flex flex-wrap gap-2 mb-4">
-            <Badge className="bg-blue-100 text-blue-800">
-              <Building className="h-3 w-3 mr-1" />
-              {job.department}
-            </Badge>
-            <Badge className="bg-green-100 text-green-800">
-              <MapPin className="h-3 w-3 mr-1" />
-              {job.location}
-            </Badge>
-            <Badge className="bg-purple-100 text-purple-800">
-              <Users className="h-3 w-3 mr-1" />
-              {job.level}
-            </Badge>
-            <Badge className="bg-orange-100 text-orange-800">
-              <Clock className="h-3 w-3 mr-1" />
-              {job.type}
-            </Badge>
-          </div>
         </DialogHeader>
         
         <div className="space-y-6">
           {/* Description */}
           <div>
-            <h3 className="font-semibold text-gray-900 mb-3 text-lg">
+            <h3 className="font-semibold text-gray-900 mb-3 text-lg flex items-center gap-2">
+              <div className="w-1 h-6 bg-gradient-to-b from-orange-500 to-red-600 rounded-full"></div>
               Description du poste
             </h3>
-            <p className="text-gray-700 text-sm leading-relaxed bg-gray-50 p-4 rounded-lg border-l-4 border-blue-500">
+            <p className="text-gray-700 text-sm leading-relaxed bg-white p-4 rounded-lg border-l-4 border-orange-500 shadow-sm">
               {job.description}
             </p>
           </div>
 
+          {/* Informations pratiques */}
+          <div>
+            <h3 className="font-semibold text-gray-900 mb-3 text-lg flex items-center gap-2">
+              <div className="w-1 h-6 bg-gradient-to-b from-orange-500 to-red-600 rounded-full"></div>
+              Informations pratiques
+            </h3>
+            <div className="bg-white border border-orange-200 rounded-lg p-4 shadow-sm">
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-4 text-sm">
+                <div>
+                  <span className="font-medium text-gray-700">Début:</span>
+                  <span className="ml-2 text-gray-600">{job.startDate}</span>
+                </div>
+                <div>
+                  <span className="font-medium text-gray-700">Clôture candidatures:</span>
+                  <span className="ml-2 text-gray-600">{job.applicationDeadline}</span>
+                </div>
+              </div>
+            </div>
+          </div>
+
           {/* Missions */}
           <div>
-            <h3 className="font-semibold text-gray-900 mb-3 text-lg">
+            <h3 className="font-semibold text-gray-900 mb-3 text-lg flex items-center gap-2">
+              <div className="w-1 h-6 bg-gradient-to-b from-orange-500 to-red-600 rounded-full"></div>
               Missions
             </h3>
-            <div className="bg-white border border-gray-200 rounded-lg p-4">
-              <ul className="space-y-2">
+            <div className="bg-white border border-orange-200 rounded-lg p-4 shadow-sm">
+              <ul className="space-y-3">
                 {job.missions.map((mission, index) => (
                   <li key={index} className="flex items-start gap-3 text-sm text-gray-700">
-                    <span className="text-blue-600 font-bold mt-0.5">{index + 1}.</span>
+                    <span className="text-orange-600 font-bold mt-0.5 flex-shrink-0">•</span>
                     <span>{mission}</span>
                   </li>
                 ))}
@@ -263,32 +260,16 @@ function JobDetailsModal({ job, isOpen, onClose }: { job: JobPosting | null, isO
 
           {/* Profil recherché */}
           <div>
-            <h3 className="font-semibold text-gray-900 mb-3 text-lg">
+            <h3 className="font-semibold text-gray-900 mb-3 text-lg flex items-center gap-2">
+              <div className="w-1 h-6 bg-gradient-to-b from-orange-500 to-red-600 rounded-full"></div>
               Profil
             </h3>
-            <div className="bg-white border border-gray-200 rounded-lg p-4">
-              <ul className="space-y-2">
+            <div className="bg-white border border-orange-200 rounded-lg p-4 shadow-sm">
+              <ul className="space-y-3">
                 {job.requirements.map((req, index) => (
                   <li key={index} className="flex items-start gap-3 text-sm text-gray-700">
-                    <span className="text-green-600 font-bold mt-0.5">•</span>
+                    <span className="text-orange-600 font-bold mt-0.5 flex-shrink-0">•</span>
                     <span>{req}</span>
-                  </li>
-                ))}
-              </ul>
-            </div>
-          </div>
-
-          {/* Avantages */}
-          <div>
-            <h3 className="font-semibold text-gray-900 mb-3 text-lg">
-              Avantages
-            </h3>
-            <div className="bg-white border border-gray-200 rounded-lg p-4">
-              <ul className="space-y-2">
-                {job.benefits.map((benefit, index) => (
-                  <li key={index} className="flex items-start gap-3 text-sm text-gray-700">
-                    <span className="text-yellow-600 font-bold mt-0.5">★</span>
-                    <span>{benefit}</span>
                   </li>
                 ))}
               </ul>
@@ -298,14 +279,15 @@ function JobDetailsModal({ job, isOpen, onClose }: { job: JobPosting | null, isO
           {/* Certifications */}
           {job.certifications && job.certifications.length > 0 && (
             <div>
-              <h3 className="font-semibold text-gray-900 mb-3 text-lg">
+              <h3 className="font-semibold text-gray-900 mb-3 text-lg flex items-center gap-2">
+                <div className="w-1 h-6 bg-gradient-to-b from-orange-500 to-red-600 rounded-full"></div>
                 Certifications requises / appréciées
               </h3>
-              <div className="bg-white border border-gray-200 rounded-lg p-4">
-                <ul className="space-y-2">
+              <div className="bg-white border border-orange-200 rounded-lg p-4 shadow-sm">
+                <ul className="space-y-3">
                   {job.certifications.map((cert, index) => (
                     <li key={index} className="flex items-start gap-3 text-sm text-gray-700">
-                      <span className="text-purple-600 font-bold mt-0.5">🏆</span>
+                      <span className="text-orange-600 font-bold mt-0.5 flex-shrink-0">•</span>
                       <span>{cert}</span>
                     </li>
                   ))}
@@ -314,61 +296,11 @@ function JobDetailsModal({ job, isOpen, onClose }: { job: JobPosting | null, isO
             </div>
           )}
 
-          {/* Informations pratiques */}
-          <div className="bg-gray-50 rounded-lg p-4">
-            <h3 className="font-semibold text-gray-900 mb-3">Informations pratiques</h3>
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-4 text-sm">
-              <div>
-                <span className="font-medium text-gray-700">Salaire:</span>
-                <span className="ml-2 text-gray-600">{job.salary}</span>
-              </div>
-              <div>
-                <span className="font-medium text-gray-700">Début:</span>
-                <span className="ml-2 text-gray-600">{job.startDate}</span>
-              </div>
-              <div>
-                <span className="font-medium text-gray-700">Clôture candidatures:</span>
-                <span className="ml-2 text-gray-600">{job.applicationDeadline}</span>
-              </div>
-              <div>
-                <span className="font-medium text-gray-700">Contact:</span>
-                <span className="ml-2 text-gray-600">{job.contactPerson}</span>
-              </div>
-            </div>
-          </div>
-
-          {/* Dossier de candidature */}
-          <div>
-            <h3 className="font-semibold text-gray-900 mb-3 text-lg">
-              Dossier de candidature
-            </h3>
-            <div className="bg-blue-50 border border-blue-200 rounded-lg p-4">
-              <ul className="space-y-2">
-                <li className="flex items-start gap-3 text-sm text-gray-700">
-                  <span className="text-blue-600 font-bold mt-0.5">📄</span>
-                  <span>Un curriculum vitae à jour</span>
-                </li>
-                <li className="flex items-start gap-3 text-sm text-gray-700">
-                  <span className="text-blue-600 font-bold mt-0.5">📝</span>
-                  <span>Une lettre de motivation</span>
-                </li>
-                <li className="flex items-start gap-3 text-sm text-gray-700">
-                  <span className="text-blue-600 font-bold mt-0.5">🎓</span>
-                  <span>Copies légalisées des diplômes ou attestations</span>
-                </li>
-              </ul>
-            </div>
-          </div>
-
           {/* Actions */}
-          <div className="flex flex-col sm:flex-row gap-3 pt-4 border-t">
-            <Button className="flex-1 bg-blue-600 hover:bg-blue-700 text-white">
+          <div className="pt-4 border-t border-orange-200 flex justify-center">
+            <Button className="w-full max-w-[150px] bg-gradient-to-r from-orange-500 to-red-600 hover:from-orange-600 hover:to-red-700 text-white shadow-lg hover:shadow-xl transition-all duration-300">
               <ExternalLink className="h-4 w-4 mr-2" />
-              Postuler maintenant
-            </Button>
-            <Button variant="outline" className="flex-1">
-              <Calendar className="h-4 w-4 mr-2" />
-              Planifier un entretien
+              Postuler
             </Button>
           </div>
         </div>
@@ -395,45 +327,61 @@ export function RecruitmentWidget() {
 
   return (
     <>
-      <Card className="h-[22rem] sm:h-[24rem] lg:h-[28rem] bg-gradient-to-br from-white to-blue-50 border-blue-200 hover:shadow-lg transition-all duration-300 group flex flex-col overflow-hidden">
-        <CardHeader className="pb-3 flex-shrink-0">
-          <CardTitle className="flex items-center gap-2 text-lg font-bold text-gray-900 group-hover:text-blue-600 transition-colors">
-            <Briefcase className="h-5 w-5 text-blue-600" />
-            Recrutements Internes
-            <Badge className="bg-blue-100 text-blue-800 text-xs">
-              {jobPostings.length} postes
-            </Badge>
-          </CardTitle>
-        </CardHeader>
-        
-        <CardContent className="flex-1 overflow-y-auto space-y-3">
-          {/* Liste des postes */}
-          {jobPostings.length > 0 && (
-            <div className="space-y-1.5">
-              {jobPostings.map((job) => (
-                <JobCard key={job.id} job={job} onViewDetails={handleViewDetails} />
-              ))}
-            </div>
-          )}
+      <Card className="h-[28rem] flex flex-col overflow-hidden relative bg-gradient-to-br from-orange-50 via-red-50 to-pink-50 border-0 hover:shadow-2xl transition-all duration-500 group">
+        {/* Motifs décoratifs élégants */}
+        <div className="absolute inset-0">
+          <div className="absolute inset-0 bg-gradient-to-br from-orange-100/20 via-red-100/15 to-pink-100/20" />
+          {/* Motifs décoratifs - Couleurs claires attrayantes */}
+          <div className="absolute top-0 right-0 w-32 h-32 bg-orange-300/30 rounded-full -translate-y-16 translate-x-16 group-hover:bg-orange-200/40 transition-colors duration-500" />
+          <div className="absolute bottom-0 left-0 w-24 h-24 bg-red-300/30 rounded-full translate-y-12 -translate-x-12 group-hover:bg-red-200/40 transition-colors duration-500" />
+          <div className="absolute top-1/2 left-1/2 w-16 h-16 bg-pink-300/20 rounded-full -translate-x-8 -translate-y-8 group-hover:bg-pink-200/30 transition-colors duration-500" />
+        </div>
 
-          {/* Message si aucun poste */}
-          {jobPostings.length === 0 && (
-            <div className="text-center py-8">
-              <Briefcase className="h-12 w-12 text-gray-400 mx-auto mb-3" />
-              <p className="text-gray-500 text-sm">Aucun poste ouvert actuellement</p>
+        <CardHeader className="relative pb-4 flex-shrink-0 z-10">
+          <div className="flex items-center justify-between">
+            <div className="flex items-center gap-3">
+              <div className="p-3 bg-gradient-to-br from-orange-500 to-red-600 rounded-xl shadow-lg group-hover:shadow-orange-300/50 group-hover:scale-105 transition-all duration-300">
+                <Briefcase className="h-6 w-6 text-white" />
+              </div>
+              <div>
+                <CardTitle className="text-xl font-bold text-slate-800 group-hover:text-orange-700 transition-colors duration-300">
+                  Recrutements Internes
+                </CardTitle>
+                <p className="text-sm text-slate-600 font-medium">
+                  Opportunités de carrière
+                </p>
+              </div>
             </div>
-          )}
-
-          {/* Footer avec lien vers plus de détails */}
-          <div className="pt-3 border-t border-gray-200 flex-shrink-0">
             <Button 
               variant="outline" 
-              className="w-full text-blue-600 border-blue-200 hover:bg-blue-50"
+              size="sm"
+              className="text-orange-600 border-orange-200 hover:bg-orange-50 font-semibold shadow-sm hover:shadow-md transition-all duration-300 group/btn"
               onClick={() => window.open('/recrutement', '_blank')}
             >
               Voir tous les postes
-              <ArrowRight className="h-4 w-4 ml-2" />
+              <ArrowRight className="h-4 w-4 ml-2 group-hover/btn:translate-x-1 transition-transform duration-300" />
             </Button>
+          </div>
+        </CardHeader>
+        
+        <CardContent className="relative flex-1 flex flex-col justify-center p-6 pt-2 z-10">
+          <div className="space-y-2">
+            {/* Liste des postes */}
+            {jobPostings.length > 0 && (
+              <div className="space-y-2">
+                {jobPostings.map((job) => (
+                  <JobCard key={job.id} job={job} onViewDetails={handleViewDetails} />
+                ))}
+              </div>
+            )}
+
+            {/* Message si aucun poste */}
+            {jobPostings.length === 0 && (
+              <div className="text-center py-8">
+                <Briefcase className="h-12 w-12 text-gray-400 mx-auto mb-3" />
+                <p className="text-gray-500 text-sm">Aucun poste ouvert actuellement</p>
+              </div>
+            )}
           </div>
         </CardContent>
       </Card>

@@ -34,3 +34,4 @@ fs.writeFileSync(markerFile, `Cache cleared at: ${timestamp}`);
 console.log('✅ [DEV_CACHE_FIX] Cache nettoyé avec succès!');
 console.log('📝 [DEV_CACHE_FIX] Marqueur de cache créé:', markerFile);
 console.log('🚀 [DEV_CACHE_FIX] Vous pouvez maintenant relancer le serveur de développement');
+

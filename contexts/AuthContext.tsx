@@ -1,7 +1,6 @@
 "use client"
 
 import React, { createContext, useContext, useState, useEffect, ReactNode } from 'react'
-import { useSession } from 'next-auth/react'
 import { api } from '@/lib/api-client'
 
 // Types pour l'authentification
@@ -189,34 +188,6 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
         const result = await response.json()
         console.log('🔐 [AUTH] Résultat de connexion:', result)
         setUser(result.user)
-        
-        // Vérifier si des tokens Google ont été générés automatiquement
-        if (result.google_tokens_generated) {
-          console.log('🔗 Tokens Google générés automatiquement pour l\'utilisateur')
-          
-          // Si une URL d'authentification Google est fournie, l'ouvrir automatiquement
-          if (result.google_auth_url) {
-            console.log('🚀 Ouverture automatique de l\'authentification Google')
-            // Ouvrir dans une popup pour une meilleure UX
-            const popup = window.open(
-              result.google_auth_url, 
-              'google_auth', 
-              'width=500,height=600,scrollbars=yes,resizable=yes'
-            )
-            
-            // Surveiller la fermeture de la popup
-            const checkClosed = setInterval(() => {
-              if (popup?.closed) {
-                clearInterval(checkClosed)
-                console.log('✅ Popup Google fermée, rechargement des données utilisateur')
-                // Recharger les données utilisateur après fermeture de la popup
-                setTimeout(() => {
-                  refreshUser()
-                }, 1000)
-              }
-            }, 1000)
-          }
-        }
         
         // Recharger les données utilisateur pour s'assurer que l'avatar est à jour
         setTimeout(() => {

@@ -14,7 +14,6 @@ import {
 } from "@/components/ui/dropdown-menu"
 import { Badge } from "@/components/ui/badge"
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar"
-import { AppLauncher } from "@/components/app-launcher"
 import { ProfileModal } from "@/components/profile-modal"
 import { useAuth, useLogout } from "@/hooks/useAuth"
 import { authUtils } from "@/lib/auth-api"
@@ -72,11 +71,6 @@ export function Navbar({ onMenuClick }: NavbarProps) {
 
         {/* Right section - Responsive */}
         <div className="flex items-center gap-1 xs:gap-1.5 sm:gap-2 flex-shrink-0">
-          {/* App Launcher - hidden on very small screens */}
-          <div className="hidden xs:block">
-            <AppLauncher />
-          </div>
-
           {/* Notifications - Responsive */}
           <Button variant="ghost" size="sm" className="relative text-navbar-foreground hover:bg-navbar-foreground/10 flex-shrink-0 h-7 w-7 xs:h-8 xs:w-8 sm:h-10 sm:w-10 p-0">
             <Bell className="h-3 w-3 xs:h-3.5 xs:w-3.5 sm:h-4 sm:w-4 lg:h-5 lg:w-5 navbar-icon" />

@@ -2,7 +2,7 @@
 
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import { Button } from "@/components/ui/button"
-import { ExternalLink, Folder, Plus, Sparkles, Globe } from "lucide-react"
+import { ExternalLink, Folder, Plus, Sparkles, Globe, Linkedin } from "lucide-react"
 import Image from "next/image"
 
 // Interface pour les applications
@@ -11,7 +11,7 @@ interface App {
   icon: React.ReactNode
   color: string
   url: string
-  category: 'sar' | 'microsoft' | 'google' | 'other'
+  category: 'sar' | 'microsoft' | 'google' | 'tools' | 'other'
 }
 
 // Composants SVG pour les logos
@@ -93,6 +93,86 @@ const FormsIcon = () => (
     alt="Google Forms" 
     className="w-8 h-8 object-contain"
   />
+)
+
+// Icônes pour les liens utiles
+const SARIcon = () => (
+  <div className="group relative w-16 h-16 bg-white rounded-lg flex items-center justify-center p-2 transition-all duration-300 hover:shadow-lg hover:scale-105 hover:bg-blue-50">
+    <img 
+      src="/sitesar.jpg" 
+      alt="SAR Site Officiel" 
+      className="w-full h-full object-contain transition-transform duration-300 group-hover:scale-110"
+    />
+    {/* Tooltip personnalisé */}
+    <div className="absolute -top-12 left-1/2 transform -translate-x-1/2 bg-gray-900 text-white text-xs font-medium px-3 py-2 rounded-lg opacity-0 group-hover:opacity-100 transition-opacity duration-300 pointer-events-none whitespace-nowrap z-50">
+      Site SAR
+      <div className="absolute top-full left-1/2 transform -translate-x-1/2 w-0 h-0 border-l-4 border-r-4 border-t-4 border-transparent border-t-gray-900"></div>
+    </div>
+  </div>
+)
+
+const PetrosenIcon = () => (
+  <div className="group relative w-16 h-16 bg-white rounded-lg flex items-center justify-center p-2 transition-all duration-300 hover:shadow-lg hover:scale-105 hover:bg-green-50">
+    <img 
+      src="/petrosen.png" 
+      alt="Petrosen Site Officiel" 
+      className="w-full h-full object-contain transition-transform duration-300 group-hover:scale-110"
+    />
+    {/* Tooltip personnalisé */}
+    <div className="absolute -top-12 left-1/2 transform -translate-x-1/2 bg-gray-900 text-white text-xs font-medium px-3 py-2 rounded-lg opacity-0 group-hover:opacity-100 transition-opacity duration-300 pointer-events-none whitespace-nowrap z-50">
+      Site Petrosen
+      <div className="absolute top-full left-1/2 transform -translate-x-1/2 w-0 h-0 border-l-4 border-r-4 border-t-4 border-transparent border-t-gray-900"></div>
+    </div>
+  </div>
+)
+
+const EnergyMinesIcon = () => (
+  <div className="group relative w-16 h-16 bg-white rounded-lg flex items-center justify-center p-2 transition-all duration-300 hover:shadow-lg hover:scale-105 hover:bg-orange-50">
+    <img 
+      src="/ministere.png" 
+      alt="Ministère Énergie-Mines" 
+      className="w-full h-full object-contain transition-transform duration-300 group-hover:scale-110"
+    />
+    {/* Tooltip personnalisé */}
+    <div className="absolute -top-12 left-1/2 transform -translate-x-1/2 bg-gray-900 text-white text-xs font-medium px-3 py-2 rounded-lg opacity-0 group-hover:opacity-100 transition-opacity duration-300 pointer-events-none whitespace-nowrap z-50">
+      Ministère Énergie-Mines
+      <div className="absolute top-full left-1/2 transform -translate-x-1/2 w-0 h-0 border-l-4 border-r-4 border-t-4 border-transparent border-t-gray-900"></div>
+    </div>
+  </div>
+)
+
+const LinkedInIcon = () => (
+  <div className="group relative w-16 h-16 bg-white rounded-lg flex items-center justify-center p-2 transition-all duration-300 hover:shadow-lg hover:scale-105 hover:bg-blue-50">
+    <img 
+      src="/cos.png" 
+      alt="COS Petrogaz" 
+      className="w-full h-full object-contain transition-transform duration-300 group-hover:scale-110"
+    />
+    {/* Tooltip personnalisé */}
+    <div className="absolute -top-12 left-1/2 transform -translate-x-1/2 bg-gray-900 text-white text-xs font-medium px-3 py-2 rounded-lg opacity-0 group-hover:opacity-100 transition-opacity duration-300 pointer-events-none whitespace-nowrap z-50">
+      COS
+      <div className="absolute top-full left-1/2 transform -translate-x-1/2 w-0 h-0 border-l-4 border-r-4 border-t-4 border-transparent border-t-gray-900"></div>
+    </div>
+  </div>
+)
+
+const OfficeIcon = () => (
+  <Globe className="w-8 h-8 text-indigo-600" />
+)
+
+const LinkedInSARIcon = () => (
+  <div className="group relative w-16 h-16 bg-white rounded-lg flex items-center justify-center p-2 transition-all duration-300 hover:shadow-lg hover:scale-105 hover:bg-blue-50">
+    <img 
+      src="/SAR.png" 
+      alt="LinkedIn SAR" 
+      className="w-full h-full object-contain transition-transform duration-300 group-hover:scale-110"
+    />
+    {/* Tooltip personnalisé */}
+    <div className="absolute -top-12 left-1/2 transform -translate-x-1/2 bg-gray-900 text-white text-xs font-medium px-3 py-2 rounded-lg opacity-0 group-hover:opacity-100 transition-opacity duration-300 pointer-events-none whitespace-nowrap z-50">
+      LinkedIn SAR
+      <div className="absolute top-full left-1/2 transform -translate-x-1/2 w-0 h-0 border-l-4 border-r-4 border-t-4 border-transparent border-t-gray-900"></div>
+    </div>
+  </div>
 )
 
 // Icônes pour les applications SAR
@@ -214,84 +294,124 @@ const APPS: App[] = [
     id: 'outlook',
     icon: <OutlookIcon />,
     color: 'from-blue-500 to-blue-600',
-    url: '#',
+    url: 'https://outlook.office.com/mail',
     category: 'microsoft'
   },
   {
     id: 'teams',
     icon: <TeamsIcon />,
     color: 'from-purple-500 to-purple-600',
-    url: '#',
+    url: 'https://teams.microsoft.com',
     category: 'microsoft'
   },
   {
     id: 'onedrive',
     icon: <OneDriveIcon />,
     color: 'from-cyan-500 to-cyan-600',
-    url: '#',
+    url: 'https://onedrive.live.com',
     category: 'microsoft'
   },
   {
     id: 'sharepoint',
     icon: <SharePointIcon />,
     color: 'from-green-500 to-green-600',
-    url: '#',
+    url: 'https://www.office.com/launch/sharepoint',
     category: 'microsoft'
   },
   {
     id: 'word',
     icon: <WordIcon />,
     color: 'from-blue-600 to-blue-700',
-    url: '#',
+    url: 'https://www.office.com/launch/word',
     category: 'microsoft'
   },
   {
     id: 'gmail',
     icon: <GmailIcon />,
     color: 'from-red-500 to-red-600',
-    url: '#',
+    url: 'https://mail.google.com',
     category: 'google'
   },
   {
     id: 'drive',
     icon: <DriveIcon />,
     color: 'from-blue-500 to-blue-600',
-    url: '#',
+    url: 'https://drive.google.com',
     category: 'google'
   },
   {
     id: 'calendar',
     icon: <CalendarIcon />,
     color: 'from-green-500 to-green-600',
-    url: '#',
+    url: 'https://calendar.google.com',
     category: 'google'
   },
   {
     id: 'meet',
     icon: <MeetIcon />,
     color: 'from-indigo-500 to-indigo-600',
-    url: '#',
+    url: 'https://meet.google.com',
     category: 'google'
   },
   {
     id: 'forms',
     icon: <FormsIcon />,
     color: 'from-purple-500 to-purple-600',
-    url: '#',
+    url: 'https://forms.google.com',
     category: 'google'
+  },
+  // Liens utiles
+  {
+    id: 'sar-website',
+    icon: <SARIcon />,
+    color: 'from-blue-500 to-blue-600',
+    url: 'https://www.sar.sn/',
+    category: 'tools'
+  },
+  {
+    id: 'petrosen-website',
+    icon: <PetrosenIcon />,
+    color: 'from-green-500 to-green-600',
+    url: 'https://www.petrosen.sn/',
+    category: 'tools'
+  },
+  {
+    id: 'energy-mines',
+    icon: <EnergyMinesIcon />,
+    color: 'from-orange-500 to-orange-600',
+    url: 'https://energie-mines.gouv.sn/',
+    category: 'tools'
+  },
+  {
+    id: 'linkedin-cos',
+    icon: <LinkedInIcon />,
+    color: 'from-blue-400 to-blue-500',
+    url: 'https://www.linkedin.com/company/cos-petrogaz/?originalSubdomain=sn',
+    category: 'tools'
+  },
+  {
+    id: 'linkedin-sar',
+    icon: <LinkedInSARIcon />,
+    color: 'from-blue-600 to-blue-700',
+    url: 'https://www.linkedin.com/company/societe-africaine-de-raffinage/',
+    category: 'tools'
   }
 ]
 
 export function AppsWidget() {
   const handleAppClick = (app: App) => {
-    // Pour l'instant, on affiche juste une alerte
-    // Plus tard, on pourra rediriger vers l'URL de l'application
-    alert(`Ouverture de l'application - URL: ${app.url}`)
+    // Ouvrir directement l'application (Google détecte automatiquement le compte connecté au navigateur)
+    if (app.url && app.url !== '#') {
+      console.log('🔗 [APPS_WIDGET] Ouverture de l\'application:', app.id, app.url)
+      window.open(app.url, '_blank')
+    } else {
+      console.log('⚠️ [APPS_WIDGET] Aucune URL définie pour:', app.id)
+      alert(`Application ${app.id} - Fonctionnalité à venir`)
+    }
   }
 
   const sarApps = APPS.filter(app => app.category === 'sar')
-  const microsoftApps = APPS.filter(app => app.category === 'microsoft')
-  const googleApps = APPS.filter(app => app.category === 'google')
+  const toolsApps = APPS.filter(app => app.category === 'tools')
 
   return (
     <Card className="h-[28rem] flex flex-col overflow-hidden relative bg-gradient-to-br from-blue-50 via-indigo-50 to-purple-50 border-0 hover:shadow-2xl transition-all duration-500 group">
@@ -323,16 +443,16 @@ export function AppsWidget() {
         </div>
       </CardHeader>
       
-      <CardContent className="relative flex-1 flex flex-col justify-start p-6 pt-2 z-10">
-        <div className="space-y-4">
+      <CardContent className="relative flex-1 flex flex-col justify-start md:justify-center p-6 pt-2 z-10">
+        <div className="space-y-3 md:space-y-8">
           {/* Section SAR - Applications Internes */}
           <div>
-            <h3 className="text-sm font-bold text-orange-600 mb-2 flex items-center gap-2">
-              <div className="w-3 h-3 bg-orange-500 rounded-full shadow-lg"></div>
-              <Globe className="h-4 w-4" />
+            <h3 className="hidden md:flex text-base font-bold text-orange-600 mb-2 md:mb-3 items-center gap-2">
+              <div className="w-4 h-4 bg-orange-500 rounded-full shadow-lg"></div>
+              <Globe className="h-5 w-5" />
               SAR - Applications Internes
             </h3>
-            <div className="grid grid-cols-5 gap-3">
+            <div className="grid grid-cols-3 md:grid-cols-5 gap-3">
               {sarApps.map((app) => (
                 <Button
                   key={app.id}
@@ -348,38 +468,15 @@ export function AppsWidget() {
             </div>
           </div>
 
-          {/* Section Microsoft */}
+          {/* Section SAR - Applications Externes */}
           <div>
-            <h3 className="text-sm font-bold text-blue-600 mb-2 flex items-center gap-2">
-              <div className="w-3 h-3 bg-blue-500 rounded-full shadow-lg"></div>
-              <ExternalLink className="h-4 w-4" />
-              Microsoft
+            <h3 className="hidden md:flex text-base font-bold text-blue-600 mb-2 md:mb-3 items-center gap-2">
+              <div className="w-4 h-4 bg-blue-500 rounded-full shadow-lg"></div>
+              <Globe className="h-5 w-5" />
+              SAR - Applications Externes
             </h3>
-            <div className="grid grid-cols-5 gap-3">
-              {microsoftApps.map((app) => (
-                <Button
-                  key={app.id}
-                  variant="ghost"
-                  className="h-16 w-16 p-0 hover:bg-slate-200/50 transition-all duration-300 group/app rounded-xl"
-                  onClick={() => handleAppClick(app)}
-                >
-                  <div className="w-full h-full flex items-center justify-center text-slate-700 group-hover/app:scale-110 group-hover/app:rotate-3 transition-all duration-300">
-                    {app.icon}
-                  </div>
-                </Button>
-              ))}
-            </div>
-          </div>
-
-          {/* Section Google */}
-          <div>
-            <h3 className="text-sm font-bold text-red-600 mb-2 flex items-center gap-2">
-              <div className="w-3 h-3 bg-red-500 rounded-full shadow-lg"></div>
-              <Globe className="h-4 w-4" />
-              Google
-            </h3>
-            <div className="grid grid-cols-5 gap-3">
-              {googleApps.map((app) => (
+            <div className="grid grid-cols-3 md:grid-cols-5 gap-3">
+              {toolsApps.map((app) => (
                 <Button
                   key={app.id}
                   variant="ghost"
