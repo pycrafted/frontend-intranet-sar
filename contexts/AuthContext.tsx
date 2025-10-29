@@ -13,6 +13,22 @@ export interface ManagerInfo {
   department?: string
 }
 
+export interface Manager {
+  id: number
+  username: string
+  email: string
+  first_name: string
+  last_name: string
+  full_name: string
+  matricule?: string
+  position?: string
+}
+
+export interface Department {
+  id: number
+  name: string
+}
+
 export interface User {
   id: number
   username: string
@@ -25,9 +41,11 @@ export interface User {
   phone_number?: string
   office_phone?: string
   position?: string
-  department?: string
+  department?: string | Department | null
+  department_id?: number | null
   matricule?: string
-  manager?: number | null
+  manager?: number | Manager | null
+  manager_id?: number | null
   manager_info?: ManagerInfo | null
   is_active: boolean
   is_staff: boolean
@@ -90,18 +108,57 @@ interface AuthProviderProps {
   children: ReactNode
 }
 
+// Clés pour le stockage local
+const USER_CACHE_KEY = 'sar_user_cache'
+const AUTH_TIMESTAMP_KEY = 'sar_auth_timestamp'
+
 // Provider du contexte d'authentification
 export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
-  const [user, setUser] = useState<User | null>(null)
+  // Initialiser avec le cache localStorage pour éviter le flash "Connexion"
+  const [user, setUser] = useState<User | null>(() => {
+    if (typeof window !== 'undefined') {
+      try {
+        const cachedUser = localStorage.getItem(USER_CACHE_KEY)
+        const authTimestamp = localStorage.getItem(AUTH_TIMESTAMP_KEY)
+        
+        // Si on a un cache et qu'il n'est pas trop vieux (moins de 5 minutes)
+        if (cachedUser && authTimestamp) {
+          const timestamp = parseInt(authTimestamp, 10)
+          const now = Date.now()
+          const fiveMinutes = 5 * 60 * 1000
+          
+          // Si le cache est récent, l'utiliser pour éviter le flash
+          if (now - timestamp < fiveMinutes) {
+            console.log('📦 [AUTH] Utilisation du cache utilisateur pour éviter le flash')
+            return JSON.parse(cachedUser)
+          } else {
+            // Cache trop vieux, le supprimer
+            localStorage.removeItem(USER_CACHE_KEY)
+            localStorage.removeItem(AUTH_TIMESTAMP_KEY)
+          }
+        }
+      } catch (error) {
+        console.error('❌ [AUTH] Erreur lors de la lecture du cache:', error)
+        // En cas d'erreur, nettoyer le cache
+        localStorage.removeItem(USER_CACHE_KEY)
+        localStorage.removeItem(AUTH_TIMESTAMP_KEY)
+      }
+    }
+    return null
+  })
+  
   const [isLoading, setIsLoading] = useState(true)
 
-  // Vérifier si l'utilisateur est connecté (seulement si on a fini de charger)
-  const isAuthenticated = !isLoading && !!user
+  // Vérifier si l'utilisateur est connecté
+  // Si on charge et qu'on a un user (même en cache), on est considéré comme authentifié
+  // Cela évite le flash "Connexion" pendant la vérification
+  const isAuthenticated = !!user
 
   // Fonction pour récupérer le token CSRF
   const getCSRFToken = async (): Promise<string | null> => {
     try {
-      const url = `${process.env.NEXT_PUBLIC_API_URL || 'http://localhost:8000'}/api/auth/csrf/`
+      const baseUrl = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:8000/api'
+      const url = `${baseUrl}/auth/csrf/`
       console.log('🔑 [AUTH] Récupération du token CSRF:', url)
       
       const response = await fetch(url, {
@@ -130,33 +187,65 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
   // Fonction pour récupérer l'utilisateur actuel
   const fetchCurrentUser = async (): Promise<User | null> => {
     try {
-      console.log('👤 [AUTH] Récupération de l\'utilisateur actuel...')
-      console.log('👤 [AUTH] URL complète:', `${process.env.NEXT_PUBLIC_API_URL || 'http://localhost:8000'}/api/auth/current-user/`)
-      const response = await api.get('/api/auth/current-user/', { requireAuth: true })
+      console.log('👤 [AUTH] === fetchCurrentUser DÉBUT ===')
+      console.log('👤 [AUTH] Cookies avant fetchCurrentUser:', {
+        allCookies: document.cookie,
+        hasSessionId: document.cookie.includes('sessionid'),
+        hasCSRFToken: document.cookie.includes('csrftoken')
+      })
+      
+      const response = await api.get('/auth/current-user/', { requireAuth: false })
       
       console.log('👤 [AUTH] Réponse utilisateur:', {
         status: response.status,
         statusText: response.statusText,
         ok: response.ok,
-        url: response.url
+        url: response.url,
+        headers: {
+          'set-cookie': response.headers.get('Set-Cookie'),
+          'content-type': response.headers.get('Content-Type')
+        }
       })
       
       if (response.ok) {
         const userData = await response.json()
-        console.log('👤 [AUTH] Données utilisateur reçues:', userData)
+        console.log('✅ [AUTH] Données utilisateur reçues:', {
+          id: userData?.id,
+          email: userData?.email,
+          username: userData?.username,
+          hasManager: !!userData?.manager,
+          hasDepartment: !!userData?.department
+        })
         // Vérifier que les données utilisateur sont valides
         if (userData && userData.id && userData.email) {
+          console.log('✅ [AUTH] Utilisateur valide retourné')
           return userData
+        } else {
+          console.log('⚠️ [AUTH] Données utilisateur incomplètes:', userData)
         }
       } else if (response.status === 401 || response.status === 403) {
         // Non authentifié - session expirée ou invalide
-        console.log('🔍 [AUTH] Utilisateur non authentifié (401/403)')
+        console.log('❌ [AUTH] Utilisateur non authentifié (401/403)')
+        console.log('🍪 [AUTH] Cookies après erreur 401/403:', document.cookie)
+        
+        // Essayons de comprendre pourquoi
+        try {
+          const errorData = await response.json()
+          console.log('📋 [AUTH] Détails de l\'erreur:', errorData)
+        } catch (e) {
+          console.log('⚠️ [AUTH] Impossible de lire le corps de l\'erreur')
+        }
         return null
+      } else {
+        console.log('⚠️ [AUTH] Réponse inattendue:', response.status)
       }
       return null
     } catch (error) {
-      console.log('❌ [AUTH] Erreur lors de la récupération de l\'utilisateur:', error)
+      console.error('❌ [AUTH] Erreur lors de la récupération de l\'utilisateur:', error)
+      console.log('🍪 [AUTH] Cookies lors de l\'erreur:', document.cookie)
       return null
+    } finally {
+      console.log('👤 [AUTH] === fetchCurrentUser FIN ===')
     }
   }
 
@@ -165,6 +254,15 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
     const updatedUser = await fetchCurrentUser()
     if (updatedUser) {
       setUser(updatedUser)
+      // Mettre à jour le cache
+      if (typeof window !== 'undefined') {
+        try {
+          localStorage.setItem(USER_CACHE_KEY, JSON.stringify(updatedUser))
+          localStorage.setItem(AUTH_TIMESTAMP_KEY, Date.now().toString())
+        } catch (error) {
+          console.error('❌ [AUTH] Erreur lors de la mise à jour du cache:', error)
+        }
+      }
     }
   }
 
@@ -172,10 +270,9 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
   const login = async (data: LoginData): Promise<{ success: boolean; error?: string }> => {
     try {
       console.log('🔐 [AUTH] Tentative de connexion:', { email: data.email })
-      console.log('🔐 [AUTH] URL complète:', `${process.env.NEXT_PUBLIC_API_URL || 'http://localhost:8000'}/api/auth/login/`)
       setIsLoading(true)
 
-      const response = await api.post('/api/auth/login/', data, { requireAuth: false })
+      const response = await api.post('/auth/login/', data, { requireAuth: false })
       
       console.log('🔐 [AUTH] Réponse de connexion:', {
         status: response.status,
@@ -188,6 +285,17 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
         const result = await response.json()
         console.log('🔐 [AUTH] Résultat de connexion:', result)
         setUser(result.user)
+        
+        // Mettre à jour le cache immédiatement
+        if (typeof window !== 'undefined') {
+          try {
+            localStorage.setItem(USER_CACHE_KEY, JSON.stringify(result.user))
+            localStorage.setItem(AUTH_TIMESTAMP_KEY, Date.now().toString())
+            console.log('💾 [AUTH] Cache utilisateur mis à jour après connexion')
+          } catch (error) {
+            console.error('❌ [AUTH] Erreur lors de la sauvegarde du cache:', error)
+          }
+        }
         
         // Recharger les données utilisateur pour s'assurer que l'avatar est à jour
         setTimeout(() => {
@@ -215,7 +323,8 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
       const csrfToken = await getCSRFToken()
       
       // Appeler l'endpoint de déconnexion côté serveur
-      await fetch(`${process.env.NEXT_PUBLIC_API_URL || 'http://localhost:8000'}/api/auth/logout/`, {
+      const baseUrl = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:8000/api'
+      await fetch(`${baseUrl}/auth/logout/`, {
         method: 'POST',
         credentials: 'include',
         headers: {
@@ -230,14 +339,17 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
       setUser(null)
       setIsLoading(false)
       
-      // Forcer la redirection vers login après déconnexion
+      // Redirection après déconnexion
       if (typeof window !== 'undefined') {
-        // Nettoyer le localStorage et sessionStorage
-        localStorage.clear()
-        sessionStorage.clear()
+        // Nettoyer le cache d'authentification spécifiquement
+        localStorage.removeItem(USER_CACHE_KEY)
+        localStorage.removeItem(AUTH_TIMESTAMP_KEY)
         
-        // Rediriger vers login avec un paramètre pour forcer la reconnexion
-        window.location.href = '/login?logout=true'
+        // Nettoyer le localStorage et sessionStorage si nécessaire
+        // (on garde seulement les données non liées à l'auth)
+        
+        // Rediriger vers la page d'accueil
+        window.location.href = '/'
       }
     }
   }
@@ -250,7 +362,8 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
       // Récupérer le token CSRF
       const csrfToken = await getCSRFToken()
       
-      const response = await fetch(`${process.env.NEXT_PUBLIC_API_URL || 'http://localhost:8000'}/api/auth/register/`, {
+      const baseUrl = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:8000/api'
+      const response = await fetch(`${baseUrl}/auth/register/`, {
         method: 'POST',
         credentials: 'include',
         headers: {
@@ -283,7 +396,8 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
       // Récupérer le token CSRF
       const csrfToken = await getCSRFToken()
       
-      const response = await fetch(`${process.env.NEXT_PUBLIC_API_URL || 'http://localhost:8000'}/api/auth/current-user/`, {
+      const baseUrl = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:8000/api'
+      const response = await fetch(`${baseUrl}/auth/current-user/`, {
         method: 'PUT',
         credentials: 'include',
         headers: {
@@ -296,6 +410,15 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
       if (response.ok) {
         const result = await response.json()
         setUser(result)
+        // Mettre à jour le cache
+        if (typeof window !== 'undefined') {
+          try {
+            localStorage.setItem(USER_CACHE_KEY, JSON.stringify(result))
+            localStorage.setItem(AUTH_TIMESTAMP_KEY, Date.now().toString())
+          } catch (error) {
+            console.error('❌ [AUTH] Erreur lors de la mise à jour du cache:', error)
+          }
+        }
         return { success: true }
       } else {
         const error = await response.json()
@@ -316,7 +439,8 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
       // Récupérer le token CSRF
       const csrfToken = await getCSRFToken()
       
-      const response = await fetch(`${process.env.NEXT_PUBLIC_API_URL || 'http://localhost:8000'}/api/auth/change-password/`, {
+      const baseUrl = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:8000/api'
+      const response = await fetch(`${baseUrl}/auth/change-password/`, {
         method: 'POST',
         credentials: 'include',
         headers: {
@@ -344,50 +468,57 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
   }
 
 
-  // TEMPORAIREMENT : Simuler un utilisateur connecté sans authentification
+  // Vérifier l'utilisateur actuel au chargement
   useEffect(() => {
-    // Éviter les re-exécutions multiples
-    if (user !== null) return
-    
-    // Simuler un utilisateur de démonstration
-    const mockUser: User = {
-      id: 1,
-      username: 'demo',
-      email: 'demo@sar.sn',
-      first_name: 'Utilisateur',
-      last_name: 'Démo',
-      full_name: 'Utilisateur Démo',
-      avatar: '',
-      avatar_url: '',
-      phone_number: '+221 33 123 45 67',
-      office_phone: '+221 33 123 45 68',
-      position: 'Employé',
-      department: 'IT',
-      matricule: 'SAR001',
-      manager: null,
-      manager_info: null,
-      is_active: true,
-      is_staff: false,
-      is_superuser: false,
-      last_login: new Date().toISOString(),
-      created_at: new Date().toISOString(),
-      updated_at: new Date().toISOString(),
-      google_id: '',
-      google_email: '',
-      google_avatar_url: '',
-      is_google_connected: false
+    const checkUser = async () => {
+      console.log('🚀 [AUTH] === DÉMARRAGE AUTHCONTEXT ===')
+      console.log('🚀 [AUTH] Vérification de l\'utilisateur au chargement...')
+      console.log('🍪 [AUTH] Cookies au démarrage:', {
+        allCookies: document.cookie,
+        sessionCookie: document.cookie.match(/sessionid=([^;]+)/)?.[1] || 'Non trouvé',
+        csrfCookie: document.cookie.match(/csrftoken=([^;]+)/)?.[1] || 'Non trouvé',
+        cookieCount: document.cookie.split(';').filter(c => c.trim()).length
+      })
+      
+      setIsLoading(true)
+      const currentUser = await fetchCurrentUser()
+      
+      console.log('✅ [AUTH] Résultat de fetchCurrentUser:', {
+        hasUser: !!currentUser,
+        userId: currentUser?.id,
+        userEmail: currentUser?.email,
+        isAuthenticated: !!currentUser
+      })
+      
+      if (currentUser) {
+        console.log('✅ [AUTH] Utilisateur trouvé, mise à jour de l\'état')
+        setUser(currentUser)
+        // Mettre à jour le cache
+        if (typeof window !== 'undefined') {
+          try {
+            localStorage.setItem(USER_CACHE_KEY, JSON.stringify(currentUser))
+            localStorage.setItem(AUTH_TIMESTAMP_KEY, Date.now().toString())
+            console.log('💾 [AUTH] Cache utilisateur mis à jour')
+          } catch (error) {
+            console.error('❌ [AUTH] Erreur lors de la sauvegarde du cache:', error)
+          }
+        }
+      } else {
+        console.log('⚠️ [AUTH] Aucun utilisateur trouvé - déconnecté')
+        setUser(null)
+        // Nettoyer le cache
+        if (typeof window !== 'undefined') {
+          localStorage.removeItem(USER_CACHE_KEY)
+          localStorage.removeItem(AUTH_TIMESTAMP_KEY)
+          console.log('🗑️ [AUTH] Cache utilisateur nettoyé')
+        }
+      }
+      setIsLoading(false)
+      console.log('🏁 [AUTH] === FIN INITIALISATION AUTHCONTEXT ===')
     }
     
-    // Simuler un chargement initial
-    setIsLoading(true)
-    const timer = setTimeout(() => {
-      setUser(mockUser)
-      setIsLoading(false)
-    }, 500)
-    
-    // Nettoyer le timer si le composant est démonté
-    return () => clearTimeout(timer)
-  }, []) // Dépendances vides pour s'exécuter une seule fois
+    checkUser()
+  }, []) // Dépendances vides pour s'exécuter une seule fois au montage
 
   // Valeur du contexte
   const value: AuthContextType = {

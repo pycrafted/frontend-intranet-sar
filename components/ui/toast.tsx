@@ -1,6 +1,6 @@
 "use client"
 
-import { useState, useEffect } from "react"
+import { useState, useEffect, createContext, useContext, ReactNode } from "react"
 import { X, CheckCircle, AlertCircle, Info, AlertTriangle } from "lucide-react"
 
 export interface ToastProps {
@@ -93,8 +93,21 @@ export function Toast({ id, title, description, type = 'info', duration = 5000, 
   )
 }
 
-// Hook pour gérer les toasts
-export function useToast() {
+// Contexte pour les toasts
+interface ToastContextType {
+  toasts: ToastProps[]
+  addToast: (toast: Omit<ToastProps, 'id' | 'onClose'>) => void
+  removeToast: (id: string) => void
+  success: (title: string, description?: string) => void
+  error: (title: string, description?: string) => void
+  warning: (title: string, description?: string) => void
+  info: (title: string, description?: string) => void
+}
+
+const ToastContext = createContext<ToastContextType | undefined>(undefined)
+
+// Provider pour les toasts
+export function ToastProvider({ children }: { children: ReactNode }) {
   const [toasts, setToasts] = useState<ToastProps[]>([])
 
   const addToast = (toast: Omit<ToastProps, 'id' | 'onClose'>) => {
@@ -112,7 +125,7 @@ export function useToast() {
   }
 
   const success = (title: string, description?: string) => 
-    addToast({ title, description, type: 'success' })
+    addToast({ title, description, type: 'success', duration: 3000 })
   
   const error = (title: string, description?: string) => 
     addToast({ title, description, type: 'error' })
@@ -123,15 +136,21 @@ export function useToast() {
   const info = (title: string, description?: string) => 
     addToast({ title, description, type: 'info' })
 
-  return {
-    toasts,
-    addToast,
-    removeToast,
-    success,
-    error,
-    warning,
-    info
+  return (
+    <ToastContext.Provider value={{ toasts, addToast, removeToast, success, error, warning, info }}>
+      {children}
+      <ToastContainer toasts={toasts} />
+    </ToastContext.Provider>
+  )
+}
+
+// Hook pour utiliser les toasts
+export function useToast() {
+  const context = useContext(ToastContext)
+  if (context === undefined) {
+    throw new Error('useToast must be used within a ToastProvider')
   }
+  return context
 }
 
 // Composant pour afficher tous les toasts

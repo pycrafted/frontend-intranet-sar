@@ -7,20 +7,15 @@ import { Input } from "@/components/ui/input"
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import { useAuth } from "@/hooks/useAuth"
 import { useUsers } from "@/hooks/useUsers"
+import { api } from "@/lib/api-client"
 
-// Liste des départements disponibles
-const DEPARTMENTS = [
-  "Communication",
-  "Finance", 
-  "Informatique",
-  "Logistique",
-  "Marketing",
-  "Production",
-  "Qualité",
-  "Recherche & Développement",
-  "Ressources Humaines",
-  "Ventes"
-]
+// Interface pour les départements du backend
+interface Department {
+  id: number
+  name: string
+  description?: string
+  location?: string
+}
 
 interface EditProfileModalProps {
   isOpen: boolean
@@ -31,6 +26,9 @@ interface EditProfileModalProps {
 export function EditProfileModal({ isOpen, onClose, onSuccess }: EditProfileModalProps) {
   const { user, updateProfile } = useAuth()
   const { users, isLoading: usersLoading, error: usersError } = useUsers()
+  const [departments, setDepartments] = useState<Department[]>([])
+  const [departmentsLoading, setDepartmentsLoading] = useState(false)
+  const [departmentsError, setDepartmentsError] = useState<string | null>(null)
   const [formData, setFormData] = useState({
     first_name: "",
     last_name: "",
@@ -49,9 +47,46 @@ export function EditProfileModal({ isOpen, onClose, onSuccess }: EditProfileModa
   // Initialiser les données du formulaire avec les données utilisateur
   useEffect(() => {
     if (user && isOpen) {
-      console.log('🔍 Initialisation du formulaire avec l\'utilisateur:', user)
-      console.log('🔍 Manager actuel de l\'utilisateur:', user.manager)
-      console.log('🔍 Manager info:', user.manager_info)
+      console.log('🔍 [EDIT_PROFILE] Initialisation du formulaire avec l\'utilisateur:', user)
+      console.log('🔍 [EDIT_PROFILE] Manager actuel de l\'utilisateur:', user.manager)
+      console.log('🔍 [EDIT_PROFILE] Type du manager:', typeof user.manager)
+      console.log('🔍 [EDIT_PROFILE] Manager ID:', user.manager_id)
+      console.log('🔍 [EDIT_PROFILE] Manager info:', user.manager_info)
+      
+      // Gérer le département qui peut être un objet {id, name} ou null
+      let departmentValue = ""
+      if (user.department) {
+        if (typeof user.department === 'object' && 'id' in user.department) {
+          departmentValue = user.department.id.toString()
+        } else if (typeof user.department === 'string') {
+          departmentValue = user.department
+        }
+      } else if (user.department_id) {
+        departmentValue = user.department_id.toString()
+      }
+      
+      // Gérer le manager qui peut être un objet {id, username, email, ...} ou un ID ou null
+      let managerValue = ""
+      if (user.manager) {
+        if (typeof user.manager === 'object' && 'id' in user.manager) {
+          managerValue = user.manager.id.toString()
+          console.log('✅ [EDIT_PROFILE] Manager trouvé comme objet, ID:', managerValue)
+        } else if (typeof user.manager === 'number') {
+          managerValue = user.manager.toString()
+          console.log('✅ [EDIT_PROFILE] Manager trouvé comme nombre, ID:', managerValue)
+        } else if (typeof user.manager === 'string') {
+          managerValue = user.manager
+          console.log('✅ [EDIT_PROFILE] Manager trouvé comme string, ID:', managerValue)
+        }
+      } else if (user.manager_id) {
+        managerValue = user.manager_id.toString()
+        console.log('✅ [EDIT_PROFILE] Manager trouvé via manager_id:', managerValue)
+      } else {
+        console.log('⚠️ [EDIT_PROFILE] Aucun manager trouvé pour l\'utilisateur')
+      }
+      
+      console.log('🔍 [EDIT_PROFILE] Valeur finale du manager pour le formulaire:', managerValue)
+      
       setFormData({
         first_name: user.first_name || "",
         last_name: user.last_name || "",
@@ -59,22 +94,113 @@ export function EditProfileModal({ isOpen, onClose, onSuccess }: EditProfileModa
         phone_number: user.phone_number || "",
         office_phone: user.office_phone || "",
         position: user.position || "",
-        department: user.department || "",
+        department: departmentValue,
         matricule: user.matricule || "",
-        manager: user.manager?.toString() || ""
+        manager: managerValue
+      })
+      
+      console.log('✅ [EDIT_PROFILE] FormData initialisé:', {
+        department: departmentValue,
+        manager: managerValue
       })
     }
   }, [user, isOpen])
 
+  // Récupérer les départements depuis le backend
+  useEffect(() => {
+    const fetchDepartments = async () => {
+      if (!isOpen) return
+      
+      setDepartmentsLoading(true)
+      setDepartmentsError(null)
+      
+      try {
+        console.log('🏢 [EDIT_PROFILE] Récupération des départements depuis le backend...')
+        const response = await api.get('/annuaire/departments/', { requireAuth: false })
+        
+        if (!response.ok) {
+          throw new Error(`Erreur HTTP: ${response.status}`)
+        }
+        
+        const data = await response.json()
+        console.log('🏢 [EDIT_PROFILE] Données départements reçues:', data)
+        
+        // Gérer les différents formats de réponse (paginé ou non)
+        let departmentsArray: Department[] = []
+        
+        if (Array.isArray(data)) {
+          departmentsArray = data
+        } else if (data && typeof data === 'object') {
+          if (Array.isArray(data.results)) {
+            departmentsArray = data.results
+          } else if (Array.isArray(data.departments)) {
+            departmentsArray = data.departments
+          } else if (Array.isArray(data.data)) {
+            departmentsArray = data.data
+          } else {
+            console.warn('⚠️ [EDIT_PROFILE] Format de réponse inattendu pour départements:', data)
+            departmentsArray = []
+          }
+        }
+        
+        setDepartments(departmentsArray)
+        console.log('✅ [EDIT_PROFILE] Départements récupérés:', departmentsArray.length)
+      } catch (err: any) {
+        console.error('❌ [EDIT_PROFILE] Erreur lors de la récupération des départements:', err)
+        setDepartmentsError(`Erreur lors de la récupération des départements: ${err.message || 'Erreur inconnue'}`)
+        setDepartments([])
+      } finally {
+        setDepartmentsLoading(false)
+      }
+    }
+    
+    fetchDepartments()
+  }, [isOpen])
+
+  // Réinitialiser le manager dans formData quand les utilisateurs sont chargés et que le manager existe dans user
+  useEffect(() => {
+    if (isOpen && user && Array.isArray(users) && users.length > 0) {
+      // Re-vérifier si le manager de l'utilisateur doit être mis à jour dans formData
+      let managerValue = ""
+      if (user.manager) {
+        if (typeof user.manager === 'object' && 'id' in user.manager) {
+          managerValue = user.manager.id.toString()
+        } else if (typeof user.manager === 'number') {
+          managerValue = user.manager.toString()
+        } else if (typeof user.manager === 'string') {
+          managerValue = user.manager
+        }
+      } else if (user.manager_id) {
+        managerValue = user.manager_id.toString()
+      }
+      
+      // Vérifier que le manager existe dans la liste des utilisateurs
+      if (managerValue) {
+        const managerId = parseInt(managerValue, 10)
+        const managerExists = users.some(u => u.id === managerId && u.id !== user.id)
+        
+        if (managerExists && formData.manager !== managerValue) {
+          console.log('🔄 [EDIT_PROFILE] Mise à jour du manager dans formData après chargement des utilisateurs:', managerValue)
+          setFormData(prev => ({ ...prev, manager: managerValue }))
+        }
+      }
+    }
+  }, [users, user, isOpen, formData.manager])
+
   // Log des utilisateurs disponibles
   useEffect(() => {
     if (isOpen) {
-      console.log('🔍 Modal ouvert - Utilisateurs disponibles pour la sélection:', users)
-      console.log('🔍 Modal ouvert - Erreur utilisateurs:', usersError)
-      console.log('🔍 Modal ouvert - Chargement utilisateurs:', usersLoading)
-      console.log('🔍 Modal ouvert - Nombre d\'utilisateurs:', users?.length || 0)
+      console.log('🔍 [EDIT_PROFILE] Modal ouvert - Utilisateurs disponibles pour la sélection:', users)
+      console.log('🔍 [EDIT_PROFILE] Modal ouvert - Erreur utilisateurs:', usersError)
+      console.log('🔍 [EDIT_PROFILE] Modal ouvert - Chargement utilisateurs:', usersLoading)
+      console.log('🔍 [EDIT_PROFILE] Modal ouvert - Nombre d\'utilisateurs:', users?.length || 0)
+      console.log('🔍 [EDIT_PROFILE] Modal ouvert - Départements disponibles:', departments)
+      console.log('🔍 [EDIT_PROFILE] Modal ouvert - Chargement départements:', departmentsLoading)
+      console.log('🔍 [EDIT_PROFILE] Modal ouvert - FormData manager actuel:', formData.manager)
+      console.log('🔍 [EDIT_PROFILE] Modal ouvert - User manager:', user?.manager)
+      console.log('🔍 [EDIT_PROFILE] Modal ouvert - User manager_id:', user?.manager_id)
     }
-  }, [users, usersError, usersLoading, isOpen])
+  }, [users, usersError, usersLoading, isOpen, departments, departmentsLoading, formData.manager, user])
 
   // Log quand le modal s'ouvre
   useEffect(() => {
@@ -113,23 +239,7 @@ export function EditProfileModal({ isOpen, onClose, onSuccess }: EditProfileModa
       }
     }
 
-    // Validation optionnelle du téléphone personnel
-    if (formData.phone_number) {
-      const phoneRegex = /^\+?[\d\s\-\(\)]{8,}$/
-      if (!phoneRegex.test(formData.phone_number)) {
-        setError('Le numéro de téléphone personnel doit contenir au moins 8 chiffres')
-        return false
-      }
-    }
-
-    // Validation optionnelle du téléphone fixe
-    if (formData.office_phone) {
-      const phoneRegex = /^\+?[\d\s\-\(\)]{8,}$/
-      if (!phoneRegex.test(formData.office_phone)) {
-        setError('Le numéro de téléphone fixe doit contenir au moins 8 chiffres')
-        return false
-      }
-    }
+    // Aucune validation de format pour les numéros de téléphone - ils sont acceptés tels quels
 
     return true
   }
@@ -149,7 +259,28 @@ export function EditProfileModal({ isOpen, onClose, onSuccess }: EditProfileModa
       console.log('Tentative de mise à jour du profil avec les données:', formData)
       console.log('Utilisateur actuel:', user)
       
-      const result = await updateProfile(formData)
+      // Préparer les données pour l'API : transformer department en department_id et manager en manager_id
+      const dataToSend: any = { ...formData }
+      
+      // Gérer le département
+      if (dataToSend.department) {
+        dataToSend.department_id = parseInt(dataToSend.department) || null
+        delete dataToSend.department
+      } else {
+        dataToSend.department_id = null
+      }
+      
+      // Gérer le manager
+      if (dataToSend.manager) {
+        dataToSend.manager_id = parseInt(dataToSend.manager) || null
+        delete dataToSend.manager
+      } else {
+        dataToSend.manager_id = null
+      }
+      
+      console.log('🔍 [EDIT_PROFILE] Données à envoyer au backend:', dataToSend)
+      
+      const result = await updateProfile(dataToSend)
       
       console.log('Résultat de la mise à jour:', result)
       
@@ -346,16 +477,30 @@ export function EditProfileModal({ isOpen, onClose, onSuccess }: EditProfileModa
                     value={formData.department}
                     onChange={(e) => handleInputChange("department", e.target.value)}
                     className="w-full pl-10 h-11 text-base border border-gray-300 rounded-md focus:ring-2 focus:ring-red-500 focus:border-red-500 bg-white text-gray-900"
-                    disabled={isLoading}
+                    disabled={isLoading || departmentsLoading}
                   >
-                    <option value="">Sélectionner un département</option>
-                    {DEPARTMENTS.map((dept) => (
-                      <option key={dept} value={dept}>
-                        {dept}
-                      </option>
-                    ))}
+                    <option value="">
+                      {departmentsLoading ? "Chargement des départements..." : "Sélectionner un département"}
+                    </option>
+                    {Array.isArray(departments) && departments.length > 0
+                      ? departments.map((dept) => (
+                          <option key={dept.id} value={dept.id}>
+                            {dept.name}
+                          </option>
+                        ))
+                      : !departmentsLoading && (
+                          <option value="" disabled>
+                            {departmentsError ? "Erreur de chargement" : "Aucun département disponible"}
+                          </option>
+                        )}
                   </select>
                 </div>
+                {departmentsError && (
+                  <p className="text-sm text-red-600">{departmentsError}</p>
+                )}
+                {departmentsLoading && (
+                  <p className="text-sm text-gray-500">Chargement de la liste des départements...</p>
+                )}
               </div>
 
               {/* Champ matricule */}
@@ -397,13 +542,19 @@ export function EditProfileModal({ isOpen, onClose, onSuccess }: EditProfileModa
                     <option value="">
                       {usersLoading ? "Chargement des utilisateurs..." : "Aucun (ex: Directeur Général)"}
                     </option>
-                    {users
-                      .filter(u => u.id !== user?.id) // Exclure l'utilisateur actuel
-                      .map((u) => (
-                        <option key={u.id} value={u.id}>
-                          {u.first_name} {u.last_name} - {u.position || 'Sans poste'}
-                        </option>
-                      ))}
+                    {Array.isArray(users) && users.length > 0
+                      ? users
+                          .filter(u => u.id !== user?.id) // Exclure l'utilisateur actuel
+                          .map((u) => (
+                            <option key={u.id} value={u.id}>
+                              {u.first_name} {u.last_name} - {u.position || 'Sans poste'}
+                            </option>
+                          ))
+                      : !usersLoading && (
+                          <option value="" disabled>
+                            Aucun utilisateur disponible
+                          </option>
+                        )}
                   </select>
                 </div>
                 {usersError && (

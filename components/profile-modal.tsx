@@ -29,11 +29,18 @@ export function ProfileModal({ isOpen, onClose }: ProfileModalProps) {
     username: user?.username || "utilisateur",
     email: user?.email || "utilisateur@sar.sn",
     role: user?.is_superuser ? "Administrateur" : user?.is_staff ? "Staff" : "Employé",
-    department: user?.department || "Non renseigné",
+    department: (user?.department && typeof user.department === 'object' ? user.department.name : user?.department) || "Non renseigné",
     position: user?.position || "Non renseigné",
     matricule: user?.matricule || "Non renseigné",
-    manager: user?.manager_info ? `${user.manager_info.first_name} ${user.manager_info.last_name}` : "Aucun",
-    managerPosition: user?.manager_info?.position || "",
+    manager: (() => {
+      if (!user?.manager) return "Aucun"
+      if (typeof user.manager === 'object' && 'first_name' in user.manager) {
+        const name = `${user.manager.first_name || ''} ${user.manager.last_name || ''}`.trim()
+        return name || user.manager.full_name || user.manager.username || "Aucun"
+      }
+      return "Aucun"
+    })(),
+    managerPosition: (user?.manager && typeof user.manager === 'object' && 'position' in user.manager ? user.manager.position : null) || "",
     phone: user?.phone_number || "Non renseigné",
     officePhone: user?.office_phone || "Non renseigné",
     location: "Dakar, Sénégal",

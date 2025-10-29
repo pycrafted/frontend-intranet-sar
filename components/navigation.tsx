@@ -35,8 +35,9 @@ const getNavigationSections = () => [
     title: "Tableau de Bord",
     items: [
       { name: "Accueil", href: "/", icon: Home },
-      { name: "Sécurité", href: "/securite", icon: Shield },
       { name: "Actualités", href: "/actualites", icon: Newspaper },
+      { name: "Sécurité", href: "/securite", icon: Shield },
+      { name: "Paramètres", href: "/parametres", icon: Settings },
     ],
   },
   {
@@ -59,7 +60,6 @@ const getNavigationSections = () => [
     title: "Administration",
     items: [
       { name: "Métriques", href: "/metriques", icon: BarChart3 },
-      { name: "Paramètres", href: "/parametres", icon: Settings },
       { name: "Centre de Contrôle", href: "/centre_de_controle", icon: Shield },
     ],
   },

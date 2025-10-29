@@ -7,13 +7,14 @@ import { useAuth } from '@/hooks/useAuth'
 interface AuthGuardProps {
   children: React.ReactNode
   fallback?: React.ReactNode
+  redirectTo?: string // URL de redirection si non authentifié (par défaut: /login)
 }
 
 /**
  * Composant de protection d'authentification
- * Redirige vers login si l'utilisateur n'est pas authentifié
+ * Redirige vers login (ou redirectTo) si l'utilisateur n'est pas authentifié
  */
-export function AuthGuard({ children, fallback }: AuthGuardProps) {
+export function AuthGuard({ children, fallback, redirectTo }: AuthGuardProps) {
   const { isAuthenticated, isLoading } = useAuth()
   const router = useRouter()
   const [isChecking, setIsChecking] = useState(true)
@@ -21,14 +22,18 @@ export function AuthGuard({ children, fallback }: AuthGuardProps) {
   useEffect(() => {
     if (!isLoading) {
       if (!isAuthenticated) {
-        // Rediriger vers login avec l'URL de retour
-        const currentPath = window.location.pathname
-        router.push(`/login?redirect=${encodeURIComponent(currentPath)}`)
+        // Rediriger vers la destination spécifiée ou login par défaut
+        if (redirectTo) {
+          router.push(redirectTo)
+        } else {
+          const currentPath = window.location.pathname
+          router.push(`/login?redirect=${encodeURIComponent(currentPath)}`)
+        }
       } else {
         setIsChecking(false)
       }
     }
-  }, [isAuthenticated, isLoading, router])
+  }, [isAuthenticated, isLoading, router, redirectTo])
 
   // Éviter les re-renders inutiles en mémorisant l'état
   const shouldShowFallback = isLoading || isChecking

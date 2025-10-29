@@ -74,9 +74,9 @@ export function LayoutWrapper({ children, secondaryNavbarProps, sidebarProps }: 
   const [showAnnouncementModal, setShowAnnouncementModal] = useState(false)
   const pathname = usePathname()
 
-  // Pages publiques qui n'ont pas besoin d'authentification
-  const publicPages = ['/actualites', '/organigramme']
-  const isPublicPage = publicPages.includes(pathname)
+  // Pages protégées nécessitant une authentification
+  const protectedPages = ['/metriques', '/centre_de_controle']
+  const isProtectedPage = protectedPages.includes(pathname)
 
   // Synchroniser automatiquement le rétractement du sidebar secondaire avec le sidebar principal
   // Mais permettre aussi le contrôle indépendant
@@ -147,34 +147,31 @@ export function LayoutWrapper({ children, secondaryNavbarProps, sidebarProps }: 
         </main>
       </div>
 
-      {/* Modals globaux - seulement pour les pages authentifiées */}
-      {!isPublicPage && (
-        <>
-          <PublicationModal 
-            isOpen={showPublicationModal} 
-            onClose={() => setShowPublicationModal(false)} 
-          />
-          <AnnouncementModal 
-            isOpen={showAnnouncementModal} 
-            onClose={() => setShowAnnouncementModal(false)} 
-          />
-        </>
-      )}
+      {/* Modals globaux - disponibles sur toutes les pages */}
+      <PublicationModal 
+        isOpen={showPublicationModal} 
+        onClose={() => setShowPublicationModal(false)} 
+      />
+      <AnnouncementModal 
+        isOpen={showAnnouncementModal} 
+        onClose={() => setShowAnnouncementModal(false)} 
+      />
       
-      {/* Chatbot MAÏ - seulement pour les pages authentifiées */}
-      {!isPublicPage && <MaiChatbot />}
+      {/* Chatbot MAÏ - disponible sur toutes les pages */}
+      <MaiChatbot />
     </div>
   )
 
-  // Si c'est une page publique, ne pas utiliser AuthGuard
-  if (isPublicPage) {
-    return layoutContent
+  // Pages protégées nécessitant une authentification
+  // Toutes les autres pages sont publiques
+  if (isProtectedPage) {
+    return (
+      <AuthGuard fallback={null} redirectTo="/">
+        {layoutContent}
+      </AuthGuard>
+    )
   }
 
-  // Pour les autres pages, utiliser AuthGuard
-  return (
-    <AuthGuard>
-      {layoutContent}
-    </AuthGuard>
-  )
+  // Pages publiques - pas de protection
+  return layoutContent
 }

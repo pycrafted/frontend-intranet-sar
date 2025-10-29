@@ -65,9 +65,15 @@ export class APIClient {
     // Configuration de la requête
     const requestConfig: RequestInit = {
       method,
-      credentials: 'omit', // Désactiver l'authentification temporairement
+      credentials: 'include', // INCLURE les cookies pour la session
       headers: finalHeaders,
     }
+    
+    console.log('🍪 [API_CLIENT] Cookies avant requête:', {
+      cookies: document.cookie,
+      hasSessionCookie: document.cookie.includes('sessionid'),
+      hasCSRFToken: document.cookie.includes('csrftoken')
+    })
 
     // Ajouter le body si nécessaire
     if (body && method !== 'GET') {
@@ -94,6 +100,14 @@ export class APIClient {
     
     const response = await fetch(`${API_BASE_URL}${endpoint}`, requestConfig)
     
+    // Log des cookies après la requête
+    console.log('🍪 [API_CLIENT] Cookies après requête:', {
+      cookies: document.cookie,
+      hasSessionCookie: document.cookie.includes('sessionid'),
+      hasCSRFToken: document.cookie.includes('csrftoken'),
+      setCookieHeader: response.headers.get('Set-Cookie')
+    })
+    
     console.log('📡 [API_CLIENT] Réponse:', {
       url: `${API_BASE_URL}${endpoint}`,
       status: response.status,
@@ -101,7 +115,8 @@ export class APIClient {
       ok: response.ok,
       headers: Object.fromEntries(response.headers.entries()),
       requireAuth,
-      isDocumentsEndpoint: endpoint.includes('/documents/')
+      isDocumentsEndpoint: endpoint.includes('/documents/'),
+      credentials: requestConfig.credentials
     })
 
     // Vérifier l'authentification si requise
