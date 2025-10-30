@@ -50,6 +50,9 @@ export interface User {
   is_active: boolean
   is_staff: boolean
   is_superuser: boolean
+  groups_names?: string[]
+  is_admin_group?: boolean
+  is_communication_group?: boolean
   last_login?: string
   created_at: string
   updated_at: string

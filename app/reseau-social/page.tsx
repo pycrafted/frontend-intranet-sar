@@ -1,19 +1,13 @@
 "use client"
 
 import { LayoutWrapper } from "@/components/layout-wrapper"
-import { ComingSoonCard } from "@/components/coming-soon-card"
-import { MessageSquare } from "lucide-react"
+import { ChatInterface } from "@/components/social/chat-interface"
 
 export default function ReseauSocialPage() {
   return (
     <LayoutWrapper>
-      <div className="space-y-6">
-        {/* Coming Soon Card */}
-        <ComingSoonCard 
-          icon={MessageSquare}
-          title="Réseau social d'entreprise"
-          description="Chat, forum et collaboration - Cette fonctionnalité sera bientôt disponible"
-        />
+      <div className="w-full">
+        <ChatInterface />
       </div>
     </LayoutWrapper>
   )

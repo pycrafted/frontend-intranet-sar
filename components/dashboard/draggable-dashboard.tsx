@@ -43,6 +43,7 @@ import { Button } from "@/components/ui/button"
 import { GripVertical, Plus, HelpCircle } from "lucide-react"
 import { useBrowserDetection } from "@/hooks/useBrowserDetection"
 import { useTabletDetection } from "@/hooks/useTabletDetection"
+import { useAuth } from "@/hooks/useAuth"
 
 // Types pour les widgets
 export interface DashboardWidget {
@@ -124,19 +125,22 @@ const getGridSizes = (isTablet: boolean) => ({
 // Composant pour une card draggable
 function DraggableWidget({ 
   widget,
-  isTablet
+  isTablet,
+  canEdit
 }: { 
   widget: DashboardWidget
   isTablet: boolean
+  canEdit: boolean
 }) {
-  const {
-    attributes,
-    listeners,
-    setNodeRef,
-    transform,
-    transition,
-    isDragging,
-  } = useSortable({ id: widget.id })
+  const sortable = useSortable({ id: widget.id })
+  const { attributes, listeners, setNodeRef, transform, transition, isDragging } = canEdit ? sortable : {
+    attributes: {},
+    listeners: {},
+    setNodeRef: undefined,
+    transform: undefined,
+    transition: undefined,
+    isDragging: false,
+  } as any
 
   const style = {
     transform: CSS.Transform.toString(transform),
@@ -167,6 +171,7 @@ function DraggableWidget({
       `}
     >
       {/* Handle de drag - Responsive */}
+      {canEdit && (
       <div
         id="drag-handle"
         {...attributes}
@@ -183,6 +188,7 @@ function DraggableWidget({
       >
         <GripVertical className="h-3 w-3 sm:h-4 sm:w-4 text-gray-500" />
       </div>
+      )}
 
       
       <div className={`
@@ -254,6 +260,8 @@ export function DraggableDashboard() {
   const { hasSeenTour, isTourOpen, startTour, completeTour } = useDashboardTour()
   const { browserInfo, compatibleClasses, useFallbacks } = useBrowserDetection()
   const { isTablet, isSpecificTablet, deviceType, screenSize, specificDevice } = useTabletDetection()
+  const { user } = useAuth()
+  const canEdit = !!user?.is_communication_group
 
   const sensors = useSensors(
     useSensor(PointerSensor, {
@@ -515,46 +523,48 @@ export function DraggableDashboard() {
   const activeWidget = widgets.find(widget => widget.id === activeId)
 
   return (
-    <div className="space-y-6 relative">
+    <div className={`${canEdit ? 'space-y-6' : 'space-y-2'} relative`}>
       {/* Barre d'outils du dashboard */}
-      <div id="dashboard-header" className="flex items-center justify-end">
-        <div className="flex items-center gap-2">
-          <Button
-            variant="outline"
-            size="sm"
-            onClick={startTour}
-            className="flex items-center gap-2"
-          >
-            <HelpCircle className="h-4 w-4" />
-            Guide
-          </Button>
-          <Button
-            variant="outline"
-            size="sm"
-            onClick={() => {
-              localStorage.removeItem('dashboard-widgets')
-              window.location.reload()
-            }}
-            className="flex items-center gap-2"
-          >
-            🔄 Reset
-          </Button>
-          <div id="widget-manager">
-            <WidgetManager
-              widgets={widgets}
-              onWidgetsChange={handleWidgetsChange}
-              onReset={handleReset}
-            />
+      {canEdit && (
+        <div id="dashboard-header" className="flex items-center justify-end">
+          <div className="flex items-center gap-2">
+            <Button
+              variant="outline"
+              size="sm"
+              onClick={startTour}
+              className="flex items-center gap-2"
+            >
+              <HelpCircle className="h-4 w-4" />
+              Guide
+            </Button>
+            <Button
+              variant="outline"
+              size="sm"
+              onClick={() => {
+                localStorage.removeItem('dashboard-widgets')
+                window.location.reload()
+              }}
+              className="flex items-center gap-2"
+            >
+              🔄 Reset
+            </Button>
+            <div id="widget-manager">
+              <WidgetManager
+                widgets={widgets}
+                onWidgetsChange={handleWidgetsChange}
+                onReset={handleReset}
+              />
+            </div>
           </div>
         </div>
-      </div>
+      )}
 
       {/* Dashboard draggable - Responsive */}
       <DndContext
         sensors={sensors}
         collisionDetection={customCollisionDetection}
-        onDragStart={handleDragStart}
-        onDragEnd={handleDragEnd}
+        onDragStart={canEdit ? handleDragStart : undefined as any}
+        onDragEnd={canEdit ? handleDragEnd : undefined as any}
       >
         <div className="min-h-[calc(100vh-12rem)] sm:min-h-[calc(100vh-14rem)] lg:min-h-[calc(100vh-16rem)]">
           <div className={`${compatibleClasses.grid} grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-6 xl:grid-cols-12 tablet:grid-cols-1 gap-3 sm:gap-4 lg:gap-6 tablet:gap-4`}>
@@ -569,6 +579,7 @@ export function DraggableDashboard() {
                     key={widget.id} 
                     widget={widget}
                     isTablet={isTablet}
+                    canEdit={canEdit}
                   />
                 ))}
             </SortableContext>

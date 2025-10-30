@@ -29,7 +29,7 @@ export function Navbar({ onMenuClick }: NavbarProps) {
   const { user, isAuthenticated, isLoading } = useAuth()
   const { logout } = useLogout()
   const { login, isLoading: isLoggingIn } = useLogin()
-  const { success } = useToast()
+  const { success, error: toastError } = useToast()
   const [isMenuOpen, setIsMenuOpen] = useState(false)
   const [isProfileSectionOpen, setIsProfileSectionOpen] = useState(false)
   const [isEditModalOpen, setIsEditModalOpen] = useState(false)
@@ -70,10 +70,14 @@ export function Navbar({ onMenuClick }: NavbarProps) {
         // Fermer le menu après connexion
         setIsMenuOpen(false)
       } else {
-        setLoginError(result.error || "Erreur de connexion")
+        const message = result.error || "Identifiants invalides. Vérifiez votre email et votre mot de passe."
+        setLoginError(message)
+        toastError("Échec de connexion", message)
       }
     } catch (error) {
-      setLoginError("Une erreur est survenue lors de la connexion")
+      const message = "Une erreur inattendue est survenue. Merci de réessayer."
+      setLoginError(message)
+      toastError("Échec de connexion", message)
     }
   }
 
@@ -579,9 +583,7 @@ export function Navbar({ onMenuClick }: NavbarProps) {
                           required
                         />
                       </div>
-                      {loginError && (
-                        <p className="text-xs text-destructive">{loginError}</p>
-                      )}
+                      {/* Message d'erreur inline retiré: l'information d'erreur est gérée via toast */}
             <Button
                         type="submit"
                         disabled={isLoggingIn}

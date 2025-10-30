@@ -28,9 +28,10 @@ import {
   Shield,
   Phone,
 } from "lucide-react"
+import { useAuth } from "@/hooks/useAuth"
 
-// Navigation sections - sans badges
-const getNavigationSections = () => [
+// Navigation sections - sans badges (version de base)
+const getBaseNavigationSections = () => [
   {
     title: "Tableau de Bord",
     items: [
@@ -56,13 +57,6 @@ const getNavigationSections = () => [
       { name: "Recrutement Interne", href: "/recrutement", icon: UserPlus },
     ],
   },
-  {
-    title: "Administration",
-    items: [
-      { name: "Métriques", href: "/metriques", icon: BarChart3 },
-      { name: "Centre de Contrôle", href: "/centre_de_controle", icon: Shield },
-    ],
-  },
 ]
 
 interface NavigationProps {
@@ -78,6 +72,7 @@ export function Navigation({ isOpen, onClose, onCollapseChange }: NavigationProp
   const [isCollapsed, setIsCollapsed] = useState(true) // Rétracté par défaut
   const { logout } = useLogout()
   const { stats } = useArticleStats()
+  const { user } = useAuth()
 
   // Arrêter le loader quand la page change
   useEffect(() => {
@@ -98,8 +93,29 @@ export function Navigation({ isOpen, onClose, onCollapseChange }: NavigationProp
     }
   }, [onCollapseChange])
 
-  // Obtenir les sections de navigation
-  const navigationSections = getNavigationSections()
+  // Obtenir les sections de navigation et ajouter Administration si admin ou communication
+  const navigationSections = (() => {
+    const sections = getBaseNavigationSections()
+    const isAdmin = !!user && (user.is_superuser || (user as any).is_admin_group)
+    const isCom = !!user && ((user as any).is_communication_group === true)
+    if (isAdmin) {
+      sections.push({
+        title: "Administration",
+        items: [
+          { name: "Métriques", href: "/metriques", icon: BarChart3 },
+          { name: "Centre de Contrôle", href: "/centre_de_controle", icon: Shield },
+        ],
+      })
+    } else if (isCom) {
+      sections.push({
+        title: "Administration",
+        items: [
+          { name: "Centre de Contrôle", href: "/centre_de_controle", icon: Shield },
+        ],
+      })
+    }
+    return sections
+  })()
 
   // Fonction de déconnexion
   const handleLogout = async () => {

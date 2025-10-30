@@ -2,9 +2,11 @@
 
 import type React from "react"
 import { useState, useEffect } from "react"
-import { usePathname } from "next/navigation"
+import { usePathname, useRouter } from "next/navigation"
 import { Navigation } from "./navigation"
 import { Navbar } from "./navbar"
+import { useAuth } from "@/hooks/useAuth"
+import { authUtils } from "@/lib/auth-api"
 import { SecondaryNavbar } from "./secondary-navbar"
 import { ControlCenterSidebar } from "./control-center-sidebar"
 // import { DocumentsSidebar } from "./documents-sidebar" // Supprimé
@@ -73,10 +75,27 @@ export function LayoutWrapper({ children, secondaryNavbarProps, sidebarProps }: 
   const [showPublicationModal, setShowPublicationModal] = useState(false)
   const [showAnnouncementModal, setShowAnnouncementModal] = useState(false)
   const pathname = usePathname()
+  const router = useRouter()
+  const { user, isAuthenticated, isLoading } = useAuth()
 
   // Pages protégées nécessitant une authentification
   const protectedPages = ['/metriques', '/centre_de_controle']
   const isProtectedPage = protectedPages.includes(pathname)
+
+  // Redirection selon la page: 
+  // - '/metriques' => admin uniquement
+  // - '/centre_de_controle' => admin OU communication
+  useEffect(() => {
+    if (!isLoading && isProtectedPage) {
+      const isAdmin = !!user && (user.is_superuser || (user as any).is_admin_group)
+      const isCom = !!user && ((user as any).is_communication_group === true)
+      if (pathname === '/metriques') {
+        if (!isAuthenticated || !isAdmin) router.push('/')
+      } else if (pathname === '/centre_de_controle') {
+        if (!isAuthenticated || (!isAdmin && !isCom)) router.push('/')
+      }
+    }
+  }, [isProtectedPage, pathname, isLoading, isAuthenticated, user, router])
 
   // Synchroniser automatiquement le rétractement du sidebar secondaire avec le sidebar principal
   // Mais permettre aussi le contrôle indépendant
@@ -129,7 +148,7 @@ export function LayoutWrapper({ children, secondaryNavbarProps, sidebarProps }: 
         />
       )}
             
-            <div className={`mx-auto px-2 xs:px-3 sm:px-4 py-3 xs:py-4 sm:py-6 lg:px-8 ${pathname === "/" || pathname === "/securite" || pathname === "/recrutement" ? "max-w-none px-1 xs:px-1.5 sm:px-2 lg:px-4" : pathname === "/organigramme" ? "max-w-none px-0" : "max-w-7xl"}`}>
+            <div className={`mx-auto px-2 xs:px-3 sm:px-4 py-3 xs:py-4 sm:py-6 lg:px-8 ${pathname === "/" || pathname === "/securite" || pathname === "/recrutement" || pathname === "/reseau-social" ? "max-w-none px-1 xs:px-1.5 sm:px-2 lg:px-4" : pathname === "/organigramme" ? "max-w-none px-0" : "max-w-7xl"}`}>
               {children}
             </div>
           </div>
