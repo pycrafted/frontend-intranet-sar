@@ -30,6 +30,7 @@ export function Navbar({ onMenuClick }: NavbarProps) {
   const { logout } = useLogout()
   const { login, isLoading: isLoggingIn } = useLogin()
   const { success } = useToast()
+  const [isMenuOpen, setIsMenuOpen] = useState(false)
   const [isProfileSectionOpen, setIsProfileSectionOpen] = useState(false)
   const [isEditModalOpen, setIsEditModalOpen] = useState(false)
   const [loginEmail, setLoginEmail] = useState("")
@@ -66,6 +67,8 @@ export function Navbar({ onMenuClick }: NavbarProps) {
         // Réinitialiser le formulaire
         setLoginEmail("")
         setLoginPassword("")
+        // Fermer le menu après connexion
+        setIsMenuOpen(false)
       } else {
         setLoginError(result.error || "Erreur de connexion")
       }
@@ -108,7 +111,7 @@ export function Navbar({ onMenuClick }: NavbarProps) {
         {/* Right section - Responsive */}
         <div className="flex items-center gap-1 xs:gap-1.5 sm:gap-2 flex-shrink-0">
           {/* User menu - Responsive */}
-            <DropdownMenu>
+            <DropdownMenu open={isMenuOpen} onOpenChange={setIsMenuOpen}>
               <DropdownMenuTrigger asChild>
                 <Button
                   variant="ghost"
@@ -176,16 +179,10 @@ export function Navbar({ onMenuClick }: NavbarProps) {
                 user ? (
                   // Si on a un user en cache, afficher le menu utilisateur
                   <>
-                    <DropdownMenuLabel>
-                      <div className="flex flex-col space-y-1">
-                        <p className="text-sm font-medium truncate">{authUtils.getFullName(user)}</p>
-                        <p className="text-xs text-muted-foreground truncate">{user.email}</p>
-                        <p className="text-xs text-muted-foreground">Matricule: {user.matricule || 'N/A'}</p>
-                      </div>
-                    </DropdownMenuLabel>
-                    <DropdownMenuSeparator />
+                    
                     <DropdownMenuItem 
                       onClick={() => setIsProfileSectionOpen(!isProfileSectionOpen)} 
+                      onSelect={(e) => e.preventDefault()}
                       className="text-sm cursor-pointer"
                     >
                       <div className="flex items-center justify-between w-full">
@@ -197,7 +194,7 @@ export function Navbar({ onMenuClick }: NavbarProps) {
                       </div>
                     </DropdownMenuItem>
                     {isProfileSectionOpen && (
-                      <div className="px-2 py-2 space-y-3 max-h-[400px] overflow-y-auto">
+                      <div className="px-2 py-2 space-y-3 max-h-[520px] overflow-y-auto">
                         <div className="space-y-2">
                           <h4 className="text-xs font-semibold text-muted-foreground uppercase">Informations personnelles</h4>
                           <div className="space-y-2">
@@ -354,18 +351,12 @@ export function Navbar({ onMenuClick }: NavbarProps) {
                 )
               ) : isAuthenticated && user ? (
                 <>
-                <DropdownMenuLabel>
-                  <div className="flex flex-col space-y-1">
-                    <p className="text-sm font-medium truncate">{authUtils.getFullName(user)}</p>
-                    <p className="text-xs text-muted-foreground truncate">{user.email}</p>
-                    <p className="text-xs text-muted-foreground">Matricule: {user.matricule || 'N/A'}</p>
-                  </div>
-                </DropdownMenuLabel>
-                <DropdownMenuSeparator />
+                
                   
                   {/* Toggle Profil */}
                   <DropdownMenuItem 
                     onClick={() => setIsProfileSectionOpen(!isProfileSectionOpen)} 
+                    onSelect={(e) => e.preventDefault()}
                     className="text-sm cursor-pointer"
                   >
                     <div className="flex items-center justify-between w-full">
@@ -379,7 +370,7 @@ export function Navbar({ onMenuClick }: NavbarProps) {
                   
                   {/* Section Profil - Expandable */}
                   {isProfileSectionOpen && (
-                    <div className="px-2 py-2 space-y-3 max-h-[400px] overflow-y-auto">
+                    <div className="px-2 py-2 space-y-3 max-h-[520px] overflow-y-auto">
                       {/* Informations personnelles */}
                       <div className="space-y-2">
                         <h4 className="text-xs font-semibold text-muted-foreground uppercase">Informations personnelles</h4>
@@ -446,6 +437,17 @@ export function Navbar({ onMenuClick }: NavbarProps) {
                               <div className="flex-1 min-w-0">
                                 <p className="text-[10px] text-red-600 font-medium">Poste occupé</p>
                                 <p className="text-xs font-medium truncate">{user.position}</p>
+                              </div>
+                            </div>
+                          )}
+                          {user.matricule && (
+                            <div className="flex items-center gap-2 text-xs">
+                              <div className="p-1.5 bg-red-50 rounded">
+                                <Shield className="h-3 w-3 text-red-600" />
+                              </div>
+                              <div className="flex-1 min-w-0">
+                                <p className="text-[10px] text-red-600 font-medium">Matricule</p>
+                                <p className="text-xs font-medium truncate">{user.matricule}</p>
                               </div>
                             </div>
                           )}
@@ -554,7 +556,10 @@ export function Navbar({ onMenuClick }: NavbarProps) {
                           value={loginEmail}
                           onChange={(e) => setLoginEmail(e.target.value)}
                           disabled={isLoggingIn}
-                          className="h-8 text-sm"
+                          className="h-8 text-sm border-2" 
+                          style={{ borderColor: '#344256' }}
+                          onFocus={(e) => { e.currentTarget.style.borderColor = '#344256' }}
+                          onBlur={(e) => { e.currentTarget.style.borderColor = '#344256' }}
                           required
                         />
                       </div>
@@ -567,7 +572,10 @@ export function Navbar({ onMenuClick }: NavbarProps) {
                           value={loginPassword}
                           onChange={(e) => setLoginPassword(e.target.value)}
                           disabled={isLoggingIn}
-                          className="h-8 text-sm"
+                          className="h-8 text-sm border-2" 
+                          style={{ borderColor: '#344256' }}
+                          onFocus={(e) => { e.currentTarget.style.borderColor = '#344256' }}
+                          onBlur={(e) => { e.currentTarget.style.borderColor = '#344256' }}
                           required
                         />
                       </div>

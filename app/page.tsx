@@ -2,9 +2,10 @@
 
 import { LayoutWrapper } from "@/components/layout-wrapper"
 import { DraggableDashboard } from "@/components/dashboard/draggable-dashboard"
-import { User, Building } from "lucide-react"
+import { User, Building, Calendar as CalendarIcon, Shield } from "lucide-react"
 import { useAuth } from "@/hooks/useAuth"
 import { authUtils } from "@/lib/auth-api"
+import { } from "react"
 
 export default function HomePage() {
   const { user, isAuthenticated, isLoading } = useAuth()
@@ -15,6 +16,8 @@ export default function HomePage() {
     month: 'long',
     day: 'numeric'
   })
+
+  
 
   // Afficher un loading si l'authentification est en cours
   if (isLoading) {
@@ -35,38 +38,41 @@ export default function HomePage() {
         {/* Hero Section Optimisée pour Edge - Design principal - Visible uniquement si connecté */}
         {isAuthenticated && user && (
           <div className="gradient-fallback bg-gradient-to-r from-red-600 to-red-700 rounded-lg p-4 sm:p-6 lg:p-8 text-white edge-optimized-hero">
-            <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between space-y-4 sm:space-y-0">
-              <div className="flex-1 min-w-0">
-                <h1 className="text-xl sm:text-2xl lg:text-3xl font-bold mb-2 break-words edge-hero-title">
-                  Bonjour, {user?.username || user?.first_name || 'Utilisateur'} ! 👋
-                </h1>
-                <p className="text-sm sm:text-base opacity-90 mb-3 break-words edge-hero-subtitle">
-                  Bienvenue sur votre tableau de bord de l'application intranet de la SAR
-                </p>
-                <div className="flex flex-col sm:flex-row sm:items-center space-y-2 sm:space-y-0 sm:space-x-6 text-xs sm:text-sm edge-hero-meta">
-                  <div className="flex items-center space-x-2">
-                    <span className="font-medium">{formattedDate}</span>
+            <div className="w-full">
+              <div className="flex flex-nowrap gap-3 sm:gap-4 overflow-x-auto">
+                <div className="flex items-center gap-3 bg-white/10 rounded-md p-3 shrink-0 w-[260px] lg:w-auto lg:flex-1">
+                  <User className="h-4 w-4 flex-shrink-0" />
+                  <div className="min-w-0">
+                    <p className="text-[11px] uppercase opacity-80">Nom complet</p>
+                    <p className="text-sm font-semibold truncate">{authUtils.getFullName(user)}</p>
                   </div>
-                  <div className="flex items-center space-x-2">
-                    <User className="h-3 w-3 sm:h-4 sm:w-4 flex-shrink-0" />
-                    <span className="font-medium break-words">
-                      {user?.position || (user?.is_superuser ? 'Administrateur' : user?.is_staff ? 'Staff' : 'Employé')}
-                    </span>
+                </div>
+                <div className="flex items-center gap-3 bg-white/10 rounded-md p-3 shrink-0 w-[260px] lg:w-auto lg:flex-1">
+                  <CalendarIcon className="h-4 w-4 flex-shrink-0" />
+                  <div className="min-w-0">
+                    <p className="text-[11px] uppercase opacity-80">Date</p>
+                    <p className="text-sm font-semibold truncate">{formattedDate}</p>
                   </div>
-                  {user?.department && (
-                    <div className="flex items-center space-x-2">
-                      <Building className="h-3 w-3 sm:h-4 sm:w-4 flex-shrink-0" />
-                      <span className="font-medium break-words">
-                        {typeof user.department === 'object' && 'name' in user.department
-                          ? user.department.name
-                          : typeof user.department === 'string'
-                          ? user.department
-                          : 'Non renseigné'}
-                      </span>
-                    </div>
-                  )}
-                  <div className="flex items-center space-x-2">
-                    <span className="text-xs opacity-75 break-words">Matricule: {user?.matricule || 'N/A'}</span>
+                </div>
+                <div className="flex items-center gap-3 bg-white/10 rounded-md p-3 shrink-0 w-[260px] lg:w-auto lg:flex-1">
+                  <User className="h-4 w-4 flex-shrink-0" />
+                  <div className="min-w-0">
+                    <p className="text-[11px] uppercase opacity-80">Poste</p>
+                    <p className="text-sm font-semibold truncate">{user?.position || (user?.is_superuser ? 'Administrateur' : user?.is_staff ? 'Staff' : 'Employé')}</p>
+                  </div>
+                </div>
+                <div className="flex items-center gap-3 bg-white/10 rounded-md p-3 shrink-0 w-[260px] lg:w-auto lg:flex-1">
+                  <Building className="h-4 w-4 flex-shrink-0" />
+                  <div className="min-w-0">
+                    <p className="text-[11px] uppercase opacity-80">Département</p>
+                    <p className="text-sm font-semibold truncate">{typeof user.department === 'object' && user.department && 'name' in user.department ? (user.department as any).name : (typeof user.department === 'string' ? user.department : 'Non renseigné')}</p>
+                  </div>
+                </div>
+                <div className="flex items-center gap-3 bg-white/10 rounded-md p-3 shrink-0 w-[260px] lg:w-auto lg:flex-1">
+                  <Shield className="h-4 w-4 flex-shrink-0" />
+                  <div className="min-w-0">
+                    <p className="text-[11px] uppercase opacity-80">Matricule</p>
+                    <p className="text-sm font-semibold truncate">{user?.matricule || 'N/A'}</p>
                   </div>
                 </div>
               </div>

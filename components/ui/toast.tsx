@@ -125,7 +125,7 @@ export function ToastProvider({ children }: { children: ReactNode }) {
   }
 
   const success = (title: string, description?: string) => 
-    addToast({ title, description, type: 'success', duration: 3000 })
+    addToast({ title, description, type: 'success', duration: 2000 })
   
   const error = (title: string, description?: string) => 
     addToast({ title, description, type: 'error' })
