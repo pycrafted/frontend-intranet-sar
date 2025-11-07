@@ -31,12 +31,7 @@ export interface Conversation {
   }
   author_avatar?: string
   authorAvatar?: string
-  title: string
-  description: string
-  image?: string
-  image_url?: string
-  is_resolved: boolean
-  isResolved?: boolean
+  message: string
   views: number
   replies_count: number
   replies?: number
@@ -78,9 +73,7 @@ interface CreateForumData {
 interface CreateConversationData {
   forum: number
   content?: string
-  title?: string
-  description?: string
-  image?: File
+  message?: string
 }
 
 interface CreateCommentData {
@@ -293,12 +286,11 @@ export function useForum(): UseForumReturn {
     console.log('🟦 [FORUM_HOOK] ===== DÉBUT fetchConversations =====')
     console.log('🟦 [FORUM_HOOK] forumId demandé:', forumId)
     console.log('🟦 [FORUM_HOOK] fetchingConversationsRef.current:', fetchingConversationsRef.current)
-    console.log('🟦 [FORUM_HOOK] État actuel des conversations AVANT fetch:', conversations.length)
+      // Ne pas utiliser conversations dans la closure, utiliser prev dans setConversations à la place
     
     if (fetchingConversationsRef.current) {
-      console.log('⚠️ [FORUM_HOOK] Requête déjà en cours, abandon')
-      console.log('🟦 [FORUM_HOOK] ===== FIN fetchConversations (ABANDON) =====')
-      console.log('🟦 [FORUM_HOOK] ==========================================')
+      console.log('⚠️ [FETCH_CONV] Requête déjà en cours, abandon')
+      console.log('🔄🔄🔄 [FETCH_CONV] ===== FIN (ABANDON) =====')
       return
     }
     
@@ -312,106 +304,88 @@ export function useForum(): UseForumReturn {
         url += `?forum=${forumId}`
       }
       
-      console.log('🟦 [FORUM_HOOK] URL de la requête:', url)
-      console.log('🟦 [FORUM_HOOK] Envoi de la requête GET...')
+      console.log('🔄 [FETCH_CONV] URL:', url)
       const response = await api.get(url, { requireAuth: false })
-      
-      console.log('🟦 [FORUM_HOOK] Réponse reçue:', {
-        status: response.status,
-        statusText: response.statusText,
-        ok: response.ok
-      })
       
       if (!response.ok) {
         throw new Error(`Erreur ${response.status}: ${response.statusText}`)
       }
       
       const data = await response.json()
-      console.log('🟦 [FORUM_HOOK] Données brutes reçues:', data)
       const conversationsList = Array.isArray(data) ? data : (data.results || [])
-      console.log('🟦 [FORUM_HOOK] conversationsList extraite:', conversationsList.length, 'conversations')
+      console.log('🔄 [FETCH_CONV] Conversations reçues du serveur:', conversationsList.length)
       
-      // Normaliser les données pour le frontend
+      // Normaliser les données
       const normalizedConversations: Conversation[] = conversationsList.map((conv: any) => {
         const forumId = typeof conv.forum === 'object' ? conv.forum.id : conv.forum
-        
-        console.log("🟦 [FORUM_HOOK] Normalisation conversation:", {
-          id: conv.id,
-          title: conv.title,
-          forum: conv.forum,
-          forumId,
-          forumType: typeof conv.forum,
-          forumIdType: typeof forumId
-        })
-        
         return {
           ...conv,
-          forumId: forumId,
+          forumId: Number(forumId),
           authorAvatar: conv.author_avatar || conv.author?.avatar_url || '/photo_profil.png',
           replies: conv.replies_count,
           views: conv.views,
           lastActivity: conv.last_activity,
-          isResolved: conv.is_resolved,
-          image: conv.image_url || conv.image || '/placeholder.svg',
         }
-      }).sort((a, b) => (a.id as number) - (b.id as number)) // Trier par ID croissant (plus récentes en bas)
+      }).sort((a: Conversation, b: Conversation) => (a.id as number) - (b.id as number))
       
-      console.log('🟦 [FORUM_HOOK] Conversations normalisées:', normalizedConversations.length)
-      normalizedConversations.forEach((c, idx) => {
-        console.log(`🟦 [FORUM_HOOK]   Conversation normalisée ${idx + 1}: ID=${c.id}, title="${c.title}", forumId=${c.forumId}`)
-      })
+      console.log('🔄 [FETCH_CONV] Conversations normalisées:', normalizedConversations.length)
       
-      console.log('🟦 [FORUM_HOOK] État actuel des conversations AVANT setConversations:', conversations.length)
-      conversations.forEach((c, idx) => {
-        console.log(`🟦 [FORUM_HOOK]   Conversation actuelle ${idx + 1}: ID=${c.id}, title="${c.title}", forumId=${c.forumId}`)
-      })
-      
-      // Fusionner intelligemment : garder les conversations existantes si la nouvelle n'est pas encore dans la réponse
-      // Cela garantit que la nouvelle conversation apparaît immédiatement même si le serveur n'a pas encore mis à jour
+      // 🔀 FUSION - Préserver les conversations optimistes
+      console.log('🔀🔀🔀 [FETCH_CONV] ===== DÉBUT FUSION =====')
       setConversations(prev => {
+        console.log('🔀 [FETCH_CONV] État AVANT fusion:')
+        console.log('🔀 [FETCH_CONV]   - prev.length:', prev.length)
+        prev.forEach((c, idx) => {
+          console.log(`🔀 [FETCH_CONV]     ${idx + 1}. ID=${c.id}, forumId=${c.forumId}, message="${c.message?.substring(0, 30)}"`)
+        })
+        console.log('🔀 [FETCH_CONV] Nouvelles conversations du serveur:')
+        console.log('🔀 [FETCH_CONV]   - new.length:', normalizedConversations.length)
+        normalizedConversations.forEach((c, idx) => {
+          console.log(`🔀 [FETCH_CONV]     ${idx + 1}. ID=${c.id}, forumId=${c.forumId}, message="${c.message?.substring(0, 30)}"`)
+        })
+        
         const prevIds = new Set(prev.map(c => c.id))
         const newIds = new Set(normalizedConversations.map(c => c.id))
         
-        // Identifier les conversations de prev qui ne sont pas dans la nouvelle liste
-        const missingInNew = prev.filter(conv => !newIds.has(conv.id))
-        
-        console.log('🟦 [FORUM_HOOK] Fusion des conversations:', {
-          prevLength: prev.length,
-          newLength: normalizedConversations.length,
-          missingCount: missingInNew.length,
-          missingIds: missingInNew.map(c => c.id)
+        // Identifier les conversations optimistes à préserver
+        const optimistesAPreserver: Conversation[] = []
+        prev.forEach(conv => {
+          if (!newIds.has(conv.id)) {
+            if (forumId) {
+              const convForumId = typeof conv.forumId === 'string' ? parseInt(String(conv.forumId)) : Number(conv.forumId)
+              const targetForumId = typeof forumId === 'string' ? parseInt(String(forumId)) : Number(forumId)
+              if (convForumId === targetForumId) {
+                optimistesAPreserver.push(conv)
+                console.log(`🔀 [FETCH_CONV] ⚡ Conversation optimiste à préserver: ID=${conv.id}, forumId=${conv.forumId}`)
+              }
+            } else {
+              optimistesAPreserver.push(conv)
+              console.log(`🔀 [FETCH_CONV] ⚡ Conversation optimiste à préserver: ID=${conv.id}`)
+            }
+          }
         })
         
-        // Si des conversations de prev ne sont pas dans la nouvelle liste, les fusionner
-        if (missingInNew.length > 0) {
-          console.log('🟦 [FORUM_HOOK] Fusion nécessaire - conversations manquantes:', missingInNew.map(c => ({ id: c.id, title: c.title, forumId: c.forumId })))
-          const merged = [...normalizedConversations, ...missingInNew]
-          const sorted = merged.sort((a, b) => (a.id as number) - (b.id as number))
-          console.log('🟦 [FORUM_HOOK] Liste fusionnée:', sorted.length, 'conversations')
-          return sorted
-        }
+        // Fusionner
+        const merged = [...normalizedConversations, ...optimistesAPreserver]
+        const unique = merged.filter((conv, index, self) => 
+          index === self.findIndex(c => c.id === conv.id)
+        )
+        const sorted = unique.sort((a, b) => (a.id as number) - (b.id as number))
         
-        // Sinon utiliser la nouvelle liste (déjà triée par ID croissant)
-        console.log('🟦 [FORUM_HOOK] Utilisation de la nouvelle liste complète')
-        return normalizedConversations
+        console.log('🔀 [FETCH_CONV] État APRÈS fusion:')
+        console.log('🔀 [FETCH_CONV]   - sorted.length:', sorted.length)
+        console.log('🔀 [FETCH_CONV]   - optimistes préservées:', optimistesAPreserver.length)
+        sorted.forEach((c, idx) => {
+          const isOptimiste = optimistesAPreserver.some(o => o.id === c.id)
+          console.log(`🔀 [FETCH_CONV]     ${idx + 1}. ID=${c.id}, forumId=${c.forumId}, message="${c.message?.substring(0, 30)}" ${isOptimiste ? '⚡OPTIMISTE' : ''}`)
+        })
+        console.log('🔀🔀🔀 [FETCH_CONV] ===== FIN FUSION =====')
+        return sorted
       })
-      console.log('✅ [FORUM_HOOK] setConversations appelé avec', normalizedConversations.length, 'conversations')
-      console.log('✅ [FORUM_HOOK] Conversations récupérées et liste mise à jour:', normalizedConversations.length)
-      console.log('✅ [FORUM_HOOK] Détails des conversations:', normalizedConversations.map(c => ({
-        id: c.id,
-        title: c.title,
-        forumId: c.forumId,
-        isResolved: c.isResolved
-      })))
-      normalizedConversations.forEach((c, idx) => {
-        console.log(`🟦 [FORUM_HOOK]   Conversation ${idx + 1}: ID=${c.id}, title="${c.title}", forumId=${c.forumId}`)
-      })
-      console.log('🟦 [FORUM_HOOK] ===== FIN fetchConversations (SUCCÈS) =====')
-      console.log('🟦 [FORUM_HOOK] ==========================================')
+      console.log('✅ [FETCH_CONV] Fusion terminée')
+      console.log('🔄🔄🔄 [FETCH_CONV] ===== FIN fetchConversations =====')
     } catch (error) {
-      console.error('❌ [FORUM_HOOK] Erreur fetchConversations:', error)
-      console.log('🟦 [FORUM_HOOK] ===== FIN fetchConversations (ERREUR) =====')
-      console.log('🟦 [FORUM_HOOK] ==========================================')
+      console.error('❌ [FETCH_CONV] Erreur:', error)
       setConversationsError(error instanceof Error ? error.message : 'Erreur inconnue')
     } finally {
       setIsLoadingConversations(false)
@@ -424,154 +398,179 @@ export function useForum(): UseForumReturn {
   }, [conversations])
   
   const createConversation = useCallback(async (data: CreateConversationData): Promise<Conversation | null> => {
-    console.log('🔵 [FORUM_HOOK] ==========================================')
-    console.log('🔵 [FORUM_HOOK] ===== DÉBUT createConversation =====')
-    console.log('🔵 [FORUM_HOOK] Données reçues:', data)
-    console.log('🔵 [FORUM_HOOK] isAuthenticated:', isAuthenticated)
-    console.log('🔵 [FORUM_HOOK] user:', user?.id)
+    console.log('🚀🚀🚀 [CREATE_CONV] ===== DÉBUT CRÉATION CONVERSATION =====')
+    console.log('🚀 [CREATE_CONV] Timestamp:', new Date().toISOString())
+    console.log('🚀 [CREATE_CONV] Données reçues:', { forum: data.forum, contentLength: data.content?.length, messageLength: data.message?.length })
+    console.log('🚀 [CREATE_CONV] État actuel conversations AVANT création:', conversations.length)
+    conversations.forEach((c, idx) => {
+      console.log(`🚀 [CREATE_CONV]   Conv existante ${idx + 1}: ID=${c.id}, forumId=${c.forumId}, message="${c.message?.substring(0, 30)}"`)
+    })
     
     if (!isAuthenticated || !user) {
       throw new Error('Vous devez être connecté pour créer une conversation')
     }
     
     try {
+      // Valider que forum est un nombre valide
+      const validatedForumId = typeof data.forum === 'string' ? parseInt(data.forum) : Number(data.forum)
+      if (isNaN(validatedForumId) || validatedForumId <= 0) {
+        throw new Error('Le forum ID est invalide')
+      }
+      
       const formData = new FormData()
-      formData.append('forum', data.forum.toString())
+      formData.append('forum', validatedForumId.toString())
       
       // Mode simple : utiliser content si fourni
-      if (data.content) {
-        formData.append('content', data.content)
-        console.log('🔵 [FORUM_HOOK] Mode simple: content ajouté:', data.content)
-      } else if (data.title && data.description) {
-        // Mode complet : title et description (pour compatibilité)
-        formData.append('title', data.title)
-        formData.append('description', data.description)
-        console.log('🔵 [FORUM_HOOK] Mode complet: title et description ajoutés')
+      if (data.content && data.content.trim()) {
+        const trimmedContent = data.content.trim()
+        // Vérifier que le contenu a au moins 3 caractères (comme le backend)
+        if (trimmedContent.length < 3) {
+          throw new Error('Le contenu doit contenir au moins 3 caractères.')
+        }
+        formData.append('content', trimmedContent)
+      } else if (data.message && data.message.trim()) {
+        const trimmedMessage = data.message.trim()
+        if (trimmedMessage.length < 3) {
+          throw new Error('Le message doit contenir au moins 3 caractères.')
+        }
+        formData.append('message', trimmedMessage)
       } else {
-        throw new Error('Vous devez fournir soit content, soit title et description')
+        throw new Error('Vous devez fournir soit content (au moins 3 caractères), soit message (au moins 3 caractères)')
       }
       
-      if (data.image) {
-        formData.append('image', data.image)
-        console.log('🔵 [FORUM_HOOK] Image ajoutée')
-      }
-      
-      console.log('🔵 [FORUM_HOOK] Envoi de la requête POST à /forum/conversations/')
+      console.log('🚀 [CREATE_CONV] Envoi requête POST...')
       const response = await api.post('/forum/conversations/', formData, { requireAuth: true })
-      
-      console.log('🔵 [FORUM_HOOK] Réponse reçue:', {
-        status: response.status,
-        statusText: response.statusText,
-        ok: response.ok
-      })
+      console.log('🚀 [CREATE_CONV] Réponse HTTP:', response.status, response.ok)
       
       if (!response.ok) {
         const errorData = await response.json().catch(() => ({}))
         console.error('❌ [FORUM_HOOK] Erreur de réponse:', errorData)
-        throw new Error(errorData.detail || `Erreur ${response.status}: ${response.statusText}`)
+        console.error('❌ [FORUM_HOOK] Status:', response.status)
+        console.error('❌ [FORUM_HOOK] StatusText:', response.statusText)
+        console.error('❌ [FORUM_HOOK] Données envoyées:', {
+          forum: data.forum,
+          content: data.content,
+          message: data.message
+        })
+        
+        // Extraire le message d'erreur détaillé
+        let errorMessage = `Erreur ${response.status}: ${response.statusText}`
+        if (errorData.detail) {
+          errorMessage = errorData.detail
+        } else if (errorData.content) {
+          errorMessage = Array.isArray(errorData.content) ? errorData.content.join(', ') : errorData.content
+        } else if (errorData.message) {
+          errorMessage = Array.isArray(errorData.message) ? errorData.message.join(', ') : errorData.message
+        } else if (errorData.non_field_errors) {
+          errorMessage = Array.isArray(errorData.non_field_errors) ? errorData.non_field_errors.join(', ') : errorData.non_field_errors
+        }
+        
+        throw new Error(errorMessage)
       }
       
       const newConversation = await response.json()
-      console.log('🔵 [FORUM_HOOK] Conversation brute reçue du serveur:', newConversation)
-      console.log('🔵 [FORUM_HOOK] Détails de la conversation brute:', {
+      console.log('🚀 [CREATE_CONV] Réponse serveur reçue:', {
         id: newConversation.id,
-        title: newConversation.title,
-        content: newConversation.content,
+        message: newConversation.message?.substring(0, 50),
         forum: newConversation.forum,
-        forumId: newConversation.forum?.id || newConversation.forum,
-        is_resolved: newConversation.is_resolved,
-        author: newConversation.author?.full_name || newConversation.author?.username
+        forumId: newConversation.forum?.id || newConversation.forum
       })
       
       // Normaliser les données - CRITIQUE : s'assurer que forumId est correct
       const forumId = typeof newConversation.forum === 'object' ? newConversation.forum.id : newConversation.forum
-      // S'assurer que forumId est un nombre (pas une string)
+      // S'assurer que forumId est un nombre (pas une string) et correspond exactement au forumId passé en paramètre
+      const validatedForumIdNum = typeof data.forum === 'string' ? parseInt(data.forum) : Number(data.forum)
       const normalizedForumId = forumId !== null && forumId !== undefined 
         ? (typeof forumId === 'string' ? parseInt(forumId) : Number(forumId))
-        : data.forum // Fallback sur le forumId passé en paramètre
+        : validatedForumIdNum // Fallback sur le forumId passé en paramètre
       
-      console.log('🔵 [FORUM_HOOK] forumId extrait:', {
+      // S'assurer que le forumId correspond exactement au forumId passé en paramètre
+      // Cela garantit que la conversation sera filtrée correctement dans forum-page.tsx
+      const finalForumId = normalizedForumId === validatedForumIdNum ? normalizedForumId : validatedForumIdNum
+      
+      console.log('🚀 [CREATE_CONV] forumId calculé:', {
         original: forumId,
         normalized: normalizedForumId,
-        type: typeof normalizedForumId,
-        fromData: data.forum
+        validated: validatedForumIdNum,
+        final: finalForumId
       })
       
+      // CRITIQUE : Le forumId doit être un nombre pour correspondre au selectedForum.id dans forum-page.tsx
+      // Dans forum-page.tsx, selectedForum.id peut être string ou number, mais on normalise toujours en nombre pour la comparaison
       const normalized: Conversation = {
         ...newConversation,
-        forumId: normalizedForumId, // Utiliser le forumId normalisé
+        forumId: Number(finalForumId), // TOUJOURS utiliser un nombre pour correspondre au selectedForum.id normalisé
         authorAvatar: newConversation.author_avatar || newConversation.author?.avatar_url || '/photo_profil.png',
         replies: newConversation.replies_count || 0,
         views: newConversation.views || 0,
         lastActivity: newConversation.last_activity || 'À l\'instant',
-        isResolved: newConversation.is_resolved !== undefined ? newConversation.is_resolved : true,
-        image: newConversation.image_url || newConversation.image || '/placeholder.svg',
-        title: newConversation.title || newConversation.content?.substring(0, 100) || 'Nouvelle conversation',
-        description: newConversation.description || newConversation.content || '',
+        message: newConversation.message || newConversation.content || 'Nouvelle conversation',
       }
       
-      console.log('🔵 [FORUM_HOOK] Conversation normalisée avec forumId:', {
+      console.log('🚀 [CREATE_CONV] Conversation normalisée:', {
         id: normalized.id,
-        title: normalized.title,
+        message: normalized.message?.substring(0, 50),
         forumId: normalized.forumId,
         forumIdType: typeof normalized.forumId
       })
       
-      console.log('🔵 [FORUM_HOOK] Conversation normalisée:', normalized)
-      console.log('🔵 [FORUM_HOOK] État actuel des conversations AVANT ajout:', conversations.length)
-      conversations.forEach((c, idx) => {
-        console.log(`🔵 [FORUM_HOOK]   Conversation ${idx + 1} actuelle: ID=${c.id}, title="${c.title}", forumId=${c.forumId}`)
+      // ⚡ OPTIMISTIC UPDATE - Ajouter à la liste IMMÉDIATEMENT
+      console.log('⚡⚡⚡ [CREATE_CONV] ===== OPTIMISTIC UPDATE =====')
+      console.log('⚡ [CREATE_CONV] Conversation normalisée à ajouter:', {
+        id: normalized.id,
+        message: normalized.message?.substring(0, 50),
+        forumId: normalized.forumId,
+        forumIdType: typeof normalized.forumId
       })
       
-      // Ajouter à la liste en fin (plus récent en bas)
       setConversations(prev => {
-        console.log('🔵 [FORUM_HOOK] setConversations appelé avec prev.length:', prev.length)
-        // Vérifier si la conversation n'existe pas déjà pour éviter les doublons
+        console.log('⚡ [CREATE_CONV] setConversations appelé - prev.length:', prev.length)
+        console.log('⚡ [CREATE_CONV] Conversations AVANT ajout:')
+        prev.forEach((c, idx) => {
+          console.log(`⚡ [CREATE_CONV]   ${idx + 1}. ID=${c.id}, forumId=${c.forumId}, message="${c.message?.substring(0, 30)}"`)
+        })
+        
         const exists = prev.some(c => c.id === normalized.id)
         if (exists) {
-          console.log('⚠️ [FORUM_HOOK] Conversation déjà présente, mise à jour:', normalized.id)
+          console.log('⚠️ [CREATE_CONV] Conversation déjà présente, mise à jour')
           const updated = prev.map(c => c.id === normalized.id ? normalized : c)
-          // Trier par ID pour maintenir l'ordre (plus récentes en bas)
           const sorted = updated.sort((a, b) => (a.id as number) - (b.id as number))
-          console.log('🔵 [FORUM_HOOK] Liste mise à jour (conversation existante):', sorted.length)
+          console.log('⚡ [CREATE_CONV] Liste APRÈS mise à jour:', sorted.length, 'conversations')
           return sorted
         }
-        // Ajouter en fin de liste (plus récent en bas)
+        
         const newList = [...prev, normalized]
-        // Trier par ID pour maintenir l'ordre (plus récentes en bas)
         const sorted = newList.sort((a, b) => (a.id as number) - (b.id as number))
-        console.log('🔵 [FORUM_HOOK] Nouvelle liste créée avec la conversation:', sorted.length)
+        console.log('⚡ [CREATE_CONV] Liste APRÈS ajout:', sorted.length, 'conversations')
         sorted.forEach((c, idx) => {
-          console.log(`🔵 [FORUM_HOOK]   Nouvelle conversation ${idx + 1}: ID=${c.id}, title="${c.title}", forumId=${c.forumId}`)
+          console.log(`⚡ [CREATE_CONV]   ${idx + 1}. ID=${c.id}, forumId=${c.forumId}, message="${c.message?.substring(0, 30)}"`)
         })
+        console.log('⚡⚡⚡ [CREATE_CONV] ===== FIN OPTIMISTIC UPDATE =====')
         return sorted
       })
       
-      console.log('✅ [FORUM_HOOK] Conversation créée et ajoutée à la liste:', normalized.id)
-      console.log('✅ [FORUM_HOOK] Détails de la conversation normalisée:', {
-        id: normalized.id,
-        title: normalized.title,
-        forumId: normalized.forumId,
-        authorAvatar: normalized.authorAvatar,
-        isResolved: normalized.isResolved
-      })
+      console.log('✅ [CREATE_CONV] Optimistic update terminé - conversation ajoutée à l\'état')
       
-      // Recharger les conversations depuis le serveur pour avoir les données complètes
-      // Cela garantit que la nouvelle conversation apparaît automatiquement, comme pour les commentaires
-      console.log('🟦 [FORUM_HOOK] Rechargement des conversations pour le forum:', forumId)
-      await fetchConversations(forumId)
+      // 🔄 RECHARGEMENT - Synchroniser avec le serveur
+      const forumIdToFetch = finalForumId || validatedForumIdNum
+      console.log('🔄 [CREATE_CONV] ===== DÉBUT RECHARGEMENT =====')
+      console.log('🔄 [CREATE_CONV] forumId à recharger:', forumIdToFetch)
+      console.log('🔄 [CREATE_CONV] Attente 200ms pour laisser le serveur enregistrer...')
       
-      console.log('✅ [FORUM_HOOK] Conversation créée et conversations rechargées')
-      console.log('🔵 [FORUM_HOOK] ===== FIN createConversation =====')
-      console.log('🔵 [FORUM_HOOK] ==========================================')
+      await new Promise(resolve => setTimeout(resolve, 200))
+      console.log('🔄 [CREATE_CONV] Délai terminé, appel fetchConversations...')
+      
+      await fetchConversations(forumIdToFetch)
+      
+      console.log('✅ [CREATE_CONV] Rechargement terminé')
+      console.log('🚀🚀🚀 [CREATE_CONV] ===== FIN CRÉATION CONVERSATION =====')
       return normalized
     } catch (error) {
-      console.error('❌ [FORUM_HOOK] Erreur createConversation:', error)
-      console.log('🔵 [FORUM_HOOK] ===== FIN createConversation (ERREUR) =====')
-      console.log('🔵 [FORUM_HOOK] ==========================================')
+      console.error('❌ [CREATE_CONV] Erreur:', error)
+      console.log('🚀🚀🚀 [CREATE_CONV] ===== FIN (ERREUR) =====')
       throw error
     }
-  }, [isAuthenticated, user, conversations, fetchConversations])
+  }, [isAuthenticated, user, fetchConversations])
   
   const updateConversation = useCallback(async (id: number, data: Partial<CreateConversationData>): Promise<Conversation | null> => {
     if (!isAuthenticated || !user) {
@@ -580,9 +579,7 @@ export function useForum(): UseForumReturn {
     
     try {
       const formData = new FormData()
-      if (data.title) formData.append('title', data.title)
-      if (data.description) formData.append('description', data.description)
-      if (data.image) formData.append('image', data.image)
+      if (data.message) formData.append('message', data.message)
       
       const response = await api.patch(`/forum/conversations/${id}/`, formData, { requireAuth: true })
       
@@ -601,8 +598,6 @@ export function useForum(): UseForumReturn {
         replies: updatedConversation.replies_count,
         views: updatedConversation.views,
         lastActivity: updatedConversation.last_activity,
-        isResolved: updatedConversation.is_resolved,
-        image: updatedConversation.image_url || updatedConversation.image || '/placeholder.svg',
       }
       
       // Mettre à jour dans la liste

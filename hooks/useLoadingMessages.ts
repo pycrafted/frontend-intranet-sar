@@ -13,11 +13,13 @@ export interface LoadingMessageService {
   getQuickLoadingMessage: (question: string) => Promise<string>
 }
 
+import { getApiBaseUrl } from '@/lib/config'
+
 class LoadingMessageServiceImpl implements LoadingMessageService {
   private baseUrl: string
 
   constructor() {
-    this.baseUrl = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:8000'
+    this.baseUrl = getApiBaseUrl()
   }
 
   async getLoadingMessage(question: string, phase: 'searching' | 'processing'): Promise<string> {

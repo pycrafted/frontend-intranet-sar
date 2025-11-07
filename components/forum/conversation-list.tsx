@@ -1,9 +1,10 @@
 "use client"
 
-import { MessageSquare, Eye, CheckCircle2, Send } from "lucide-react"
+import { MessageSquare, Eye, Send } from "lucide-react"
 import type { Conversation } from "./forum-page"
 import Image from "next/image"
 import { useState } from "react"
+import React from "react"
 import { useForum } from "@/hooks/useForum"
 import { useAuth } from "@/contexts/AuthContext"
 
@@ -11,48 +12,57 @@ interface ConversationListProps {
   conversations: Conversation[]
   onSelectConversation: (conversation: Conversation) => void
   forumId: number | null
+  isLoading?: boolean
 }
 
-export function ConversationList({ conversations, onSelectConversation, forumId }: ConversationListProps) {
+export function ConversationList({ conversations, onSelectConversation, forumId, isLoading = false }: ConversationListProps) {
   const { user } = useAuth()
   const { createConversation } = useForum()
   const [newConversationContent, setNewConversationContent] = useState("")
   const [isSubmitting, setIsSubmitting] = useState(false)
   
+  // Log quand conversations change
+  React.useEffect(() => {
+    console.log('📋📋📋 [CONV_LIST] ===== CONVERSATIONS REÇUES =====')
+    console.log('📋 [CONV_LIST] conversations.length:', conversations.length)
+    console.log('📋 [CONV_LIST] forumId:', forumId)
+    console.log('📋 [CONV_LIST] isLoading:', isLoading)
+    conversations.forEach((c, idx) => {
+      console.log(`📋 [CONV_LIST]   ${idx + 1}. ID=${c.id}, forumId=${c.forumId}, message="${c.message?.substring(0, 40)}"`)
+    })
+    console.log('📋📋📋 [CONV_LIST] ===== FIN CONVERSATIONS REÇUES =====')
+  }, [conversations, forumId, isLoading])
+  
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
     
-    if (!newConversationContent.trim() || !user || !forumId) {
+    const trimmedContent = newConversationContent.trim()
+    if (!trimmedContent || trimmedContent.length < 3 || !user || !forumId) {
+      if (trimmedContent && trimmedContent.length < 3) {
+        alert('Le message doit contenir au moins 3 caractères.')
+      }
       return
     }
     
+    console.log('📝📝📝 [CONV_LIST] ===== DÉBUT SOUMISSION =====')
+    console.log('📝 [CONV_LIST] forumId:', forumId)
+    console.log('📝 [CONV_LIST] conversations AVANT création:', conversations.length)
+    
     setIsSubmitting(true)
     try {
-      console.log('🟢 [CONVERSATION_LIST] Création de la conversation pour le forum:', forumId)
-      console.log('🟢 [CONVERSATION_LIST] Contenu:', newConversationContent.trim())
+      const forumIdNum = typeof forumId === 'string' ? parseInt(forumId) : Number(forumId)
+      console.log('📝 [CONV_LIST] Appel createConversation avec forumIdNum:', forumIdNum)
       
       const newConversation = await createConversation({
-        forum: forumId,
-        content: newConversationContent.trim(),
+        forum: forumIdNum,
+        content: trimmedContent,
       })
       
-      console.log('🟢 [CONVERSATION_LIST] Conversation créée (réponse):', newConversation)
-      console.log('🟢 [CONVERSATION_LIST] Détails de la conversation:', {
-        id: newConversation?.id,
-        title: newConversation?.title,
-        forumId: newConversation?.forumId,
-        forum: newConversation?.forum,
-        isResolved: newConversation?.isResolved
-      })
-      
+      console.log('📝 [CONV_LIST] createConversation terminé, conversation retournée:', newConversation?.id)
       setNewConversationContent("")
-      
-      // La conversation est déjà ajoutée à la liste et rechargée par createConversation
-      // (createConversation appelle fetchConversations automatiquement, comme pour les commentaires)
-      console.log('✅ [CONVERSATION_LIST] Conversation créée et liste mise à jour automatiquement')
-      console.log('🟢 [CONVERSATION_LIST] ===== FIN handleSubmit =====')
+      console.log('📝📝📝 [CONV_LIST] ===== FIN SOUMISSION =====')
     } catch (error) {
-      console.error('❌ [CONVERSATION_LIST] Erreur lors de la création de la conversation:', error)
+      console.error('❌ [CONV_LIST] Erreur:', error)
       alert('Erreur lors de la publication. Veuillez réessayer.')
     } finally {
       setIsSubmitting(false)
@@ -61,8 +71,11 @@ export function ConversationList({ conversations, onSelectConversation, forumId 
   
   return (
     <div className="space-y-3">
-      <div className="mb-4">
+      <div className="mb-4 flex items-center justify-between">
         <h3 className="text-lg font-semibold text-foreground">Conversations</h3>
+        {isLoading && (
+          <span className="text-xs text-muted-foreground animate-pulse">Synchronisation...</span>
+        )}
       </div>
 
       {conversations.length > 0 && (
@@ -88,9 +101,10 @@ export function ConversationList({ conversations, onSelectConversation, forumId 
                 <div className="flex-1 min-w-0">
                   <div className="mb-2 flex items-start justify-between gap-3">
                     <h4 className="font-medium text-foreground group-hover:text-primary transition-colors text-pretty">
-                      {conversation.title}
+                      {conversation.message && conversation.message.length > 100 
+                        ? conversation.message.substring(0, 100) + "..." 
+                        : conversation.message || 'Sans message'}
                     </h4>
-                    {conversation.isResolved && <CheckCircle2 className="h-5 w-5 flex-shrink-0 text-green-600" />}
                   </div>
 
                   <div className="mb-3 text-sm text-muted-foreground">

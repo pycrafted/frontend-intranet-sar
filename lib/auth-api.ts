@@ -1,5 +1,7 @@
 // Configuration de l'API d'authentification
-const AUTH_API_BASE_URL = `${process.env.NEXT_PUBLIC_API_URL || 'http://localhost:8000/api'}/auth`
+import { API_CONFIG } from './config'
+
+const AUTH_API_BASE_URL = API_CONFIG.AUTH
 
 // Types pour l'API (version simplifiée)
 export interface User {

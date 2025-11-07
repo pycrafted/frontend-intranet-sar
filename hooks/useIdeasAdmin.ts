@@ -1,6 +1,7 @@
 "use client"
 
 import { useState, useEffect, useCallback } from "react"
+import { API_CONFIG } from "@/lib/config"
 
 interface Idea {
   id: number
@@ -104,7 +105,7 @@ export const useIdeasAdmin = () => {
     
     try {
       const queryParams = buildQueryParams(state.filters)
-      const response = await fetch(`${process.env.NEXT_PUBLIC_API_URL || 'http://localhost:8000/api'}/accueil/ideas/?${queryParams}`)
+      const response = await fetch(`${API_CONFIG.ACCUEIL}/ideas/?${queryParams}`)
       
       if (!response.ok) {
         throw new Error(`Erreur ${response.status}: ${response.statusText}`)
@@ -154,7 +155,7 @@ export const useIdeasAdmin = () => {
   // Mettre à jour le statut d'une idée
   const updateIdeaStatus = useCallback(async (ideaId: number, status: string) => {
     try {
-      const response = await fetch(`${process.env.NEXT_PUBLIC_API_URL || 'http://localhost:8000/api'}/accueil/ideas/${ideaId}/update/`, {
+      const response = await fetch(`${API_CONFIG.ACCUEIL}/ideas/${ideaId}/update/`, {
         method: 'PATCH',
         headers: {
           'Content-Type': 'application/json',
@@ -180,7 +181,7 @@ export const useIdeasAdmin = () => {
   // Supprimer une idée
   const deleteIdea = useCallback(async (ideaId: number) => {
     try {
-      const response = await fetch(`${process.env.NEXT_PUBLIC_API_URL || 'http://localhost:8000/api'}/accueil/ideas/${ideaId}/delete/`, {
+      const response = await fetch(`${API_CONFIG.ACCUEIL}/ideas/${ideaId}/delete/`, {
         method: 'DELETE'
       })
       

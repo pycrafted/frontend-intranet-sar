@@ -94,67 +94,60 @@ export function ConversationDetail({ conversation, onBack }: ConversationDetailP
 
   return (
     <div className="space-y-6">
-      {/* Header avec image et informations - Design professionnel */}
-      <div className="relative h-64 sm:h-80 w-full overflow-hidden rounded-xl shadow-lg">
-        <Image
-          src={conversation.image || "/placeholder.svg"}
-          alt={conversation.title}
-          fill
-          className="object-cover"
-          priority
-        />
-        <div className="absolute inset-0 bg-gradient-to-t from-black/90 via-black/50 to-black/30" />
-
-        {/* Back button positioned at top left */}
+      {/* Header avec informations - Design professionnel */}
+      <div className="rounded-xl border border-gray-200 bg-white p-6 shadow-sm">
+        {/* Back button */}
         <button
           onClick={onBack}
-          className="absolute left-4 top-4 flex items-center gap-2 rounded-lg bg-black/50 backdrop-blur-sm px-3 py-2 text-sm text-white transition-all hover:bg-black/70 shadow-md"
+          className="mb-4 flex items-center gap-2 text-sm text-gray-600 hover:text-gray-900 transition-colors"
         >
           <ArrowLeft className="h-4 w-4" />
           Retour
         </button>
 
-        {/* Content at bottom */}
-        <div className="absolute bottom-0 left-0 right-0 p-6 sm:p-8 space-y-4">
-          <h1 className="text-2xl sm:text-3xl font-bold text-white text-balance leading-tight">{conversation.title}</h1>
+        {/* Message preview (premiers mots) */}
+        <h1 className="text-2xl sm:text-3xl font-bold text-gray-900 text-balance leading-tight mb-4">
+          {conversation.message && conversation.message.length > 100 
+            ? conversation.message.substring(0, 100) + "..." 
+            : conversation.message || 'Sans message'}
+        </h1>
 
-          {/* Author and metadata */}
-          <div className="flex items-center justify-between gap-4 flex-wrap">
-            <div className="flex items-center gap-3">
-              <div className="relative h-10 w-10 sm:h-12 sm:w-12 overflow-hidden rounded-full ring-2 ring-white/30 shadow-md">
-                <Image
-                  src={conversation.authorAvatar || "/placeholder.svg"}
-                  alt={conversation.author}
-                  fill
-                  className="object-cover"
-                />
-              </div>
-              <div>
-                <div className="font-semibold text-white text-sm sm:text-base">{conversation.author}</div>
-                <div className="text-xs sm:text-sm text-white/80">{conversation.lastActivity}</div>
-              </div>
+        {/* Author and metadata */}
+        <div className="flex items-center justify-between gap-4 flex-wrap">
+          <div className="flex items-center gap-3">
+            <div className="relative h-10 w-10 sm:h-12 sm:w-12 overflow-hidden rounded-full ring-2 ring-gray-100">
+              <Image
+                src={conversation.authorAvatar || "/placeholder.svg"}
+                alt={conversation.author}
+                fill
+                className="object-cover"
+              />
             </div>
+            <div>
+              <div className="font-semibold text-gray-900 text-sm sm:text-base">{conversation.author}</div>
+              <div className="text-xs sm:text-sm text-gray-500">{conversation.lastActivity}</div>
+            </div>
+          </div>
 
-            <div className="flex items-center gap-4 sm:gap-6 text-xs sm:text-sm text-white/90">
-              <span className="flex items-center gap-1.5 bg-white/10 px-3 py-1.5 rounded-lg backdrop-blur-sm">
-                <MessageSquare className="h-4 w-4" />
-                {conversation.replies} réponses
-              </span>
-              <span className="flex items-center gap-1.5 bg-white/10 px-3 py-1.5 rounded-lg backdrop-blur-sm">
-                <Eye className="h-4 w-4" />
-                {conversation.views} vues
-              </span>
-            </div>
+          <div className="flex items-center gap-4 sm:gap-6 text-xs sm:text-sm text-gray-600">
+            <span className="flex items-center gap-1.5 bg-gray-100 px-3 py-1.5 rounded-lg">
+              <MessageSquare className="h-4 w-4" />
+              {conversation.replies} réponses
+            </span>
+            <span className="flex items-center gap-1.5 bg-gray-100 px-3 py-1.5 rounded-lg">
+              <Eye className="h-4 w-4" />
+              {conversation.views} vues
+            </span>
           </div>
         </div>
       </div>
 
       {/* Contenu de la conversation */}
-      {conversation.description && (
+      {conversation.message && (
         <div className="rounded-xl border border-gray-200 bg-white p-6 shadow-sm">
           <div className="prose max-w-none">
             <p className="text-gray-700 whitespace-pre-wrap leading-relaxed">
-              {conversation.description}
+              {conversation.message}
             </p>
           </div>
         </div>

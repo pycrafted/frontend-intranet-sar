@@ -51,7 +51,9 @@ export interface OrgChartData {
   }>
 }
 
-const API_BASE_URL = `${process.env.NEXT_PUBLIC_API_URL || 'http://localhost:8000/api'}/annuaire`
+import { API_CONFIG } from "@/lib/config"
+
+const API_BASE_URL = API_CONFIG.ANNUAIRE
 
 export const useEmployees = () => {
   const [employees, setEmployees] = useState<Employee[]>([])

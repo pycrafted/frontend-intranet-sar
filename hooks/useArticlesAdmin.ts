@@ -1,5 +1,6 @@
 import { useState, useEffect, useCallback } from 'react';
 import axios from 'axios';
+import { API_CONFIG } from "@/lib/config";
 
 interface Article {
   id: number;
@@ -23,10 +24,13 @@ interface ArticleFormData {
   date: string;
   time: string;
   content_type: 'text_only' | 'image_only' | 'text_image' | 'video';
+  author?: string;
+  author_role?: string;
   // Fichiers
   image?: File;
   video?: File;
   video_poster?: File;
+  author_avatar?: File;
 }
 
 interface Filters {
@@ -67,8 +71,7 @@ export const useArticlesAdmin = () => {
   });
   const [selectedArticles, setSelectedArticles] = useState<number[]>([]);
 
-  const BASE_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:8000/api';
-  const ARTICLES_URL = `${BASE_URL}/actualites/`;
+  const ARTICLES_URL = `${API_CONFIG.ACTUALITES}/`;
 
   // Fonction pour construire les paramètres de requête
   const buildQueryParams = useCallback((filters: Filters) => {
@@ -138,8 +141,12 @@ export const useArticlesAdmin = () => {
       formData.append('content', data.content);
       formData.append('date', data.date);
       formData.append('time', data.time);
-      formData.append('author', data.author);
-      formData.append('author_role', data.author_role);
+      if (data.author) {
+        formData.append('author', data.author);
+      }
+      if (data.author_role) {
+        formData.append('author_role', data.author_role);
+      }
       formData.append('content_type', data.content_type);
       
       // Ajouter les fichiers
@@ -189,8 +196,12 @@ export const useArticlesAdmin = () => {
       formData.append('content', data.content);
       formData.append('date', data.date);
       formData.append('time', data.time);
-      formData.append('author', data.author);
-      formData.append('author_role', data.author_role);
+      if (data.author) {
+        formData.append('author', data.author);
+      }
+      if (data.author_role) {
+        formData.append('author_role', data.author_role);
+      }
       formData.append('content_type', data.content_type);
       
       // Ajouter les fichiers

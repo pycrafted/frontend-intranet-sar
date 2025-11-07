@@ -1,5 +1,6 @@
 import { useState, useCallback } from 'react';
 import axios from 'axios';
+import { API_CONFIG } from "@/lib/config"
 
 interface MenuItem {
   id: number;
@@ -52,7 +53,7 @@ export const useMenu = () => {
   const [loading, setLoading] = useState<boolean>(false);
   const [error, setError] = useState<string | null>(null);
 
-  const API_URL = process.env.NEXT_PUBLIC_API_URL ? `${process.env.NEXT_PUBLIC_API_URL}/accueil/menu/` : 'http://localhost:8000/api/accueil/menu/';
+  const API_URL = `${API_CONFIG.ACCUEIL}/menu/`;
   const ITEMS_URL = `${API_URL}items/`;
   const DAYS_URL = `${API_URL}days/`;
   const WEEK_URL = `${API_URL}week/`;

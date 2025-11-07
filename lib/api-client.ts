@@ -2,6 +2,8 @@
  * Client API avec gestion automatique des cookies de session
  */
 
+import { getApiUrl } from './config'
+
 // Validation de l'URL de l'API pour éviter les fautes de frappe
 function validateApiUrl(url: string): string {
   // Vérifier les fautes de frappe communes
@@ -13,7 +15,8 @@ function validateApiUrl(url: string): string {
 }
 
 // Configuration de base pour toutes les requêtes
-const rawApiUrl = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:8000/api'
+// Utilise la configuration centralisée qui exige NEXT_PUBLIC_API_URL
+const rawApiUrl = getApiUrl()
 const API_BASE_URL = validateApiUrl(rawApiUrl)
 
 // Afficher l'URL utilisée au démarrage

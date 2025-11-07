@@ -1,5 +1,6 @@
 import { useState, useCallback } from 'react';
 import axios from 'axios';
+import { API_CONFIG } from "@/lib/config"
 
 interface Idea {
   id: number;
@@ -29,9 +30,9 @@ export const useIdeas = () => {
   const [loading, setLoading] = useState<boolean>(false);
   const [error, setError] = useState<string | null>(null);
 
-  const API_URL = process.env.NEXT_PUBLIC_API_URL ? `${process.env.NEXT_PUBLIC_API_URL}/accueil/ideas/` : 'http://localhost:8000/api/accueil/ideas/';
-  const SUBMIT_URL = process.env.NEXT_PUBLIC_API_URL ? `${process.env.NEXT_PUBLIC_API_URL}/accueil/ideas/submit/` : 'http://localhost:8000/api/accueil/ideas/submit/';
-  const DEPARTMENTS_URL = process.env.NEXT_PUBLIC_API_URL ? `${process.env.NEXT_PUBLIC_API_URL}/accueil/ideas/departments/` : 'http://localhost:8000/api/accueil/ideas/departments/';
+  const API_URL = `${API_CONFIG.ACCUEIL}/ideas/`;
+  const SUBMIT_URL = `${API_CONFIG.ACCUEIL}/ideas/submit/`;
+  const DEPARTMENTS_URL = `${API_CONFIG.ACCUEIL}/ideas/departments/`;
 
   const fetchIdeas = useCallback(async () => {
     setLoading(true);

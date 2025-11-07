@@ -1,5 +1,7 @@
 // Configuration de l'API
-const API_BASE_URL = `${process.env.NEXT_PUBLIC_API_URL || 'http://localhost:8000/api'}/actualites`;
+import { API_CONFIG } from './config'
+
+const API_BASE_URL = API_CONFIG.ACTUALITES;
 
 // Types TypeScript pour les données
 

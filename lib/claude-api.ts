@@ -218,4 +218,6 @@ RÈGLES STRICTES : Réponds de manière directe et affirmative en utilisant UNIQ
 }
 
 // Instance singleton
-export const claudeAPI = new ClaudeAPI(config.claude.apiKey)
+// ⚠️ La clé API doit être définie dans NEXT_PUBLIC_CLAUDE_API_KEY
+// Si elle n'est pas définie, une chaîne vide sera utilisée et l'API échouera
+export const claudeAPI = new ClaudeAPI(config.claude.apiKey || '')

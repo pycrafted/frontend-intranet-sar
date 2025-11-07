@@ -1,4 +1,5 @@
 import { useState, useEffect } from 'react'
+import { API_CONFIG } from "@/lib/config"
 
 export interface SafetyData {
   id: number
@@ -42,7 +43,7 @@ export function useSafetyData() {
       setLoading(true)
       setError(null)
       
-      const response = await fetch(`${process.env.NEXT_PUBLIC_API_URL || 'http://localhost:8000/api'}/accueil/safety/current/`)
+      const response = await fetch(`${API_CONFIG.ACCUEIL}/safety/current/`)
       
       if (!response.ok) {
         throw new Error(`Erreur HTTP: ${response.status}`)
@@ -63,7 +64,7 @@ export function useSafetyData() {
       setLoading(true)
       setError(null)
       
-      const response = await fetch(`${process.env.NEXT_PUBLIC_API_URL || 'http://localhost:8000/api'}/accueil/safety/update/`, {
+      const response = await fetch(`${API_CONFIG.ACCUEIL}/safety/update/`, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
@@ -92,7 +93,7 @@ export function useSafetyData() {
       setLoading(true)
       setError(null)
       
-      const response = await fetch(`${process.env.NEXT_PUBLIC_API_URL || 'http://localhost:8000/api'}/accueil/safety/reset/`, {
+      const response = await fetch(`${API_CONFIG.ACCUEIL}/safety/reset/`, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',

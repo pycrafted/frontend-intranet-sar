@@ -55,16 +55,13 @@ export interface Forum {
 
 export interface Conversation {
   id: string | number
-  title: string
+  message: string
   author: string
   authorAvatar: string
   replies: number
   views: number
   lastActivity: string
-  isResolved?: boolean
   forumId: string | number | null
-  image: string
-  description: string
   content?: string // Pour compatibilité avec l'API
   forum?: number | { id: number } // Pour compatibilité avec l'API
 }
@@ -97,143 +94,94 @@ export function ForumPage({ isMainSidebarCollapsed = false }: ForumPageProps) {
   }))
   
   // Convertir les conversations de l'API au format attendu par les composants
-  // Utiliser useMemo pour éviter de recalculer à chaque render
   const allConversations: Conversation[] = useMemo(() => {
-    console.log('🟨 [FORUM_PAGE] ===== DÉBUT NORMALISATION allConversations =====')
-    console.log('🟨 [FORUM_PAGE] apiConversations.length:', apiConversations.length)
-    console.log('🟨 [FORUM_PAGE] apiConversations:', apiConversations.map(c => ({ id: c.id, title: c.title, forumId: c.forumId })))
-    
-    return apiConversations.map(c => {
-    // Extraire le forumId de différentes façons possibles
-    let forumId: number | string | null = null
-    if (c.forumId !== undefined && c.forumId !== null) {
-      forumId = c.forumId
-    } else if (typeof c.forum === 'object' && c.forum?.id !== undefined) {
-      forumId = c.forum.id
-    } else if (typeof c.forum === 'number' || typeof c.forum === 'string') {
-      forumId = c.forum
-    }
-    
-    // Log pour debug
-    console.log("🟨 [FORUM_PAGE] Normalisation conversation:", {
-      id: c.id,
-      title: c.title,
-      forumId: forumId,
-      forumIdFromProp: c.forumId,
-      forum: c.forum,
-      author_avatar: c.author_avatar,
-      authorAvatar: c.authorAvatar,
-      author_avatar_url: c.author?.avatar_url,
-      author_full_name: c.author?.full_name,
-      author_username: c.author?.username
+    console.log('📦📦📦 [FORUM_PAGE] ===== NORMALISATION allConversations =====')
+    console.log('📦 [FORUM_PAGE] apiConversations.length:', apiConversations.length)
+    console.log('📦 [FORUM_PAGE] apiConversations reçues:')
+    apiConversations.forEach((c, idx) => {
+      console.log(`📦 [FORUM_PAGE]   ${idx + 1}. ID=${c.id}, forumId=${c.forumId}, message="${c.message?.substring(0, 30)}"`)
     })
     
-    const normalized: Conversation = {
-      id: c.id,
-      title: c.title || (c as any).content?.substring(0, 100) || 'Nouvelle conversation',
-      author: c.author?.full_name || c.author?.username || 'Utilisateur',
-      authorAvatar: c.author_avatar || c.authorAvatar || c.author?.avatar_url || '/photo_profil.png',
-      replies: c.replies || c.replies_count || 0,
-      views: c.views || 0,
-      lastActivity: c.lastActivity || c.last_activity || 'À l\'instant',
-      isResolved: c.isResolved !== undefined ? c.isResolved : (c.is_resolved !== undefined ? c.is_resolved : true),
-      forumId: forumId || 0, // Fallback à 0 si null (ne devrait jamais arriver)
-      image: c.image || c.image_url || '/sitesar.jpg',
-      description: c.description || (c as any).content || '',
-      content: (c as any).content, // Garder pour compatibilité
-      forum: c.forum, // Garder pour compatibilité
-    }
-    
-    console.log("🟨 [FORUM_PAGE] Conversation normalisée:", {
-      id: normalized.id,
-      title: normalized.title,
-      forumId: normalized.forumId
+    const normalized = apiConversations.map(c => {
+      let forumId: number | string | null = null
+      if (c.forumId !== undefined && c.forumId !== null) {
+        forumId = c.forumId
+      } else if (typeof c.forum === 'object' && c.forum?.id !== undefined) {
+        forumId = c.forum.id
+      } else if (typeof c.forum === 'number' || typeof c.forum === 'string') {
+        forumId = c.forum
+      }
+      
+      return {
+        id: c.id,
+        message: c.message || (c as any).content || (c as any).description || 'Nouvelle conversation',
+        author: c.author?.full_name || c.author?.username || 'Utilisateur',
+        authorAvatar: c.author_avatar || c.authorAvatar || c.author?.avatar_url || '/photo_profil.png',
+        replies: c.replies || c.replies_count || 0,
+        views: c.views || 0,
+        lastActivity: c.lastActivity || c.last_activity || 'À l\'instant',
+        forumId: forumId !== null && forumId !== undefined ? Number(forumId) : 0,
+        content: (c as any).content,
+        forum: c.forum,
+      }
     })
     
-      return normalized
+    console.log('📦 [FORUM_PAGE] allConversations normalisées:', normalized.length)
+    normalized.forEach((c, idx) => {
+      console.log(`📦 [FORUM_PAGE]   ${idx + 1}. ID=${c.id}, forumId=${c.forumId}, message="${c.message?.substring(0, 30)}"`)
     })
+    console.log('📦📦📦 [FORUM_PAGE] ===== FIN NORMALISATION =====')
+    return normalized
   }, [apiConversations])
-  
-  // Log après normalisation
-  useEffect(() => {
-    console.log('🟨 [FORUM_PAGE] allConversations normalisées:', allConversations.length)
-    allConversations.forEach((c, idx) => {
-      console.log(`🟨 [FORUM_PAGE]   allConversation ${idx + 1}: ID=${c.id}, title="${c.title}", forumId=${c.forumId}`)
-    })
-    console.log('🟨 [FORUM_PAGE] ===== FIN NORMALISATION allConversations =====')
-  }, [allConversations])
   
   const [selectedForum, setSelectedForum] = useState<Forum | null>(null)
   const [selectedConversation, setSelectedConversation] = useState<Conversation | null>(null)
   const [isSidebarCollapsed, setIsSidebarCollapsed] = useState(true) // Rétracté par défaut
   const [isCreateForumDialogOpen, setIsCreateForumDialogOpen] = useState(false)
   
-  // Filtrer les conversations par forum sélectionné - Utiliser useMemo pour optimiser
+  // Filtrer les conversations par forum sélectionné
   const forumConversations = useMemo(() => {
-    if (!selectedForum) return []
+    console.log('🔍🔍🔍 [FORUM_PAGE] ===== FILTRAGE forumConversations =====')
+    console.log('🔍 [FORUM_PAGE] selectedForum:', selectedForum ? { id: selectedForum.id, name: selectedForum.name } : 'null')
+    console.log('🔍 [FORUM_PAGE] allConversations.length:', allConversations.length)
     
-    return allConversations.filter(c => {
-        // Extraire le forumId de la conversation (déjà normalisé dans allConversations)
-        const cForumId = c.forumId !== undefined && c.forumId !== null 
-          ? (typeof c.forumId === 'string' ? parseInt(c.forumId) : Number(c.forumId))
-          : null
-        
-        // Extraire le forumId du forum sélectionné
-        const selectedForumId = selectedForum.id !== undefined && selectedForum.id !== null
-          ? (typeof selectedForum.id === 'string' ? parseInt(selectedForum.id) : Number(selectedForum.id))
-          : null
-        
-        // Comparer les IDs (en s'assurant qu'ils sont tous des nombres)
-        const matches = cForumId !== null && selectedForumId !== null && Number(cForumId) === Number(selectedForumId)
-        
-        console.log("🟡 [FORUM_PAGE] Filtrage conversation:", {
-          conversationId: c.id,
-          conversationTitle: c.title,
-          cForumId,
-          selectedForumId,
-          matches,
-          cForumIdType: typeof cForumId,
-          selectedForumIdType: typeof selectedForumId
-        })
-        
-        return matches
-      })
+    if (!selectedForum) {
+      console.log('🔍 [FORUM_PAGE] Aucun forum sélectionné, retour []')
+      console.log('🔍🔍🔍 [FORUM_PAGE] ===== FIN FILTRAGE =====')
+      return []
+    }
+    
+    const selectedForumId = typeof selectedForum.id === 'string' ? parseInt(selectedForum.id) : Number(selectedForum.id)
+    console.log('🔍 [FORUM_PAGE] selectedForumId (normalisé):', selectedForumId, typeof selectedForumId)
+    
+    const filtered = allConversations.filter(c => {
+      const cForumId = c.forumId !== undefined && c.forumId !== null 
+        ? (typeof c.forumId === 'string' ? parseInt(c.forumId) : Number(c.forumId))
+        : null
+      
+      const matches = cForumId !== null && selectedForumId !== null && Number(cForumId) === Number(selectedForumId)
+      
+      console.log(`🔍 [FORUM_PAGE]   Conv ID=${c.id}: cForumId=${cForumId}, selectedForumId=${selectedForumId}, matches=${matches}`)
+      
+      return matches
+    })
+    
+    console.log('🔍 [FORUM_PAGE] forumConversations filtrées:', filtered.length)
+    filtered.forEach((c, idx) => {
+      console.log(`🔍 [FORUM_PAGE]   ${idx + 1}. ID=${c.id}, forumId=${c.forumId}, message="${c.message?.substring(0, 30)}"`)
+    })
+    console.log('🔍🔍🔍 [FORUM_PAGE] ===== FIN FILTRAGE =====')
+    return filtered
   }, [allConversations, selectedForum])
-  
-  // Log pour debug
-  useEffect(() => {
-    console.log("🟡 [FORUM_PAGE] ===== ÉTAT DES CONVERSATIONS =====")
-    console.log("🟡 [FORUM_PAGE] selectedForum:", selectedForum?.id, selectedForum?.name)
-    console.log("🟡 [FORUM_PAGE] allConversations:", allConversations.length)
-    allConversations.forEach((c, idx) => {
-      console.log(`🟡 [FORUM_PAGE]   Conversation ${idx + 1}:`, {
-        id: c.id,
-        title: c.title,
-        forumId: c.forumId,
-        forum: c.forum,
-        forumIdType: typeof c.forumId,
-        forumType: typeof c.forum
-      })
-    })
-    console.log("🟡 [FORUM_PAGE] forumConversations (filtrées):", forumConversations.length)
-    forumConversations.forEach((c, idx) => {
-      console.log(`🟡 [FORUM_PAGE]   Conversation filtrée ${idx + 1}:`, c.id, c.title)
-    })
-    console.log("🟡 [FORUM_PAGE] ====================================")
-  }, [selectedForum, allConversations, forumConversations])
   
   // Charger les forums au montage
   useEffect(() => {
-    console.log("🟡 [FORUM_PAGE] useEffect - Chargement des forums")
-    console.log("🟡 [FORUM_PAGE] Appel fetchForums()...")
     fetchForums()
-    // Ne pas charger toutes les conversations ici, attendre qu'un forum soit sélectionné
   }, [fetchForums])
   
   // Sélectionner le premier forum par défaut quand les forums sont chargés
   useEffect(() => {
     if (forums.length > 0 && !selectedForum) {
-      console.log("🟡 [FORUM_PAGE] Sélection automatique du premier forum:", forums[0])
       setSelectedForum(forums[0])
     }
   }, [forums.length, selectedForum])
@@ -242,39 +190,22 @@ export function ForumPage({ isMainSidebarCollapsed = false }: ForumPageProps) {
   useEffect(() => {
     if (selectedForum) {
       const forumId = typeof selectedForum.id === 'string' ? parseInt(selectedForum.id) : selectedForum.id
-      console.log("🟡 [FORUM_PAGE] Chargement des conversations pour le forum:", forumId)
       fetchConversations(forumId)
     }
   }, [selectedForum, fetchConversations])
-  
-  // Log des forums reçus
-  useEffect(() => {
-    console.log("🟡 [FORUM_PAGE] Forums mis à jour:", forums.length)
-    if (forums.length > 0) {
-      console.log("🟡 [FORUM_PAGE] Détails des forums dans le composant:")
-      forums.forEach((forum, idx) => {
-        console.log(`🟡 [FORUM_PAGE]   Forum ${idx + 1}: ID=${forum.id}, name="${forum.name}", memberCount=${forum.memberCount}, conversationCount=${forum.conversationCount}`)
-      })
-    } else {
-      console.warn("🟡 [FORUM_PAGE] ⚠️ AUCUN FORUM DANS LE COMPOSANT!")
-    }
-  }, [forums])
   
   // Ne plus sélectionner automatiquement la première conversation
   // L'utilisateur doit cliquer sur une conversation pour la voir
   
   // Gérer la sélection d'un forum
   const handleSelectForum = (forum: Forum) => {
-    console.log("🟡 [FORUM_PAGE] Forum sélectionné:", forum.id, forum.name)
     setSelectedForum(forum)
-    setSelectedConversation(null) // Réinitialiser la conversation sélectionnée
+    setSelectedConversation(null)
   }
   
   // Gérer la sélection d'une conversation
   const handleSelectConversation = (conversation: Conversation) => {
-    console.log("🟡 [FORUM_PAGE] Conversation sélectionnée:", conversation.id, conversation.title)
     setSelectedConversation(conversation)
-    // Charger les commentaires de cette conversation
     const conversationId = typeof conversation.id === 'string' ? parseInt(conversation.id) : conversation.id
     if (conversationId) {
       fetchComments(conversationId)
@@ -298,7 +229,6 @@ export function ForumPage({ isMainSidebarCollapsed = false }: ForumPageProps) {
   
   // Gérer le retour depuis une conversation
   const handleBackFromConversation = () => {
-    console.log("🟡 [FORUM_PAGE] Retour depuis la conversation")
     setSelectedConversation(null)
   }
   
@@ -309,7 +239,6 @@ export function ForumPage({ isMainSidebarCollapsed = false }: ForumPageProps) {
   
   // Callback après création de forum réussie
   const handleForumCreated = () => {
-    // Recharger la liste des forums
     fetchForums()
   }
   
@@ -356,6 +285,7 @@ export function ForumPage({ isMainSidebarCollapsed = false }: ForumPageProps) {
                     conversations={forumConversations} 
                     onSelectConversation={handleSelectConversation}
                     forumId={selectedForum ? (typeof selectedForum.id === 'string' ? parseInt(selectedForum.id) : selectedForum.id) : null}
+                    isLoading={isLoadingConversations}
                   />
                 )}
               </div>

@@ -1,5 +1,6 @@
 import { useState, useCallback, useEffect } from 'react';
 import axios from 'axios';
+import { API_CONFIG } from "@/lib/config"
 
 // Interface pour un événement
 export interface Event {
@@ -52,7 +53,7 @@ export interface EventFilters {
   month?: number;
 }
 
-const API_URL = `${process.env.NEXT_PUBLIC_API_URL || 'http://localhost:8000/api'}/accueil/events/`;
+const API_URL = `${API_CONFIG.ACCUEIL}/events/`;
 
 export const useEvents = () => {
   const [events, setEvents] = useState<Event[]>([]);

@@ -1,6 +1,7 @@
 import { useState, useEffect, useCallback } from "react"
+import { API_CONFIG } from "@/lib/config"
 
-const API_BASE_URL = `${process.env.NEXT_PUBLIC_API_URL || 'http://localhost:8000/api'}/annuaire`
+const API_BASE_URL = API_CONFIG.ANNUAIRE
 
 export interface Department {
   id: number

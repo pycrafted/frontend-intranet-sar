@@ -62,7 +62,9 @@ const initialFilters: EmployeesFilters = {
   page_size: 10
 }
 
-const API_BASE_URL = `${process.env.NEXT_PUBLIC_API_URL || 'http://localhost:8000/api'}/annuaire`
+import { API_CONFIG } from "@/lib/config"
+
+const API_BASE_URL = API_CONFIG.ANNUAIRE
 
 export const useEmployeesAdmin = () => {
   const [state, setState] = useState<EmployeesAdminState>({

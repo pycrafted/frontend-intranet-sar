@@ -1,6 +1,7 @@
 "use client"
 
 import { useEffect, useMemo, useState } from "react"
+import { getApiUrl } from "@/lib/config"
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
@@ -42,7 +43,7 @@ export function UsersAdminTable() {
   const [allUsers, setAllUsers] = useState<AdminUser[]>([])
   const [avatarFile, setAvatarFile] = useState<File | null>(null)
 
-  const baseUrl = (process.env.NEXT_PUBLIC_API_URL || 'http://localhost:8000/api')
+  const baseUrl = getApiUrl()
 
   const fetchUsers = async () => {
     try {
@@ -63,7 +64,7 @@ export function UsersAdminTable() {
   useEffect(() => {
     (async () => {
       try {
-        const res = await fetch(`${process.env.NEXT_PUBLIC_API_URL || 'http://localhost:8000/api'}/annuaire/departments/`, { credentials: 'include' })
+        const res = await fetch(`${baseUrl}/annuaire/departments/`, { credentials: 'include' })
         if (res.ok) {
           const data = await res.json()
           setDepartments(Array.isArray(data) ? data : (data?.results || []))

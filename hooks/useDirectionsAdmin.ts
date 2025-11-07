@@ -1,6 +1,7 @@
 "use client"
 
 import { useState, useEffect, useCallback } from 'react'
+import { API_CONFIG } from "@/lib/config"
 
 export interface Direction {
   id: number
@@ -22,7 +23,7 @@ interface UseDirectionsAdminReturn {
   deleteMultipleDirections: (ids: number[]) => Promise<void>
 }
 
-const API_BASE_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:8000/api'
+const API_BASE_URL = API_CONFIG.BASE_URL
 
 export const useDirectionsAdmin = (): UseDirectionsAdminReturn => {
   const [directions, setDirections] = useState<Direction[]>([])

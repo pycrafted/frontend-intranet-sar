@@ -11,15 +11,26 @@ const nextConfig = {
     serverComponentsExternalPackages: ['@radix-ui/react-avatar'],
   },
   // Configuration pour autoriser les origines de développement
-  allowedDevOrigins: [
-    'http://sar-intranet',
-    'http://sar-intranet.sar.sn',
-    'http://sar-intranet:3000',
-    'http://sar-intranet.sar.sn:3000',
-  ],
+  // Utilise NEXT_PUBLIC_FRONTEND_URL depuis les variables d'environnement
+  allowedDevOrigins: process.env.NEXT_PUBLIC_FRONTEND_URL 
+    ? [process.env.NEXT_PUBLIC_FRONTEND_URL]
+    : process.env.NODE_ENV === 'development'
+      ? [
+          'http://sar-intranet',
+          'http://sar-intranet.sar.sn',
+          // En développement uniquement, utilise localhost si FRONTEND_URL n'est pas défini
+          process.env.NEXT_PUBLIC_FRONTEND_URL || 'http://localhost:3000',
+        ]
+      : [
+          'http://sar-intranet',
+          'http://sar-intranet.sar.sn',
+        ],
   images: {
     unoptimized: true,
-    domains: ['backend-intranet-sar-1.onrender.com', 'sar-intranet.sar.sn'],
+    // Domaines configurés via variables d'environnement
+    domains: process.env.NEXT_PUBLIC_IMAGE_DOMAINS 
+      ? process.env.NEXT_PUBLIC_IMAGE_DOMAINS.split(',')
+      : ['backend-intranet-sar-1.onrender.com', 'sar-intranet.sar.sn'],
     remotePatterns: [
       {
         protocol: 'https',
@@ -27,12 +38,28 @@ const nextConfig = {
         port: '',
         pathname: '/media/**',
       },
-      {
-        protocol: 'http',
-        hostname: 'sar-intranet.sar.sn',
-        port: '8000',
-        pathname: '/media/**',
-      },
+      // Configuration dynamique basée sur NEXT_PUBLIC_API_URL
+      ...(process.env.NEXT_PUBLIC_API_URL 
+        ? (() => {
+            try {
+              const apiUrl = new URL(process.env.NEXT_PUBLIC_API_URL.replace('/api', ''));
+              return [{
+                protocol: apiUrl.protocol.replace(':', ''),
+                hostname: apiUrl.hostname,
+                port: apiUrl.port || '',
+                pathname: '/media/**',
+              }];
+            } catch {
+              return [];
+            }
+          })()
+        : [{
+            protocol: 'http',
+            hostname: 'sar-intranet.sar.sn',
+            port: '8000',
+            pathname: '/media/**',
+          }]
+      ),
     ],
   },
   // Configuration optimisée pour Vercel et Chrome

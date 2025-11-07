@@ -5,7 +5,13 @@
 
 const fetch = require('node-fetch');
 
-const API_BASE_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:8000';
+// Utilise NEXT_PUBLIC_API_URL depuis les variables d'environnement
+// Doit être défini dans .env.local
+const API_BASE_URL = process.env.NEXT_PUBLIC_API_URL;
+if (!API_BASE_URL) {
+  console.error('❌ ERREUR: NEXT_PUBLIC_API_URL n\'est pas définie dans les variables d\'environnement');
+  process.exit(1);
+}
 
 async function testLoadingMessages() {
   console.log('🧪 TEST DE L\'INTÉGRATION DES MESSAGES DE CHARGEMENT');
