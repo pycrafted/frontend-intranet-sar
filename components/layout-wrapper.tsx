@@ -1,7 +1,6 @@
 "use client"
 
-import type React from "react"
-import { useState, useEffect } from "react"
+import React, { useState, useEffect } from "react"
 import { usePathname, useRouter } from "next/navigation"
 import { Navigation } from "./navigation"
 import { Navbar } from "./navbar"
@@ -28,6 +27,10 @@ interface LayoutWrapperProps {
     selectedDepartment?: string
     onDepartmentChange?: (department: string) => void
     departmentOptions?: string[]
+  }
+  forumSidebarProps?: {
+    isCollapsed?: boolean
+    onCollapseChange?: (isCollapsed: boolean) => void
   }
   sidebarProps?: {
     activeFilter?: string
@@ -68,7 +71,7 @@ interface LayoutWrapperProps {
   }
 }
 
-export function LayoutWrapper({ children, secondaryNavbarProps, sidebarProps }: LayoutWrapperProps) {
+export function LayoutWrapper({ children, secondaryNavbarProps, sidebarProps, forumSidebarProps }: LayoutWrapperProps) {
   const [sidebarOpen, setSidebarOpen] = useState(false)
   const [isSidebarCollapsed, setIsSidebarCollapsed] = useState(true) // Rétracté par défaut
   const [isSecondarySidebarCollapsed, setIsSecondarySidebarCollapsed] = useState(true) // Rétracté par défaut
@@ -79,12 +82,13 @@ export function LayoutWrapper({ children, secondaryNavbarProps, sidebarProps }: 
   const { user, isAuthenticated, isLoading } = useAuth()
 
   // Pages protégées nécessitant une authentification
-  const protectedPages = ['/metriques', '/centre_de_controle']
+  const protectedPages = ['/metriques', '/centre_de_controle', '/reseau-social']
   const isProtectedPage = protectedPages.includes(pathname)
 
   // Redirection selon la page: 
   // - '/metriques' => admin uniquement
   // - '/centre_de_controle' => admin OU communication
+  // - '/reseau-social' => authentification requise (géré par AuthGuard dans la page)
   useEffect(() => {
     if (!isLoading && isProtectedPage) {
       const isAdmin = !!user && (user.is_superuser || (user as any).is_admin_group)
@@ -94,6 +98,7 @@ export function LayoutWrapper({ children, secondaryNavbarProps, sidebarProps }: 
       } else if (pathname === '/centre_de_controle') {
         if (!isAuthenticated || (!isAdmin && !isCom)) router.push('/')
       }
+      // '/reseau-social' est géré par AuthGuard directement dans la page
     }
   }, [isProtectedPage, pathname, isLoading, isAuthenticated, user, router])
 
@@ -137,6 +142,8 @@ export function LayoutWrapper({ children, secondaryNavbarProps, sidebarProps }: 
           <div className={`flex-1 bg-gray-200 transition-all duration-300 ${
             pathname === "/centre_de_controle" ? (
               isSecondarySidebarCollapsed ? "lg:ml-0" : "lg:ml-80"
+            ) : pathname === "/forum" ? (
+              "" // Le forum gère lui-même les marges pour le sidebar secondaire
             ) : ""}`}>
       {/* Secondary Navbar pour les pages actualités, organigramme, annuaire, documents - dans la zone de contenu */}
       {(pathname === "/actualites" || pathname === "/organigramme" || pathname === "/annuaire" || pathname === "/documents") && (
@@ -148,8 +155,25 @@ export function LayoutWrapper({ children, secondaryNavbarProps, sidebarProps }: 
         />
       )}
             
-            <div className={`mx-auto px-2 xs:px-3 sm:px-4 py-3 xs:py-4 sm:py-6 lg:px-8 ${pathname === "/" || pathname === "/securite" || pathname === "/recrutement" || pathname === "/reseau-social" ? "max-w-none px-1 xs:px-1.5 sm:px-2 lg:px-4" : pathname === "/organigramme" ? "max-w-none px-0" : "max-w-7xl"}`}>
-              {children}
+            <div className={`mx-auto px-2 xs:px-3 sm:px-4 py-3 xs:py-4 sm:py-6 lg:px-8 ${pathname === "/" || pathname === "/securite" || pathname === "/recrutement" || pathname === "/reseau-social" || pathname === "/forum" ? (pathname === "/forum" ? "max-w-none p-0" : pathname === "/reseau-social" ? "max-w-none p-0" : "max-w-none px-1 xs:px-1.5 sm:px-2 lg:px-4") : pathname === "/organigramme" ? "max-w-none px-0" : "max-w-7xl"}`}>
+              {(() => {
+                // Vérifier si l'enfant est un composant React (pas un élément DOM)
+                if (pathname === "/forum" && React.isValidElement(children)) {
+                  const child = children as React.ReactElement<any>
+                  // Vérifier que ce n'est pas un élément DOM (type string = élément DOM)
+                  if (typeof child.type !== 'string' && child.type) {
+                    return React.cloneElement(child, { isMainSidebarCollapsed: isSidebarCollapsed })
+                  }
+                }
+                if (pathname === "/reseau-social" && React.isValidElement(children)) {
+                  const child = children as React.ReactElement<any>
+                  // Vérifier que ce n'est pas un élément DOM (type string = élément DOM)
+                  if (typeof child.type !== 'string' && child.type) {
+                    return React.cloneElement(child, { isMainSidebarCollapsed: isSidebarCollapsed })
+                  }
+                }
+                return children
+              })()}
             </div>
           </div>
           {pathname === "/centre_de_controle" && <ControlCenterSidebar 

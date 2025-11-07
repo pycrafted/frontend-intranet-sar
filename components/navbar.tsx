@@ -1,6 +1,6 @@
 "use client"
 
-import { useState, FormEvent } from "react"
+import { useState, useEffect, FormEvent } from "react"
 import Link from "next/link"
 import { User, ChevronDown, Menu, LogOut, Settings, Edit } from "lucide-react"
 import { Button } from "@/components/ui/button"
@@ -36,6 +36,12 @@ export function Navbar({ onMenuClick }: NavbarProps) {
   const [loginEmail, setLoginEmail] = useState("")
   const [loginPassword, setLoginPassword] = useState("")
   const [loginError, setLoginError] = useState("")
+  const [mounted, setMounted] = useState(false)
+
+  // S'assurer que le rendu conditionnel ne s'applique qu'après l'hydratation
+  useEffect(() => {
+    setMounted(true)
+  }, [])
 
   const handleLogout = async () => {
     try {
@@ -122,13 +128,21 @@ export function Navbar({ onMenuClick }: NavbarProps) {
                   className="flex items-center gap-1 xs:gap-1.5 sm:gap-2 text-white hover:bg-[#2a323d] flex-shrink-0 min-w-0 h-7 xs:h-8 sm:h-10 px-1 xs:px-1.5 sm:px-2"
                   style={{ backgroundColor: '#353E4B' }}
                 >
-                {/* Pendant le chargement, ne pas afficher "Connexion" - attendre la vérification */}
-                {isLoading ? (
+                {/* Éviter les erreurs d'hydratation en rendant le même contenu initial côté serveur et client */}
+                {!mounted ? (
+                  // Rendu initial identique pour serveur et client (avant hydratation)
+                  <>
+                    <div className="h-4 w-4 xs:h-5 xs:w-5 sm:h-6 sm:w-6 rounded-full border-2 border-white/30 border-t-white animate-spin flex-shrink-0" />
+                    <span className="hidden sm:block text-xs sm:text-sm font-medium text-white/70" suppressHydrationWarning>
+                      Chargement...
+                    </span>
+                  </>
+                ) : isLoading ? (
                   // État de chargement : afficher un loader ou l'état précédent
                   user ? (
                     // Si on a un user en cache, l'afficher pendant le chargement
                     <>
-                      <Avatar className="h-4 w-4 xs:h-5 xs:w-5 sm:h-6 sm:w-6 lg:h-8 lg:w-8 flex-shrink-0 navbar-avatar">
+                      <Avatar className="h-4 w-4 xs:h-5 xs:w-5 sm:h-6 sm:w-6 lg:h-8 lg:w-8 flex-shrink-0 navbar-avatar" suppressHydrationWarning>
                         <AvatarImage src={user.avatar_url || "/placeholder.svg?height=32&width=32"} />
                         <AvatarFallback className="bg-accent text-accent-foreground text-xs">
                           {authUtils.getInitials(user)}
@@ -152,7 +166,7 @@ export function Navbar({ onMenuClick }: NavbarProps) {
                 ) : isAuthenticated && user ? (
                   // Utilisateur authentifié
                   <>
-                  <Avatar className="h-4 w-4 xs:h-5 xs:w-5 sm:h-6 sm:w-6 lg:h-8 lg:w-8 flex-shrink-0 navbar-avatar">
+                  <Avatar className="h-4 w-4 xs:h-5 xs:w-5 sm:h-6 sm:w-6 lg:h-8 lg:w-8 flex-shrink-0 navbar-avatar" suppressHydrationWarning>
                     <AvatarImage src={user.avatar_url || "/placeholder.svg?height=32&width=32"} />
                     <AvatarFallback className="bg-accent text-accent-foreground text-xs">
                       {authUtils.getInitials(user)}
@@ -168,7 +182,7 @@ export function Navbar({ onMenuClick }: NavbarProps) {
                   // Non authentifié (seulement après le chargement)
                   <>
                     <User className="h-3 w-3 xs:h-3.5 xs:w-3.5 sm:h-4 sm:w-4 flex-shrink-0" />
-                    <span className="hidden sm:block text-xs sm:text-sm font-medium text-white">
+                    <span className="hidden sm:block text-xs sm:text-sm font-medium text-white" suppressHydrationWarning>
                       Connexion
                     </span>
                   </>

@@ -2,8 +2,24 @@
  * Client API avec gestion automatique des cookies de session
  */
 
+// Validation de l'URL de l'API pour éviter les fautes de frappe
+function validateApiUrl(url: string): string {
+  // Vérifier les fautes de frappe communes
+  if (url.includes('sar-intrant')) {
+    console.warn('⚠️ [API_CLIENT] URL incorrecte détectée: "sar-intrant" devrait être "sar-intranet"')
+    return url.replace('sar-intrant', 'sar-intranet')
+  }
+  return url
+}
+
 // Configuration de base pour toutes les requêtes
-const API_BASE_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:8000/api'
+const rawApiUrl = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:8000/api'
+const API_BASE_URL = validateApiUrl(rawApiUrl)
+
+// Afficher l'URL utilisée au démarrage
+if (typeof window !== 'undefined') {
+  console.log('🔧 [API_CLIENT] URL API configurée:', API_BASE_URL)
+}
 
 // Fonction pour récupérer le token CSRF
 async function getCSRFToken(): Promise<string | null> {
@@ -88,17 +104,21 @@ export class APIClient {
     }
 
     // Faire la requête
-    console.log('🌐 [API_CLIENT] Requête:', {
-      url: `${API_BASE_URL}${endpoint}`,
-      method,
-      headers: finalHeaders,
-      body: body ? (body instanceof FormData ? 'FormData' : JSON.stringify(body)) : undefined,
-      requireAuth,
-      isDocumentsEndpoint: endpoint.includes('/documents/'),
-      credentials: requestConfig.credentials
-    })
+    const fullUrl = `${API_BASE_URL}${endpoint}`
+    console.log('🌐 [API_CLIENT] ===== DÉBUT REQUÊTE =====')
+    console.log('🌐 [API_CLIENT] Timestamp:', new Date().toISOString())
+    console.log('🌐 [API_CLIENT] URL complète:', fullUrl)
+    console.log('🌐 [API_CLIENT] Méthode:', method)
+    console.log('🌐 [API_CLIENT] Endpoint:', endpoint)
+    console.log('🌐 [API_CLIENT] API_BASE_URL:', API_BASE_URL)
+    console.log('🌐 [API_CLIENT] Headers:', finalHeaders)
+    console.log('🌐 [API_CLIENT] Body:', body ? (body instanceof FormData ? 'FormData' : JSON.stringify(body)) : 'Aucun')
+    console.log('🌐 [API_CLIENT] requireAuth:', requireAuth)
+    console.log('🌐 [API_CLIENT] credentials:', requestConfig.credentials)
+    console.log('🌐 [API_CLIENT] isDocumentsEndpoint:', endpoint.includes('/documents/'))
+    console.log('🌐 [API_CLIENT] isForumEndpoint:', endpoint.includes('/forum/'))
     
-    const response = await fetch(`${API_BASE_URL}${endpoint}`, requestConfig)
+    const response = await fetch(fullUrl, requestConfig)
     
     // Log des cookies après la requête
     console.log('🍪 [API_CLIENT] Cookies après requête:', {
@@ -108,16 +128,18 @@ export class APIClient {
       setCookieHeader: response.headers.get('Set-Cookie')
     })
     
-    console.log('📡 [API_CLIENT] Réponse:', {
-      url: `${API_BASE_URL}${endpoint}`,
-      status: response.status,
-      statusText: response.statusText,
-      ok: response.ok,
-      headers: Object.fromEntries(response.headers.entries()),
-      requireAuth,
-      isDocumentsEndpoint: endpoint.includes('/documents/'),
-      credentials: requestConfig.credentials
-    })
+    console.log('📡 [API_CLIENT] ===== RÉPONSE REÇUE =====')
+    console.log('📡 [API_CLIENT] URL:', `${API_BASE_URL}${endpoint}`)
+    console.log('📡 [API_CLIENT] Status:', response.status)
+    console.log('📡 [API_CLIENT] StatusText:', response.statusText)
+    console.log('📡 [API_CLIENT] OK:', response.ok)
+    console.log('📡 [API_CLIENT] Headers:', Object.fromEntries(response.headers.entries()))
+    console.log('📡 [API_CLIENT] Content-Type:', response.headers.get('Content-Type'))
+    console.log('📡 [API_CLIENT] Content-Length:', response.headers.get('Content-Length'))
+    console.log('📡 [API_CLIENT] requireAuth:', requireAuth)
+    console.log('📡 [API_CLIENT] isDocumentsEndpoint:', endpoint.includes('/documents/'))
+    console.log('📡 [API_CLIENT] isForumEndpoint:', endpoint.includes('/forum/'))
+    console.log('📡 [API_CLIENT] ===== FIN RÉPONSE =====')
 
     // Vérifier l'authentification si requise
     if (requireAuth && (response.status === 401 || response.status === 403)) {

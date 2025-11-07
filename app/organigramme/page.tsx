@@ -7,7 +7,7 @@ import { useOrgChart, Employee } from "@/hooks/useOrgChart"
 
 export default function OrganigrammePage() {
   const [searchTerm, setSearchTerm] = useState("")
-  const [selectedDepartment, setSelectedDepartment] = useState("ADMINISTRATION")
+  const [selectedDepartment, setSelectedDepartment] = useState("Direction Générale")
   const [isTyping, setIsTyping] = useState(false)
   const [debouncedSearchTerm, setDebouncedSearchTerm] = useState("")
   const [selectedEmployee, setSelectedEmployee] = useState<Employee | null>(null)

@@ -6,14 +6,31 @@ const nextConfig = {
   typescript: {
     ignoreBuildErrors: true,
   },
+  // Ignorer les erreurs de Google Fonts pendant le build
+  experimental: {
+    serverComponentsExternalPackages: ['@radix-ui/react-avatar'],
+  },
+  // Configuration pour autoriser les origines de développement
+  allowedDevOrigins: [
+    'http://sar-intranet',
+    'http://sar-intranet.sar.sn',
+    'http://sar-intranet:3000',
+    'http://sar-intranet.sar.sn:3000',
+  ],
   images: {
     unoptimized: true,
-    domains: ['backend-intranet-sar-1.onrender.com'],
+    domains: ['backend-intranet-sar-1.onrender.com', 'sar-intranet.sar.sn'],
     remotePatterns: [
       {
         protocol: 'https',
         hostname: 'backend-intranet-sar-1.onrender.com',
         port: '',
+        pathname: '/media/**',
+      },
+      {
+        protocol: 'http',
+        hostname: 'sar-intranet.sar.sn',
+        port: '8000',
         pathname: '/media/**',
       },
     ],

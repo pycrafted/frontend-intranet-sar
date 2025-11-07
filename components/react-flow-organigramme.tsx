@@ -49,6 +49,9 @@ const ReactFlowOrganigramme = forwardRef<ReactFlowOrganigrammeRef, ReactFlowOrga
   const [selectedNode, setSelectedNode] = useState<Node | null>(null)
   const [reactFlowInstance, setReactFlowInstance] = useState<any>(null)
   const [hoveredNodeId, setHoveredNodeId] = useState<string | null>(null)
+  const [viewportCenter, setViewportCenter] = useState<{ x: number; y: number } | null>(null)
+  const [isPanning, setIsPanning] = useState(false)
+  const [panStartCenter, setPanStartCenter] = useState<{ x: number; y: number } | null>(null)
   // Le viewport sera calculé dynamiquement
 
   // Debug: Log des employés reçus
@@ -444,14 +447,129 @@ const ReactFlowOrganigramme = forwardRef<ReactFlowOrganigrammeRef, ReactFlowOrga
           zoom: Math.min(optimalZoom, currentViewport.zoom) // Utiliser le zoom optimal
         })
         
+        // Initialiser le centre de référence pour le minimap avec méthode robuste
+        let center
+        try {
+          center = reactFlowInstance.screenToFlowPosition({
+            x: window.innerWidth / 2,
+            y: window.innerHeight / 2
+          })
+          
+          // Vérifier la validité du centre (important pour les grandes structures)
+          if (!center || isNaN(center.x) || isNaN(center.y) || 
+              !isFinite(center.x) || !isFinite(center.y)) {
+            // Fallback: calculer depuis le viewport ajusté
+            center = {
+              x: -(currentViewport.x) / currentViewport.zoom,
+              y: -(currentViewport.y - yOffset) / currentViewport.zoom
+            }
+          }
+        } catch (error) {
+          console.warn('⚠️ [REACT_FLOW] Erreur calcul centre initial:', error)
+          // Fallback: calculer depuis le viewport ajusté
+          center = {
+            x: -(currentViewport.x) / currentViewport.zoom,
+            y: -(currentViewport.y - yOffset) / currentViewport.zoom
+          }
+        }
+        
+        setViewportCenter(center)
+        
         console.log('✅ [REACT_FLOW] Centrage parfait appliqué:', {
           originalY: currentViewport.y,
           adjustedY: currentViewport.y - yOffset,
-          zoom: currentViewport.zoom
+          zoom: currentViewport.zoom,
+          center,
+          nodesCount: nodes.length
         })
       }, 200)
     }
   }, [reactFlowInstance, nodes])
+
+  // Hook pour gérer les interactions avec le minimap (clics pour centrer avec référence)
+  useEffect(() => {
+    if (!reactFlowInstance || !reactFlowWrapper.current) return
+
+    // Trouver le minimap dans le DOM après le rendu
+    const findAndSetupMinimap = () => {
+      const minimapElement = reactFlowWrapper.current?.querySelector('.react-flow__minimap') as HTMLElement
+      if (!minimapElement) return null
+
+      const handleMinimapClick = (event: MouseEvent) => {
+        // Vérifier que le clic est bien sur le minimap (pas sur le rectangle de vue)
+        const target = event.target as HTMLElement
+        if (!target.closest('.react-flow__minimap')) return
+
+        // Obtenir les dimensions du minimap
+        const minimapRect = minimapElement.getBoundingClientRect()
+        const clickX = event.clientX - minimapRect.left
+        const clickY = event.clientY - minimapRect.top
+
+        // Calculer la position relative dans le minimap (0-1)
+        const relativeX = clickX / minimapRect.width
+        const relativeY = clickY / minimapRect.height
+
+        // Obtenir les limites de tous les nœuds pour calculer la position dans le flow
+        const nodes = reactFlowInstance.getNodes()
+        if (nodes.length === 0) return
+
+        // Calculer les limites de l'organigramme avec padding pour les grandes structures
+        let minX = Infinity, maxX = -Infinity, minY = Infinity, maxY = -Infinity
+        nodes.forEach(node => {
+          const width = typeof node.width === 'number' ? node.width : (node.style?.width ? parseFloat(node.style.width as string) : 220)
+          const height = typeof node.height === 'number' ? node.height : (node.style?.height ? parseFloat(node.style.height as string) : 280)
+          minX = Math.min(minX, node.position.x)
+          maxX = Math.max(maxX, node.position.x + width)
+          minY = Math.min(minY, node.position.y)
+          maxY = Math.max(maxY, node.position.y + height)
+        })
+
+        // Ajouter un padding pour les grandes structures (comme Direction Générale avec 10 rapports directs)
+        const paddingX = (maxX - minX) * 0.1 // 10% de padding horizontal
+        const paddingY = (maxY - minY) * 0.1 // 10% de padding vertical
+        minX -= paddingX
+        maxX += paddingX
+        minY -= paddingY
+        maxY += paddingY
+
+        // Calculer la position dans le système de coordonnées du flow
+        const flowX = minX + (maxX - minX) * relativeX
+        const flowY = minY + (maxY - minY) * relativeY
+
+        // Centrer la vue sur ce point en utilisant le zoom actuel
+        const viewport = reactFlowInstance.getViewport()
+        reactFlowInstance.setCenter(flowX, flowY, { zoom: viewport.zoom })
+
+        // Mettre à jour le centre de référence
+        const center = reactFlowInstance.screenToFlowPosition({
+          x: window.innerWidth / 2,
+          y: window.innerHeight / 2
+        })
+        setViewportCenter(center)
+
+        console.log('🎯 [REACT_FLOW] Clic sur minimap - Centrage avec référence:', {
+          minimapClick: { x: clickX, y: clickY },
+          relative: { x: relativeX, y: relativeY },
+          flowPosition: { x: flowX, y: flowY },
+          center
+        })
+      }
+
+      minimapElement.addEventListener('click', handleMinimapClick)
+      return () => {
+        minimapElement.removeEventListener('click', handleMinimapClick)
+      }
+    }
+
+    // Attendre que le minimap soit rendu
+    const timeoutId = setTimeout(() => {
+      findAndSetupMinimap()
+    }, 300)
+
+    return () => {
+      clearTimeout(timeoutId)
+    }
+  }, [reactFlowInstance, reactFlowWrapper, nodes])
 
   // Hook pour détecter les changements de taille d'écran et recentrer
   useEffect(() => {
@@ -489,6 +607,33 @@ const ReactFlowOrganigramme = forwardRef<ReactFlowOrganigrammeRef, ReactFlowOrga
             y: currentViewport.y - yOffset,
             zoom: Math.min(optimalZoom, currentViewport.zoom)
           })
+
+          // Mettre à jour le centre de référence après redimensionnement avec méthode robuste
+          let center
+          try {
+            center = reactFlowInstance.screenToFlowPosition({
+              x: window.innerWidth / 2,
+              y: window.innerHeight / 2
+            })
+            
+            // Vérifier la validité du centre (important pour les grandes structures)
+            if (!center || isNaN(center.x) || isNaN(center.y) || 
+                !isFinite(center.x) || !isFinite(center.y)) {
+              // Fallback: calculer depuis le viewport ajusté
+              center = {
+                x: -(currentViewport.x) / currentViewport.zoom,
+                y: -(currentViewport.y - yOffset) / currentViewport.zoom
+              }
+            }
+          } catch (error) {
+            console.warn('⚠️ [REACT_FLOW] Erreur calcul centre redimensionnement:', error)
+            // Fallback: calculer depuis le viewport ajusté
+            center = {
+              x: -(currentViewport.x) / currentViewport.zoom,
+              y: -(currentViewport.y - yOffset) / currentViewport.zoom
+            }
+          }
+          setViewportCenter(center)
         }, 100)
       }
     }
@@ -706,6 +851,151 @@ const ReactFlowOrganigramme = forwardRef<ReactFlowOrganigrammeRef, ReactFlowOrga
               onInit={setReactFlowInstance}
               onNodeClick={onNodeClick}
               onPaneClick={onPaneClick}
+              onMove={(event, viewport) => {
+                // Pendant le déplacement, maintenir la référence au minimap
+                if (reactFlowInstance) {
+                  // Utiliser une méthode plus robuste pour calculer le centre
+                  // qui fonctionne même pour les grandes structures comme la Direction Générale
+                  try {
+                    // Méthode 1: Utiliser screenToFlowPosition (plus précis pour les grandes structures)
+                    const center = reactFlowInstance.screenToFlowPosition({
+                      x: window.innerWidth / 2,
+                      y: window.innerHeight / 2
+                    })
+                    
+                    // Vérifier que le centre est valide (pas NaN ou Infinity)
+                    if (center && typeof center.x === 'number' && typeof center.y === 'number' && 
+                        !isNaN(center.x) && !isNaN(center.y) && 
+                        isFinite(center.x) && isFinite(center.y)) {
+                      setViewportCenter(center)
+                    } else {
+                      // Méthode 2: Fallback - calculer depuis le viewport
+                      const currentViewport = reactFlowInstance.getViewport()
+                      const flowCenter = {
+                        x: -currentViewport.x / currentViewport.zoom,
+                        y: -currentViewport.y / currentViewport.zoom
+                      }
+                      setViewportCenter(flowCenter)
+                    }
+                  } catch (error) {
+                    console.warn('⚠️ [REACT_FLOW] Erreur calcul centre:', error)
+                    // Fallback: utiliser le viewport directement
+                    const currentViewport = reactFlowInstance.getViewport()
+                    const flowCenter = {
+                      x: -currentViewport.x / currentViewport.zoom,
+                      y: -currentViewport.y / currentViewport.zoom
+                    }
+                    setViewportCenter(flowCenter)
+                  }
+                }
+              }}
+              onMoveStart={(event, viewport) => {
+                // Début du déplacement - capturer le centre de référence du minimap
+                if (reactFlowInstance) {
+                  setIsPanning(true)
+                  
+                  // Calculer le centre avec méthode robuste
+                  let center
+                  try {
+                    center = reactFlowInstance.screenToFlowPosition({
+                      x: window.innerWidth / 2,
+                      y: window.innerHeight / 2
+                    })
+                    
+                    // Vérifier la validité du centre
+                    if (!center || isNaN(center.x) || isNaN(center.y) || 
+                        !isFinite(center.x) || !isFinite(center.y)) {
+                      // Fallback: calculer depuis le viewport
+                      const currentViewport = reactFlowInstance.getViewport()
+                      center = {
+                        x: -currentViewport.x / currentViewport.zoom,
+                        y: -currentViewport.y / currentViewport.zoom
+                      }
+                    }
+                  } catch (error) {
+                    // Fallback en cas d'erreur
+                    const currentViewport = reactFlowInstance.getViewport()
+                    center = {
+                      x: -currentViewport.x / currentViewport.zoom,
+                      y: -currentViewport.y / currentViewport.zoom
+                    }
+                  }
+                  
+                  setPanStartCenter(center)
+                  setViewportCenter(center)
+                  
+                  console.log('🎯 [REACT_FLOW] Début du déplacement - Centre de référence minimap:', center)
+                }
+              }}
+              onMoveEnd={(event, viewport) => {
+                // Fin du déplacement - finaliser le centre de référence pour le minimap
+                if (reactFlowInstance) {
+                  // Calculer le centre avec méthode robuste
+                  let center
+                  try {
+                    center = reactFlowInstance.screenToFlowPosition({
+                      x: window.innerWidth / 2,
+                      y: window.innerHeight / 2
+                    })
+                    
+                    // Vérifier la validité du centre
+                    if (!center || isNaN(center.x) || isNaN(center.y) || 
+                        !isFinite(center.x) || !isFinite(center.y)) {
+                      // Fallback: calculer depuis le viewport
+                      const currentViewport = reactFlowInstance.getViewport()
+                      center = {
+                        x: -currentViewport.x / currentViewport.zoom,
+                        y: -currentViewport.y / currentViewport.zoom
+                      }
+                    }
+                  } catch (error) {
+                    // Fallback en cas d'erreur
+                    const currentViewport = reactFlowInstance.getViewport()
+                    center = {
+                      x: -currentViewport.x / currentViewport.zoom,
+                      y: -currentViewport.y / currentViewport.zoom
+                    }
+                  }
+                  
+                  setViewportCenter(center)
+                  setIsPanning(false)
+                  setPanStartCenter(null)
+                  
+                  console.log('🎯 [REACT_FLOW] Fin du déplacement - Centre de référence finalisé:', center)
+                }
+              }}
+              onViewportChange={(viewport) => {
+                // Mettre à jour le centre de référence lors des changements de viewport
+                if (reactFlowInstance) {
+                  try {
+                    const center = reactFlowInstance.screenToFlowPosition({
+                      x: window.innerWidth / 2,
+                      y: window.innerHeight / 2
+                    })
+                    
+                    // Vérifier la validité du centre
+                    if (center && typeof center.x === 'number' && typeof center.y === 'number' && 
+                        !isNaN(center.x) && !isNaN(center.y) && 
+                        isFinite(center.x) && isFinite(center.y)) {
+                      setViewportCenter(center)
+                    } else {
+                      // Fallback: calculer depuis le viewport
+                      const flowCenter = {
+                        x: -viewport.x / viewport.zoom,
+                        y: -viewport.y / viewport.zoom
+                      }
+                      setViewportCenter(flowCenter)
+                    }
+                  } catch (error) {
+                    // Fallback en cas d'erreur
+                    const flowCenter = {
+                      x: -viewport.x / viewport.zoom,
+                      y: -viewport.y / viewport.zoom
+                    }
+                    setViewportCenter(flowCenter)
+                  }
+                }
+              }}
               nodeTypes={nodeTypes}
               edgeTypes={edgeTypes}
               fitView={true}
@@ -721,9 +1011,9 @@ const ReactFlowOrganigramme = forwardRef<ReactFlowOrganigrammeRef, ReactFlowOrga
               minZoom={0.1}
               maxZoom={2}
               translateExtent={[[-2000, -2000], [2000, 2000]]}
-              panOnScroll={false}
-              zoomOnScroll={false}
-              zoomOnPinch={false}
+              panOnScroll={true}
+              zoomOnScroll={true}
+              zoomOnPinch={true}
               panOnDrag={false}
               selectNodesOnDrag={false}
             >
@@ -739,6 +1029,50 @@ const ReactFlowOrganigramme = forwardRef<ReactFlowOrganigrammeRef, ReactFlowOrga
                   zIndex: 10
                 }}
                 className="!bg-white/90 !backdrop-blur-sm !border !border-gray-200 !rounded-lg !shadow-lg"
+                onZoomIn={() => {
+                  // Zoomer en utilisant le minimap comme référence (centre de la vue)
+                  if (reactFlowInstance) {
+                    const viewport = reactFlowInstance.getViewport()
+                    const newZoom = Math.min(viewport.zoom * 1.2, 2)
+                    
+                    // Utiliser le centre actuel de la vue comme point de référence
+                    const center = viewportCenter || reactFlowInstance.screenToFlowPosition({
+                      x: window.innerWidth / 2,
+                      y: window.innerHeight / 2
+                    })
+                    
+                    // Zoomer en gardant le centre de la vue fixe
+                    reactFlowInstance.setCenter(center.x, center.y, { zoom: newZoom })
+                    
+                    console.log('🔍 [REACT_FLOW] Zoom in avec minimap comme référence:', {
+                      center,
+                      newZoom,
+                      oldZoom: viewport.zoom
+                    })
+                  }
+                }}
+                onZoomOut={() => {
+                  // Dézoomer en utilisant le minimap comme référence (centre de la vue)
+                  if (reactFlowInstance) {
+                    const viewport = reactFlowInstance.getViewport()
+                    const newZoom = Math.max(viewport.zoom / 1.2, 0.1)
+                    
+                    // Utiliser le centre actuel de la vue comme point de référence
+                    const center = viewportCenter || reactFlowInstance.screenToFlowPosition({
+                      x: window.innerWidth / 2,
+                      y: window.innerHeight / 2
+                    })
+                    
+                    // Dézoomer en gardant le centre de la vue fixe
+                    reactFlowInstance.setCenter(center.x, center.y, { zoom: newZoom })
+                    
+                    console.log('🔍 [REACT_FLOW] Zoom out avec minimap comme référence:', {
+                      center,
+                      newZoom,
+                      oldZoom: viewport.zoom
+                    })
+                  }
+                }}
               />
               <MiniMap 
                 position="top-left"
@@ -756,6 +1090,8 @@ const ReactFlowOrganigramme = forwardRef<ReactFlowOrganigrammeRef, ReactFlowOrga
                   return '#6b7280' // Gray pour les autres
                 }}
                 maskColor="rgba(0, 0, 0, 0.1)"
+                pannable={true}
+                zoomable={true}
               />
             </ReactFlow>
           </ReactFlowProvider>

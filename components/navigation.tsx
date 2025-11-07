@@ -94,10 +94,27 @@ export function Navigation({ isOpen, onClose, onCollapseChange }: NavigationProp
   }, [onCollapseChange])
 
   // Obtenir les sections de navigation et ajouter Administration si admin ou communication
-  const navigationSections = (() => {
+  // Utiliser useState pour éviter les problèmes d'hydratation
+  const [navigationSections, setNavigationSections] = useState(() => getBaseNavigationSections())
+  
+  useEffect(() => {
     const sections = getBaseNavigationSections()
+    const isAuthenticated = !!user
     const isAdmin = !!user && (user.is_superuser || (user as any).is_admin_group)
     const isCom = !!user && ((user as any).is_communication_group === true)
+    
+    // Filtrer le lien "Chat" si l'utilisateur n'est pas authentifié
+    sections.forEach(section => {
+      if (section.title === "Collaboration") {
+        section.items = section.items.filter(item => {
+          // Masquer "Chat" si non authentifié
+          if (item.name === "Chat" && !isAuthenticated) {
+            return false
+          }
+          return true
+        })
+      }
+    })
     if (isAdmin) {
       sections.push({
         title: "Administration",
@@ -114,8 +131,8 @@ export function Navigation({ isOpen, onClose, onCollapseChange }: NavigationProp
         ],
       })
     }
-    return sections
-  })()
+    setNavigationSections(sections)
+  }, [user])
 
   // Fonction de déconnexion
   const handleLogout = async () => {

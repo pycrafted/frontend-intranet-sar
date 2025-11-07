@@ -341,29 +341,53 @@ export const useOrgChart = () => {
 
   const fetchDepartments = async () => {
     try {
-      const response = await fetch(`${API_BASE_URL}/directions/`, {
-        method: 'GET',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        credentials: 'omit' // Pas d'authentification requise
-      })
+      let allDepartments: any[] = []
+      let nextUrl: string | null = `${API_BASE_URL}/directions/`
       
-      if (!response.ok) {
-        throw new Error(`Erreur ${response.status}: ${response.statusText}`)
+      // Récupérer toutes les pages si pagination
+      while (nextUrl) {
+        const response = await fetch(nextUrl, {
+          method: 'GET',
+          headers: {
+            'Content-Type': 'application/json',
+          },
+          credentials: 'omit' // Pas d'authentification requise
+        })
+        
+        if (!response.ok) {
+          throw new Error(`Erreur ${response.status}: ${response.statusText}`)
+        }
+        
+        const data = await response.json()
+        
+        // Si pagination, récupérer les résultats et l'URL suivante
+        if (data.results && Array.isArray(data.results)) {
+          allDepartments = [...allDepartments, ...data.results]
+          nextUrl = data.next || null
+        } else if (Array.isArray(data)) {
+          // Pas de pagination, toutes les données sont dans le tableau
+          allDepartments = data
+          nextUrl = null
+        } else {
+          // Format inattendu
+          allDepartments = [data]
+          nextUrl = null
+        }
       }
       
-      const data = await response.json()
-      // L'API retourne les données dans un format paginé avec 'results'
-      const departmentsData = data.results || data
       // Convertir les directions en format attendu
-      const departmentsList = Array.isArray(departmentsData) ? departmentsData.map((dept: any) => ({
+      const departmentsList = allDepartments.map((dept: any) => ({
         id: dept.id,
         name: dept.name,
         employee_count: 0,
         created_at: new Date().toISOString(),
         updated_at: new Date().toISOString()
-      })) : []
+      }))
+      
+      console.log('📊 [ORGCHART_HOOK] Directions récupérées:', {
+        total: departmentsList.length,
+        directions: departmentsList.map(d => d.name)
+      })
       
       // Si aucune donnée de l'API, utiliser les données statiques
       if (departmentsList.length === 0) {
