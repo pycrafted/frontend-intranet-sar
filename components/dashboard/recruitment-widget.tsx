@@ -18,7 +18,8 @@ import {
   Award,
   CheckCircle,
   ExternalLink,
-  Sparkles
+  Sparkles,
+  Ban
 } from "lucide-react"
 
 // Types pour les postes
@@ -364,24 +365,26 @@ export function RecruitmentWidget() {
           </div>
         </CardHeader>
         
-        <CardContent className="relative flex-1 flex flex-col justify-center p-6 pt-2 z-10">
-          <div className="space-y-2">
-            {/* Liste des postes */}
-            {jobPostings.length > 0 && (
-              <div className="space-y-2">
-                {jobPostings.map((job) => (
-                  <JobCard key={job.id} job={job} onViewDetails={handleViewDetails} />
-                ))}
+        <CardContent className="relative flex-1 flex flex-col justify-center items-center text-center p-3 sm:p-6 pt-2 z-10">
+          <div className="space-y-4 sm:space-y-6 lg:space-y-8">
+            {/* Icône dynamique et centrée - Même style que boîte à idée */}
+            <div className="relative">
+              <div className="w-20 h-20 sm:w-24 sm:h-24 lg:w-32 lg:h-32 bg-gradient-to-br from-orange-400 via-red-500 to-pink-500 rounded-full flex items-center justify-center mx-auto shadow-2xl group-hover:scale-110 transition-all duration-500 group-hover:animate-pulse">
+                <Ban className="h-10 w-10 sm:h-12 sm:w-12 lg:h-16 lg:w-16 text-white drop-shadow-lg" />
               </div>
-            )}
-
-            {/* Message si aucun poste */}
-            {jobPostings.length === 0 && (
-              <div className="text-center py-8">
-                <Briefcase className="h-12 w-12 text-gray-400 mx-auto mb-3" />
-                <p className="text-gray-500 text-sm">Aucun poste ouvert actuellement</p>
-              </div>
-            )}
+              {/* Effet de scintillement - Uniquement au survol */}
+              <div className="absolute inset-0 w-20 h-20 sm:w-24 sm:h-24 lg:w-32 lg:h-32 bg-gradient-to-br from-orange-300 via-red-400 to-pink-400 rounded-full mx-auto opacity-0 group-hover:opacity-100 group-hover:animate-ping transition-opacity duration-500"></div>
+            </div>
+            
+            {/* Texte centré */}
+            <div className="space-y-3 sm:space-y-4">
+              <h3 className="text-lg sm:text-xl lg:text-2xl font-bold text-slate-900 group-hover:text-orange-700 transition-colors duration-300">
+                Pas de poste à pourvoir en ce moment
+              </h3>
+              <p className="text-slate-500 text-sm sm:text-base">
+                Revenez bientôt pour découvrir de nouvelles opportunités
+              </p>
+            </div>
           </div>
         </CardContent>
       </Card>

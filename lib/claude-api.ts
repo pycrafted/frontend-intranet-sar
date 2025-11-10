@@ -55,13 +55,26 @@ export class ClaudeAPI {
     message: string,
     conversationHistory: ClaudeMessage[] = []
   ): Promise<string> {
+    const requestId = Date.now().toString()
+    console.log(`\n💬 [CLAUDE-API] ========== NOUVELLE REQUÊTE [${requestId}] ==========`)
+    console.log(`💬 [CLAUDE-API] [${requestId}] Message original:`, message?.substring(0, 100) + (message?.length > 100 ? '...' : ''))
+    console.log(`💬 [CLAUDE-API] [${requestId}] Historique:`, conversationHistory.length, 'messages')
+    
     try {
       // Récupérer le contexte MAI
+      console.log(`🔍 [CLAUDE-API] [${requestId}] Récupération du contexte MAI...`)
       const maiContext = await this.retrieveMAIContext(message)
+      console.log(`🔍 [CLAUDE-API] [${requestId}] Contexte MAI récupéré:`, {
+        success: maiContext.success,
+        contextLength: maiContext.context?.length || 0,
+        query: maiContext.query
+      })
       
       // Construire le prompt avec le contexte
       const enhancedMessage = this.buildEnhancedPrompt(message, maiContext)
+      console.log(`📝 [CLAUDE-API] [${requestId}] Message enrichi construit (longueur:`, enhancedMessage.length, 'caractères)')
       
+      console.log(`🌐 [CLAUDE-API] [${requestId}] Appel à /api/chat...`)
       const response = await fetch('/api/chat', {
         method: "POST",
         headers: {
@@ -74,9 +87,12 @@ export class ClaudeAPI {
         })
       })
 
+      console.log(`📡 [CLAUDE-API] [${requestId}] Réponse reçue - Status:`, response.status, response.statusText)
+
       if (!response.ok) {
         const errorData = await response.json()
-        console.error('Erreur API Claude:', errorData)
+        console.error(`❌ [CLAUDE-API] [${requestId}] Erreur API Claude:`, JSON.stringify(errorData, null, 2))
+        console.error(`❌ [CLAUDE-API] [${requestId}] Status HTTP:`, response.status)
         
         // Gestion spécifique des erreurs
         if (errorData.error === 'CREDIT_LOW') {
@@ -93,17 +109,29 @@ export class ClaudeAPI {
       }
 
       const data = await response.json()
+      console.log(`✅ [CLAUDE-API] [${requestId}] Données reçues:`, {
+        success: data.success,
+        hasMessage: !!data.message,
+        messageLength: data.message?.length || 0
+      })
       
       if (data.success && data.message) {
+        console.log(`✅ [CLAUDE-API] [${requestId}] Réponse générée (premiers 100 chars):`, data.message.substring(0, 100) + (data.message.length > 100 ? '...' : ''))
+        console.log(`✅ [CLAUDE-API] [${requestId}] ========== REQUÊTE RÉUSSIE ==========\n`)
         return data.message
       } else {
+        console.error(`❌ [CLAUDE-API] [${requestId}] Réponse invalide:`, data)
         throw new Error("Aucune réponse reçue de Claude")
       }
 
     } catch (error) {
-      console.error("Erreur lors de l'appel à l'API chat:", error)
+      console.error(`\n❌ [CLAUDE-API] [${requestId}] ========== ERREUR EXCEPTION ==========`)
+      console.error(`❌ [CLAUDE-API] [${requestId}] Type:`, error instanceof Error ? error.constructor.name : typeof error)
+      console.error(`❌ [CLAUDE-API] [${requestId}] Message:`, error instanceof Error ? error.message : String(error))
+      console.error(`❌ [CLAUDE-API] [${requestId}] Stack:`, error instanceof Error ? error.stack : 'N/A')
+      console.error(`❌ [CLAUDE-API] [${requestId}] ======================================\n`)
       
-      // Messages d'erreur personnalisés
+      // Messages d'erreur personnalisés et informatifs
       if (error instanceof Error) {
         if (error.message === "CREDIT_LOW") {
           return "Un incident technique est survenu. Veuillez contacter le service informatique pour assistance."
@@ -115,10 +143,17 @@ export class ClaudeAPI {
           return "Je suis temporairement indisponible. Veuillez réessayer ultérieurement."
         } else if (error.message.includes("network") || error.message.includes("fetch")) {
           return "Problème de connectivité réseau. Veuillez vérifier votre connexion internet et réessayer."
+        } else if (error.message.includes("Configuration API manquante") || error.message.includes("clé API")) {
+          return "Erreur de configuration système. Veuillez contacter le service informatique."
+        } else if (error.message.includes("backend") || error.message.includes("404")) {
+          return "Le service de recherche est temporairement indisponible. Veuillez réessayer dans quelques instants."
         }
       }
       
-      return "Je rencontre actuellement un problème technique. Veuillez reformuler votre demande."
+      // Message d'erreur générique amélioré
+      const errorMsg = error instanceof Error ? error.message : String(error)
+      console.error(`❌ [CLAUDE-API] Message d'erreur générique retourné pour:`, errorMsg)
+      return "Je rencontre actuellement un problème technique. Veuillez reformuler votre demande ou réessayer dans quelques instants."
     }
   }
 
@@ -137,7 +172,11 @@ export class ClaudeAPI {
    * Récupérer le contexte RAG pour une requête
    */
   private async retrieveMAIContext(query: string): Promise<MAIContext> {
+    const contextId = Date.now().toString()
+    console.log(`🔍 [CLAUDE-API] [CONTEXT-${contextId}] Récupération du contexte RAG pour:`, query?.substring(0, 50) + (query?.length > 50 ? '...' : ''))
+    
     try {
+      console.log(`🌐 [CLAUDE-API] [CONTEXT-${contextId}] Appel à /api/rag/search...`)
       const response = await fetch('/api/rag/search', {
         method: "POST",
         headers: { 
@@ -149,8 +188,15 @@ export class ClaudeAPI {
         })
       })
 
+      console.log(`📡 [CLAUDE-API] [CONTEXT-${contextId}] Réponse RAG - Status:`, response.status, response.statusText)
+
       if (!response.ok) {
-        console.warn('Erreur lors de la récupération du contexte RAG:', response.status)
+        const errorText = await response.text().catch(() => 'Impossible de lire la réponse')
+        console.warn(`⚠️ [CLAUDE-API] [CONTEXT-${contextId}] Erreur lors de la récupération du contexte RAG:`, {
+          status: response.status,
+          statusText: response.statusText,
+          body: errorText.substring(0, 200)
+        })
         return {
           context: '',
           query: query,
@@ -159,13 +205,23 @@ export class ClaudeAPI {
       }
 
       const data = await response.json()
+      console.log(`✅ [CLAUDE-API] [CONTEXT-${contextId}] Contexte RAG récupéré:`, {
+        success: data.success,
+        contextLength: data.context?.length || 0,
+        method: data.method,
+        responseTime: data.response_time_ms
+      })
+      
       return {
         context: data.context || '',
         query: query,
         success: data.success || false
       }
     } catch (error) {
-      console.warn('Erreur lors de la récupération du contexte RAG:', error)
+      console.warn(`⚠️ [CLAUDE-API] [CONTEXT-${contextId}] Erreur exception lors de la récupération du contexte RAG:`, {
+        type: error instanceof Error ? error.constructor.name : typeof error,
+        message: error instanceof Error ? error.message : String(error)
+      })
       return {
         context: '',
         query: query,

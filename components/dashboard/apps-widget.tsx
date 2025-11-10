@@ -97,14 +97,14 @@ const FormsIcon = () => (
 
 // Icônes pour les liens utiles
 const SARIcon = () => (
-  <div className="group relative w-16 h-16 bg-white rounded-lg flex items-center justify-center p-2 transition-all duration-300 hover:shadow-lg hover:scale-105 hover:bg-blue-50">
+  <div className="group/icon relative w-16 h-16 bg-white rounded-lg flex items-center justify-center p-2 transition-all duration-300 hover:shadow-lg hover:scale-105 hover:bg-blue-50">
     <img 
       src="/sitesar.jpg" 
       alt="SAR Site Officiel" 
-      className="w-full h-full object-contain transition-transform duration-300 group-hover:scale-110"
+      className="w-full h-full object-contain transition-transform duration-300 group-hover/icon:scale-110"
     />
     {/* Tooltip personnalisé */}
-    <div className="absolute -top-12 left-1/2 transform -translate-x-1/2 bg-gray-900 text-white text-xs font-medium px-3 py-2 rounded-lg opacity-0 group-hover:opacity-100 transition-opacity duration-300 pointer-events-none whitespace-nowrap z-50">
+    <div className="absolute -top-12 left-1/2 transform -translate-x-1/2 bg-gray-900 text-white text-xs font-medium px-3 py-2 rounded-lg opacity-0 group-hover/icon:opacity-100 transition-opacity duration-300 pointer-events-none whitespace-nowrap z-50">
       Site SAR
       <div className="absolute top-full left-1/2 transform -translate-x-1/2 w-0 h-0 border-l-4 border-r-4 border-t-4 border-transparent border-t-gray-900"></div>
     </div>
@@ -112,14 +112,14 @@ const SARIcon = () => (
 )
 
 const PetrosenIcon = () => (
-  <div className="group relative w-16 h-16 bg-white rounded-lg flex items-center justify-center p-2 transition-all duration-300 hover:shadow-lg hover:scale-105 hover:bg-green-50">
+  <div className="group/icon relative w-16 h-16 bg-white rounded-lg flex items-center justify-center p-2 transition-all duration-300 hover:shadow-lg hover:scale-105 hover:bg-green-50">
     <img 
       src="/petrosen.png" 
       alt="Petrosen Site Officiel" 
-      className="w-full h-full object-contain transition-transform duration-300 group-hover:scale-110"
+      className="w-full h-full object-contain transition-transform duration-300 group-hover/icon:scale-110"
     />
     {/* Tooltip personnalisé */}
-    <div className="absolute -top-12 left-1/2 transform -translate-x-1/2 bg-gray-900 text-white text-xs font-medium px-3 py-2 rounded-lg opacity-0 group-hover:opacity-100 transition-opacity duration-300 pointer-events-none whitespace-nowrap z-50">
+    <div className="absolute -top-12 left-1/2 transform -translate-x-1/2 bg-gray-900 text-white text-xs font-medium px-3 py-2 rounded-lg opacity-0 group-hover/icon:opacity-100 transition-opacity duration-300 pointer-events-none whitespace-nowrap z-50">
       Site Petrosen
       <div className="absolute top-full left-1/2 transform -translate-x-1/2 w-0 h-0 border-l-4 border-r-4 border-t-4 border-transparent border-t-gray-900"></div>
     </div>
@@ -127,14 +127,14 @@ const PetrosenIcon = () => (
 )
 
 const EnergyMinesIcon = () => (
-  <div className="group relative w-16 h-16 bg-white rounded-lg flex items-center justify-center p-2 transition-all duration-300 hover:shadow-lg hover:scale-105 hover:bg-orange-50">
+  <div className="group/icon relative w-16 h-16 bg-white rounded-lg flex items-center justify-center p-2 transition-all duration-300 hover:shadow-lg hover:scale-105 hover:bg-orange-50">
     <img 
       src="/ministere.png" 
       alt="Ministère Énergie-Mines" 
-      className="w-full h-full object-contain transition-transform duration-300 group-hover:scale-110"
+      className="w-full h-full object-contain transition-transform duration-300 group-hover/icon:scale-110"
     />
     {/* Tooltip personnalisé */}
-    <div className="absolute -top-12 left-1/2 transform -translate-x-1/2 bg-gray-900 text-white text-xs font-medium px-3 py-2 rounded-lg opacity-0 group-hover:opacity-100 transition-opacity duration-300 pointer-events-none whitespace-nowrap z-50">
+    <div className="absolute -top-12 left-1/2 transform -translate-x-1/2 bg-gray-900 text-white text-xs font-medium px-3 py-2 rounded-lg opacity-0 group-hover/icon:opacity-100 transition-opacity duration-300 pointer-events-none whitespace-nowrap z-50">
       Ministère Énergie-Mines
       <div className="absolute top-full left-1/2 transform -translate-x-1/2 w-0 h-0 border-l-4 border-r-4 border-t-4 border-transparent border-t-gray-900"></div>
     </div>
@@ -142,14 +142,14 @@ const EnergyMinesIcon = () => (
 )
 
 const LinkedInIcon = () => (
-  <div className="group relative w-16 h-16 bg-white rounded-lg flex items-center justify-center p-2 transition-all duration-300 hover:shadow-lg hover:scale-105 hover:bg-blue-50">
+  <div className="group/icon relative w-16 h-16 bg-white rounded-lg flex items-center justify-center p-2 transition-all duration-300 hover:shadow-lg hover:scale-105 hover:bg-blue-50">
     <img 
       src="/cos.png" 
       alt="COS Petrogaz" 
-      className="w-full h-full object-contain transition-transform duration-300 group-hover:scale-110"
+      className="w-full h-full object-contain transition-transform duration-300 group-hover/icon:scale-110"
     />
     {/* Tooltip personnalisé */}
-    <div className="absolute -top-12 left-1/2 transform -translate-x-1/2 bg-gray-900 text-white text-xs font-medium px-3 py-2 rounded-lg opacity-0 group-hover:opacity-100 transition-opacity duration-300 pointer-events-none whitespace-nowrap z-50">
+    <div className="absolute -top-12 left-1/2 transform -translate-x-1/2 bg-gray-900 text-white text-xs font-medium px-3 py-2 rounded-lg opacity-0 group-hover/icon:opacity-100 transition-opacity duration-300 pointer-events-none whitespace-nowrap z-50">
       COS
       <div className="absolute top-full left-1/2 transform -translate-x-1/2 w-0 h-0 border-l-4 border-r-4 border-t-4 border-transparent border-t-gray-900"></div>
     </div>
@@ -161,14 +161,14 @@ const OfficeIcon = () => (
 )
 
 const LinkedInSARIcon = () => (
-  <div className="group relative w-16 h-16 bg-white rounded-lg flex items-center justify-center p-2 transition-all duration-300 hover:shadow-lg hover:scale-105 hover:bg-blue-50">
+  <div className="group/icon relative w-16 h-16 bg-white rounded-lg flex items-center justify-center p-2 transition-all duration-300 hover:shadow-lg hover:scale-105 hover:bg-blue-50">
     <img 
       src="/SAR.png" 
       alt="LinkedIn SAR" 
-      className="w-full h-full object-contain transition-transform duration-300 group-hover:scale-110"
+      className="w-full h-full object-contain transition-transform duration-300 group-hover/icon:scale-110"
     />
     {/* Tooltip personnalisé */}
-    <div className="absolute -top-12 left-1/2 transform -translate-x-1/2 bg-gray-900 text-white text-xs font-medium px-3 py-2 rounded-lg opacity-0 group-hover:opacity-100 transition-opacity duration-300 pointer-events-none whitespace-nowrap z-50">
+    <div className="absolute -top-12 left-1/2 transform -translate-x-1/2 bg-gray-900 text-white text-xs font-medium px-3 py-2 rounded-lg opacity-0 group-hover/icon:opacity-100 transition-opacity duration-300 pointer-events-none whitespace-nowrap z-50">
       LinkedIn SAR
       <div className="absolute top-full left-1/2 transform -translate-x-1/2 w-0 h-0 border-l-4 border-r-4 border-t-4 border-transparent border-t-gray-900"></div>
     </div>
@@ -177,14 +177,14 @@ const LinkedInSARIcon = () => (
 
 // Icônes pour les applications SAR
 const SAPIcon = () => (
-  <div className="group relative w-16 h-16 bg-white rounded-lg flex items-center justify-center p-2 transition-all duration-300 hover:shadow-lg hover:scale-105 hover:bg-blue-50">
+  <div className="group/icon relative w-16 h-16 bg-white rounded-lg flex items-center justify-center p-2 transition-all duration-300 hover:shadow-lg hover:scale-105 hover:bg-blue-50">
     <img 
       src="/fiori.png" 
       alt="SAP Fiori" 
-      className="w-full h-full object-contain transition-transform duration-300 group-hover:scale-110"
+      className="w-full h-full object-contain transition-transform duration-300 group-hover/icon:scale-110"
     />
     {/* Tooltip personnalisé */}
-    <div className="absolute -top-12 left-1/2 transform -translate-x-1/2 bg-gray-900 text-white text-xs font-medium px-3 py-2 rounded-lg opacity-0 group-hover:opacity-100 transition-opacity duration-300 pointer-events-none whitespace-nowrap z-50">
+    <div className="absolute -top-12 left-1/2 transform -translate-x-1/2 bg-gray-900 text-white text-xs font-medium px-3 py-2 rounded-lg opacity-0 group-hover/icon:opacity-100 transition-opacity duration-300 pointer-events-none whitespace-nowrap z-50">
       SAP FIORI
       <div className="absolute top-full left-1/2 transform -translate-x-1/2 w-0 h-0 border-l-4 border-r-4 border-t-4 border-transparent border-t-gray-900"></div>
     </div>
@@ -192,14 +192,14 @@ const SAPIcon = () => (
 )
 
 const QualiproIcon = () => (
-  <div className="group relative w-16 h-16 bg-white rounded-lg flex items-center justify-center p-2 transition-all duration-300 hover:shadow-lg hover:scale-105 hover:bg-green-50">
+  <div className="group/icon relative w-16 h-16 bg-white rounded-lg flex items-center justify-center p-2 transition-all duration-300 hover:shadow-lg hover:scale-105 hover:bg-green-50">
     <img 
       src="/qualipro_test.png" 
       alt="Qualipro" 
-      className="w-full h-full object-contain transition-transform duration-300 group-hover:scale-110"
+      className="w-full h-full object-contain transition-transform duration-300 group-hover/icon:scale-110"
     />
     {/* Tooltip personnalisé */}
-    <div className="absolute -top-12 left-1/2 transform -translate-x-1/2 bg-gray-900 text-white text-xs font-medium px-3 py-2 rounded-lg opacity-0 group-hover:opacity-100 transition-opacity duration-300 pointer-events-none whitespace-nowrap z-50">
+    <div className="absolute -top-12 left-1/2 transform -translate-x-1/2 bg-gray-900 text-white text-xs font-medium px-3 py-2 rounded-lg opacity-0 group-hover/icon:opacity-100 transition-opacity duration-300 pointer-events-none whitespace-nowrap z-50">
       Qualipro
       <div className="absolute top-full left-1/2 transform -translate-x-1/2 w-0 h-0 border-l-4 border-r-4 border-t-4 border-transparent border-t-gray-900"></div>
     </div>
@@ -207,14 +207,14 @@ const QualiproIcon = () => (
 )
 
 const SAPFPIcon = () => (
-  <div className="group relative w-16 h-16 bg-white rounded-lg flex items-center justify-center p-2 transition-all duration-300 hover:shadow-lg hover:scale-105 hover:bg-blue-50">
+  <div className="group/icon relative w-16 h-16 bg-white rounded-lg flex items-center justify-center p-2 transition-all duration-300 hover:shadow-lg hover:scale-105 hover:bg-blue-50">
     <img 
       src="/logo_hana.png" 
       alt="SAP S/4HANA" 
-      className="w-full h-full object-contain transition-transform duration-300 group-hover:scale-110"
+      className="w-full h-full object-contain transition-transform duration-300 group-hover/icon:scale-110"
     />
     {/* Tooltip personnalisé */}
-    <div className="absolute -top-12 left-1/2 transform -translate-x-1/2 bg-gray-900 text-white text-xs font-medium px-3 py-2 rounded-lg opacity-0 group-hover:opacity-100 transition-opacity duration-300 pointer-events-none whitespace-nowrap z-50">
+    <div className="absolute -top-12 left-1/2 transform -translate-x-1/2 bg-gray-900 text-white text-xs font-medium px-3 py-2 rounded-lg opacity-0 group-hover/icon:opacity-100 transition-opacity duration-300 pointer-events-none whitespace-nowrap z-50">
       SAP S/4HANA
       <div className="absolute top-full left-1/2 transform -translate-x-1/2 w-0 h-0 border-l-4 border-r-4 border-t-4 border-transparent border-t-gray-900"></div>
     </div>
@@ -222,14 +222,14 @@ const SAPFPIcon = () => (
 )
 
 const MaarchCourrierIcon = () => (
-  <div className="group relative w-16 h-16 bg-white rounded-lg flex items-center justify-center p-2 transition-all duration-300 hover:shadow-lg hover:scale-105 hover:bg-purple-50">
+  <div className="group/icon relative w-16 h-16 bg-white rounded-lg flex items-center justify-center p-2 transition-all duration-300 hover:shadow-lg hover:scale-105 hover:bg-purple-50">
     <img 
       src="/courrier.png" 
       alt="Maarch Courrier" 
-      className="w-full h-full object-contain transition-transform duration-300 group-hover:scale-110"
+      className="w-full h-full object-contain transition-transform duration-300 group-hover/icon:scale-110"
     />
     {/* Tooltip personnalisé */}
-    <div className="absolute -top-12 left-1/2 transform -translate-x-1/2 bg-gray-900 text-white text-xs font-medium px-3 py-2 rounded-lg opacity-0 group-hover:opacity-100 transition-opacity duration-300 pointer-events-none whitespace-nowrap z-50">
+    <div className="absolute -top-12 left-1/2 transform -translate-x-1/2 bg-gray-900 text-white text-xs font-medium px-3 py-2 rounded-lg opacity-0 group-hover/icon:opacity-100 transition-opacity duration-300 pointer-events-none whitespace-nowrap z-50">
       Courrier
       <div className="absolute top-full left-1/2 transform -translate-x-1/2 w-0 h-0 border-l-4 border-r-4 border-t-4 border-transparent border-t-gray-900"></div>
     </div>
@@ -237,14 +237,14 @@ const MaarchCourrierIcon = () => (
 )
 
 const MaarchParapheurIcon = () => (
-  <div className="group relative w-16 h-16 bg-white rounded-lg flex items-center justify-center p-2 transition-all duration-300 hover:shadow-lg hover:scale-105 hover:bg-indigo-50">
+  <div className="group/icon relative w-16 h-16 bg-white rounded-lg flex items-center justify-center p-2 transition-all duration-300 hover:shadow-lg hover:scale-105 hover:bg-indigo-50">
     <img 
       src="/paraphe.png" 
       alt="MaarchParapheur" 
-      className="w-full h-full object-contain transition-transform duration-300 group-hover:scale-110"
+      className="w-full h-full object-contain transition-transform duration-300 group-hover/icon:scale-110"
     />
     {/* Tooltip personnalisé */}
-    <div className="absolute -top-12 left-1/2 transform -translate-x-1/2 bg-gray-900 text-white text-xs font-medium px-3 py-2 rounded-lg opacity-0 group-hover:opacity-100 transition-opacity duration-300 pointer-events-none whitespace-nowrap z-50">
+    <div className="absolute -top-12 left-1/2 transform -translate-x-1/2 bg-gray-900 text-white text-xs font-medium px-3 py-2 rounded-lg opacity-0 group-hover/icon:opacity-100 transition-opacity duration-300 pointer-events-none whitespace-nowrap z-50">
       Paraphe
       <div className="absolute top-full left-1/2 transform -translate-x-1/2 w-0 h-0 border-l-4 border-r-4 border-t-4 border-transparent border-t-gray-900"></div>
     </div>
@@ -454,16 +454,17 @@ export function AppsWidget() {
             </h3>
             <div className="grid grid-cols-3 md:grid-cols-5 gap-3">
               {sarApps.map((app) => (
-                <Button
-                  key={app.id}
-                  variant="ghost"
-                  className="h-16 w-16 p-0 hover:bg-slate-200/50 transition-all duration-300 group/app rounded-xl"
-                  onClick={() => window.open(app.url, '_blank')}
-                >
-                  <div className="w-full h-full flex items-center justify-center text-slate-700 group-hover/app:scale-110 group-hover/app:rotate-3 transition-all duration-300">
-                    {app.icon}
-                  </div>
-                </Button>
+                <div key={app.id} className="group/app-item relative">
+                  <Button
+                    variant="ghost"
+                    className="h-16 w-16 p-0 hover:bg-slate-200/50 transition-all duration-300 rounded-xl"
+                    onClick={() => window.open(app.url, '_blank')}
+                  >
+                    <div className="w-full h-full flex items-center justify-center text-slate-700 group-hover/app-item:scale-110 group-hover/app-item:rotate-3 transition-all duration-300">
+                      {app.icon}
+                    </div>
+                  </Button>
+                </div>
               ))}
             </div>
           </div>
@@ -477,16 +478,17 @@ export function AppsWidget() {
             </h3>
             <div className="grid grid-cols-3 md:grid-cols-5 gap-3">
               {toolsApps.map((app) => (
-                <Button
-                  key={app.id}
-                  variant="ghost"
-                  className="h-16 w-16 p-0 hover:bg-slate-200/50 transition-all duration-300 group/app rounded-xl"
-                  onClick={() => handleAppClick(app)}
-                >
-                  <div className="w-full h-full flex items-center justify-center text-slate-700 group-hover/app:scale-110 group-hover/app:rotate-3 transition-all duration-300">
-                    {app.icon}
-                  </div>
-                </Button>
+                <div key={app.id} className="group/app-item relative">
+                  <Button
+                    variant="ghost"
+                    className="h-16 w-16 p-0 hover:bg-slate-200/50 transition-all duration-300 rounded-xl"
+                    onClick={() => handleAppClick(app)}
+                  >
+                    <div className="w-full h-full flex items-center justify-center text-slate-700 group-hover/app-item:scale-110 group-hover/app-item:rotate-3 transition-all duration-300">
+                      {app.icon}
+                    </div>
+                  </Button>
+                </div>
               ))}
             </div>
           </div>

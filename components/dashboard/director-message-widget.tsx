@@ -230,7 +230,7 @@ Le Directeur Général`
                     <div className="w-full h-full bg-white rounded-full p-1 shadow-inner">
                       <div className="w-full h-full rounded-full overflow-hidden border-2 border-white">
                         <Image
-                          src="/directeur.jpg"
+                          src="/dg.jpg"
                           alt="Directeur Général SAR"
                           width={80}
                           height={80}
@@ -271,25 +271,52 @@ Le Directeur Général`
             </div>
           </div>
           
-          {/* Contenu du message avec design élégant */}
+          {/* Contenu du message avec design élégant - Même style que la carte */}
           <div className="px-6 pb-6">
             <div 
-              className="rounded-2xl p-6 shadow-xl border"
+              className="relative overflow-hidden rounded-2xl shadow-xl"
               style={{ 
-                background: '#344256',
-                borderColor: 'rgba(238, 0, 9, 0.3)',
-                boxShadow: '0 20px 40px rgba(0, 0, 0, 0.3), inset 0 1px 0 rgba(255, 255, 255, 0.1)'
+                background: 'linear-gradient(135deg, rgba(255, 255, 255, 0.95) 0%, rgba(248, 250, 252, 0.95) 100%)',
+                boxShadow: '0 20px 60px rgba(0, 0, 0, 0.15), 0 0 0 1px rgba(238, 0, 9, 0.1)',
+                borderRadius: '16px'
               }}
             >
-              <div className="prose max-w-none">
-                <div className="text-gray-100 leading-relaxed space-y-4 text-sm sm:text-base">
-                  {fullMessage.split('\n\n').map((paragraph, index) => (
-                    <p key={index} className="text-justify font-normal">
-                      {paragraph}
-                    </p>
-                  ))}
+              {/* Barre de couleur SAR en haut */}
+              <div 
+                className="h-1 w-full"
+                style={{ 
+                  background: 'linear-gradient(90deg, #ee0009 0%, #c41e3a 50%, #ee0009 100%)'
+                }}
+              ></div>
+              
+              {/* Contenu principal */}
+              <div className="p-4 sm:p-5">
+                <div className="prose max-w-none">
+                  <div className="space-y-4">
+                    {fullMessage.split('\n\n').map((paragraph, index) => (
+                      <p 
+                        key={index} 
+                        className="text-gray-800 text-sm sm:text-base leading-relaxed font-medium"
+                        style={{ 
+                          fontFamily: '"Inter", "Segoe UI", system-ui, sans-serif',
+                          lineHeight: '1.5',
+                          letterSpacing: '-0.01em'
+                        }}
+                      >
+                        {paragraph}
+                      </p>
+                    ))}
+                  </div>
                 </div>
               </div>
+              
+              {/* Effet de brillance subtil */}
+              <div 
+                className="absolute top-0 left-0 right-0 h-1 opacity-0 group-hover:opacity-100 transition-opacity duration-500"
+                style={{ 
+                  background: 'linear-gradient(90deg, transparent 0%, rgba(255, 255, 255, 0.8) 50%, transparent 100%)'
+                }}
+              ></div>
             </div>
             
             {/* Signature en bas */}

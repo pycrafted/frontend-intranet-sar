@@ -91,7 +91,12 @@ export const config = {
   },
   backend: {
     get apiUrl() { 
-      return getApiBaseUrl() 
+      // Pour les routes API server-side, utiliser BACKEND_URL si disponible, sinon getApiBaseUrl()
+      return process.env.BACKEND_URL || getApiBaseUrl()
+    },
+    get apiUrlWithApi() {
+      // URL avec /api pour les endpoints
+      return getApiUrl()
     },
   },
 }

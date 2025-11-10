@@ -1,14 +1,28 @@
 import { NextRequest, NextResponse } from 'next/server'
+import { loadEnvConfig } from '@next/env'
 import { config } from '@/lib/config'
+
+// ⚠️ IMPORTANT: Charger explicitement les variables d'environnement depuis .env.local
+const projectDir = process.cwd()
+const { loadedEnvFiles } = loadEnvConfig(projectDir)
+
+// Log pour vérifier le chargement
+if (loadedEnvFiles.length > 0) {
+  console.log('✅ [AB-TEST API] Variables d\'env chargées depuis:', loadedEnvFiles.map(f => f.path).join(', '))
+} else {
+  console.warn('⚠️ [AB-TEST API] Aucun fichier .env trouvé')
+}
 
 export async function POST(request: NextRequest) {
   try {
     const body = await request.json()
-    const BACKEND_URL = config.backend.apiUrl
+    // ⚠️ IMPORTANT: Utiliser les variables d'environnement depuis .env.local
+    const API_BASE_URL = config.backend.apiUrlWithApi
     console.log('🧪 A/B Test Frontend - Requête reçue:', body.query)
+    console.log('🧪 A/B Test Frontend - API Base URL (depuis .env.local):', API_BASE_URL)
     
     // Appeler l'endpoint A/B test du backend
-    const response = await fetch(`${BACKEND_URL}/mai/ab-test/`, {
+    const response = await fetch(`${API_BASE_URL}/mai/ab-test/`, {
       method: 'POST',
       headers: {
         'Content-Type': 'application/json',
@@ -59,12 +73,14 @@ export async function GET(request: NextRequest) {
   try {
     const { searchParams } = new URL(request.url)
     const hours = searchParams.get('hours') || '24'
-    const BACKEND_URL = config.backend.apiUrl
+    // ⚠️ IMPORTANT: Utiliser les variables d'environnement depuis .env.local
+    const API_BASE_URL = config.backend.apiUrlWithApi
     
     console.log('📊 Monitoring Frontend - Récupération métriques:', hours, 'heures')
+    console.log('📊 Monitoring Frontend - API Base URL (depuis .env.local):', API_BASE_URL)
     
     // Appeler l'endpoint de monitoring du backend
-    const response = await fetch(`${BACKEND_URL}/mai/monitoring/?hours=${hours}`, {
+    const response = await fetch(`${API_BASE_URL}/mai/monitoring/?hours=${hours}`, {
       method: 'GET',
       headers: {
         'Content-Type': 'application/json',

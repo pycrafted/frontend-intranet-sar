@@ -293,8 +293,8 @@ export function EventsCalendar() {
           ))}
         </div>
 
-        {/* Grille du calendrier */}
-        <div className="grid grid-cols-7 gap-0.5 px-1 pb-1 flex-1 min-h-0">
+        {/* Grille du calendrier - Toutes les cellules ont la même taille */}
+        <div className="grid grid-cols-7 gap-0.5 px-1 pb-1 flex-1 min-h-0 auto-rows-fr">
           {calendarDays.map((dayData, index) => {
             const dayEvents = getEventsForDate(dayData.date)
             const hasEventOnDate = hasEvent(dayData.date)
@@ -304,35 +304,48 @@ export function EventsCalendar() {
               <div
                 key={index}
                 className={`
-                  flex flex-col min-h-[1.8rem] p-0.5 border border-gray-200/30 rounded-sm
-                  transition-all duration-200 relative group
+                  flex flex-col h-full p-0.5 border rounded-sm
+                  transition-all duration-300 relative group
                   ${!dayData.isCurrentMonth 
-                    ? 'bg-gray-50/5 text-gray-200 opacity-5 cursor-default' 
-                    : 'bg-white/90 cursor-pointer hover:bg-white/70'
+                    ? 'bg-gray-50/5 text-gray-200 opacity-5 cursor-default border-gray-200/30' 
+                    : 'bg-white/90 cursor-pointer hover:bg-white/70 border-gray-200/30'
                   }
-                  ${dayData.isToday ? 'bg-red-100 border-red-300' : ''}
-                  ${hasEventOnDate && firstEvent ? getEventColor(firstEvent) : ''}
+                  ${dayData.isToday ? 'bg-white/90 border-red-300' : ''}
+                  ${hasEventOnDate && firstEvent && dayData.isCurrentMonth ? 'bg-gradient-to-br from-rose-100 via-pink-100 to-rose-50 border-2 border-rose-400 shadow-lg hover:shadow-xl hover:scale-105 animate-shimmer-event' : ''}
                 `}
                 onClick={() => {}}
                 onMouseEnter={dayData.isCurrentMonth && hasEventOnDate && firstEvent ? (e) => handleMouseEnter(firstEvent, e.currentTarget) : undefined}
                 onMouseLeave={dayData.isCurrentMonth && hasEventOnDate ? handleMouseLeave : undefined}
               >
-                {/* Numéro du jour */}
+                {/* Numéro du jour avec style dynamique pour les événements */}
                 <div className={`
-                  text-[9px] font-bold mb-0.5 leading-tight flex-shrink-0
+                  text-[9px] font-bold mb-0.5 leading-tight flex-shrink-0 relative
                   ${dayData.isToday ? 'text-red-600 font-bold' : ''}
                   ${!dayData.isCurrentMonth ? 'text-gray-200' : 'text-gray-700'}
+                  ${hasEventOnDate && firstEvent && dayData.isCurrentMonth ? 'text-rose-600 font-extrabold text-[10px]' : ''}
                 `}>
                   {dayData.date.getDate()}
+                  {/* Badge lumineux pour les dates avec événements */}
+                  {hasEventOnDate && firstEvent && dayData.isCurrentMonth && (
+                    <span className="absolute -top-0.5 -right-0.5 w-1.5 h-1.5 bg-gradient-to-br from-rose-400 to-pink-500 rounded-full animate-ping opacity-75"></span>
+                  )}
                 </div>
                 
-                {/* Émoji d'événement */}
+                {/* Émoji d'événement avec animation - Couleur rose harmonisée */}
                 <div className="flex-1 min-h-0 flex items-center justify-center">
                   {hasEventOnDate && firstEvent && (
-                    <span className={`text-sm flex items-center justify-center w-full h-full ${
-                      !dayData.isCurrentMonth ? 'opacity-5' : 'opacity-80'
-                    }`}>
-                      {getEventEmoji(firstEvent)}
+                    <span className={`
+                      text-base flex items-center justify-center w-full h-full
+                      ${!dayData.isCurrentMonth ? 'opacity-5' : 'opacity-100'}
+                      ${dayData.isCurrentMonth ? 'animate-pulse-glow' : ''}
+                    `}>
+                      <span className="relative">
+                        <span className="text-rose-500 drop-shadow-lg">●</span>
+                        {/* Effet de lueur autour du point */}
+                        {dayData.isCurrentMonth && (
+                          <span className="absolute inset-0 bg-gradient-to-r from-rose-400/50 via-pink-500/50 to-rose-400/50 rounded-full blur-sm animate-pulse opacity-75"></span>
+                        )}
+                      </span>
                     </span>
                   )}
                 </div>

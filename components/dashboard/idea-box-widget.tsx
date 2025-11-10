@@ -43,11 +43,11 @@ export function IdeaBoxWidget() {
           <div className="space-y-4 sm:space-y-6 lg:space-y-8">
             {/* Icône d'ampoule scintillante - Responsive */}
             <div className="relative">
-              <div className="w-20 h-20 sm:w-24 sm:h-24 lg:w-32 lg:h-32 bg-gradient-to-br from-yellow-400 via-orange-500 to-red-500 rounded-full flex items-center justify-center mx-auto shadow-2xl group-hover:scale-110 transition-all duration-500 animate-pulse">
+              <div className="w-20 h-20 sm:w-24 sm:h-24 lg:w-32 lg:h-32 bg-gradient-to-br from-yellow-400 via-orange-500 to-red-500 rounded-full flex items-center justify-center mx-auto shadow-2xl group-hover:scale-110 transition-all duration-500 group-hover:animate-pulse">
                 <Lightbulb className="h-10 w-10 sm:h-12 sm:w-12 lg:h-16 lg:w-16 text-white drop-shadow-lg" />
               </div>
-              {/* Effet de scintillement */}
-              <div className="absolute inset-0 w-20 h-20 sm:w-24 sm:h-24 lg:w-32 lg:h-32 bg-gradient-to-br from-yellow-300 via-orange-400 to-red-400 rounded-full mx-auto opacity-0 group-hover:opacity-100 animate-ping transition-opacity duration-500"></div>
+              {/* Effet de scintillement - Uniquement au survol */}
+              <div className="absolute inset-0 w-20 h-20 sm:w-24 sm:h-24 lg:w-32 lg:h-32 bg-gradient-to-br from-yellow-300 via-orange-400 to-red-400 rounded-full mx-auto opacity-0 group-hover:opacity-100 group-hover:animate-ping transition-opacity duration-500"></div>
             </div>
             
             {/* Texte principal - Responsive */}
