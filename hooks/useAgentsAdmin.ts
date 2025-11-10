@@ -3,7 +3,8 @@
 import { useState, useEffect, useCallback } from "react"
 import { API_CONFIG } from "@/lib/config"
 
-const API_BASE_URL = API_CONFIG.ORGANIGRAMME
+// Fonction lazy pour obtenir l'URL de base
+const getApiBaseUrl = () => API_CONFIG.ORGANIGRAMME
 
 export interface Agent {
   id: number
@@ -111,7 +112,7 @@ export function useAgentsAdmin() {
     
     try {
       const queryParams = buildQueryParams(state.filters)
-      const response = await fetch(`${API_BASE_URL}/agents/?${queryParams}`)
+      const response = await fetch(`${getApiBaseUrl()}/agents/?${queryParams}`)
       
       if (!response.ok) {
         throw new Error(`Erreur ${response.status}: ${response.statusText}`)
@@ -161,7 +162,7 @@ export function useAgentsAdmin() {
   // Récupérer les directions
   const fetchDirections = useCallback(async () => {
     try {
-      const response = await fetch(`${API_BASE_URL}/directions/`)
+      const response = await fetch(`${getApiBaseUrl()}/directions/`)
       
       if (!response.ok) {
         throw new Error(`Erreur ${response.status}: ${response.statusText}`)
@@ -181,7 +182,7 @@ export function useAgentsAdmin() {
   // Récupérer les managers (tous les agents peuvent être managers)
   const fetchManagers = useCallback(async () => {
     try {
-      const response = await fetch(`${API_BASE_URL}/agents/`)
+      const response = await fetch(`${getApiBaseUrl()}/agents/`)
       
       if (!response.ok) {
         throw new Error(`Erreur ${response.status}: ${response.statusText}`)
@@ -213,7 +214,7 @@ export function useAgentsAdmin() {
   // Supprimer un agent
   const deleteAgent = useCallback(async (agentId: number) => {
     try {
-      const response = await fetch(`${API_BASE_URL}/agents/${agentId}/`, {
+      const response = await fetch(`${getApiBaseUrl()}/agents/${agentId}/`, {
         method: 'DELETE'
       })
       
@@ -247,7 +248,7 @@ export function useAgentsAdmin() {
     try {
       const isFormData = agentData instanceof FormData
       
-      const response = await fetch(`${API_BASE_URL}/agents/${agentId}/`, {
+      const response = await fetch(`${getApiBaseUrl()}/agents/${agentId}/`, {
         method: 'PATCH',
         headers: isFormData ? {} : {
           'Content-Type': 'application/json',
@@ -275,7 +276,7 @@ export function useAgentsAdmin() {
     try {
       const isFormData = agentData instanceof FormData
       
-      const response = await fetch(`${API_BASE_URL}/agents/`, {
+      const response = await fetch(`${getApiBaseUrl()}/agents/`, {
         method: 'POST',
         headers: isFormData ? {} : {
           'Content-Type': 'application/json',
@@ -304,7 +305,7 @@ export function useAgentsAdmin() {
       const formData = new FormData()
       formData.append('avatar', avatarFile)
       
-      const response = await fetch(`${API_BASE_URL}/agents/${agentId}/avatar/`, {
+      const response = await fetch(`${getApiBaseUrl()}/agents/${agentId}/avatar/`, {
         method: 'POST',
         body: formData
       })

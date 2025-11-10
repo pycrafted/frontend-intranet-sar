@@ -1,7 +1,8 @@
 // Configuration de l'API d'authentification
 import { API_CONFIG } from './config'
 
-const AUTH_API_BASE_URL = API_CONFIG.AUTH
+// Fonction lazy pour obtenir l'URL de base de l'API d'authentification
+const getAuthApiBaseUrl = () => API_CONFIG.AUTH
 
 // Types pour l'API (version simplifiée)
 export interface User {
@@ -59,7 +60,7 @@ const apiRequest = async <T>(
   options: RequestInit = {}
 ): Promise<ApiResponse<T>> => {
   try {
-    const response = await fetch(`${AUTH_API_BASE_URL}${endpoint}`, {
+    const response = await fetch(`${getAuthApiBaseUrl()}${endpoint}`, {
       credentials: 'include', // Inclure les cookies de session
       headers: {
         'Content-Type': 'application/json',
@@ -157,7 +158,7 @@ export const authApi = {
       const formData = new FormData()
       formData.append('avatar', file)
       
-      const response = await fetch(`${AUTH_API_BASE_URL}/upload-avatar/`, {
+      const response = await fetch(`${getAuthApiBaseUrl()}/upload-avatar/`, {
         method: 'POST',
         credentials: 'include',
         body: formData,

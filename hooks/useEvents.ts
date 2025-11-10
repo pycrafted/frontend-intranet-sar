@@ -53,7 +53,8 @@ export interface EventFilters {
   month?: number;
 }
 
-const API_URL = `${API_CONFIG.ACCUEIL}/events/`;
+// Fonction lazy pour obtenir l'URL de l'API
+const getApiUrl = () => `${API_CONFIG.ACCUEIL}/events/`;
 
 export const useEvents = () => {
   const [events, setEvents] = useState<Event[]>([]);
@@ -83,7 +84,7 @@ export const useEvents = () => {
         params.append('month', filters.month.toString());
       }
 
-      const response = await axios.get(`${API_URL}?${params.toString()}`);
+      const response = await axios.get(`${getApiUrl()}?${params.toString()}`);
       
       // Gérer la pagination Django REST Framework
       const eventsData = response.data.results || response.data;
@@ -101,7 +102,7 @@ export const useEvents = () => {
   // Fonction pour récupérer un événement par ID
   const fetchEvent = useCallback(async (id: number): Promise<Event | null> => {
     try {
-      const response = await axios.get(`${API_URL}${id}/`);
+      const response = await axios.get(`${getApiUrl()}${id}/`);
       return response.data;
     } catch (err) {
       console.error('Erreur lors de la récupération de l\'événement:', err);
@@ -112,7 +113,7 @@ export const useEvents = () => {
   // Fonction pour créer un événement
   const createEvent = useCallback(async (eventData: EventCreateUpdate): Promise<Event | null> => {
     try {
-      const response = await axios.post(API_URL, eventData);
+      const response = await axios.post(getApiUrl(), eventData);
       
       // Mettre à jour la liste des événements
       setEvents(prev => Array.isArray(prev) ? [...prev, response.data] : [response.data]);
@@ -141,7 +142,7 @@ export const useEvents = () => {
       }
       
       
-      const response = await axios.put(`${API_URL}${id}/`, dataToSend);
+      const response = await axios.put(`${getApiUrl()}${id}/`, dataToSend);
       
       // Mettre à jour la liste des événements
       setEvents(prev => {
@@ -173,7 +174,7 @@ export const useEvents = () => {
   // Fonction pour supprimer un événement
   const deleteEvent = useCallback(async (id: number): Promise<boolean> => {
     try {
-      await axios.delete(`${API_URL}${id}/`);
+      await axios.delete(`${getApiUrl()}${id}/`);
       
       // Mettre à jour la liste des événements
       setEvents(prev => {
@@ -192,7 +193,7 @@ export const useEvents = () => {
   // Fonction pour récupérer les événements d'un mois spécifique
   const fetchEventsByMonth = useCallback(async (year: number, month: number): Promise<Event[]> => {
     try {
-      const response = await axios.get(`${API_URL}month/${year}/${month}/`);
+      const response = await axios.get(`${getApiUrl()}month/${year}/${month}/`);
       return response.data;
     } catch (err) {
       console.error('Erreur lors de la récupération des événements du mois:', err);
@@ -203,7 +204,7 @@ export const useEvents = () => {
   // Fonction pour récupérer les événements d'une date spécifique
   const fetchEventsByDate = useCallback(async (date: string): Promise<Event[]> => {
     try {
-      const response = await axios.get(`${API_URL}date/${date}/`);
+      const response = await axios.get(`${getApiUrl()}date/${date}/`);
       return response.data;
     } catch (err) {
       console.error('Erreur lors de la récupération des événements de la date:', err);
@@ -214,7 +215,7 @@ export const useEvents = () => {
   // Fonction pour récupérer le prochain événement
   const fetchNextEvent = useCallback(async (): Promise<Event | null> => {
     try {
-      const response = await axios.get(`${API_URL}next/`);
+      const response = await axios.get(`${getApiUrl()}next/`);
       
       if (response.data.message) {
         // Aucun événement prévu
@@ -231,7 +232,7 @@ export const useEvents = () => {
   // Fonction pour récupérer les statistiques des événements
   const fetchEventStats = useCallback(async (): Promise<EventStats | null> => {
     try {
-      const response = await axios.get(`${API_URL}stats/`);
+      const response = await axios.get(`${getApiUrl()}stats/`);
       return response.data;
     } catch (err) {
       console.error('Erreur lors de la récupération des statistiques:', err);
@@ -242,7 +243,7 @@ export const useEvents = () => {
   // Fonction pour récupérer les événements futurs uniquement
   const fetchFutureEvents = useCallback(async (): Promise<Event[]> => {
     try {
-      const response = await axios.get(`${API_URL}?future_only=true`);
+      const response = await axios.get(`${getApiUrl()}?future_only=true`);
       const eventsData = response.data.results || response.data;
       return Array.isArray(eventsData) ? eventsData : [];
     } catch (err) {

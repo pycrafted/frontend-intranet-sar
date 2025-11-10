@@ -14,20 +14,19 @@ function validateApiUrl(url: string): string {
   return url
 }
 
-// Configuration de base pour toutes les requêtes
-// Utilise la configuration centralisée qui exige NEXT_PUBLIC_API_URL
-const rawApiUrl = getApiUrl()
-const API_BASE_URL = validateApiUrl(rawApiUrl)
-
-// Afficher l'URL utilisée au démarrage
-if (typeof window !== 'undefined') {
-  console.log('🔧 [API_CLIENT] URL API configurée:', API_BASE_URL)
+// Fonction lazy pour obtenir l'URL de base de l'API
+function getApiBaseUrl(): string {
+  const rawApiUrl = getApiUrl()
+  return validateApiUrl(rawApiUrl)
 }
+
+// Note: Ne pas appeler getApiBaseUrl() au niveau du module pour éviter les erreurs
+// lors du chargement du module. L'URL sera obtenue à la demande dans les fonctions.
 
 // Fonction pour récupérer le token CSRF
 async function getCSRFToken(): Promise<string | null> {
   try {
-    const response = await fetch(`${API_BASE_URL}/auth/csrf/`, {
+    const response = await fetch(`${getApiBaseUrl()}/auth/csrf/`, {
       method: 'GET',
       credentials: 'include',
     })
@@ -107,13 +106,14 @@ export class APIClient {
     }
 
     // Faire la requête
-    const fullUrl = `${API_BASE_URL}${endpoint}`
+    const apiBaseUrl = getApiBaseUrl()
+    const fullUrl = `${apiBaseUrl}${endpoint}`
     console.log('🌐 [API_CLIENT] ===== DÉBUT REQUÊTE =====')
     console.log('🌐 [API_CLIENT] Timestamp:', new Date().toISOString())
     console.log('🌐 [API_CLIENT] URL complète:', fullUrl)
     console.log('🌐 [API_CLIENT] Méthode:', method)
     console.log('🌐 [API_CLIENT] Endpoint:', endpoint)
-    console.log('🌐 [API_CLIENT] API_BASE_URL:', API_BASE_URL)
+    console.log('🌐 [API_CLIENT] API_BASE_URL:', apiBaseUrl)
     console.log('🌐 [API_CLIENT] Headers:', finalHeaders)
     console.log('🌐 [API_CLIENT] Body:', body ? (body instanceof FormData ? 'FormData' : JSON.stringify(body)) : 'Aucun')
     console.log('🌐 [API_CLIENT] requireAuth:', requireAuth)
@@ -132,7 +132,7 @@ export class APIClient {
     })
     
     console.log('📡 [API_CLIENT] ===== RÉPONSE REÇUE =====')
-    console.log('📡 [API_CLIENT] URL:', `${API_BASE_URL}${endpoint}`)
+    console.log('📡 [API_CLIENT] URL:', `${apiBaseUrl}${endpoint}`)
     console.log('📡 [API_CLIENT] Status:', response.status)
     console.log('📡 [API_CLIENT] StatusText:', response.statusText)
     console.log('📡 [API_CLIENT] OK:', response.ok)
@@ -148,7 +148,7 @@ export class APIClient {
     if (requireAuth && (response.status === 401 || response.status === 403)) {
       console.log('🔍 [API_CLIENT] Erreur d\'authentification:', {
         status: response.status,
-        url: `${API_BASE_URL}${endpoint}`,
+        url: `${apiBaseUrl}${endpoint}`,
         requireAuth,
         isDocumentsEndpoint: endpoint.includes('/documents/')
       })
@@ -157,7 +157,7 @@ export class APIClient {
     } else if (!requireAuth && (response.status === 401 || response.status === 403)) {
       console.log('⚠️ [API_CLIENT] Erreur d\'authentification sur endpoint sans auth:', {
         status: response.status,
-        url: `${API_BASE_URL}${endpoint}`,
+        url: `${apiBaseUrl}${endpoint}`,
         requireAuth,
         isDocumentsEndpoint: endpoint.includes('/documents/')
       })

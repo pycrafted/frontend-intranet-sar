@@ -16,15 +16,13 @@ export interface LoadingMessageService {
 import { getApiBaseUrl } from '@/lib/config'
 
 class LoadingMessageServiceImpl implements LoadingMessageService {
-  private baseUrl: string
-
-  constructor() {
-    this.baseUrl = getApiBaseUrl()
+  private getBaseUrl(): string {
+    return getApiBaseUrl()
   }
 
   async getLoadingMessage(question: string, phase: 'searching' | 'processing'): Promise<string> {
     try {
-      const response = await fetch(`${this.baseUrl}/api/mai/loading-message/`, {
+      const response = await fetch(`${this.getBaseUrl()}/api/mai/loading-message/`, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
@@ -78,7 +76,7 @@ class LoadingMessageServiceImpl implements LoadingMessageService {
 
   async getProgressiveLoading(question: string, duration: number): Promise<LoadingMessage[]> {
     try {
-      const response = await fetch(`${this.baseUrl}/api/mai/progressive-loading/`, {
+      const response = await fetch(`${this.getBaseUrl()}/api/mai/progressive-loading/`, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
@@ -122,7 +120,7 @@ class LoadingMessageServiceImpl implements LoadingMessageService {
 
   async getQuickLoadingMessage(question: string): Promise<string> {
     try {
-      const response = await fetch(`${this.baseUrl}/api/mai/quick-loading/?question=${encodeURIComponent(question)}`, {
+      const response = await fetch(`${this.getBaseUrl()}/api/mai/quick-loading/?question=${encodeURIComponent(question)}`, {
         method: 'GET',
         headers: {
           'Content-Type': 'application/json',

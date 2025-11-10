@@ -1,11 +1,10 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { config } from '@/lib/config'
 
-const BACKEND_URL = config.backend.apiUrl
-
 export async function POST(request: NextRequest) {
   try {
     const body = await request.json()
+    const BACKEND_URL = config.backend.apiUrl
     console.log('🧪 A/B Test Frontend - Requête reçue:', body.query)
     
     // Appeler l'endpoint A/B test du backend
@@ -60,6 +59,7 @@ export async function GET(request: NextRequest) {
   try {
     const { searchParams } = new URL(request.url)
     const hours = searchParams.get('hours') || '24'
+    const BACKEND_URL = config.backend.apiUrl
     
     console.log('📊 Monitoring Frontend - Récupération métriques:', hours, 'heures')
     

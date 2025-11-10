@@ -64,7 +64,8 @@ const initialFilters: EmployeesFilters = {
 
 import { API_CONFIG } from "@/lib/config"
 
-const API_BASE_URL = API_CONFIG.ANNUAIRE
+// Fonction lazy pour obtenir l'URL de base
+const getApiBaseUrl = () => API_CONFIG.ANNUAIRE
 
 export const useEmployeesAdmin = () => {
   const [state, setState] = useState<EmployeesAdminState>({
@@ -102,7 +103,7 @@ export const useEmployeesAdmin = () => {
     
     try {
       const queryParams = buildQueryParams(state.filters)
-      const url = `${API_BASE_URL}/employees/?${queryParams}`
+      const url = `${getApiBaseUrl()}/employees/?${queryParams}`
       
       const response = await fetch(url)
       
@@ -154,7 +155,7 @@ export const useEmployeesAdmin = () => {
   // Récupérer les départements
   const fetchDepartments = useCallback(async () => {
     try {
-      const url = `${API_BASE_URL}/departments/`
+      const url = `${getApiBaseUrl()}/departments/`
       
       const response = await fetch(url)
       
@@ -178,7 +179,7 @@ export const useEmployeesAdmin = () => {
   // Supprimer un employé
   const deleteEmployee = useCallback(async (employeeId: number) => {
     try {
-      const response = await fetch(`${API_BASE_URL}/employees/${employeeId}/`, {
+      const response = await fetch(`${getApiBaseUrl()}/employees/${employeeId}/`, {
         method: 'DELETE'
       })
       
@@ -212,7 +213,7 @@ export const useEmployeesAdmin = () => {
     try {
       const isFormData = employeeData instanceof FormData
       
-      const response = await fetch(`${API_BASE_URL}/employees/${employeeId}/`, {
+      const response = await fetch(`${getApiBaseUrl()}/employees/${employeeId}/`, {
         method: 'PATCH',
         headers: isFormData ? {} : {
           'Content-Type': 'application/json',
@@ -252,7 +253,7 @@ export const useEmployeesAdmin = () => {
         }
       }
       
-      const url = `${API_BASE_URL}/employees/`
+      const url = `${getApiBaseUrl()}/employees/`
       const requestOptions = {
         method: 'POST',
         headers: isFormData ? {} : {

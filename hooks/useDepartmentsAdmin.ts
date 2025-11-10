@@ -1,7 +1,8 @@
 import { useState, useEffect, useCallback } from "react"
 import { API_CONFIG } from "@/lib/config"
 
-const API_BASE_URL = API_CONFIG.ANNUAIRE
+// Fonction lazy pour obtenir l'URL de base
+const getApiBaseUrl = () => API_CONFIG.ANNUAIRE
 
 export interface Department {
   id: number
@@ -33,7 +34,7 @@ export const useDepartmentsAdmin = () => {
     setState(prev => ({ ...prev, loading: true, error: null }))
     
     try {
-      const response = await fetch(`${API_BASE_URL}/departments/`)
+      const response = await fetch(`${getApiBaseUrl()}/departments/`)
       
       if (!response.ok) {
         throw new Error(`Erreur ${response.status}: ${response.statusText}`)
@@ -59,7 +60,7 @@ export const useDepartmentsAdmin = () => {
   // Créer un département
   const createDepartment = useCallback(async (departmentData: { name: string }) => {
     try {
-      const response = await fetch(`${API_BASE_URL}/departments/`, {
+      const response = await fetch(`${getApiBaseUrl()}/departments/`, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
@@ -85,7 +86,7 @@ export const useDepartmentsAdmin = () => {
   // Mettre à jour un département
   const updateDepartment = useCallback(async (departmentId: number, departmentData: { name: string }) => {
     try {
-      const response = await fetch(`${API_BASE_URL}/departments/${departmentId}/`, {
+      const response = await fetch(`${getApiBaseUrl()}/departments/${departmentId}/`, {
         method: 'PATCH',
         headers: {
           'Content-Type': 'application/json',
@@ -111,7 +112,7 @@ export const useDepartmentsAdmin = () => {
   // Supprimer un département
   const deleteDepartment = useCallback(async (departmentId: number) => {
     try {
-      const response = await fetch(`${API_BASE_URL}/departments/${departmentId}/`, {
+      const response = await fetch(`${getApiBaseUrl()}/departments/${departmentId}/`, {
         method: 'DELETE'
       })
       

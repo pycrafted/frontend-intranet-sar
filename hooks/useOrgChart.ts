@@ -287,7 +287,8 @@ const staticDepartments: Department[] = [
 
 import { API_CONFIG } from "@/lib/config"
 
-const API_BASE_URL = API_CONFIG.ORGANIGRAMME
+// Fonction lazy pour obtenir l'URL de base
+const getApiBaseUrl = () => API_CONFIG.ORGANIGRAMME
 
 export const useOrgChart = () => {
   const [employees, setEmployees] = useState<Employee[]>([])
@@ -301,7 +302,7 @@ export const useOrgChart = () => {
     try {
       setLoading(true)
       
-      const response = await fetch(`${API_BASE_URL}/agents/`, {
+      const response = await fetch(`${getApiBaseUrl()}/agents/`, {
         method: 'GET',
         headers: {
           'Content-Type': 'application/json',
@@ -344,7 +345,7 @@ export const useOrgChart = () => {
   const fetchDepartments = async () => {
     try {
       let allDepartments: any[] = []
-      let nextUrl: string | null = `${API_BASE_URL}/directions/`
+      let nextUrl: string | null = `${getApiBaseUrl()}/directions/`
       
       // Récupérer toutes les pages si pagination
       while (nextUrl) {
@@ -407,7 +408,7 @@ export const useOrgChart = () => {
 
   const fetchOrgChartData = async () => {
     try {
-      const response = await fetch(`${API_BASE_URL}/tree/`, {
+      const response = await fetch(`${getApiBaseUrl()}/tree/`, {
         method: 'GET',
         headers: {
           'Content-Type': 'application/json',
@@ -510,7 +511,7 @@ export const useOrgChart = () => {
         params.append('direction', department)
       }
       
-      const response = await fetch(`${API_BASE_URL}/agents/search/?${params}`)
+      const response = await fetch(`${getApiBaseUrl()}/agents/search/?${params}`)
       if (!response.ok) throw new Error('Erreur lors de la recherche')
       const data = await response.json()
       
@@ -568,7 +569,7 @@ export const useOrgChart = () => {
 
   const getEmployeeById = async (id: number) => {
     try {
-      const response = await fetch(`${API_BASE_URL}/agents/${id}/`)
+      const response = await fetch(`${getApiBaseUrl()}/agents/${id}/`)
       if (!response.ok) throw new Error('Employé non trouvé')
       return await response.json()
     } catch (err) {
@@ -580,7 +581,7 @@ export const useOrgChart = () => {
 
   const getEmployeeSubordinates = async (id: number) => {
     try {
-      const response = await fetch(`${API_BASE_URL}/agents/${id}/subordinates/`)
+      const response = await fetch(`${getApiBaseUrl()}/agents/${id}/subordinates/`)
       if (!response.ok) throw new Error('Erreur lors du chargement des subordonnés')
       const data = await response.json()
       return data.results || data
@@ -593,7 +594,7 @@ export const useOrgChart = () => {
 
   const getDepartmentStatistics = async () => {
     try {
-      const response = await fetch(`${API_BASE_URL}/directions/`)
+      const response = await fetch(`${getApiBaseUrl()}/directions/`)
       if (!response.ok) throw new Error('Erreur lors du chargement des statistiques')
       const data = await response.json()
       return data.map((dept: any) => ({

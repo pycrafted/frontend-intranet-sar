@@ -23,7 +23,8 @@ interface UseDirectionsAdminReturn {
   deleteMultipleDirections: (ids: number[]) => Promise<void>
 }
 
-const API_BASE_URL = API_CONFIG.BASE_URL
+// Fonction lazy pour obtenir l'URL de base
+const getApiBaseUrl = () => API_CONFIG.BASE_URL
 
 export const useDirectionsAdmin = (): UseDirectionsAdminReturn => {
   const [directions, setDirections] = useState<Direction[]>([])
@@ -37,7 +38,7 @@ export const useDirectionsAdmin = (): UseDirectionsAdminReturn => {
       setLoading(true)
       setError(null)
       
-      const response = await fetch(`${API_BASE_URL}/organigramme/directions/`, {
+      const response = await fetch(`${getApiBaseUrl()}/organigramme/directions/`, {
         method: 'GET',
         headers: {
           'Content-Type': 'application/json',
@@ -63,7 +64,7 @@ export const useDirectionsAdmin = (): UseDirectionsAdminReturn => {
   // Créer une direction
   const createDirection = useCallback(async (data: { name: string }) => {
     try {
-      const response = await fetch(`${API_BASE_URL}/organigramme/directions/`, {
+      const response = await fetch(`${getApiBaseUrl()}/organigramme/directions/`, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
@@ -88,7 +89,7 @@ export const useDirectionsAdmin = (): UseDirectionsAdminReturn => {
   // Mettre à jour une direction
   const updateDirection = useCallback(async (id: number, data: { name: string }) => {
     try {
-      const response = await fetch(`${API_BASE_URL}/organigramme/directions/${id}/`, {
+      const response = await fetch(`${getApiBaseUrl()}/organigramme/directions/${id}/`, {
         method: 'PUT',
         headers: {
           'Content-Type': 'application/json',
@@ -113,7 +114,7 @@ export const useDirectionsAdmin = (): UseDirectionsAdminReturn => {
   // Supprimer une direction
   const deleteDirection = useCallback(async (id: number) => {
     try {
-      const response = await fetch(`${API_BASE_URL}/organigramme/directions/${id}/`, {
+      const response = await fetch(`${getApiBaseUrl()}/organigramme/directions/${id}/`, {
         method: 'DELETE',
         credentials: 'include'
       })

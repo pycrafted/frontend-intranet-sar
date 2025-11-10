@@ -1,7 +1,8 @@
 // Configuration de l'API
 import { API_CONFIG } from './config'
 
-const API_BASE_URL = API_CONFIG.ACTUALITES;
+// Fonction lazy pour obtenir l'URL de base
+const getApiBaseUrl = () => API_CONFIG.ACTUALITES;
 
 // Types TypeScript pour les données
 
@@ -76,7 +77,7 @@ export const api = {
     if (params?.page) searchParams.append('page', params.page.toString());
     if (params?.page_size) searchParams.append('page_size', params.page_size.toString());
 
-    const url = `${API_BASE_URL}/${searchParams.toString() ? `?${searchParams.toString()}` : ''}`;
+    const url = `${getApiBaseUrl()}/${searchParams.toString() ? `?${searchParams.toString()}` : ''}`;
     
     const response = await fetch(url, {
       credentials: 'omit' // Désactiver l'authentification temporairement
@@ -90,7 +91,7 @@ export const api = {
 
   // Récupérer le détail d'un article
   async getArticle(id: number): Promise<Article> {
-    const response = await fetch(`${API_BASE_URL}/${id}/`, {
+    const response = await fetch(`${getApiBaseUrl()}/${id}/`, {
       credentials: 'omit' // Désactiver l'authentification temporairement
     });
     if (!response.ok) {
@@ -102,7 +103,7 @@ export const api = {
 
   // Récupérer les statistiques
   async getStats(): Promise<ArticleStats> {
-    const response = await fetch(`${API_BASE_URL}/stats/`, {
+    const response = await fetch(`${getApiBaseUrl()}/stats/`, {
       credentials: 'omit' // Désactiver l'authentification temporairement
     });
     if (!response.ok) {
@@ -113,7 +114,7 @@ export const api = {
 
   // Supprimer un article
   async deleteArticle(id: number): Promise<void> {
-    const response = await fetch(`${API_BASE_URL}/${id}/`, {
+    const response = await fetch(`${getApiBaseUrl()}/${id}/`, {
       method: 'DELETE',
     });
     
@@ -158,7 +159,7 @@ export const api = {
       formData.append('video_poster', articleData.video_poster);
     }
     
-    const response = await fetch(`${API_BASE_URL}/${id}/`, {
+    const response = await fetch(`${getApiBaseUrl()}/${id}/`, {
       method: 'PUT',
       // Ne pas définir Content-Type, laissez le navigateur le faire pour FormData
       body: formData,
@@ -208,7 +209,7 @@ export const api = {
       formData.append('video_poster', articleData.video_poster);
     }
     
-    const response = await fetch(`${API_BASE_URL}/create/`, {
+    const response = await fetch(`${getApiBaseUrl()}/create/`, {
       method: 'POST',
       // Ne pas définir Content-Type, laissez le navigateur le faire pour FormData
       body: formData,

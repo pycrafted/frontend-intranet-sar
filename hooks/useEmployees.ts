@@ -53,7 +53,8 @@ export interface OrgChartData {
 
 import { API_CONFIG } from "@/lib/config"
 
-const API_BASE_URL = API_CONFIG.ANNUAIRE
+// Fonction lazy pour obtenir l'URL de base
+const getApiBaseUrl = () => API_CONFIG.ANNUAIRE
 
 export const useEmployees = () => {
   const [employees, setEmployees] = useState<Employee[]>([])
@@ -65,7 +66,7 @@ export const useEmployees = () => {
   const fetchEmployees = async () => {
     try {
       setLoading(true)
-      const response = await fetch(`${API_BASE_URL}/employees/`)
+      const response = await fetch(`${getApiBaseUrl()}/employees/`)
       if (!response.ok) {
         throw new Error(`Erreur ${response.status}: ${response.statusText}`)
       }
@@ -91,7 +92,7 @@ export const useEmployees = () => {
 
   const fetchDepartments = async () => {
     try {
-      const response = await fetch(`${API_BASE_URL}/departments/`)
+      const response = await fetch(`${getApiBaseUrl()}/departments/`)
       if (!response.ok) {
         throw new Error(`Erreur ${response.status}: ${response.statusText}`)
       }
@@ -105,9 +106,9 @@ export const useEmployees = () => {
 
   const fetchOrgChartData = async () => {
     try {
-      console.log('🔍 [ANNUAIRE] Récupération de l\'organigramme depuis:', `${API_BASE_URL}/hierarchy-data/`)
+      console.log('🔍 [ANNUAIRE] Récupération de l\'organigramme depuis:', `${getApiBaseUrl()}/hierarchy-data/`)
       // Utiliser l'endpoint annuaire pour l'organigramme
-      const response = await fetch(`${API_BASE_URL}/hierarchy-data/`)
+      const response = await fetch(`${getApiBaseUrl()}/hierarchy-data/`)
       if (!response.ok) {
         console.error('❌ [ANNUAIRE] Erreur HTTP organigramme:', response.status, response.statusText)
         throw new Error(`Erreur ${response.status}: ${response.statusText}`)
@@ -135,9 +136,9 @@ export const useEmployees = () => {
         }
       }
       
-      console.log('🔍 [ANNUAIRE] Recherche d\'employés:', `${API_BASE_URL}/employees/search/?${params}`)
+      console.log('🔍 [ANNUAIRE] Recherche d\'employés:', `${getApiBaseUrl()}/employees/search/?${params}`)
       // Utiliser l'endpoint annuaire pour la recherche d'employés
-      const response = await fetch(`${API_BASE_URL}/employees/search/?${params}`)
+      const response = await fetch(`${getApiBaseUrl()}/employees/search/?${params}`)
       if (!response.ok) {
         console.error('❌ [ANNUAIRE] Erreur HTTP recherche:', response.status, response.statusText)
         throw new Error(`Erreur ${response.status}: ${response.statusText}`)
@@ -158,7 +159,7 @@ export const useEmployees = () => {
     try {
       console.log('🔍 [ANNUAIRE] Récupération employé ID:', id)
       // Utiliser l'endpoint annuaire pour les détails d'employé
-      const response = await fetch(`${API_BASE_URL}/employees/${id}/`)
+      const response = await fetch(`${getApiBaseUrl()}/employees/${id}/`)
       if (!response.ok) {
         console.error('❌ [ANNUAIRE] Erreur HTTP employé:', response.status, response.statusText)
         throw new Error('Employé non trouvé')
@@ -186,8 +187,8 @@ export const useEmployees = () => {
 
   const getDepartmentStatistics = async () => {
     try {
-      console.log('🔍 [ANNUAIRE] Récupération statistiques départements depuis:', `${API_BASE_URL}/statistics/departments/`)
-      const response = await fetch(`${API_BASE_URL}/statistics/departments/`)
+      console.log('🔍 [ANNUAIRE] Récupération statistiques départements depuis:', `${getApiBaseUrl()}/statistics/departments/`)
+      const response = await fetch(`${getApiBaseUrl()}/statistics/departments/`)
       if (!response.ok) {
         console.error('❌ [ANNUAIRE] Erreur HTTP statistiques:', response.status, response.statusText)
         throw new Error(`Erreur ${response.status}: ${response.statusText}`)

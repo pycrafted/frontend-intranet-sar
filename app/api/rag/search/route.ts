@@ -1,11 +1,10 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { config } from '@/lib/config'
 
-const BACKEND_URL = config.backend.apiUrl
-
 export async function POST(request: NextRequest) {
   try {
     const body = await request.json()
+    const BACKEND_URL = config.backend.apiUrl
     console.log('🔍 MAI Frontend - Requête hybride reçue:', body.query)
     
     // Utiliser le nouveau système hybride en priorité
