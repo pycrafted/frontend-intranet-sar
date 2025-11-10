@@ -11,34 +11,32 @@ const nextConfig = {
     serverComponentsExternalPackages: ['@radix-ui/react-avatar'],
   },
   // Configuration pour autoriser les origines de développement
-  // Utilise NEXT_PUBLIC_FRONTEND_URL depuis les variables d'environnement
+  // Utilise NEXT_PUBLIC_FRONTEND_URL depuis les variables d'environnement (.env.local)
   allowedDevOrigins: process.env.NEXT_PUBLIC_FRONTEND_URL 
     ? [process.env.NEXT_PUBLIC_FRONTEND_URL]
     : process.env.NODE_ENV === 'development'
       ? [
-          'http://sar-intranet',
-          'http://sar-intranet.sar.sn',
           // En développement uniquement, utilise localhost si FRONTEND_URL n'est pas défini
-          process.env.NEXT_PUBLIC_FRONTEND_URL || 'http://localhost:3000',
+          'http://localhost:3000',
         ]
-      : [
-          'http://sar-intranet',
-          'http://sar-intranet.sar.sn',
-        ],
+      : [],
   images: {
     unoptimized: true,
     // Domaines configurés via variables d'environnement
     domains: process.env.NEXT_PUBLIC_IMAGE_DOMAINS 
       ? process.env.NEXT_PUBLIC_IMAGE_DOMAINS.split(',')
-      : ['backend-intranet-sar-1.onrender.com', 'sar-intranet.sar.sn'],
+      : process.env.NEXT_PUBLIC_API_URL
+        ? (() => {
+            try {
+              const apiUrl = new URL(process.env.NEXT_PUBLIC_API_URL.replace('/api', ''));
+              return [apiUrl.hostname];
+            } catch {
+              return [];
+            }
+          })()
+        : [],
     remotePatterns: [
-      {
-        protocol: 'https',
-        hostname: 'backend-intranet-sar-1.onrender.com',
-        port: '',
-        pathname: '/media/**',
-      },
-      // Configuration dynamique basée sur NEXT_PUBLIC_API_URL
+      // Configuration dynamique basée sur NEXT_PUBLIC_API_URL depuis .env.local
       ...(process.env.NEXT_PUBLIC_API_URL 
         ? (() => {
             try {
@@ -53,12 +51,7 @@ const nextConfig = {
               return [];
             }
           })()
-        : [{
-            protocol: 'http',
-            hostname: 'sar-intranet.sar.sn',
-            port: '8000',
-            pathname: '/media/**',
-          }]
+        : []
       ),
     ],
   },
