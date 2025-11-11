@@ -11,7 +11,7 @@ export function IdeaBoxWidget() {
 
   return (
     <>
-      <Card className="h-[20rem] sm:h-[24rem] lg:h-[28rem] bg-gradient-to-br from-yellow-50 via-orange-50 to-red-50 border-0 hover:shadow-xl transition-all duration-500 cursor-pointer group flex flex-col overflow-hidden relative">
+      <Card className="h-[26rem] sm:h-[28rem] lg:h-[28rem] bg-gradient-to-br from-yellow-50 via-orange-50 to-red-50 border-0 hover:shadow-xl transition-all duration-500 cursor-pointer group flex flex-col overflow-hidden relative">
         {/* Effet de brillance en arrière-plan */}
         <div className="absolute inset-0 bg-gradient-to-br from-yellow-100/20 via-transparent to-orange-100/20 opacity-0 group-hover:opacity-100 transition-opacity duration-500"></div>
         
@@ -29,7 +29,7 @@ export function IdeaBoxWidget() {
         </div>
         
         {/* Header avec design amélioré - Responsive */}
-        <CardHeader className="pb-2 sm:pb-3 lg:pb-4 flex-shrink-0 relative z-10 p-3 sm:p-6">
+        <CardHeader className="pb-2 sm:pb-3 lg:pb-4 flex-shrink-0 relative z-10 p-2 sm:p-3 md:p-6">
           <CardTitle className="text-lg sm:text-xl font-bold text-gray-900 group-hover:text-orange-700 transition-colors duration-300 flex items-center gap-2 sm:gap-3">
             <div className="p-2 sm:p-3 bg-gradient-to-br from-yellow-500 to-orange-600 rounded-lg sm:rounded-xl shadow-lg group-hover:shadow-orange-200 group-hover:scale-110 transition-all duration-300">
               <Lightbulb className="h-4 w-4 sm:h-5 sm:w-5 lg:h-6 lg:w-6 text-white" />
@@ -39,20 +39,20 @@ export function IdeaBoxWidget() {
           </CardTitle>
         </CardHeader>
         
-        <CardContent className="flex-1 flex flex-col justify-center items-center text-center relative z-10 p-3 sm:p-6">
-          <div className="space-y-4 sm:space-y-6 lg:space-y-8">
+        <CardContent className="flex-1 flex flex-col justify-center items-center text-center relative z-10 p-2 sm:p-3 md:p-6">
+          <div className="space-y-2 sm:space-y-4 md:space-y-6 lg:space-y-8">
             {/* Icône d'ampoule scintillante - Responsive */}
             <div className="relative">
-              <div className="w-20 h-20 sm:w-24 sm:h-24 lg:w-32 lg:h-32 bg-gradient-to-br from-yellow-400 via-orange-500 to-red-500 rounded-full flex items-center justify-center mx-auto shadow-2xl group-hover:scale-110 transition-all duration-500 group-hover:animate-pulse">
-                <Lightbulb className="h-10 w-10 sm:h-12 sm:w-12 lg:h-16 lg:w-16 text-white drop-shadow-lg" />
+              <div className="w-16 h-16 sm:w-20 sm:h-20 md:w-24 md:h-24 lg:w-32 lg:h-32 bg-gradient-to-br from-yellow-400 via-orange-500 to-red-500 rounded-full flex items-center justify-center mx-auto shadow-2xl group-hover:scale-110 transition-all duration-500 group-hover:animate-pulse">
+                <Lightbulb className="h-8 w-8 sm:h-10 sm:w-10 md:h-12 md:w-12 lg:h-16 lg:w-16 text-white drop-shadow-lg" />
               </div>
               {/* Effet de scintillement - Uniquement au survol */}
-              <div className="absolute inset-0 w-20 h-20 sm:w-24 sm:h-24 lg:w-32 lg:h-32 bg-gradient-to-br from-yellow-300 via-orange-400 to-red-400 rounded-full mx-auto opacity-0 group-hover:opacity-100 group-hover:animate-ping transition-opacity duration-500"></div>
+              <div className="absolute inset-0 w-16 h-16 sm:w-20 sm:h-20 md:w-24 md:h-24 lg:w-32 lg:h-32 bg-gradient-to-br from-yellow-300 via-orange-400 to-red-400 rounded-full mx-auto opacity-0 group-hover:opacity-100 group-hover:animate-ping transition-opacity duration-500"></div>
             </div>
             
             {/* Texte principal - Responsive */}
-            <div className="space-y-3 sm:space-y-4">
-              <h3 className="text-lg sm:text-xl lg:text-2xl font-bold text-gray-900 group-hover:text-orange-700 transition-colors duration-300">
+            <div className="space-y-2 sm:space-y-3 md:space-y-4">
+              <h3 className="text-sm sm:text-base md:text-lg lg:text-xl xl:text-2xl font-bold text-gray-900 group-hover:text-orange-700 transition-colors duration-300">
                 <span className="hidden sm:inline">Une suggestion ?</span>
                 <span className="sm:hidden">Suggestion ?</span>
               </h3>

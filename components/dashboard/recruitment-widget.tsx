@@ -328,7 +328,7 @@ export function RecruitmentWidget() {
 
   return (
     <>
-      <Card className="h-[28rem] flex flex-col overflow-hidden relative bg-gradient-to-br from-orange-50 via-red-50 to-pink-50 border-0 hover:shadow-2xl transition-all duration-500 group">
+      <Card className="h-[26rem] sm:h-[28rem] lg:h-[28rem] flex flex-col overflow-hidden relative bg-gradient-to-br from-orange-50 via-red-50 to-pink-50 border-0 hover:shadow-2xl transition-all duration-500 group">
         {/* Motifs décoratifs élégants */}
         <div className="absolute inset-0">
           <div className="absolute inset-0 bg-gradient-to-br from-orange-100/20 via-red-100/15 to-pink-100/20" />
@@ -338,17 +338,17 @@ export function RecruitmentWidget() {
           <div className="absolute top-1/2 left-1/2 w-16 h-16 bg-pink-300/20 rounded-full -translate-x-8 -translate-y-8 group-hover:bg-pink-200/30 transition-colors duration-500" />
         </div>
 
-        <CardHeader className="relative pb-4 flex-shrink-0 z-10">
+        <CardHeader className="relative pb-2 sm:pb-3 md:pb-4 flex-shrink-0 z-10 p-2 sm:p-3 md:p-4">
           <div className="flex items-center justify-between">
-            <div className="flex items-center gap-3">
-              <div className="p-3 bg-gradient-to-br from-orange-500 to-red-600 rounded-xl shadow-lg group-hover:shadow-orange-300/50 group-hover:scale-105 transition-all duration-300">
-                <Briefcase className="h-6 w-6 text-white" />
+            <div className="flex items-center gap-2 sm:gap-3">
+              <div className="p-2 sm:p-2.5 md:p-3 bg-gradient-to-br from-orange-500 to-red-600 rounded-lg sm:rounded-xl shadow-lg group-hover:shadow-orange-300/50 group-hover:scale-105 transition-all duration-300">
+                <Briefcase className="h-4 w-4 sm:h-5 sm:w-5 md:h-6 md:w-6 text-white" />
               </div>
               <div>
-                <CardTitle className="text-xl font-bold text-slate-800 group-hover:text-orange-700 transition-colors duration-300">
+                <CardTitle className="text-sm sm:text-base md:text-lg lg:text-xl font-bold text-slate-800 group-hover:text-orange-700 transition-colors duration-300">
                   Recrutements Internes
                 </CardTitle>
-                <p className="text-sm text-slate-600 font-medium">
+                <p className="text-[10px] sm:text-xs md:text-sm text-slate-600 font-medium">
                   Opportunités de carrière
                 </p>
               </div>
@@ -356,32 +356,32 @@ export function RecruitmentWidget() {
             <Button 
               variant="outline" 
               size="sm"
-              className="text-orange-600 border-orange-200 hover:bg-orange-50 font-semibold shadow-sm hover:shadow-md transition-all duration-300 group/btn"
+              className="hidden sm:flex text-orange-600 border-orange-200 hover:bg-orange-50 font-semibold shadow-sm hover:shadow-md transition-all duration-300 group/btn text-xs sm:text-sm"
               onClick={() => window.open('/recrutement', '_blank')}
             >
               Voir tous les postes
-              <ArrowRight className="h-4 w-4 ml-2 group-hover/btn:translate-x-1 transition-transform duration-300" />
+              <ArrowRight className="h-3 w-3 sm:h-4 sm:w-4 ml-2 group-hover/btn:translate-x-1 transition-transform duration-300" />
             </Button>
           </div>
         </CardHeader>
         
-        <CardContent className="relative flex-1 flex flex-col justify-center items-center text-center p-3 sm:p-6 pt-2 z-10">
-          <div className="space-y-4 sm:space-y-6 lg:space-y-8">
+        <CardContent className="relative flex-1 flex flex-col justify-center items-center text-center p-2 sm:p-3 md:p-6 pt-2 z-10">
+          <div className="space-y-2 sm:space-y-4 md:space-y-6 lg:space-y-8">
             {/* Icône dynamique et centrée - Même style que boîte à idée */}
             <div className="relative">
-              <div className="w-20 h-20 sm:w-24 sm:h-24 lg:w-32 lg:h-32 bg-gradient-to-br from-orange-400 via-red-500 to-pink-500 rounded-full flex items-center justify-center mx-auto shadow-2xl group-hover:scale-110 transition-all duration-500 group-hover:animate-pulse">
-                <Ban className="h-10 w-10 sm:h-12 sm:w-12 lg:h-16 lg:w-16 text-white drop-shadow-lg" />
+              <div className="w-16 h-16 sm:w-20 sm:h-20 md:w-24 md:h-24 lg:w-32 lg:h-32 bg-gradient-to-br from-orange-400 via-red-500 to-pink-500 rounded-full flex items-center justify-center mx-auto shadow-2xl group-hover:scale-110 transition-all duration-500 group-hover:animate-pulse">
+                <Ban className="h-8 w-8 sm:h-10 sm:w-10 md:h-12 md:w-12 lg:h-16 lg:w-16 text-white drop-shadow-lg" />
               </div>
               {/* Effet de scintillement - Uniquement au survol */}
-              <div className="absolute inset-0 w-20 h-20 sm:w-24 sm:h-24 lg:w-32 lg:h-32 bg-gradient-to-br from-orange-300 via-red-400 to-pink-400 rounded-full mx-auto opacity-0 group-hover:opacity-100 group-hover:animate-ping transition-opacity duration-500"></div>
+              <div className="absolute inset-0 w-16 h-16 sm:w-20 sm:h-20 md:w-24 md:h-24 lg:w-32 lg:h-32 bg-gradient-to-br from-orange-300 via-red-400 to-pink-400 rounded-full mx-auto opacity-0 group-hover:opacity-100 group-hover:animate-ping transition-opacity duration-500"></div>
             </div>
             
             {/* Texte centré */}
-            <div className="space-y-3 sm:space-y-4">
-              <h3 className="text-lg sm:text-xl lg:text-2xl font-bold text-slate-900 group-hover:text-orange-700 transition-colors duration-300">
+            <div className="space-y-2 sm:space-y-3 md:space-y-4">
+              <h3 className="text-sm sm:text-base md:text-lg lg:text-xl xl:text-2xl font-bold text-slate-900 group-hover:text-orange-700 transition-colors duration-300">
                 Pas de poste à pourvoir en ce moment
               </h3>
-              <p className="text-slate-500 text-sm sm:text-base">
+              <p className="text-slate-500 text-xs sm:text-sm md:text-base">
                 Revenez bientôt pour découvrir de nouvelles opportunités
               </p>
             </div>

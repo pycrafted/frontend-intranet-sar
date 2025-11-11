@@ -69,7 +69,7 @@ export function Navigation({ isOpen, onClose, onCollapseChange }: NavigationProp
   const pathname = usePathname()
   const router = useRouter()
   const [isLoading, setIsLoading] = useState(false)
-  const [isCollapsed, setIsCollapsed] = useState(true) // Rétracté par défaut
+  const [isCollapsed, setIsCollapsed] = useState(false) // Ouvert par défaut
   const { logout } = useLogout()
   const { stats } = useArticleStats()
   const { user } = useAuth()
@@ -86,10 +86,10 @@ export function Navigation({ isOpen, onClose, onCollapseChange }: NavigationProp
     }
   }, [isCollapsed, onCollapseChange])
 
-  // Notifier l'état initial rétracté au chargement
+  // Notifier l'état initial ouvert au chargement
   useEffect(() => {
     if (onCollapseChange) {
-      onCollapseChange(true) // Rétracté par défaut
+      onCollapseChange(false) // Ouvert par défaut
     }
   }, [onCollapseChange])
 
@@ -368,7 +368,7 @@ export function Navigation({ isOpen, onClose, onCollapseChange }: NavigationProp
       {/* Sidebar Desktop - Responsive */}
       <aside className={cn(
         "hidden tablet:flex tablet:flex-col tablet:fixed tablet:top-16 tablet:bottom-0 tablet:z-40 border-r border-gray-200 shadow-sm transition-all duration-300",
-        isCollapsed ? "tablet:w-12 lg:w-16" : "tablet:w-56 lg:w-64"
+        isCollapsed ? "tablet:w-12 md:w-14 lg:w-16" : "tablet:w-56 md:w-60 lg:w-64"
       )}>
         <NavigationContent />
       </aside>

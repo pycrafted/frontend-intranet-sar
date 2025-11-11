@@ -184,7 +184,7 @@ export function EventsCalendar() {
   // Afficher un état de chargement si nécessaire
   if (loading) {
     return (
-      <Card className="h-[28rem] bg-gradient-to-br from-rose-100 via-pink-100 to-orange-100 border-0 flex items-center justify-center">
+      <Card className="h-[26rem] sm:h-[28rem] lg:h-[28rem] bg-gradient-to-br from-rose-100 via-pink-100 to-orange-100 border-0 flex items-center justify-center">
         <div className="text-center">
           <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-rose-600 mx-auto mb-4"></div>
           <p className="text-gray-600">Chargement des événements...</p>
@@ -196,7 +196,7 @@ export function EventsCalendar() {
   // Afficher une erreur si nécessaire
   if (error) {
     return (
-      <Card className="h-[28rem] bg-gradient-to-br from-rose-100 via-pink-100 to-orange-100 border-0 flex items-center justify-center">
+      <Card className="h-[26rem] sm:h-[28rem] lg:h-[28rem] bg-gradient-to-br from-rose-100 via-pink-100 to-orange-100 border-0 flex items-center justify-center">
         <div className="text-center">
           <p className="text-red-600 mb-2">Erreur lors du chargement</p>
           <p className="text-gray-600 text-sm">{error}</p>
@@ -222,21 +222,21 @@ export function EventsCalendar() {
   }
 
   return (
-    <Card className="h-[28rem] bg-gradient-to-br from-rose-100 via-pink-100 to-orange-100 border-0 hover:shadow-xl transition-all duration-300 cursor-pointer group flex flex-col overflow-hidden relative">
+    <Card className="h-[26rem] sm:h-[28rem] lg:h-[28rem] bg-gradient-to-br from-rose-100 via-pink-100 to-orange-100 border-0 hover:shadow-xl transition-all duration-300 cursor-pointer group flex flex-col overflow-hidden relative">
       {/* Effet de brillance subtil */}
       <div className="absolute inset-0 bg-gradient-to-br from-rose-200/40 via-transparent to-pink-200/40 opacity-0 group-hover:opacity-100 transition-opacity duration-500"></div>
       
-      <CardHeader className="pb-4 flex-shrink-0 relative z-10">
+      <CardHeader className="pb-2 sm:pb-3 md:pb-4 flex-shrink-0 relative z-10 p-2 sm:p-3 md:p-4">
         <div className="flex items-center justify-between">
-          <div className="flex items-center space-x-3">
-            <div className="p-3 bg-gradient-to-br from-rose-500 to-pink-600 rounded-xl shadow-lg group-hover:shadow-rose-200 group-hover:scale-110 transition-all duration-300">
-              <Calendar className="h-6 w-6 text-white" />
+          <div className="flex items-center space-x-2 sm:space-x-3">
+            <div className="p-2 sm:p-2.5 md:p-3 bg-gradient-to-br from-rose-500 to-pink-600 rounded-lg sm:rounded-xl shadow-lg group-hover:shadow-rose-200 group-hover:scale-110 transition-all duration-300">
+              <Calendar className="h-4 w-4 sm:h-5 sm:w-5 md:h-6 md:w-6 text-white" />
             </div>
             <div>
-              <CardTitle className="text-xl font-bold text-gray-900 group-hover:text-rose-700 transition-colors duration-300">
+              <CardTitle className="text-sm sm:text-base md:text-lg lg:text-xl font-bold text-gray-900 group-hover:text-rose-700 transition-colors duration-300">
                 Événements
               </CardTitle>
-              <p className="text-sm text-gray-600 font-medium">
+              <p className="text-[10px] sm:text-xs md:text-sm text-gray-600 font-medium">
                 {futureEvents.length} événement{futureEvents.length > 1 ? 's' : ''} à venir
               </p>
             </div>
@@ -248,8 +248,8 @@ export function EventsCalendar() {
               return (
                 <div className="text-right">
                   <div className="flex items-center gap-1 mb-1">
-                    <Timer className="h-3 w-3 text-gray-500" />
-                    <span className="text-xs text-gray-600 metadata-text">Événement J-{nextEventInfo.daysRemaining}</span>
+                    <Timer className="h-2.5 w-2.5 sm:h-3 sm:w-3 text-gray-500" />
+                    <span className="text-[9px] sm:text-xs text-gray-600 metadata-text">J-{nextEventInfo.daysRemaining}</span>
                   </div>
                 </div>
               )
@@ -258,17 +258,17 @@ export function EventsCalendar() {
         </div>
         
         {/* Navigation du mois */}
-        <div className="flex items-center justify-between mt-4">
+        <div className="flex items-center justify-between mt-2 sm:mt-3 md:mt-4">
           <Button
             variant="outline"
             size="sm"
             onClick={() => navigateMonth('prev')}
-            className="p-2 border-rose-200 text-rose-600 hover:bg-rose-50"
+            className="p-1 sm:p-1.5 md:p-2 border-2 border-red-500 bg-red-500 text-white hover:bg-red-600 hover:border-red-600 sm:border-rose-200 sm:bg-transparent sm:text-rose-600 sm:hover:bg-rose-50 h-6 w-6 sm:h-7 sm:w-7 md:h-8 md:w-8 transition-all duration-200"
           >
-            <ChevronLeft className="h-4 w-4" />
+            <ChevronLeft className="h-3 w-3 sm:h-3.5 sm:w-3.5 md:h-4 md:w-4" />
           </Button>
           
-          <h3 className="text-lg font-semibold text-gray-800 widget-title">
+          <h3 className="text-xs sm:text-sm md:text-base lg:text-lg font-semibold text-gray-800 widget-title">
             {MONTHS[currentMonth]} {currentYear}
           </h3>
           
@@ -276,25 +276,25 @@ export function EventsCalendar() {
             variant="outline"
             size="sm"
             onClick={() => navigateMonth('next')}
-            className="p-2 border-rose-200 text-rose-600 hover:bg-rose-50"
+            className="p-1 sm:p-1.5 md:p-2 border-2 border-red-500 bg-red-500 text-white hover:bg-red-600 hover:border-red-600 sm:border-rose-200 sm:bg-transparent sm:text-rose-600 sm:hover:bg-rose-50 h-6 w-6 sm:h-7 sm:w-7 md:h-8 md:w-8 transition-all duration-200"
           >
-            <ChevronRight className="h-4 w-4" />
+            <ChevronRight className="h-3 w-3 sm:h-3.5 sm:w-3.5 md:h-4 md:w-4" />
           </Button>
         </div>
       </CardHeader>
 
-      <CardContent className="p-0 flex-1 overflow-hidden relative z-10 flex flex-col">
+      <CardContent className="p-0.5 sm:p-1 md:p-0 flex-1 overflow-hidden relative z-10 flex flex-col">
         {/* En-têtes des jours */}
-        <div className="grid grid-cols-7 gap-0.5 px-1 pb-0.5 flex-shrink-0">
+        <div className="grid grid-cols-7 gap-0.5 px-0.5 sm:px-1 pb-0.5 flex-shrink-0">
           {DAYS.map(day => (
-            <div key={day} className="text-center text-[9px] font-bold text-gray-500 py-0.5">
+            <div key={day} className="text-center text-[8px] sm:text-[9px] font-bold text-gray-500 py-0.5">
               {day}
             </div>
           ))}
         </div>
 
         {/* Grille du calendrier - Toutes les cellules ont la même taille */}
-        <div className="grid grid-cols-7 gap-0.5 px-1 pb-1 flex-1 min-h-0 auto-rows-fr">
+        <div className="grid grid-cols-7 gap-0.5 px-0.5 sm:px-1 pb-0.5 sm:pb-1 flex-1 min-h-0 auto-rows-fr">
           {calendarDays.map((dayData, index) => {
             const dayEvents = getEventsForDate(dayData.date)
             const hasEventOnDate = hasEvent(dayData.date)

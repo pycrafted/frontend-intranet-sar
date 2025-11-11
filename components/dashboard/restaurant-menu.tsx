@@ -4,7 +4,7 @@ import { useState, useEffect } from "react"
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import { Badge } from "@/components/ui/badge"
 import { Button } from "@/components/ui/button"
-import { Utensils, MapPin, Clock, ChefHat, Star, Calendar, Users, Sparkles, ArrowRight } from "lucide-react"
+import { Utensils, MapPin, Clock, ChefHat, Star, Calendar, Users, Sparkles, ArrowRight, ChevronLeft, ChevronRight } from "lucide-react"
 import { useMenu } from "@/hooks/useMenu"
 
 interface MenuItem {
@@ -32,7 +32,7 @@ interface DayMenu {
 
 export function RestaurantMenu() {
   const { weekMenu, loading, error, fetchWeekMenu } = useMenu()
-  const [currentWeekIndex, setCurrentWeekIndex] = useState(0)
+  const [currentDayIndex, setCurrentDayIndex] = useState(0)
 
   // Charger le menu de la semaine au montage du composant
   useEffect(() => {
@@ -82,6 +82,46 @@ export function RestaurantMenu() {
     })
   }
 
+  // Fonctions de navigation pour la pagination mobile
+  const goToNextDay = () => {
+    const weekDays = getWeekDays()
+    setCurrentDayIndex((prevIndex) => 
+      prevIndex === weekDays.length - 1 ? 0 : prevIndex + 1
+    )
+  }
+
+  const goToPreviousDay = () => {
+    const weekDays = getWeekDays()
+    setCurrentDayIndex((prevIndex) => 
+      prevIndex === 0 ? weekDays.length - 1 : prevIndex - 1
+    )
+  }
+
+  const goToDay = (index: number) => {
+    setCurrentDayIndex(index)
+  }
+
+  // Initialiser l'index sur le jour d'aujourd'hui si disponible
+  useEffect(() => {
+    if (weekMenu && weekMenu.days && weekMenu.week_start) {
+      const weekStart = new Date(weekMenu.week_start)
+      const days = ['monday', 'tuesday', 'wednesday', 'thursday', 'friday']
+      const today = new Date()
+      const todayString = today.toISOString().split('T')[0]
+      
+      const todayIndex = days.findIndex((_, index) => {
+        const date = new Date(weekStart)
+        date.setDate(weekStart.getDate() + index)
+        const dateString = date.toISOString().split('T')[0]
+        return dateString === todayString
+      })
+      
+      if (todayIndex !== -1) {
+        setCurrentDayIndex(todayIndex)
+      }
+    }
+  }, [weekMenu])
+
   // Obtenir le type de cuisine avec emoji et couleur
   const getCuisineInfo = (type: string) => {
     switch (type) {
@@ -121,7 +161,7 @@ export function RestaurantMenu() {
   // Gestion des états de chargement et d'erreur
   if (loading) {
     return (
-      <Card className="min-h-[20rem] max-h-[32rem] sm:h-[28rem] bg-gradient-to-br from-slate-100 via-gray-100 to-blue-100 border-0 hover:shadow-xl transition-all duration-500 cursor-pointer group flex flex-col overflow-hidden relative">
+      <Card className="h-[26rem] sm:h-[28rem] lg:h-[28rem] bg-gradient-to-br from-slate-100 via-gray-100 to-blue-100 border-0 hover:shadow-xl transition-all duration-500 cursor-pointer group flex flex-col overflow-hidden relative">
         {/* Effet de brillance subtil */}
         <div className="absolute inset-0 bg-gradient-to-br from-slate-200/40 via-transparent to-blue-200/40 opacity-0 group-hover:opacity-100 transition-opacity duration-500"></div>
         
@@ -133,14 +173,14 @@ export function RestaurantMenu() {
           <Utensils className="h-4 w-4 sm:h-6 sm:w-6 text-white" />
         </div>
         
-        <CardHeader className="pb-2 sm:pb-4 flex-shrink-0 relative z-10 p-3 sm:p-6">
+        <CardHeader className="pb-2 sm:pb-4 flex-shrink-0 relative z-10 p-2 sm:p-3 md:p-6">
           <div className="flex items-center justify-between">
             <div className="flex items-center space-x-2 sm:space-x-3">
               <div className="p-2 sm:p-3 bg-gradient-to-br from-slate-500 to-blue-600 rounded-lg sm:rounded-xl shadow-lg group-hover:shadow-slate-200 group-hover:scale-110 transition-all duration-300">
                 <ChefHat className="h-4 w-4 sm:h-6 sm:w-6 text-white" />
               </div>
               <div>
-                <CardTitle className="text-lg sm:text-xl font-bold text-gray-900 group-hover:text-blue-700 transition-colors duration-300">
+                <CardTitle className="text-sm sm:text-base md:text-lg lg:text-xl font-bold text-gray-900 group-hover:text-blue-700 transition-colors duration-300">
                   <span className="hidden sm:inline">Menu de la Semaine</span>
                   <span className="sm:hidden">Menu</span>
                 </CardTitle>
@@ -169,7 +209,7 @@ export function RestaurantMenu() {
 
   if (error) {
     return (
-      <Card className="min-h-[20rem] max-h-[32rem] sm:h-[28rem] bg-gradient-to-br from-slate-100 via-gray-100 to-blue-100 border-0 hover:shadow-xl transition-all duration-500 cursor-pointer group flex flex-col overflow-hidden relative">
+      <Card className="h-[26rem] sm:h-[28rem] lg:h-[28rem] bg-gradient-to-br from-slate-100 via-gray-100 to-blue-100 border-0 hover:shadow-xl transition-all duration-500 cursor-pointer group flex flex-col overflow-hidden relative">
         {/* Effet de brillance subtil */}
         <div className="absolute inset-0 bg-gradient-to-br from-slate-200/40 via-transparent to-blue-200/40 opacity-0 group-hover:opacity-100 transition-opacity duration-500"></div>
         
@@ -181,14 +221,14 @@ export function RestaurantMenu() {
           <Utensils className="h-4 w-4 sm:h-6 sm:w-6 text-white" />
         </div>
         
-        <CardHeader className="pb-2 sm:pb-4 flex-shrink-0 relative z-10 p-3 sm:p-6">
+        <CardHeader className="pb-2 sm:pb-4 flex-shrink-0 relative z-10 p-2 sm:p-3 md:p-6">
           <div className="flex items-center justify-between">
             <div className="flex items-center space-x-2 sm:space-x-3">
               <div className="p-2 sm:p-3 bg-gradient-to-br from-slate-500 to-blue-600 rounded-lg sm:rounded-xl shadow-lg group-hover:shadow-slate-200 group-hover:scale-110 transition-all duration-300">
                 <ChefHat className="h-4 w-4 sm:h-6 sm:w-6 text-white" />
               </div>
               <div>
-                <CardTitle className="text-lg sm:text-xl font-bold text-gray-900 group-hover:text-blue-700 transition-colors duration-300">
+                <CardTitle className="text-sm sm:text-base md:text-lg lg:text-xl font-bold text-gray-900 group-hover:text-blue-700 transition-colors duration-300">
                   <span className="hidden sm:inline">Menu de la Semaine</span>
                   <span className="sm:hidden">Menu</span>
                 </CardTitle>
@@ -227,7 +267,7 @@ export function RestaurantMenu() {
 
   if (!weekMenu || !weekMenu.days || weekMenu.days.length === 0) {
     return (
-      <Card className="min-h-[20rem] max-h-[32rem] sm:h-[28rem] bg-gradient-to-br from-slate-100 via-gray-100 to-blue-100 border-0 hover:shadow-xl transition-all duration-500 cursor-pointer group flex flex-col overflow-hidden relative">
+      <Card className="h-[26rem] sm:h-[28rem] lg:h-[28rem] bg-gradient-to-br from-slate-100 via-gray-100 to-blue-100 border-0 hover:shadow-xl transition-all duration-500 cursor-pointer group flex flex-col overflow-hidden relative">
         {/* Effet de brillance subtil */}
         <div className="absolute inset-0 bg-gradient-to-br from-slate-200/40 via-transparent to-blue-200/40 opacity-0 group-hover:opacity-100 transition-opacity duration-500"></div>
         
@@ -239,14 +279,14 @@ export function RestaurantMenu() {
           <Utensils className="h-4 w-4 sm:h-6 sm:w-6 text-white" />
         </div>
         
-        <CardHeader className="pb-2 sm:pb-4 flex-shrink-0 relative z-10 p-3 sm:p-6">
+        <CardHeader className="pb-2 sm:pb-4 flex-shrink-0 relative z-10 p-2 sm:p-3 md:p-6">
           <div className="flex items-center justify-between">
             <div className="flex items-center space-x-2 sm:space-x-3">
               <div className="p-2 sm:p-3 bg-gradient-to-br from-slate-500 to-blue-600 rounded-lg sm:rounded-xl shadow-lg group-hover:shadow-slate-200 group-hover:scale-110 transition-all duration-300">
                 <ChefHat className="h-4 w-4 sm:h-6 sm:w-6 text-white" />
               </div>
               <div>
-                <CardTitle className="text-lg sm:text-xl font-bold text-gray-900 group-hover:text-blue-700 transition-colors duration-300">
+                <CardTitle className="text-sm sm:text-base md:text-lg lg:text-xl font-bold text-gray-900 group-hover:text-blue-700 transition-colors duration-300">
                   <span className="hidden sm:inline">Menu de la Semaine</span>
                   <span className="sm:hidden">Menu</span>
                 </CardTitle>
@@ -274,16 +314,45 @@ export function RestaurantMenu() {
   }
 
   return (
-    <Card className="min-h-[24rem] max-h-[32rem] sm:h-[28rem] bg-gradient-to-br from-slate-100 via-gray-100 to-blue-100 border-0 hover:shadow-xl transition-all duration-500 cursor-pointer group flex flex-col overflow-hidden relative">
+    <Card className="h-[24rem] sm:h-[24rem] lg:h-[28rem] bg-gradient-to-br from-slate-100 via-gray-100 to-blue-100 border-0 hover:shadow-xl transition-all duration-500 cursor-pointer group flex flex-col overflow-hidden relative">
       {/* Effet de brillance subtil */}
       <div className="absolute inset-0 bg-gradient-to-br from-slate-200/40 via-transparent to-blue-200/40 opacity-0 group-hover:opacity-100 transition-opacity duration-500"></div>
       
-      <CardContent className="flex-1 overflow-hidden relative z-10 p-3 sm:p-6 flex items-center justify-center">
-        {/* Design responsive : Horizontal scroll sur mobile, grille sur desktop */}
-        <div className="block sm:hidden">
-          {/* Version mobile : Scroll horizontal */}
-          <div className="flex gap-2 overflow-x-auto pb-2 custom-scrollbar restaurant-menu-mobile relative" style={{ scrollbarWidth: 'thin' }}>
-            {getWeekDays().map((dayInfo, index) => {
+      <CardContent className="flex-1 overflow-hidden relative z-10 p-2 sm:p-3 md:p-6 flex items-center justify-center">
+        {/* Design responsive : Pagination sur mobile, grille sur desktop */}
+        <div className="block sm:hidden w-full">
+          {/* Version mobile : Pagination avec un jour à la fois */}
+          <div className="relative w-full h-full flex flex-col">
+            {/* Boutons de navigation */}
+            {getWeekDays().length > 1 && (
+              <>
+                <Button
+                  variant="ghost"
+                  size="sm"
+                  className="absolute left-1 sm:left-2 top-1/2 -translate-y-1/2 z-20 bg-white/90 hover:bg-white text-gray-700 border-2 border-gray-300 shadow-lg h-9 w-9 p-0 rounded-full transition-all duration-200 hover:scale-110"
+                  onClick={goToPreviousDay}
+                  aria-label="Jour précédent"
+                >
+                  <ChevronLeft className="h-5 w-5" />
+                </Button>
+                
+                <Button
+                  variant="ghost"
+                  size="sm"
+                  className="absolute right-1 sm:right-2 top-1/2 -translate-y-1/2 z-20 bg-white/90 hover:bg-white text-gray-700 border-2 border-gray-300 shadow-lg h-9 w-9 p-0 rounded-full transition-all duration-200 hover:scale-110"
+                  onClick={goToNextDay}
+                  aria-label="Jour suivant"
+                >
+                  <ChevronRight className="h-5 w-5" />
+                </Button>
+              </>
+            )}
+
+            {/* Carte du jour actuel */}
+            {getWeekDays().length > 0 && (() => {
+              const weekDays = getWeekDays()
+              const safeIndex = Math.min(currentDayIndex, weekDays.length - 1)
+              const dayInfo = weekDays[safeIndex]
               const dayMenu = weekMenu.days.find(menu => menu.day === dayInfo.day)
               const senegaleseInfo = getCuisineInfo('senegalese')
               const europeanInfo = getCuisineInfo('european')
@@ -291,24 +360,25 @@ export function RestaurantMenu() {
               return (
                 <div 
                   key={dayInfo.day} 
-                  className={`flex-shrink-0 w-64 backdrop-blur-sm rounded-lg border transition-all duration-300 overflow-hidden ${
+                  className={`w-full max-w-sm backdrop-blur-sm rounded-lg border transition-all duration-300 overflow-hidden mx-auto ${
                     dayInfo.isToday 
                       ? 'bg-gradient-to-br from-red-50 to-orange-50 border-2 border-red-400 shadow-lg ring-2 ring-red-100' 
                       : 'bg-white/90 border-slate-300 hover:bg-white hover:shadow-lg'
                   }`}
+                  style={{ marginLeft: '2.5rem', marginRight: '2.5rem' }}
                 >
                   {/* En-tête du jour compact */}
-                  <div className={`p-3 text-gray-900 ${
+                  <div className={`p-2 sm:p-3 text-gray-900 ${
                     dayInfo.isToday 
                       ? 'bg-gradient-to-r from-red-100 to-orange-100' 
                       : 'bg-gradient-to-r from-slate-100 to-blue-100'
                   }`}>
-                    <h3 className={`font-bold text-sm text-center ${
+                    <h3 className={`font-bold text-xs sm:text-sm text-center ${
                       dayInfo.isToday ? 'text-red-800' : ''
                     }`}>
                       {dayInfo.dayName}
                     </h3>
-                    <p className={`text-xs text-center ${
+                    <p className={`text-[10px] sm:text-xs text-center ${
                       dayInfo.isToday ? 'text-red-600 font-semibold' : 'text-gray-600'
                     }`}>
                       {formatDate(dayInfo.date)}
@@ -316,33 +386,33 @@ export function RestaurantMenu() {
                   </div>
 
                   {/* Contenu du jour compact */}
-                  <div className="p-3 space-y-3">
+                  <div className="p-2 sm:p-3 space-y-2 sm:space-y-3">
                     {dayMenu ? (
                       <>
                         {/* Plat sénégalais compact */}
-                        <div className={`${senegaleseInfo.bgColor} ${senegaleseInfo.borderColor} border rounded p-2`}>
-                          <div className="flex items-center gap-1 mb-1">
-                            <div className={`w-2 h-2 rounded-full bg-gradient-to-r ${senegaleseInfo.color}`}></div>
-                            <span className={`text-xs font-bold ${senegaleseInfo.textColor} flex items-center gap-1`}>
-                              <span className="text-xs">{senegaleseInfo.emoji}</span>
+                        <div className={`${senegaleseInfo.bgColor} ${senegaleseInfo.borderColor} border rounded p-1.5 sm:p-2`}>
+                          <div className="flex items-center gap-1 mb-0.5 sm:mb-1">
+                            <div className={`w-1.5 h-1.5 sm:w-2 sm:h-2 rounded-full bg-gradient-to-r ${senegaleseInfo.color}`}></div>
+                            <span className={`text-[10px] sm:text-xs font-bold ${senegaleseInfo.textColor} flex items-center gap-1`}>
+                              <span className="text-[10px] sm:text-xs">{senegaleseInfo.emoji}</span>
                               {senegaleseInfo.name}
                             </span>
                           </div>
-                          <p className="text-xs font-semibold text-gray-900 leading-tight">
+                          <p className="text-[10px] sm:text-xs font-semibold text-gray-900 leading-tight">
                             {dayMenu.senegalese.name}
                           </p>
                         </div>
 
                         {/* Plat européen compact */}
-                        <div className={`${europeanInfo.bgColor} ${europeanInfo.borderColor} border rounded p-2`}>
-                          <div className="flex items-center gap-1 mb-1">
-                            <div className={`w-2 h-2 rounded-full bg-gradient-to-r ${europeanInfo.color}`}></div>
-                            <span className={`text-xs font-bold ${europeanInfo.textColor} flex items-center gap-1`}>
-                              <span className="text-xs">{europeanInfo.emoji}</span>
+                        <div className={`${europeanInfo.bgColor} ${europeanInfo.borderColor} border rounded p-1.5 sm:p-2`}>
+                          <div className="flex items-center gap-1 mb-0.5 sm:mb-1">
+                            <div className={`w-1.5 h-1.5 sm:w-2 sm:h-2 rounded-full bg-gradient-to-r ${europeanInfo.color}`}></div>
+                            <span className={`text-[10px] sm:text-xs font-bold ${europeanInfo.textColor} flex items-center gap-1`}>
+                              <span className="text-[10px] sm:text-xs">{europeanInfo.emoji}</span>
                               {europeanInfo.name}
                             </span>
                           </div>
-                          <p className="text-xs font-semibold text-gray-900 leading-tight">
+                          <p className="text-[10px] sm:text-xs font-semibold text-gray-900 leading-tight">
                             {dayMenu.european.name}
                           </p>
                         </div>
@@ -372,7 +442,32 @@ export function RestaurantMenu() {
                   </div>
                 </div>
               )
-            })}
+            })()}
+
+            {/* Indicateurs de pagination (dots) et compteur */}
+            {getWeekDays().length > 1 && (
+              <div className="flex flex-col items-center gap-2 mt-3">
+                {/* Compteur de position */}
+                <div className="text-xs font-semibold text-gray-600">
+                  {currentDayIndex + 1} / {getWeekDays().length}
+                </div>
+                {/* Dots de pagination */}
+                <div className="flex justify-center items-center gap-2">
+                  {getWeekDays().map((_, index) => (
+                    <button
+                      key={index}
+                      onClick={() => goToDay(index)}
+                      className={`transition-all duration-300 rounded-full ${
+                        index === currentDayIndex
+                          ? 'w-2.5 h-2.5 bg-blue-600 shadow-md'
+                          : 'w-2 h-2 bg-gray-300 hover:bg-gray-400'
+                      }`}
+                      aria-label={`Aller au jour ${index + 1}`}
+                    />
+                  ))}
+                </div>
+              </div>
+            )}
           </div>
         </div>
 

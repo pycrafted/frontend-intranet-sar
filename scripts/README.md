@@ -39,3 +39,4 @@ Le fichier `.env.local` était encodé en **UTF-16** (avec BOM) au lieu d'**UTF-
 ✅ L'API `/api/chat` fonctionne correctement
 ✅ Les clés API Claude sont correctement chargées
 
+

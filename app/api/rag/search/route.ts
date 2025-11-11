@@ -1,17 +1,5 @@
 import { NextRequest, NextResponse } from 'next/server'
-import { loadEnvConfig } from '@next/env'
 import { config } from '@/lib/config'
-
-// ⚠️ IMPORTANT: Charger explicitement les variables d'environnement depuis .env.local
-const projectDir = process.cwd()
-const { loadedEnvFiles } = loadEnvConfig(projectDir)
-
-// Log pour vérifier le chargement
-if (loadedEnvFiles.length > 0) {
-  console.log('✅ [RAG API] Variables d\'env chargées depuis:', loadedEnvFiles.map(f => f.path).join(', '))
-} else {
-  console.warn('⚠️ [RAG API] Aucun fichier .env trouvé')
-}
 
 export async function POST(request: NextRequest) {
   const requestId = Date.now().toString()
@@ -19,16 +7,14 @@ export async function POST(request: NextRequest) {
   
   try {
     const body = await request.json()
-    // ⚠️ IMPORTANT: Utiliser les variables d'environnement depuis .env.local
-    // Utiliser config.backend.apiUrlWithApi qui contient l'URL avec /api
-    const API_BASE_URL = config.backend.apiUrlWithApi
-    const BACKEND_URL = config.backend.apiUrl
+    // ⚠️ IMPORTANT: Utiliser getApiUrl() (avec /api) et non getApiBaseUrl() pour les endpoints MAI
+    const BACKEND_URL = config.backend.apiUrl || 'http://localhost:8000'
+    const API_BASE_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:8000/api'
     
     console.log(`🔍 [RAG API] [${requestId}] Requête reçue:`, body.query?.substring(0, 100) + (body.query?.length > 100 ? '...' : ''))
-    console.log(`🔍 [RAG API] [${requestId}] URL backend configurée (sans /api):`, BACKEND_URL)
+    console.log(`🔍 [RAG API] [${requestId}] URL backend configurée:`, BACKEND_URL)
     console.log(`🔍 [RAG API] [${requestId}] API_BASE_URL (avec /api):`, API_BASE_URL)
-    console.log(`🔍 [RAG API] [${requestId}] Variables d'env BACKEND_URL:`, process.env.BACKEND_URL || 'Non définie (utilise NEXT_PUBLIC_API_URL)')
-    console.log(`🔍 [RAG API] [${requestId}] Variables d'env NEXT_PUBLIC_API_URL:`, process.env.NEXT_PUBLIC_API_URL || 'Non définie')
+    console.log(`🔍 [RAG API] [${requestId}] Variables d'env API_URL:`, process.env.NEXT_PUBLIC_API_URL || 'Non définie')
     
     // Construire l'URL complète avec /api/mai/...
     const hybridUrl = `${API_BASE_URL}/mai/hybrid-context/?question=${encodeURIComponent(body.query)}`

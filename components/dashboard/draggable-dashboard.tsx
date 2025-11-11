@@ -105,19 +105,25 @@ const WIDGET_CONFIG: Record<string, { size: string; component: React.ComponentTy
 }
 
 // Configuration des tailles de grille - Responsive avec support tablettes
+// Optimisé pour éviter les espaces vides : les cartes moyennes peuvent être 2 par ligne
 const getGridSizes = (isTablet: boolean) => ({
   small: isTablet 
     ? 'col-span-1 tablet:col-span-12' 
-    : 'col-span-1 sm:col-span-1 md:col-span-2 lg:col-span-3 xl:col-span-3',
+    : 'col-span-1 sm:col-span-1 md:col-span-3 lg:col-span-3 xl:col-span-3',
   medium: isTablet 
     ? 'col-span-1 tablet:col-span-12' 
-    : 'col-span-1 sm:col-span-1 md:col-span-2 lg:col-span-4 xl:col-span-4',
+    : 'col-span-1 sm:col-span-1 md:col-span-6 lg:col-span-6 xl:col-span-4',
+  // Cartes moyennes : 6 colonnes sur 12 = 50% = 2 par ligne sur md et lg
+  // Sur xl : 4 colonnes sur 12 = 33% = 3 par ligne
   large: isTablet 
     ? 'col-span-1 tablet:col-span-12' 
-    : 'col-span-1 sm:col-span-2 md:col-span-3 lg:col-span-6 xl:col-span-8',
+    : 'col-span-1 sm:col-span-2 md:col-span-6 lg:col-span-6 xl:col-span-8',
+  // Cartes grandes : 6 colonnes sur md/lg = 50% = 2 par ligne (comme les moyennes)
+  // Sur xl : 8 colonnes sur 12 = 66% = 1 par ligne avec espace (mais sur xl il y a 3 moyennes par ligne donc ça fonctionne)
   full: isTablet 
     ? 'col-span-1 tablet:col-span-12' 
-    : 'col-span-1 sm:col-span-2 md:col-span-3 lg:col-span-6 xl:col-span-12'
+    : 'col-span-1 sm:col-span-2 md:col-span-12 lg:col-span-12 xl:col-span-12'
+  // Cartes pleines : 12 colonnes = 100% = 1 par ligne
 })
 
 // Les hauteurs sont maintenant gérées directement dans les composants
@@ -503,7 +509,7 @@ export function DraggableDashboard() {
     // Rendu côté serveur - afficher les widgets par défaut
     return (
       <div className="min-h-[calc(100vh-12rem)]">
-        <div className="grid grid-cols-1 xl:grid-cols-12 gap-4">
+        <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-12 lg:grid-cols-12 xl:grid-cols-12 gap-3 sm:gap-3 md:gap-4 lg:gap-6">
           {getDefaultWidgets().map((widget) => {
             const config = WIDGET_CONFIG[widget.type]
             const Component = config.component
@@ -567,7 +573,7 @@ export function DraggableDashboard() {
         onDragEnd={canEdit ? handleDragEnd : undefined as any}
       >
         <div className="min-h-[calc(100vh-12rem)] sm:min-h-[calc(100vh-14rem)] lg:min-h-[calc(100vh-16rem)]">
-          <div className={`${compatibleClasses.grid} grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-6 xl:grid-cols-12 tablet:grid-cols-1 gap-3 sm:gap-4 lg:gap-6 tablet:gap-4`}>
+          <div className={`${compatibleClasses.grid} grid-cols-1 sm:grid-cols-2 md:grid-cols-12 lg:grid-cols-12 xl:grid-cols-12 tablet:grid-cols-1 gap-3 sm:gap-3 md:gap-4 lg:gap-6 tablet:gap-4`}>
             <SortableContext 
               items={visibleWidgets.map(w => w.id)}
               strategy={rectSortingStrategy}

@@ -73,7 +73,7 @@ interface LayoutWrapperProps {
 
 export function LayoutWrapper({ children, secondaryNavbarProps, sidebarProps, forumSidebarProps }: LayoutWrapperProps) {
   const [sidebarOpen, setSidebarOpen] = useState(false)
-  const [isSidebarCollapsed, setIsSidebarCollapsed] = useState(true) // Rétracté par défaut
+  const [isSidebarCollapsed, setIsSidebarCollapsed] = useState(false) // Ouvert par défaut
   const [isSecondarySidebarCollapsed, setIsSecondarySidebarCollapsed] = useState(true) // Rétracté par défaut
   const [showPublicationModal, setShowPublicationModal] = useState(false)
   const [showAnnouncementModal, setShowAnnouncementModal] = useState(false)
@@ -119,10 +119,10 @@ export function LayoutWrapper({ children, secondaryNavbarProps, sidebarProps, fo
     }
   }, [isSidebarCollapsed, pathname])
 
-  // Initialiser les sidebars comme rétractés au chargement de la page
+  // Initialiser les sidebars au chargement de la page
   useEffect(() => {
-    // S'assurer que les sidebars sont rétractés par défaut
-    setIsSidebarCollapsed(true)
+    // Sidebar principal ouvert par défaut, sidebar secondaire rétracté par défaut
+    setIsSidebarCollapsed(false)
     setIsSecondarySidebarCollapsed(true)
   }, [])
 
@@ -138,7 +138,7 @@ export function LayoutWrapper({ children, secondaryNavbarProps, sidebarProps, fo
           onCollapseChange={setIsSidebarCollapsed}
         />
 
-        <main className={`flex-1 flex flex-col transition-all duration-300 ${isSidebarCollapsed ? 'tablet:ml-12 lg:ml-16' : 'tablet:ml-56 lg:ml-64'}`}>
+        <main className={`flex-1 flex flex-col transition-all duration-300 ${isSidebarCollapsed ? 'tablet:ml-12 md:ml-14 lg:ml-16' : 'tablet:ml-56 md:ml-60 lg:ml-64'}`}>
           <div className={`flex-1 bg-gray-200 transition-all duration-300 ${
             pathname === "/centre_de_controle" ? (
               isSecondarySidebarCollapsed ? "lg:ml-0" : "lg:ml-80"
@@ -155,7 +155,7 @@ export function LayoutWrapper({ children, secondaryNavbarProps, sidebarProps, fo
         />
       )}
             
-            <div className={`mx-auto px-2 xs:px-3 sm:px-4 py-3 xs:py-4 sm:py-6 lg:px-8 ${pathname === "/" || pathname === "/securite" || pathname === "/recrutement" || pathname === "/reseau-social" || pathname === "/forum" ? (pathname === "/forum" ? "max-w-none p-0" : pathname === "/reseau-social" ? "max-w-none p-0" : "max-w-none px-1 xs:px-1.5 sm:px-2 lg:px-4") : pathname === "/organigramme" ? "max-w-none px-0" : "max-w-7xl"}`}>
+            <div className={`mx-auto px-2 xs:px-3 sm:px-4 md:px-5 py-3 xs:py-4 sm:py-6 lg:px-8 max-w-full overflow-x-hidden ${pathname === "/" || pathname === "/securite" || pathname === "/recrutement" || pathname === "/reseau-social" || pathname === "/forum" ? (pathname === "/forum" ? "max-w-none p-0" : pathname === "/reseau-social" ? "max-w-none p-0" : "max-w-none px-1 xs:px-1.5 sm:px-2 md:px-3 lg:px-4") : pathname === "/organigramme" ? "max-w-none px-0" : "max-w-7xl"}`}>
               {(() => {
                 // Vérifier si l'enfant est un composant React (pas un élément DOM)
                 if (pathname === "/forum" && React.isValidElement(children)) {

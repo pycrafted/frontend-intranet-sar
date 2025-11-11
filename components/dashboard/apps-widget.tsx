@@ -414,7 +414,7 @@ export function AppsWidget() {
   const toolsApps = APPS.filter(app => app.category === 'tools')
 
   return (
-    <Card className="h-[28rem] flex flex-col overflow-hidden relative bg-gradient-to-br from-blue-50 via-indigo-50 to-purple-50 border-0 hover:shadow-2xl transition-all duration-500 group">
+    <Card className="h-[26rem] sm:h-[28rem] lg:h-[28rem] flex flex-col overflow-hidden relative bg-gradient-to-br from-blue-50 via-indigo-50 to-purple-50 border-0 hover:shadow-2xl transition-all duration-500 group">
       {/* Motifs décoratifs élégants */}
       <div className="absolute inset-0">
         <div className="absolute inset-0 bg-gradient-to-br from-blue-100/20 via-indigo-100/15 to-purple-100/20" />
@@ -424,17 +424,17 @@ export function AppsWidget() {
         <div className="absolute top-1/2 left-1/2 w-16 h-16 bg-purple-300/20 rounded-full -translate-x-8 -translate-y-8 group-hover:bg-purple-200/30 transition-colors duration-500" />
       </div>
 
-      <CardHeader className="relative pb-4 flex-shrink-0 z-10">
+      <CardHeader className="relative pb-2 sm:pb-3 md:pb-4 flex-shrink-0 z-10 p-2 sm:p-3 md:p-4">
         <div className="flex items-center justify-between">
-          <div className="flex items-center gap-3">
-            <div className="p-3 bg-gradient-to-br from-blue-500 to-indigo-600 rounded-xl shadow-lg group-hover:shadow-blue-300/50 group-hover:scale-105 transition-all duration-300">
-              <Sparkles className="h-6 w-6 text-white" />
+          <div className="flex items-center gap-2 sm:gap-3">
+            <div className="p-2 sm:p-2.5 md:p-3 bg-gradient-to-br from-blue-500 to-indigo-600 rounded-lg sm:rounded-xl shadow-lg group-hover:shadow-blue-300/50 group-hover:scale-105 transition-all duration-300">
+              <Sparkles className="h-4 w-4 sm:h-5 sm:w-5 md:h-6 md:w-6 text-white" />
             </div>
             <div>
-              <CardTitle className="text-xl font-bold text-slate-800 group-hover:text-blue-700 transition-colors duration-300">
+              <CardTitle className="text-sm sm:text-base md:text-lg lg:text-xl font-bold text-slate-800 group-hover:text-blue-700 transition-colors duration-300">
                 Accès Rapide
               </CardTitle>
-              <p className="text-sm text-slate-600 font-medium">
+              <p className="text-[10px] sm:text-xs md:text-sm text-slate-600 font-medium">
                 Applications & Services
               </p>
             </div>
@@ -443,8 +443,8 @@ export function AppsWidget() {
         </div>
       </CardHeader>
       
-      <CardContent className="relative flex-1 flex flex-col justify-start md:justify-center p-6 pt-2 z-10">
-        <div className="space-y-3 md:space-y-8">
+      <CardContent className="relative flex-1 flex flex-col justify-start md:justify-center p-4 sm:p-4 md:p-6 pt-2 z-10">
+        <div className="space-y-2 sm:space-y-3 md:space-y-8">
           {/* Section SAR - Applications Internes */}
           <div>
             <h3 className="hidden md:flex text-base font-bold text-orange-600 mb-2 md:mb-3 items-center gap-2">
@@ -452,12 +452,12 @@ export function AppsWidget() {
               <Globe className="h-5 w-5" />
               SAR - Applications Internes
             </h3>
-            <div className="grid grid-cols-3 md:grid-cols-5 gap-3">
+            <div className="grid grid-cols-3 md:grid-cols-5 gap-3 sm:gap-3 md:gap-4">
               {sarApps.map((app) => (
                 <div key={app.id} className="group/app-item relative">
                   <Button
                     variant="ghost"
-                    className="h-16 w-16 p-0 hover:bg-slate-200/50 transition-all duration-300 rounded-xl"
+                    className="h-14 w-14 sm:h-14 sm:w-14 md:h-16 md:w-16 p-0 hover:bg-slate-200/50 transition-all duration-300 rounded-xl"
                     onClick={() => window.open(app.url, '_blank')}
                   >
                     <div className="w-full h-full flex items-center justify-center text-slate-700 group-hover/app-item:scale-110 group-hover/app-item:rotate-3 transition-all duration-300">
@@ -476,12 +476,12 @@ export function AppsWidget() {
               <Globe className="h-5 w-5" />
               SAR - Applications Externes
             </h3>
-            <div className="grid grid-cols-3 md:grid-cols-5 gap-3">
+            <div className="grid grid-cols-3 md:grid-cols-5 gap-3 sm:gap-3 md:gap-4">
               {toolsApps.map((app) => (
                 <div key={app.id} className="group/app-item relative">
                   <Button
                     variant="ghost"
-                    className="h-16 w-16 p-0 hover:bg-slate-200/50 transition-all duration-300 rounded-xl"
+                    className="h-14 w-14 sm:h-14 sm:w-14 md:h-16 md:w-16 p-0 hover:bg-slate-200/50 transition-all duration-300 rounded-xl"
                     onClick={() => handleAppClick(app)}
                   >
                     <div className="w-full h-full flex items-center justify-center text-slate-700 group-hover/app-item:scale-110 group-hover/app-item:rotate-3 transition-all duration-300">

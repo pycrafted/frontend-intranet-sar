@@ -14,7 +14,7 @@ export function VideoWidget() {
 
   if (!isClient) {
     return (
-      <div className="w-full h-[20rem] sm:h-[24rem] lg:h-[28rem] bg-gray-900 rounded-lg flex items-center justify-center">
+      <div className="w-full h-[26rem] sm:h-[28rem] lg:h-[28rem] bg-gray-900 rounded-lg flex items-center justify-center">
         <div className="text-white/50 text-center">
           <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-white/30 mx-auto mb-2"></div>
           <p className="text-sm">Chargement de la vidéo...</p>
@@ -27,7 +27,7 @@ export function VideoWidget() {
   const cloudflarePlayerUrl = `https://customer-eas3f2kom74sgnh6.cloudflarestream.com/${videoId}/iframe?autoplay=true&loop=true&muted=true&controls=true&preload=auto`
 
   return (
-    <div className="w-full h-[20rem] sm:h-[24rem] lg:h-[28rem] rounded-lg overflow-hidden">
+    <div className="w-full h-[26rem] sm:h-[28rem] lg:h-[28rem] rounded-lg overflow-hidden">
       <iframe
         src={cloudflarePlayerUrl}
         title="Vidéo Institutionnelle SAR"

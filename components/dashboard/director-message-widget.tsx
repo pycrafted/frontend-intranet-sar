@@ -29,7 +29,7 @@ Le Directeur Général`
   return (
     <>
       <Card 
-        className="h-[20rem] sm:h-[24rem] lg:h-[28rem] border-0 hover:shadow-2xl transition-all duration-700 group flex flex-col overflow-hidden relative"
+        className="h-[26rem] sm:h-[28rem] lg:h-[28rem] border-0 hover:shadow-2xl transition-all duration-700 group flex flex-col overflow-hidden relative"
         style={{ 
           backgroundImage: 'url(/directeur.jpg)',
           backgroundSize: 'cover',
@@ -79,7 +79,7 @@ Le Directeur Général`
         </div>
         
         {/* Header avec design SAR - Responsive */}
-        <CardHeader className="pb-2 sm:pb-4 flex-shrink-0 relative z-10 p-3 sm:p-6">
+        <CardHeader className="pb-2 sm:pb-4 flex-shrink-0 relative z-10 p-2 sm:p-3 md:p-6">
           <div className="flex items-center justify-between">
             <CardTitle className="text-lg sm:text-xl font-bold text-gray-900 group-hover:transition-colors duration-500 flex items-center gap-2 sm:gap-3">
               <div 
@@ -106,8 +106,8 @@ Le Directeur Général`
           </div>
         </CardHeader>
         
-        <CardContent className="flex-1 flex flex-col justify-center items-center text-center relative z-10 pt-2 sm:pt-4 p-3 sm:p-6">
-          <div className="space-y-4 sm:space-y-6 w-full">
+        <CardContent className="flex-1 flex flex-col justify-center items-center text-center relative z-10 pt-2 sm:pt-4 p-2 sm:p-3 md:p-6">
+          <div className="space-y-2 sm:space-y-3 md:space-y-6 w-full">
             {/* Citation professionnelle avec design corporate - Responsive */}
             <div 
               className="relative overflow-hidden transition-all duration-700 group-hover:scale-[1.02] group-hover:shadow-2xl mx-2 sm:mx-4"
@@ -126,11 +126,11 @@ Le Directeur Général`
               ></div>
               
               {/* Contenu principal */}
-              <div className="p-4 sm:p-5">
+              <div className="p-2 sm:p-3 md:p-5">
                 {/* Texte de citation avec typographie professionnelle */}
                 <blockquote className="text-center">
                   <p 
-                    className="text-gray-800 text-sm sm:text-base leading-relaxed font-medium italic"
+                    className="text-gray-800 text-xs sm:text-sm md:text-base leading-relaxed font-medium italic"
                     style={{ 
                       fontFamily: '"Inter", "Segoe UI", system-ui, sans-serif',
                       lineHeight: '1.5',
@@ -152,10 +152,10 @@ Le Directeur Général`
             </div>
             
             {/* Bouton d'action professionnel - Responsive */}
-            <div className="pt-3 sm:pt-4">
+            <div className="pt-2 sm:pt-3 md:pt-4">
               <Button
                 onClick={() => setIsModalOpen(true)}
-                className="group relative overflow-hidden rounded-lg px-4 sm:px-6 py-2 sm:py-3 text-xs sm:text-sm font-semibold text-white border-0 transition-all duration-300 hover:scale-105"
+                className="group relative overflow-hidden rounded-lg px-3 sm:px-4 md:px-6 py-1.5 sm:py-2 md:py-3 text-[10px] sm:text-xs md:text-sm font-semibold text-white border-0 transition-all duration-300 hover:scale-105"
                 style={{ 
                   background: 'linear-gradient(135deg, #ee0009 0%, #c41e3a 100%)',
                   boxShadow: '0 6px 20px rgba(238, 0, 9, 0.3)'

@@ -18,6 +18,703 @@ html {
   -webkit-text-size-adjust: 100%;
   -ms-text-size-adjust: 100%;
   text-size-adjust: 100%;
+  /* Gestion du zoom système - Utiliser des unités relatives */
+  font-size: 16px; /* Base pour les calculs rem */
+}
+
+/* Gestion du zoom système à 150% et 200% - Amélioration de la responsivité */
+/* Les breakpoints Tailwind sont basés sur des pixels CSS, mais avec le zoom système,
+   les pixels sont agrandis. On utilise des media queries basées sur la largeur réelle. */
+@media screen and (min-width: 0px) {
+  /* Utiliser des unités relatives pour une meilleure adaptation au zoom */
+  html {
+    font-size: clamp(14px, 1vw, 16px); /* S'adapte au zoom */
+  }
+}
+
+/* ===== DÉTECTION ET GESTION DU ZOOM SYSTÈME 200% ===== */
+/* Avec zoom 200% : 1920px réels = 960px CSS, 1440px réels = 720px CSS, 1280px réels = 640px CSS */
+/* On détecte les largeurs CSS réelles pour identifier le zoom 200% */
+/* Écrans moyens avec zoom 200% (720px CSS = 1440px réels) */
+@media screen and (min-width: 480px) and (max-width: 719px) {
+  /* Réduire la taille de base de la police pour économiser l'espace */
+  html {
+    font-size: clamp(12px, 0.9vw, 14px);
+  }
+  
+  /* Compression des espacements verticaux */
+  .space-y-4 > * + * {
+    margin-top: clamp(0.5rem, 1.2vw, 0.75rem);
+  }
+  
+  .space-y-6 > * + * {
+    margin-top: clamp(0.75rem, 1.8vw, 1rem);
+  }
+  
+  .space-y-8 > * + * {
+    margin-top: clamp(1rem, 2.2vw, 1.5rem);
+  }
+  
+  /* Compression des gaps */
+  .gap-3 {
+    gap: clamp(0.375rem, 0.9vw, 0.5rem);
+  }
+  
+  .gap-4 {
+    gap: clamp(0.5rem, 1.2vw, 0.75rem);
+  }
+  
+  .gap-6 {
+    gap: clamp(0.75rem, 1.8vw, 1rem);
+  }
+  
+  /* Compression des paddings */
+  .p-3 {
+    padding: clamp(0.375rem, 1.2vw, 0.5rem);
+  }
+  
+  .p-4 {
+    padding: clamp(0.5rem, 1.5vw, 0.75rem);
+  }
+  
+  .p-6 {
+    padding: clamp(0.75rem, 2vw, 1rem);
+  }
+  
+  .p-8 {
+    padding: clamp(1rem, 2.5vw, 1.5rem);
+  }
+  
+  /* Réorganisation des grilles pour zoom 200% - Ajuster pour la nouvelle grille de 12 colonnes */
+  /* On garde la grille de 12 colonnes mais on ajuste les col-span via des classes spécifiques */
+  /* Note: Les classes Tailwind col-span-* ne peuvent pas être modifiées directement via CSS,
+     donc on ajuste plutôt la grille pour qu'elle fonctionne mieux avec les col-span existants */
+  
+  /* Pour les grilles de 2 colonnes (sm) : forcer 1 colonne */
+  .grid-cols-2 {
+    grid-template-columns: repeat(1, minmax(0, 1fr));
+  }
+  
+  /* Pour les grilles de 3 colonnes : forcer 1 colonne */
+  .grid-cols-3 {
+    grid-template-columns: repeat(1, minmax(0, 1fr));
+  }
+  
+  /* Pour les grilles de 5 colonnes (apps-widget) : réduire à 3 colonnes */
+  .grid-cols-5 {
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+  }
+  
+  /* Pour les grilles de 6 colonnes : réduire à 2 colonnes */
+  .grid-cols-6 {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+  
+  /* Pour la grille principale de 12 colonnes : garder 12 colonnes mais réduire les gaps */
+  /* Les cartes moyennes (col-span-6) resteront à 50% = 2 par ligne, ce qui est optimal */
+  .grid-cols-12 {
+    grid-template-columns: repeat(12, minmax(0, 1fr));
+    /* Réduire les gaps pour économiser l'espace */
+    gap: clamp(0.5rem, 1.2vw, 0.75rem);
+  }
+  
+  /* Ajuster les largeurs fixes de la carte rouge */
+  .w-\[240px\] {
+    width: min(200px, 100%);
+  }
+  
+  /* Réduire les paddings de la carte rouge (Hero Section) */
+  .edge-optimized-hero {
+    padding: clamp(0.5rem, 1.5vw, 0.75rem) !important;
+  }
+  
+  /* Sur zoom 200% (écrans moyens), forcer l'affichage de la date uniquement si nécessaire */
+  /* On garde l'affichage complet mais avec des cartes plus petites */
+}
+
+/* Petits écrans avec zoom 200% (480px CSS = 960px réels) */
+@media screen and (min-width: 320px) and (max-width: 479px) {
+  /* Compression encore plus importante */
+  html {
+    font-size: clamp(11px, 0.85vw, 13px);
+  }
+  
+  .space-y-4 > * + * {
+    margin-top: clamp(0.375rem, 1vw, 0.5rem);
+  }
+  
+  .space-y-6 > * + * {
+    margin-top: clamp(0.5rem, 1.5vw, 0.75rem);
+  }
+  
+  .gap-3 {
+    gap: clamp(0.25rem, 0.8vw, 0.375rem);
+  }
+  
+  .gap-4 {
+    gap: clamp(0.375rem, 1vw, 0.5rem);
+  }
+  
+  .p-3 {
+    padding: clamp(0.25rem, 1vw, 0.375rem);
+  }
+  
+  .p-4 {
+    padding: clamp(0.375rem, 1.2vw, 0.5rem);
+  }
+  
+  /* Forcer une seule colonne pour tous les types de grilles */
+  .grid-cols-2,
+  .grid-cols-3,
+  .grid-cols-5,
+  .grid-cols-6 {
+    grid-template-columns: repeat(1, minmax(0, 1fr));
+  }
+  
+  /* Pour la grille principale de 12 colonnes : garder 12 colonnes même sur petits écrans */
+  /* Les cartes moyennes (col-span-6) prendront toute la largeur sur mobile, ce qui est correct */
+  .grid-cols-12 {
+    grid-template-columns: repeat(12, minmax(0, 1fr));
+    gap: clamp(0.375rem, 1vw, 0.5rem);
+  }
+  
+  /* Réduire encore plus les largeurs fixes */
+  .w-\[240px\] {
+    width: min(180px, 100%);
+  }
+  
+  /* Sur très petits écrans avec zoom 200%, forcer l'affichage de la date uniquement */
+  .edge-optimized-hero .hidden.sm\:flex {
+    display: none !important;
+  }
+  
+  .edge-optimized-hero .sm\:hidden {
+    display: flex !important;
+  }
+}
+
+/* Ajustements pour zoom système 150% (1440px réels = 960px CSS) */
+@media screen and (min-width: 640px) and (max-width: 959px) {
+  /* Tablettes avec zoom 150% - Ajuster les espacements */
+  .space-y-4 > * + * {
+    margin-top: clamp(0.75rem, 1.5vw, 1rem);
+  }
+  
+  .space-y-6 > * + * {
+    margin-top: clamp(1rem, 2vw, 1.5rem);
+  }
+  
+  .gap-3 {
+    gap: clamp(0.5rem, 1vw, 0.75rem);
+  }
+  
+  .gap-4 {
+    gap: clamp(0.75rem, 1.5vw, 1rem);
+  }
+}
+
+/* Ajustements pour zoom système 150% sur écrans moyens (1024px réels = 682px CSS) */
+@media screen and (min-width: 480px) and (max-width: 767px) {
+  /* Petits écrans avec zoom 150% */
+  .p-3 {
+    padding: clamp(0.5rem, 1.5vw, 0.75rem);
+  }
+  
+  .p-4 {
+    padding: clamp(0.75rem, 2vw, 1rem);
+  }
+  
+  .p-6 {
+    padding: clamp(1rem, 2.5vw, 1.5rem);
+  }
+}
+
+/* Amélioration de la responsivité pour les cartes avec zoom système */
+@media screen and (min-width: 0px) {
+  /* Utiliser des unités relatives pour les largeurs fixes */
+  .w-\[260px\] {
+    width: min(260px, 100%);
+  }
+  
+  .w-\[240px\] {
+    width: min(240px, 100%);
+  }
+}
+
+/* Amélioration de la responsivité globale pour le zoom système 150% */
+/* Ajustements pour les grilles avec zoom */
+@media screen and (min-width: 0px) {
+  /* S'assurer que les grilles s'adaptent correctement */
+  .grid {
+    display: grid;
+    width: 100%;
+    max-width: 100%;
+  }
+  
+  /* Ajuster les gaps pour le zoom */
+  .gap-3 {
+    gap: clamp(0.5rem, 1vw, 0.75rem);
+  }
+  
+  .gap-4 {
+    gap: clamp(0.75rem, 1.5vw, 1rem);
+  }
+  
+  .gap-6 {
+    gap: clamp(1rem, 2vw, 1.5rem);
+  }
+}
+
+/* Ajustements spécifiques pour les cartes du dashboard avec zoom 150% */
+@media screen and (min-width: 640px) and (max-width: 959px) {
+  /* Tablettes avec zoom 150% - Ajuster les colonnes de grille */
+  .grid-cols-2 {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+  
+  .grid-cols-3 {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+  
+  .grid-cols-6 {
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+  }
+}
+
+/* Ajustements pour petits écrans avec zoom 150% */
+@media screen and (max-width: 639px) {
+  /* Forcer une seule colonne sur très petits écrans */
+  .grid-cols-1 {
+    grid-template-columns: repeat(1, minmax(0, 1fr));
+  }
+  
+  /* Réduire les espacements */
+  .space-y-4 > * + * {
+    margin-top: clamp(0.5rem, 1.5vw, 1rem);
+  }
+  
+  .space-y-6 > * + * {
+    margin-top: clamp(0.75rem, 2vw, 1.5rem);
+  }
+  
+  .space-y-8 > * + * {
+    margin-top: clamp(1rem, 2.5vw, 2rem);
+  }
+}
+
+/* Amélioration de la responsivité des textes avec zoom */
+@media screen and (min-width: 0px) {
+  /* Utiliser des unités relatives pour les tailles de texte */
+  .text-xs {
+    font-size: clamp(0.625rem, 1.5vw, 0.75rem);
+  }
+  
+  .text-sm {
+    font-size: clamp(0.75rem, 1.75vw, 0.875rem);
+  }
+  
+  .text-base {
+    font-size: clamp(0.875rem, 2vw, 1rem);
+  }
+  
+  .text-lg {
+    font-size: clamp(1rem, 2.25vw, 1.125rem);
+  }
+  
+  .text-xl {
+    font-size: clamp(1.125rem, 2.5vw, 1.25rem);
+  }
+  
+  .text-2xl {
+    font-size: clamp(1.25rem, 3vw, 1.5rem);
+  }
+}
+
+/* Ajustements des textes pour zoom 200% - Écrans moyens */
+@media screen and (min-width: 480px) and (max-width: 719px) {
+  .text-xs {
+    font-size: clamp(0.5rem, 1.2vw, 0.625rem);
+  }
+  
+  .text-sm {
+    font-size: clamp(0.625rem, 1.5vw, 0.75rem);
+  }
+  
+  .text-base {
+    font-size: clamp(0.75rem, 1.8vw, 0.875rem);
+  }
+  
+  .text-lg {
+    font-size: clamp(0.875rem, 2vw, 1rem);
+  }
+  
+  .text-xl {
+    font-size: clamp(1rem, 2.2vw, 1.125rem);
+  }
+  
+  .text-2xl {
+    font-size: clamp(1.125rem, 2.5vw, 1.25rem);
+  }
+}
+
+/* Ajustements des textes pour zoom 200% - Petits écrans */
+@media screen and (min-width: 320px) and (max-width: 479px) {
+  .text-xs {
+    font-size: clamp(0.45rem, 1.1vw, 0.5625rem);
+  }
+  
+  .text-sm {
+    font-size: clamp(0.5625rem, 1.4vw, 0.6875rem);
+  }
+  
+  .text-base {
+    font-size: clamp(0.6875rem, 1.6vw, 0.8125rem);
+  }
+  
+  .text-lg {
+    font-size: clamp(0.8125rem, 1.8vw, 0.9375rem);
+  }
+  
+  .text-xl {
+    font-size: clamp(0.9375rem, 2vw, 1.0625rem);
+  }
+  
+  .text-2xl {
+    font-size: clamp(1.0625rem, 2.3vw, 1.1875rem);
+  }
+}
+
+/* Amélioration de la responsivité des icônes avec zoom */
+@media screen and (min-width: 0px) {
+  /* Ajuster les tailles d'icônes pour le zoom */
+  svg {
+    max-width: 100%;
+    height: auto;
+  }
+}
+
+/* Correction pour les overflow avec zoom système */
+@media screen and (min-width: 0px) {
+  .overflow-x-auto {
+    overflow-x: auto;
+    -webkit-overflow-scrolling: touch;
+  }
+  
+  /* Empêcher le débordement horizontal */
+  body {
+    overflow-x: hidden;
+    max-width: 100vw;
+  }
+  
+  /* S'assurer que les conteneurs ne débordent pas */
+  .container,
+  .max-w-7xl,
+  .max-w-6xl,
+  .max-w-5xl {
+    max-width: 100%;
+    padding-left: clamp(0.5rem, 2vw, 1rem);
+    padding-right: clamp(0.5rem, 2vw, 1rem);
+  }
+}
+
+/* ===== CORRECTIONS SPÉCIFIQUES POUR IPAD MINI (768px) ET IPAD AIR (820px) ===== */
+/* Problèmes de largeur (axe X) sur iPad */
+@media screen and (min-width: 768px) and (max-width: 1023px) {
+  /* Navbar - Ajuster les paddings pour iPad */
+  .navbar-mobile-optimized {
+    padding-left: clamp(1rem, 2vw, 1.25rem) !important;
+    padding-right: clamp(1rem, 2vw, 1.25rem) !important;
+  }
+  
+  /* Layout wrapper - Ajuster les marges pour éviter le débordement */
+  main {
+    max-width: 100vw;
+    overflow-x: hidden;
+  }
+  
+  /* Hero Section - Ajuster les largeurs pour iPad */
+  .edge-optimized-hero {
+    padding: clamp(0.75rem, 2vw, 1rem) !important;
+    max-width: 100%;
+    overflow-x: hidden;
+  }
+  
+  .edge-optimized-hero .w-\[240px\] {
+    width: auto !important;
+    min-width: 0;
+    flex: 1 1 0%;
+  }
+  
+  /* Dashboard - S'assurer que la grille ne déborde pas */
+  .grid-cols-12 {
+    grid-template-columns: repeat(12, minmax(0, 1fr));
+    gap: clamp(0.75rem, 1.5vw, 1rem);
+    max-width: 100%;
+  }
+  
+  /* Conteneurs - Ajuster les paddings pour iPad */
+  .max-w-7xl,
+  .max-w-6xl,
+  .max-w-5xl {
+    padding-left: clamp(0.75rem, 2vw, 1rem);
+    padding-right: clamp(0.75rem, 2vw, 1rem);
+  }
+  
+  /* Correction spécifique pour les cartes du dashboard */
+  [class*="col-span"] {
+    max-width: 100%;
+    overflow-x: hidden;
+  }
+  
+  /* Hero Section - Correction pour éviter le débordement */
+  .edge-optimized-hero > div {
+    max-width: 100%;
+    overflow-x: hidden;
+  }
+  
+  .edge-optimized-hero .flex-nowrap {
+    flex-wrap: wrap !important;
+  }
+  
+  /* Navigation - Ajuster les gaps pour iPad */
+  .navbar-mobile-optimized > div {
+    gap: clamp(0.5rem, 1.5vw, 1rem);
+  }
+  
+  /* S'assurer que le contenu principal ne déborde pas */
+  main.flex-1,
+  .flex-1[class*="flex-col"] {
+    min-width: 0;
+    max-width: 100%;
+  }
+  
+  /* Navigation sidebar - Ajuster les largeurs pour iPad */
+  aside[class*="tablet:w-"] {
+    max-width: 100vw;
+  }
+  
+  /* Correction pour éviter le débordement horizontal global */
+  html, body {
+    overflow-x: hidden !important;
+    max-width: 100vw !important;
+    position: relative;
+  }
+  
+  /* Conteneur principal - S'assurer qu'il ne déborde pas */
+  .min-h-screen {
+    max-width: 100vw;
+    overflow-x: hidden;
+  }
+  
+  /* Correction pour les éléments flex qui peuvent causer des débordements */
+  .flex,
+  .flex-col,
+  .flex-row {
+    min-width: 0;
+  }
+  
+  /* Correction pour les grilles */
+  .grid {
+    max-width: 100%;
+    min-width: 0;
+  }
+}
+
+/* Ajustements des conteneurs pour zoom 200% - Écrans moyens */
+@media screen and (min-width: 480px) and (max-width: 719px) {
+  .container,
+  .max-w-7xl,
+  .max-w-6xl,
+  .max-w-5xl {
+    padding-left: clamp(0.375rem, 1.5vw, 0.75rem);
+    padding-right: clamp(0.375rem, 1.5vw, 0.75rem);
+  }
+}
+
+/* Ajustements des conteneurs pour zoom 200% - Petits écrans */
+@media screen and (min-width: 320px) and (max-width: 479px) {
+  .container,
+  .max-w-7xl,
+  .max-w-6xl,
+  .max-w-5xl {
+    padding-left: clamp(0.25rem, 1.2vw, 0.5rem);
+    padding-right: clamp(0.25rem, 1.2vw, 0.5rem);
+  }
+}
+
+/* Amélioration de la responsivité des hauteurs avec zoom système */
+@media screen and (min-width: 0px) {
+  /* Les hauteurs en rem s'adaptent automatiquement au zoom, mais on peut les optimiser */
+  .h-\[20rem\] {
+    height: clamp(18rem, 25vw, 20rem);
+  }
+  
+  .h-\[24rem\] {
+    height: clamp(20rem, 30vw, 24rem);
+  }
+  
+  .h-\[28rem\] {
+    height: clamp(24rem, 35vw, 28rem);
+  }
+  
+  /* Ajuster les hauteurs minimales pour le zoom */
+  .min-h-\[calc\(100vh-12rem\)\] {
+    min-height: clamp(calc(100vh - 15rem), calc(100vh - 12rem), calc(100vh - 10rem));
+  }
+  
+  .min-h-\[calc\(100vh-14rem\)\] {
+    min-height: clamp(calc(100vh - 17rem), calc(100vh - 14rem), calc(100vh - 12rem));
+  }
+  
+  .min-h-\[calc\(100vh-16rem\)\] {
+    min-height: clamp(calc(100vh - 19rem), calc(100vh - 16rem), calc(100vh - 14rem));
+  }
+}
+
+/* Ajustements des hauteurs pour zoom 200% - Écrans moyens */
+@media screen and (min-width: 480px) and (max-width: 719px) {
+  .h-\[20rem\] {
+    height: clamp(14rem, 20vw, 18rem);
+  }
+  
+  .h-\[24rem\] {
+    height: clamp(16rem, 24vw, 20rem);
+  }
+  
+  .h-\[28rem\] {
+    height: clamp(18rem, 28vw, 24rem);
+  }
+  
+  .min-h-\[calc\(100vh-12rem\)\] {
+    min-height: calc(100vh - 14rem);
+  }
+  
+  .min-h-\[calc\(100vh-14rem\)\] {
+    min-height: calc(100vh - 16rem);
+  }
+  
+  .min-h-\[calc\(100vh-16rem\)\] {
+    min-height: calc(100vh - 18rem);
+  }
+}
+
+/* Ajustements des hauteurs pour zoom 200% - Petits écrans */
+@media screen and (min-width: 320px) and (max-width: 479px) {
+  .h-\[20rem\] {
+    height: clamp(12rem, 18vw, 16rem);
+  }
+  
+  .h-\[24rem\] {
+    height: clamp(14rem, 22vw, 18rem);
+  }
+  
+  .h-\[28rem\] {
+    height: clamp(16rem, 26vw, 22rem);
+  }
+  
+  .min-h-\[calc\(100vh-12rem\)\] {
+    min-height: calc(100vh - 15rem);
+  }
+  
+  .min-h-\[calc\(100vh-14rem\)\] {
+    min-height: calc(100vh - 17rem);
+  }
+  
+  .min-h-\[calc\(100vh-16rem\)\] {
+    min-height: calc(100vh - 19rem);
+  }
+}
+
+/* Amélioration de la responsivité des tooltips avec zoom */
+@media screen and (min-width: 0px) {
+  /* Ajuster les positions des tooltips pour le zoom */
+  .-top-12 {
+    top: clamp(-2.5rem, -3vw, -3rem);
+  }
+  
+  /* Ajuster les largeurs minimales et maximales */
+  .min-w-\[200px\] {
+    min-width: clamp(150px, 25vw, 200px);
+  }
+  
+  .max-w-\[300px\] {
+    max-width: clamp(250px, 35vw, 300px);
+  }
+}
+
+/* Ajustements des tooltips pour zoom 200% - Écrans moyens */
+@media screen and (min-width: 480px) and (max-width: 719px) {
+  .-top-12 {
+    top: clamp(-2rem, -2.5vw, -2.5rem);
+  }
+  
+  .min-w-\[200px\] {
+    min-width: clamp(120px, 20vw, 160px);
+  }
+  
+  .max-w-\[300px\] {
+    max-width: clamp(200px, 30vw, 250px);
+  }
+}
+
+/* Ajustements des tooltips pour zoom 200% - Petits écrans */
+@media screen and (min-width: 320px) and (max-width: 479px) {
+  .-top-12 {
+    top: clamp(-1.5rem, -2vw, -2rem);
+  }
+  
+  .min-w-\[200px\] {
+    min-width: clamp(100px, 18vw, 140px);
+  }
+  
+  .max-w-\[300px\] {
+    max-width: clamp(180px, 28vw, 220px);
+  }
+}
+
+/* Amélioration de la responsivité des textes très petits avec zoom */
+@media screen and (min-width: 0px) {
+  .text-\[9px\] {
+    font-size: clamp(0.5rem, 1.25vw, 0.5625rem);
+  }
+  
+  .text-\[10px\] {
+    font-size: clamp(0.5625rem, 1.5vw, 0.625rem);
+  }
+  
+  .text-\[11px\] {
+    font-size: clamp(0.625rem, 1.75vw, 0.6875rem);
+  }
+}
+
+/* Ajustements des textes très petits pour zoom 200% - Écrans moyens */
+@media screen and (min-width: 480px) and (max-width: 719px) {
+  .text-\[9px\] {
+    font-size: clamp(0.45rem, 1.1vw, 0.5rem);
+  }
+  
+  .text-\[10px\] {
+    font-size: clamp(0.5rem, 1.3vw, 0.5625rem);
+  }
+  
+  .text-\[11px\] {
+    font-size: clamp(0.5625rem, 1.5vw, 0.625rem);
+  }
+}
+
+/* Ajustements des textes très petits pour zoom 200% - Petits écrans */
+@media screen and (min-width: 320px) and (max-width: 479px) {
+  .text-\[9px\] {
+    font-size: clamp(0.4rem, 1vw, 0.45rem);
+  }
+  
+  .text-\[10px\] {
+    font-size: clamp(0.45rem, 1.2vw, 0.5rem);
+  }
+  
+  .text-\[11px\] {
+    font-size: clamp(0.5rem, 1.4vw, 0.5625rem);
+  }
 }
 
 body {

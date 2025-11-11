@@ -9,6 +9,12 @@ module.exports = {
     extend: {
       screens: {
         'xs': '320px',
+        // Breakpoints Tailwind standards (nécessaires pour md:)
+        'sm': '640px',
+        'md': '768px',              // iPad Mini portrait, standard Tailwind
+        'lg': '1024px',             // iPad Mini landscape, iPad Air portrait
+        'xl': '1280px',
+        '2xl': '1536px',
         // Breakpoints spécifiques pour les tablettes
         'ipad-mini': '768px',      // iPad Mini 768x1024
         'ipad-air': '820px',       // iPad Air 820x1180

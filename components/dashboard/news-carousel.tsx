@@ -47,6 +47,20 @@ export function NewsCarousel({ autoScrollInterval = 4000, className = "" }: News
     })
   }
 
+  // Fonction pour créer un résumé du contenu
+  const getSummary = (content: string, maxLength: number = 150) => {
+    if (!content) return ''
+    // Nettoyer le contenu HTML si présent
+    const textContent = content.replace(/<[^>]*>/g, '').trim()
+    if (textContent.length <= maxLength) return textContent
+    // Tronquer au dernier espace avant la limite pour éviter de couper un mot
+    const truncated = textContent.substring(0, maxLength)
+    const lastSpace = truncated.lastIndexOf(' ')
+    return lastSpace > 0 
+      ? truncated.substring(0, lastSpace) + '...'
+      : truncated + '...'
+  }
+
 
   const getInitials = (name: string | null | undefined) => {
     if (!name || typeof name !== 'string') {
@@ -142,8 +156,8 @@ export function NewsCarousel({ autoScrollInterval = 4000, className = "" }: News
 
   if (loading) {
     return (
-      <Card className={`min-h-[20rem] max-h-[24rem] sm:min-h-[24rem] sm:max-h-[28rem] lg:min-h-[28rem] lg:max-h-[32rem] flex flex-col ${className}`}>
-        <CardHeader className="pb-2 sm:pb-3 flex-shrink-0 p-3 sm:p-6">
+      <Card className={`h-[26rem] sm:h-[28rem] lg:h-[28rem] flex flex-col ${className}`}>
+        <CardHeader className="pb-2 sm:pb-3 flex-shrink-0 p-2 sm:p-3 md:p-6">
           <CardTitle className="text-base sm:text-lg font-semibold flex items-center gap-2">
             <Newspaper className="h-4 w-4 sm:h-5 sm:w-5 text-blue-600" />
             Actualités
@@ -166,8 +180,8 @@ export function NewsCarousel({ autoScrollInterval = 4000, className = "" }: News
 
   if (error) {
     return (
-      <Card className={`min-h-[20rem] max-h-[24rem] sm:min-h-[24rem] sm:max-h-[28rem] lg:min-h-[28rem] lg:max-h-[32rem] flex flex-col ${className}`}>
-        <CardHeader className="pb-2 sm:pb-3 flex-shrink-0 p-3 sm:p-6">
+      <Card className={`h-[26rem] sm:h-[28rem] lg:h-[28rem] flex flex-col ${className}`}>
+        <CardHeader className="pb-2 sm:pb-3 flex-shrink-0 p-2 sm:p-3 md:p-6">
           <CardTitle className="text-base sm:text-lg font-semibold flex items-center gap-2">
             <Newspaper className="h-4 w-4 sm:h-5 sm:w-5 text-blue-600" />
             Actualités
@@ -193,8 +207,8 @@ export function NewsCarousel({ autoScrollInterval = 4000, className = "" }: News
 
   if (sortedArticles.length === 0) {
     return (
-      <Card className={`min-h-[20rem] max-h-[24rem] sm:min-h-[24rem] sm:max-h-[28rem] lg:min-h-[28rem] lg:max-h-[32rem] flex flex-col ${className}`}>
-        <CardHeader className="pb-2 sm:pb-3 flex-shrink-0 p-3 sm:p-6">
+      <Card className={`h-[26rem] sm:h-[28rem] lg:h-[28rem] flex flex-col ${className}`}>
+        <CardHeader className="pb-2 sm:pb-3 flex-shrink-0 p-2 sm:p-3 md:p-6">
           <CardTitle className="text-base sm:text-lg font-semibold flex items-center gap-2">
             <Newspaper className="h-4 w-4 sm:h-5 sm:w-5 text-blue-600" />
             Actualités
@@ -215,7 +229,7 @@ export function NewsCarousel({ autoScrollInterval = 4000, className = "" }: News
   return (
     <Card 
       ref={carouselRef}
-      className={`min-h-[20rem] max-h-[24rem] sm:min-h-[24rem] sm:max-h-[28rem] lg:min-h-[28rem] lg:max-h-[32rem] flex flex-col overflow-hidden relative carousel-card news-carousel-mobile ${className}`}
+      className={`h-[26rem] sm:h-[28rem] lg:h-[28rem] flex flex-col overflow-hidden relative carousel-card news-carousel-mobile ${className}`}
       tabIndex={0}
       onMouseEnter={() => setIsHovered(true)}
       onMouseLeave={() => setIsHovered(false)}
@@ -275,30 +289,33 @@ export function NewsCarousel({ autoScrollInterval = 4000, className = "" }: News
         </CardTitle>
       </CardHeader>
       
-      <CardContent className="relative flex-1 flex flex-col p-3 sm:p-6 overflow-hidden carousel-content">
-        <div className="flex flex-col h-full">
+      <CardContent className="relative flex-1 flex flex-col p-2 sm:p-3 md:p-6 overflow-hidden carousel-content">
+        <div className="flex flex-col h-full justify-end sm:justify-start">
           <div
-            className="flex-1 p-3 sm:p-6 rounded-lg bg-white/10 backdrop-blur-sm border border-white/20 hover:bg-white/20 transition-all duration-300 group flex flex-col overflow-hidden"
+            className="p-3 sm:p-3 md:p-6 rounded-lg bg-white/10 backdrop-blur-sm border border-white/20 hover:bg-white/20 transition-all duration-300 group flex flex-col overflow-hidden sm:flex-1"
           >
-            <div className="flex flex-col h-full space-y-2 sm:space-y-3">
+            <div className="flex flex-col space-y-2 sm:space-y-2 md:space-y-3">
               {/* En-tête de l'article */}
-              <div className="flex flex-wrap items-center gap-2 flex-shrink-0">
+              <div className="flex flex-wrap items-center gap-2 flex-shrink-0 hidden sm:flex">
               </div>
               
               {/* Titre */}
-              <h3 className="text-base sm:text-lg lg:text-xl font-bold text-white line-clamp-2 group-hover:text-yellow-200 transition-colors drop-shadow-lg flex-shrink-0 carousel-title">
+              <h3 className="text-sm sm:text-sm md:text-base lg:text-lg xl:text-xl font-bold text-white line-clamp-2 group-hover:text-yellow-200 transition-colors drop-shadow-lg flex-shrink-0 carousel-title leading-tight sm:leading-normal">
                 {currentArticle.title}
               </h3>
               
-              {/* Contenu - Scrollable sur mobile */}
-              <div className="flex-1 overflow-hidden">
-                <p className="text-xs sm:text-sm text-white/90 line-clamp-3 sm:line-clamp-4 lg:line-clamp-5 drop-shadow-md h-full overflow-y-auto custom-scrollbar carousel-text">
-                  {currentArticle.content}
+              {/* Contenu - Résumé uniquement */}
+              <div className="overflow-hidden">
+                <p className="text-xs sm:text-xs md:text-sm text-white/90 drop-shadow-md carousel-text leading-relaxed">
+                  <span className="block sm:hidden">{getSummary(currentArticle.content, 250)}</span>
+                  <span className="hidden sm:block md:hidden">{getSummary(currentArticle.content, 150)}</span>
+                  <span className="hidden md:block lg:hidden">{getSummary(currentArticle.content, 200)}</span>
+                  <span className="hidden lg:block">{getSummary(currentArticle.content, 250)}</span>
                 </p>
               </div>
               
               {/* Métadonnées - Toujours en bas */}
-              <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-2 sm:gap-4 text-xs sm:text-sm text-white/80 flex-shrink-0 mt-2 metadata-text">
+              <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-2 sm:gap-2 md:gap-4 text-xs sm:text-xs md:text-sm text-white/80 flex-shrink-0 mt-2 sm:mt-2 metadata-text">
                 <div className="flex items-center gap-2 sm:gap-4">
                   <div className="flex items-center gap-1">
                     <Clock className="h-3 w-3 sm:h-4 sm:w-4" />
@@ -309,7 +326,7 @@ export function NewsCarousel({ autoScrollInterval = 4000, className = "" }: News
                 <Button
                   variant="ghost"
                   size="sm"
-                  className="h-6 sm:h-8 px-2 sm:px-3 text-xs sm:text-sm text-white hover:bg-white/20 border border-white/30 self-start sm:self-auto flex-shrink-0 carousel-button"
+                  className="h-6 sm:h-8 px-2 sm:px-3 text-xs sm:text-sm text-white hover:bg-white/20 border border-white/30 self-end sm:self-auto flex-shrink-0 carousel-button"
                   asChild
                 >
                   <Link href="/actualites">

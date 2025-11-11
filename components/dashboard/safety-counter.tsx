@@ -72,9 +72,10 @@ export function SafetyCounter() {
   const getResponsiveConfig = () => {
     const baseConfig = {
       small: {
-        cardHeight: 'h-[20rem] sm:h-[22rem]',
+        cardHeight: 'h-[26rem] sm:h-[28rem]',
         headerPadding: 'pb-2 sm:pb-3',
         contentPadding: 'p-2 sm:p-3',
+        // Optimisé pour mobile
         titleSize: 'text-base sm:text-xl', // Même taille que "Accès Rapide" sur desktop
         subtitleSize: 'text-xs sm:text-sm', // Même taille que "Applications & Services" sur mobile
         counterSize: 'text-2xl sm:text-3xl',
@@ -86,9 +87,9 @@ export function SafetyCounter() {
         spaceY: 'space-y-1'
       },
       medium: {
-        cardHeight: 'h-[22rem] sm:h-[24rem] lg:h-[28rem]',
+        cardHeight: 'h-[26rem] sm:h-[28rem] lg:h-[28rem]',
         headerPadding: 'pb-2 sm:pb-3 lg:pb-4',
-        contentPadding: 'p-2 sm:p-3 lg:p-4',
+        contentPadding: 'p-2 sm:p-2.5 md:p-3 lg:p-4',
         titleSize: 'text-lg sm:text-xl', // Même taille que "Accès Rapide" sur desktop
         subtitleSize: 'text-sm', // Même taille que "Applications & Services"
         counterSize: 'text-3xl sm:text-4xl lg:text-5xl',
@@ -100,7 +101,7 @@ export function SafetyCounter() {
         spaceY: 'space-y-1 sm:space-y-2'
       },
       large: {
-        cardHeight: 'h-[22rem] sm:h-[24rem] lg:h-[28rem]',
+        cardHeight: 'h-[26rem] sm:h-[28rem] lg:h-[28rem]',
         headerPadding: 'pb-3 sm:pb-4 lg:pb-6',
         contentPadding: 'p-3 sm:p-4 lg:p-6',
         titleSize: 'text-xl', // Même taille que "Accès Rapide" sur desktop
@@ -238,7 +239,7 @@ export function SafetyCounter() {
         <div className="absolute bottom-0 left-0 w-24 h-24 bg-indigo-500/10 rounded-full translate-y-12 -translate-x-12" />
       </div>
 
-      <CardHeader className={`relative ${config.headerPadding} flex-shrink-0 z-10 p-3 sm:p-4 lg:p-6 safety-header`}>
+      <CardHeader className={`relative ${config.headerPadding} flex-shrink-0 z-10 p-2 sm:p-3 md:p-4 lg:p-6 safety-header`}>
         <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3 sm:gap-4">
           <div className="flex items-center gap-2 sm:gap-3">
             <div className={`${config.counterPadding} bg-gradient-to-br from-blue-500 to-indigo-600 rounded-lg sm:rounded-xl shadow-lg group-hover:shadow-blue-200/50 group-hover:scale-105 transition-all duration-300`}>
@@ -270,9 +271,9 @@ export function SafetyCounter() {
       
       <CardContent className={`relative flex-1 flex flex-col justify-center ${config.contentPadding} z-10`}>
         {/* Les deux compteurs côte à côte */}
-        <div className={`grid ${config.gridCols} gap-2 sm:gap-3 lg:gap-4 h-full safety-counter`}>
+        <div className={`grid ${config.gridCols} gap-1.5 sm:gap-2 md:gap-3 lg:gap-4 h-full safety-counter`}>
           {/* Compteur SAR */}
-          <div className={`flex flex-col justify-center items-center ${config.spaceY} bg-gradient-to-br from-blue-500/20 to-blue-600/30 rounded-xl sm:rounded-2xl ${config.counterPadding} border border-blue-400/30 backdrop-blur-sm group-hover:from-blue-500/30 group-hover:to-blue-600/40 transition-all duration-500`}>
+          <div className={`flex flex-col justify-center items-center ${config.spaceY} bg-gradient-to-br from-blue-500/20 to-blue-600/30 rounded-xl sm:rounded-2xl ${config.counterPadding} border border-blue-400/30 backdrop-blur-sm group-hover:from-blue-500/30 group-hover:to-blue-600/40 transition-all duration-500 my-2 sm:my-3 md:my-4`}>
             <div className="flex items-center gap-1 sm:gap-2 mb-1 sm:mb-2">
               <Building2 className={`${config.iconSize} text-blue-300`} />
               <span className={`${config.smallLabelSize} font-semibold text-blue-200 uppercase tracking-wide`}>
@@ -308,7 +309,7 @@ export function SafetyCounter() {
           </div>
 
           {/* Compteur EE */}
-          <div className={`flex flex-col justify-center items-center ${config.spaceY} bg-gradient-to-br from-emerald-500/20 to-emerald-600/30 rounded-xl sm:rounded-2xl ${config.counterPadding} border border-emerald-400/30 backdrop-blur-sm group-hover:from-emerald-500/30 group-hover:to-emerald-600/40 transition-all duration-500`}>
+          <div className={`flex flex-col justify-center items-center ${config.spaceY} bg-gradient-to-br from-emerald-500/20 to-emerald-600/30 rounded-xl sm:rounded-2xl ${config.counterPadding} border border-emerald-400/30 backdrop-blur-sm group-hover:from-emerald-500/30 group-hover:to-emerald-600/40 transition-all duration-500 my-2 sm:my-3 md:my-4`}>
             <div className="flex items-center gap-1 sm:gap-2 mb-1 sm:mb-2">
               <Users className={`${config.iconSize} text-emerald-300`} />
               <span className={`${config.smallLabelSize} font-semibold text-emerald-200 uppercase tracking-wide`}>

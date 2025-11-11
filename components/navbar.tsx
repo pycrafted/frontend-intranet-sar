@@ -89,9 +89,9 @@ export function Navbar({ onMenuClick }: NavbarProps) {
 
   return (
     <header className="sticky top-0 z-50 w-full border-b border-navbar-border bg-navbar text-navbar-foreground shadow-enterprise">
-      <div className="flex h-12 xs:h-14 sm:h-16 items-center justify-between px-2 xs:px-3 sm:px-4 lg:px-6 navbar-mobile-optimized">
+      <div className="flex h-12 xs:h-14 sm:h-16 items-center justify-between px-2 xs:px-3 sm:px-4 md:px-5 lg:px-6 navbar-mobile-optimized">
         {/* Left section - Responsive */}
-        <div className="flex items-center gap-1 xs:gap-1.5 sm:gap-2 lg:gap-4 min-w-0 flex-shrink-0">
+        <div className="flex items-center gap-1 xs:gap-1.5 sm:gap-2 md:gap-3 lg:gap-4 min-w-0 flex-shrink-0">
           <Button
             variant="ghost"
             size="sm"
@@ -101,7 +101,7 @@ export function Navbar({ onMenuClick }: NavbarProps) {
             <Menu className="h-3.5 w-3.5 xs:h-4 xs:w-4 sm:h-5 sm:w-5" />
           </Button>
 
-          <Link href="/" className="flex items-center gap-1 xs:gap-1.5 sm:gap-2 lg:gap-3 min-w-0 hover:opacity-80 transition-opacity duration-200">
+          <Link href="/" className="flex items-center gap-1 xs:gap-1.5 sm:gap-2 md:gap-2.5 lg:gap-3 min-w-0 hover:opacity-80 transition-opacity duration-200">
             <div className="flex h-5 w-6 xs:h-6 xs:w-8 sm:h-8 sm:w-12 lg:h-10 lg:w-16 items-center justify-center flex-shrink-0 navbar-logo">
               <img 
                 src="/sarlogo.png" 
@@ -119,7 +119,7 @@ export function Navbar({ onMenuClick }: NavbarProps) {
 
 
         {/* Right section - Responsive */}
-        <div className="flex items-center gap-1 xs:gap-1.5 sm:gap-2 flex-shrink-0">
+        <div className="flex items-center gap-1 xs:gap-1.5 sm:gap-2 md:gap-3 flex-shrink-0">
           {/* User menu - Responsive */}
             <DropdownMenu open={isMenuOpen} onOpenChange={setIsMenuOpen}>
               <DropdownMenuTrigger asChild>
