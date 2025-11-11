@@ -281,8 +281,19 @@ export default function AnnuairePage() {
     }
   }, [employees])
 
-  // Effectuer la recherche avec le terme debounced
+  // Effectuer la recherche UNIQUEMENT si il y a un terme de recherche ou un filtre département
+  // Sinon, utiliser directement les employés chargés par fetchEmployees()
   useEffect(() => {
+    // Si pas de recherche et pas de filtre département, ne pas appeler searchEmployees
+    // Utiliser directement les employés chargés initialement
+    if (!debouncedSearchTerm && selectedDepartment === 'Tous') {
+      // Pas de filtre, utiliser les employés chargés initialement
+      // Ne pas modifier filteredEmployees ici car il est déjà mis à jour par l'autre useEffect
+      setCurrentPage(1)
+      return
+    }
+    
+    // Il y a un filtre, appeler searchEmployees
     searchEmployees(debouncedSearchTerm, selectedDepartment)
     setCurrentPage(1) // Réinitialiser à la première page lors de la recherche
   }, [debouncedSearchTerm, selectedDepartment])

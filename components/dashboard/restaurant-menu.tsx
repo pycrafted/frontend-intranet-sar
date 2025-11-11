@@ -158,6 +158,18 @@ export function RestaurantMenu() {
     }
   }
 
+  // Fonction pour obtenir un nom de dessert selon le jour
+  const getDessertName = (day: string) => {
+    const desserts: { [key: string]: string } = {
+      'monday': 'Tiramisu',
+      'tuesday': 'Mousse au chocolat',
+      'wednesday': 'Tarte aux pommes',
+      'thursday': 'Crème brûlée',
+      'friday': 'Salade de fruits',
+    }
+    return desserts[day] || 'Dessert du jour'
+  }
+
   // Gestion des états de chargement et d'erreur
   if (loading) {
     return (
@@ -427,7 +439,7 @@ export function RestaurantMenu() {
                             </span>
                           </div>
                           <p className="text-xs font-semibold text-gray-900 leading-tight">
-                            Dessert du jour
+                            {getDessertName(dayInfo.day)}
                           </p>
                         </div>
                       </>
@@ -568,7 +580,7 @@ export function RestaurantMenu() {
                           </span>
                         </div>
                         <p className="text-sm font-semibold text-gray-900 leading-tight">
-                          Dessert du jour
+                          {getDessertName(dayInfo.day)}
                         </p>
                       </div>
                     </>
@@ -611,7 +623,7 @@ export function RestaurantMenu() {
                           </span>
                         </div>
                         <p className="text-sm font-semibold text-gray-900 leading-tight">
-                          Dessert du jour
+                          {getDessertName(dayInfo.day)}
                         </p>
                       </div>
                     </div>

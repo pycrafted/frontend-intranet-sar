@@ -306,36 +306,39 @@ export function NewsCarousel({ autoScrollInterval = 4000, className = "" }: News
               
               {/* Contenu - Résumé uniquement */}
               <div className="overflow-hidden">
-                <p className="text-xs sm:text-xs md:text-sm text-white/90 drop-shadow-md carousel-text leading-relaxed">
-                  <span className="block sm:hidden">{getSummary(currentArticle.content, 250)}</span>
-                  <span className="hidden sm:block md:hidden">{getSummary(currentArticle.content, 150)}</span>
-                  <span className="hidden md:block lg:hidden">{getSummary(currentArticle.content, 200)}</span>
-                  <span className="hidden lg:block">{getSummary(currentArticle.content, 250)}</span>
+                <p className="text-[10px] sm:text-[10px] md:text-xs text-white/90 drop-shadow-md carousel-text leading-relaxed">
+                  <span className="block sm:hidden">{getSummary(currentArticle.content, 100)}</span>
+                  <span className="hidden sm:block md:hidden">{getSummary(currentArticle.content, 80)}</span>
+                  <span className="hidden md:block lg:hidden">{getSummary(currentArticle.content, 120)}</span>
+                  <span className="hidden lg:block">{getSummary(currentArticle.content, 150)}</span>
                 </p>
               </div>
               
               {/* Métadonnées - Toujours en bas */}
-              <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-2 sm:gap-2 md:gap-4 text-xs sm:text-xs md:text-sm text-white/80 flex-shrink-0 mt-2 sm:mt-2 metadata-text">
+              <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-2 sm:gap-2 md:gap-4 text-xs sm:text-xs md:text-sm text-white flex-shrink-0 mt-2 sm:mt-2 metadata-text">
                 <div className="flex items-center gap-2 sm:gap-4">
                   <div className="flex items-center gap-1">
-                    <Clock className="h-3 w-3 sm:h-4 sm:w-4" />
-                    <span className="drop-shadow-md">{formatDate(currentArticle.date)}</span>
+                    <Clock className="h-3 w-3 sm:h-4 sm:w-4 text-white" />
+                    <span className="drop-shadow-md text-white">{formatDate(currentArticle.date)}</span>
                   </div>
                 </div>
-                
-                <Button
-                  variant="ghost"
-                  size="sm"
-                  className="h-6 sm:h-8 px-2 sm:px-3 text-xs sm:text-sm text-white hover:bg-white/20 border border-white/30 self-end sm:self-auto flex-shrink-0 carousel-button"
-                  asChild
-                >
-                  <Link href="/actualites">
-                    Lire la suite
-                    <ExternalLink className="h-3 w-3 sm:h-4 sm:w-4 ml-1" />
-                  </Link>
-                </Button>
               </div>
             </div>
+          </div>
+          
+          {/* Bouton "Lire la suite" - Sorti de la carte transparente */}
+          <div className="mt-2 sm:mt-3 flex justify-end">
+            <Button
+              variant="ghost"
+              size="sm"
+              className="h-6 sm:h-8 px-2 sm:px-3 text-xs sm:text-sm text-white hover:bg-white/20 border border-white/30 flex-shrink-0 carousel-button"
+              asChild
+            >
+              <Link href="/actualites">
+                Lire la suite
+                <ExternalLink className="h-3 w-3 sm:h-4 sm:w-4 ml-1" />
+              </Link>
+            </Button>
           </div>
         </div>
       </CardContent>

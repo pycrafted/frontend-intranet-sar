@@ -391,6 +391,16 @@ html {
     max-width: 100%;
     height: auto;
   }
+  
+  /* IMPORTANT : Exception pour les SVG de ReactFlow (edges de l'organigramme) */
+  .react-flow svg,
+  .react-flow__edge svg,
+  .organigramme-container svg,
+  .react-flow path,
+  .react-flow__edge-path {
+    max-width: none !important;
+    overflow: visible !important;
+  }
 }
 
 /* Correction pour les overflow avec zoom système */
@@ -500,10 +510,24 @@ html {
     position: relative;
   }
   
+  /* IMPORTANT : Exception pour le conteneur de l'organigramme - les edges doivent être visibles */
+  .organigramme-container,
+  .organigramme-container .react-flow,
+  .organigramme-container .react-flow__viewport {
+    overflow: visible !important;
+    max-width: none !important;
+  }
+  
   /* Conteneur principal - S'assurer qu'il ne déborde pas */
   .min-h-screen {
     max-width: 100vw;
     overflow-x: hidden;
+  }
+  
+  /* Exception pour le conteneur de l'organigramme dans le conteneur principal */
+  .min-h-screen .organigramme-container {
+    overflow: visible !important;
+    max-width: none !important;
   }
   
   /* Correction pour les éléments flex qui peuvent causer des débordements */
@@ -517,6 +541,22 @@ html {
   .grid {
     max-width: 100%;
     min-width: 0;
+  }
+  
+  /* IMPORTANT : Ne pas cacher les edges de ReactFlow dans l'organigramme */
+  .organigramme-container .react-flow__edge,
+  .organigramme-container .react-flow__edge-path,
+  .organigramme-container svg,
+  .organigramme-container path[stroke],
+  .react-flow__edge,
+  .react-flow__edge-path,
+  .react-flow svg,
+  .react-flow path[stroke] {
+    max-width: none !important;
+    overflow: visible !important;
+    visibility: visible !important;
+    opacity: 1 !important;
+    display: block !important;
   }
 }
 
@@ -3627,5 +3667,23 @@ html {
     background: transparent !important;
     border: none !important;
     box-shadow: none !important;
+  }
+  
+  /* IMPORTANT : Assurer la visibilité des edges de ReactFlow (lignes de connexion) */
+  .react-flow__edge,
+  .react-flow__edge-path,
+  .react-flow svg,
+  .react-flow path[stroke],
+  .react-flow__connection-line,
+  .organigramme-container .react-flow__edge,
+  .organigramme-container .react-flow__edge-path,
+  .organigramme-container svg,
+  .organigramme-container path[stroke] {
+    display: block !important;
+    visibility: visible !important;
+    opacity: 1 !important;
+    max-width: none !important;
+    overflow: visible !important;
+    pointer-events: auto !important;
   }
 }

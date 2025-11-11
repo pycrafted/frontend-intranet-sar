@@ -331,24 +331,7 @@ export function EventsCalendar() {
                   )}
                 </div>
                 
-                {/* Émoji d'événement avec animation - Couleur rose harmonisée */}
-                <div className="flex-1 min-h-0 flex items-center justify-center">
-                  {hasEventOnDate && firstEvent && (
-                    <span className={`
-                      text-base flex items-center justify-center w-full h-full
-                      ${!dayData.isCurrentMonth ? 'opacity-5' : 'opacity-100'}
-                      ${dayData.isCurrentMonth ? 'animate-pulse-glow' : ''}
-                    `}>
-                      <span className="relative">
-                        <span className="text-rose-500 drop-shadow-lg">●</span>
-                        {/* Effet de lueur autour du point */}
-                        {dayData.isCurrentMonth && (
-                          <span className="absolute inset-0 bg-gradient-to-r from-rose-400/50 via-pink-500/50 to-rose-400/50 rounded-full blur-sm animate-pulse opacity-75"></span>
-                        )}
-                      </span>
-                    </span>
-                  )}
-                </div>
+                {/* Point rouge retiré - Plus d'affichage au milieu de la date */}
               </div>
             )
           })}
