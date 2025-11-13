@@ -35,7 +35,7 @@ export function ResponsiveFloatingButton({
           // Tailles responsives
           isSmallMobile ? "h-12 w-12" : isMobile ? "h-14 w-14" : isTablet ? "h-16 w-16" : "h-16 w-16"
         )}
-        aria-label="Ouvrir le chat SARIA"
+        aria-label="Ouvrir le chat MAÏ"
       >
         <div className="relative">
           <MessageCircle className={cn(

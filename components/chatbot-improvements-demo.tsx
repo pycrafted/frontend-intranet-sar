@@ -68,10 +68,10 @@ export function ChatbotImprovementsDemo() {
     <div className="max-w-6xl mx-auto p-6">
       <div className="text-center mb-8">
         <h1 className="text-3xl font-bold text-gray-800 mb-4">
-          Améliorations du Chatbot SARIA
+          Améliorations du Chatbot MAÏ
         </h1>
         <p className="text-lg text-gray-600 max-w-3xl mx-auto">
-          Le chatbot SARIA a été entièrement repensé pour offrir une expérience utilisateur 
+          Le chatbot MAÏ a été entièrement repensé pour offrir une expérience utilisateur 
           optimale sur tous les appareils, de l'écran de smartphone aux grands écrans desktop.
         </p>
       </div>

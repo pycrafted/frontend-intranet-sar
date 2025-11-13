@@ -86,7 +86,7 @@ export const config = {
   },
   chatbot: {
     get welcomeMessage() { 
-      return process.env.NEXT_PUBLIC_CHATBOT_WELCOME_MESSAGE || 'Bonjour ! Je suis Saria, votre assistant virtuel. Comment puis-je vous aider aujourd\'hui ?' 
+      return process.env.NEXT_PUBLIC_CHATBOT_WELCOME_MESSAGE || 'Bonjour ! Je suis MAÏ, votre assistant virtuel. Comment puis-je vous aider aujourd\'hui ?' 
     },
   },
   backend: {

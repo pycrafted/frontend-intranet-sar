@@ -12,7 +12,7 @@ const postData = JSON.stringify(testMessage)
 
 const options = {
   hostname: 'localhost',
-  port: 3000,
+  port: 3001,
   path: '/api/chat',
   method: 'POST',
   headers: {
@@ -22,7 +22,7 @@ const options = {
 }
 
 console.log('📤 Envoi de la requête...')
-console.log('   URL: http://localhost:3000/api/chat')
+console.log('   URL: http://localhost:3001/api/chat')
 console.log('   Message:', testMessage.message)
 console.log('')
 
@@ -67,7 +67,7 @@ const req = http.request(options, (res) => {
 
 req.on('error', (e) => {
   console.error('❌ Erreur de requête:', e.message)
-  console.error('   Assurez-vous que le serveur Next.js est démarré sur http://localhost:3000')
+  console.error('   Assurez-vous que le serveur Next.js est démarré sur http://localhost:3001')
   process.exit(1)
 })
 

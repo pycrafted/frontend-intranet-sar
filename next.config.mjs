@@ -17,7 +17,7 @@ const nextConfig = {
     : process.env.NODE_ENV === 'development'
       ? [
           // En développement uniquement, utilise localhost si FRONTEND_URL n'est pas défini
-          'http://localhost:3000',
+          'http://localhost:3001',
         ]
       : [],
   images: {

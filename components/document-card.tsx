@@ -59,6 +59,9 @@ export function DocumentCard({ item, onDelete, onFolderClick, onView, onRename, 
       // Extraire l'ID du dossier depuis l'ID de l'item (format: "folder-123")
       const folderId = parseInt(item.id.replace('folder-', ''))
       onFolderClick(folderId)
+    } else if (item.type === "document" && onView) {
+      // Visualiser directement le document au clic
+      onView(item.id)
     }
   }
 

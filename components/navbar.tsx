@@ -15,7 +15,7 @@ import {
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar"
 import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
-import { EditProfileModal } from "@/components/edit-profile-modal"
+import { EditProfileDropdown } from "@/components/edit-profile-dropdown"
 import { useAuth, useLogout, useLogin } from "@/hooks/useAuth"
 import { authUtils } from "@/lib/auth-api"
 import { useToast } from "@/components/ui/toast"
@@ -32,7 +32,7 @@ export function Navbar({ onMenuClick }: NavbarProps) {
   const { success, error: toastError } = useToast()
   const [isMenuOpen, setIsMenuOpen] = useState(false)
   const [isProfileSectionOpen, setIsProfileSectionOpen] = useState(false)
-  const [isEditModalOpen, setIsEditModalOpen] = useState(false)
+  const [isEditSectionOpen, setIsEditSectionOpen] = useState(false)
   const [loginEmail, setLoginEmail] = useState("")
   const [loginPassword, setLoginPassword] = useState("")
   const [loginError, setLoginError] = useState("")
@@ -333,21 +333,39 @@ export function Navbar({ onMenuClick }: NavbarProps) {
                           </div>
                         </div>
                         <div className="pt-2">
-                          <Button
-                            variant="outline"
-                            size="sm"
+                          <DropdownMenuItem 
                             onClick={() => {
-                              setIsEditModalOpen(true)
+                              setIsEditSectionOpen(!isEditSectionOpen)
                               setIsProfileSectionOpen(false)
-                            }}
-                            className="w-full h-7 text-xs"
+                            }} 
+                            onSelect={(e) => e.preventDefault()}
+                            className="text-sm cursor-pointer"
                           >
-                            <Edit className="h-3 w-3 mr-1.5" />
-                            Modifier le profil
-                          </Button>
+                            <div className="flex items-center justify-between w-full">
+                              <div className="flex items-center">
+                                <Edit className="mr-2 h-4 w-4" />
+                                Modifier le profil
+                              </div>
+                              <ChevronDown className={`h-4 w-4 transition-transform ${isEditSectionOpen ? 'rotate-180' : ''}`} />
+                            </div>
+                          </DropdownMenuItem>
                         </div>
                       </div>
                     )}
+                    
+                    {/* Section Édition - Dropdown (pour isLoading) */}
+                    {isEditSectionOpen && (
+                      <div className="px-2 py-2">
+                        <EditProfileDropdown 
+                          onSuccess={() => {
+                            setIsEditSectionOpen(false)
+                            setIsProfileSectionOpen(true)
+                          }}
+                          onCancel={() => setIsEditSectionOpen(false)}
+                        />
+                      </div>
+                    )}
+                    
                     <DropdownMenuItem className="text-sm">
                       <Settings className="mr-2 h-4 w-4" />
                       Paramètres
@@ -529,21 +547,38 @@ export function Navbar({ onMenuClick }: NavbarProps) {
                         </div>
                       </div>
                       
-                      {/* Bouton Modifier */}
+                      {/* Toggle Modifier le profil */}
                       <div className="pt-2">
-                        <Button
-                          variant="outline"
-                          size="sm"
+                        <DropdownMenuItem 
                           onClick={() => {
-                            setIsEditModalOpen(true)
+                            setIsEditSectionOpen(!isEditSectionOpen)
                             setIsProfileSectionOpen(false)
-                          }}
-                          className="w-full h-7 text-xs"
+                          }} 
+                          onSelect={(e) => e.preventDefault()}
+                          className="text-sm cursor-pointer"
                         >
-                          <Edit className="h-3 w-3 mr-1.5" />
-                          Modifier le profil
-                        </Button>
+                          <div className="flex items-center justify-between w-full">
+                            <div className="flex items-center">
+                              <Edit className="mr-2 h-4 w-4" />
+                              Modifier le profil
+                            </div>
+                            <ChevronDown className={`h-4 w-4 transition-transform ${isEditSectionOpen ? 'rotate-180' : ''}`} />
+                          </div>
+                        </DropdownMenuItem>
                       </div>
+                    </div>
+                  )}
+                  
+                  {/* Section Édition - Dropdown */}
+                  {isEditSectionOpen && (
+                    <div className="px-2 py-2">
+                      <EditProfileDropdown 
+                        onSuccess={() => {
+                          setIsEditSectionOpen(false)
+                          setIsProfileSectionOpen(true)
+                        }}
+                        onCancel={() => setIsEditSectionOpen(false)}
+                      />
                     </div>
                   )}
                   
@@ -614,11 +649,6 @@ export function Navbar({ onMenuClick }: NavbarProps) {
         </div>
       </div>
       
-      {/* Edit Profile Modal */}
-      <EditProfileModal 
-        isOpen={isEditModalOpen} 
-        onClose={() => setIsEditModalOpen(false)} 
-      />
     </header>
   )
 }

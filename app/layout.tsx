@@ -6,6 +6,7 @@ import { Suspense } from "react"
 import { Providers } from "@/components/providers"
 import { AuthProvider } from "@/contexts/AuthContext"
 import { ChromeFix } from "@/components/ChromeFix"
+import { AddToHomeScreen } from "@/components/add-to-home-screen"
 import "./globals.css"
 
 const inter = Inter({
@@ -25,6 +26,13 @@ export const metadata: Metadata = {
     shortcut: "/sarlogo.png",
     apple: "/sarlogo.png",
   },
+  manifest: "/manifest.json",
+  themeColor: "#dc2626",
+  appleWebApp: {
+    capable: true,
+    statusBarStyle: "default",
+    title: "Intranet SAR",
+  },
 }
 
 export default function RootLayout({
@@ -38,6 +46,7 @@ export default function RootLayout({
         <Providers>
           <AuthProvider>
             <ChromeFix />
+            <AddToHomeScreen />
             <Suspense fallback={null}>{children}</Suspense>
             <Analytics />
           </AuthProvider>

@@ -52,7 +52,7 @@ export function ResponsiveMessagesArea({
               )} style={{backgroundColor: '#ccd0d1'}}>
                 <img 
                   src="/saria-avatar.png" 
-                  alt="SARIA" 
+                  alt="MAÏ" 
                   className="h-full w-full object-cover"
                   onError={(e) => {
                     const target = e.target as HTMLImageElement;
@@ -135,7 +135,7 @@ export function ResponsiveMessagesArea({
             )} style={{backgroundColor: '#ccd0d1'}}>
               <img 
                 src="/saria-avatar.png" 
-                alt="SARIA" 
+                alt="MAÏ" 
                 className="h-full w-full object-cover"
                 onError={(e) => {
                   const target = e.target as HTMLImageElement;

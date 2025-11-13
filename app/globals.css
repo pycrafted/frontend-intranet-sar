@@ -3062,7 +3062,7 @@ body {
   @apply w-full rounded-lg;
   max-height: 600px;
   object-fit: contain;
-  background-color: #f9fafb;
+  background-color: #ffffff;
 }
 
 /* Responsive adjustments pour publication-image */
@@ -3081,7 +3081,7 @@ body {
 .publication-image-gallery {
   @apply w-full h-72 rounded-lg;
   object-fit: contain;
-  background-color: #f9fafb;
+  background-color: #ffffff;
 }
 
 /* Responsive adjustments pour publication-image-gallery */
@@ -3101,7 +3101,7 @@ body {
   @apply w-full rounded-lg;
   max-height: 500px;
   object-fit: contain;
-  background-color: #f9fafb;
+  background-color: #ffffff;
 }
 
 /* Responsive adjustments pour publication-image-text */

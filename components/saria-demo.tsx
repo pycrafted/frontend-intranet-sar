@@ -13,12 +13,12 @@ export function SariaDemo() {
         <CardHeader>
           <CardTitle className="flex items-center gap-2">
             <Bot className="h-5 w-5 text-primary" />
-            Démonstration du Chatbot SARIA
+            Démonstration du Chatbot MAÏ
           </CardTitle>
         </CardHeader>
         <CardContent className="space-y-4">
           <p className="text-muted-foreground">
-            SARIA est votre assistant virtuel intégré. Cliquez sur le bouton flottant en bas à droite 
+            MAÏ est votre assistant virtuel intégré. Cliquez sur le bouton flottant en bas à droite 
             pour commencer une conversation.
           </p>
           

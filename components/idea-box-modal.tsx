@@ -104,70 +104,70 @@ export function IdeaBoxModal({ isOpen, onClose }: IdeaBoxModalProps) {
 
   return (
     <Dialog open={isOpen} onOpenChange={handleClose}>
-      <DialogContent className="max-w-2xl max-h-[90vh] overflow-y-auto">
-        <DialogHeader className="pb-4">
-          <DialogTitle className="text-2xl font-bold text-gray-900 flex items-center gap-3">
-            <div className="p-3 bg-gradient-to-br from-yellow-500 to-orange-600 rounded-xl shadow-lg">
-              <Lightbulb className="h-6 w-6 text-white" />
+      <DialogContent className="w-[95vw] sm:w-full max-w-sm sm:max-w-md md:max-w-lg lg:max-w-2xl max-h-[90vh] overflow-y-auto mx-2 sm:mx-4">
+        <DialogHeader className="pb-3 sm:pb-4">
+          <DialogTitle className="text-lg sm:text-xl md:text-2xl font-bold text-gray-900 flex items-center gap-2 sm:gap-3 flex-wrap">
+            <div className="p-2 sm:p-3 bg-gradient-to-br from-yellow-500 to-orange-600 rounded-xl shadow-lg">
+              <Lightbulb className="h-4 w-4 sm:h-5 sm:w-5 md:h-6 md:w-6 text-white" />
             </div>
-            💡 Boîte à Idées
+            <span className="whitespace-nowrap">💡 Boîte à Idées</span>
           </DialogTitle>
-          <div className="flex items-center gap-2 mt-2">
-            <div className="text-sm font-semibold text-orange-600 bg-orange-100 px-3 py-1 rounded-full">
+          <div className="flex flex-col sm:flex-row items-start sm:items-center gap-2 mt-2">
+            <div className="text-xs sm:text-sm font-semibold text-orange-600 bg-orange-100 px-2 sm:px-3 py-1 rounded-full whitespace-nowrap">
               🔒 Anonyme
             </div>
-            <p className="text-sm text-gray-600">
+            <p className="text-xs sm:text-sm text-gray-600">
               Partagez vos idées pour améliorer la SAR
             </p>
           </div>
         </DialogHeader>
 
         {isSubmitted ? (
-          <div className="text-center py-8">
-            <div className="w-20 h-20 bg-gradient-to-br from-emerald-500 to-green-600 rounded-full flex items-center justify-center mx-auto mb-6 shadow-lg">
-              <svg className="h-10 w-10 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+          <div className="text-center py-6 sm:py-8">
+            <div className="w-16 h-16 sm:w-20 sm:h-20 bg-gradient-to-br from-emerald-500 to-green-600 rounded-full flex items-center justify-center mx-auto mb-4 sm:mb-6 shadow-lg">
+              <svg className="h-8 w-8 sm:h-10 sm:w-10 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
               </svg>
             </div>
-            <h3 className="text-xl font-bold text-gray-900 mb-3">
+            <h3 className="text-lg sm:text-xl font-bold text-gray-900 mb-2 sm:mb-3 px-2">
               🎉 Idée soumise avec succès !
             </h3>
-            <p className="text-gray-600 mb-6">
+            <p className="text-sm sm:text-base text-gray-600 mb-4 sm:mb-6 px-2">
               Votre idée a été transmise au département concerné.
             </p>
-            <div className="flex gap-3 justify-center">
+            <div className="flex flex-col sm:flex-row gap-2 sm:gap-3 justify-center px-2">
               <Button
                 onClick={handleReset}
                 variant="outline"
-                className="bg-white border-orange-200 text-orange-700 hover:bg-orange-50"
+                className="w-full sm:w-auto bg-white border-orange-200 text-orange-700 hover:bg-orange-50 text-sm sm:text-base"
               >
                 💡 Soumettre une autre idée
               </Button>
               <Button
                 onClick={handleClose}
-                className="bg-gradient-to-r from-orange-500 to-red-500 hover:from-orange-600 hover:to-red-600 text-white"
+                className="w-full sm:w-auto bg-gradient-to-r from-orange-500 to-red-500 hover:from-orange-600 hover:to-red-600 text-white text-sm sm:text-base"
               >
                 Fermer
               </Button>
             </div>
           </div>
         ) : (
-          <form onSubmit={handleSubmit} className="space-y-6">
+          <form onSubmit={handleSubmit} className="space-y-4 sm:space-y-6">
             {/* Département */}
             <div>
-              <Label htmlFor="department" className="text-sm font-semibold text-gray-700 flex items-center gap-2 mb-2">
+              <Label htmlFor="department" className="text-xs sm:text-sm font-semibold text-gray-700 flex items-center gap-2 mb-2">
                 🏢 Département concerné *
               </Label>
               <Select
                 value={formData.department}
                 onValueChange={(value) => handleInputChange('department', value)}
               >
-                <SelectTrigger className={`${errors.department ? 'border-red-500' : 'border-orange-200 focus:border-orange-400'} bg-white rounded-lg shadow-sm`}>
+                <SelectTrigger className={`${errors.department ? 'border-red-500' : 'border-orange-200 focus:border-orange-400'} bg-white rounded-lg shadow-sm text-sm sm:text-base h-10 sm:h-11`}>
                   <SelectValue placeholder="Sélectionnez un département" />
                 </SelectTrigger>
-                <SelectContent>
+                <SelectContent className="max-h-[200px] sm:max-h-[300px]">
                   {departments.map((dept) => (
-                    <SelectItem key={dept.id} value={dept.id}>
+                    <SelectItem key={dept.id} value={dept.id} className="text-sm sm:text-base">
                       <div className="flex items-center gap-2">
                         <span>{dept.icon}</span>
                         <div>
@@ -187,7 +187,7 @@ export function IdeaBoxModal({ isOpen, onClose }: IdeaBoxModalProps) {
 
             {/* Description */}
             <div>
-              <Label htmlFor="description" className="text-sm font-semibold text-gray-700 flex items-center gap-2 mb-2">
+              <Label htmlFor="description" className="text-xs sm:text-sm font-semibold text-gray-700 flex items-center gap-2 mb-2">
                 😊 Parlez-nous de votre idée *
               </Label>
               <Textarea
@@ -195,8 +195,8 @@ export function IdeaBoxModal({ isOpen, onClose }: IdeaBoxModalProps) {
                 value={formData.description}
                 onChange={(e) => handleInputChange('description', e.target.value)}
                 placeholder="Décrivez votre idée en détail, son contexte et son objectif..."
-                rows={6}
-                className={`${errors.description ? 'border-red-500' : 'border-orange-200 focus:border-orange-400'} bg-white rounded-lg shadow-sm`}
+                rows={5}
+                className={`${errors.description ? 'border-red-500' : 'border-orange-200 focus:border-orange-400'} bg-white rounded-lg shadow-sm text-sm sm:text-base resize-none`}
               />
               {errors.description && (
                 <p className="text-xs text-red-500 mt-1 flex items-center gap-1">
@@ -206,29 +206,29 @@ export function IdeaBoxModal({ isOpen, onClose }: IdeaBoxModalProps) {
             </div>
 
             {/* Boutons d'action */}
-            <div className="flex gap-3 pt-4">
+            <div className="flex flex-col sm:flex-row gap-2 sm:gap-3 pt-2 sm:pt-4">
               <Button
                 type="button"
                 variant="outline"
                 onClick={handleReset}
-                className="flex-1 bg-white border-orange-200 text-orange-700 hover:bg-orange-50 hover:border-orange-300"
+                className="w-full sm:flex-1 bg-white border-orange-200 text-orange-700 hover:bg-orange-50 hover:border-orange-300 text-sm sm:text-base h-10 sm:h-11"
               >
-                <span className="flex items-center gap-2">
+                <span className="flex items-center justify-center gap-2">
                   🔄 Annuler
                 </span>
               </Button>
               <Button
                 type="submit"
                 disabled={isSubmitting}
-                className="flex-1 bg-gradient-to-r from-orange-500 to-red-500 hover:from-orange-600 hover:to-red-600 text-white"
+                className="w-full sm:flex-1 bg-gradient-to-r from-orange-500 to-red-500 hover:from-orange-600 hover:to-red-600 text-white text-sm sm:text-base h-10 sm:h-11"
               >
                 {isSubmitting ? (
-                  <span className="flex items-center gap-2">
+                  <span className="flex items-center justify-center gap-2">
                     <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-white"></div>
                     Envoi...
                   </span>
                 ) : (
-                  <span className="flex items-center gap-2">
+                  <span className="flex items-center justify-center gap-2">
                     <Send className="h-4 w-4" />
                     🚀 Soumettre
                   </span>

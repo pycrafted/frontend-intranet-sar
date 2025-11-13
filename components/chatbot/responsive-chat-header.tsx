@@ -37,7 +37,7 @@ export function ResponsiveChatHeader({
           )} style={{backgroundColor: '#ccd0d1'}}>
             <img 
               src="/saria-avatar.png" 
-              alt="SARIA Assistant" 
+              alt="MAÏ Assistant" 
               className="h-full w-full object-cover"
               onError={(e) => {
                 const target = e.target as HTMLImageElement;

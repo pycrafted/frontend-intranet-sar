@@ -52,6 +52,9 @@ export function DocumentsDataTable({
     if (item.type === "folder" && onFolderClick) {
       const folderId = parseInt(item.id.replace('folder-', ''))
       onFolderClick(folderId)
+    } else if (item.type === "document" && onView) {
+      // Visualiser directement le document au clic
+      onView(item.id)
     }
   }
 

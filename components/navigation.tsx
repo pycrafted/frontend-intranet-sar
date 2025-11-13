@@ -24,7 +24,6 @@ import {
   LogOut,
   UserPlus,
   BarChart3,
-  Settings,
   Shield,
   Phone,
 } from "lucide-react"
@@ -38,7 +37,6 @@ const getBaseNavigationSections = () => [
       { name: "Accueil", href: "/", icon: Home },
       { name: "Actualités", href: "/actualites", icon: Newspaper },
       { name: "Sécurité", href: "/securite", icon: Shield },
-      { name: "Paramètres", href: "/parametres", icon: Settings },
     ],
   },
   {

@@ -107,10 +107,10 @@ export function SecurityCarousel() {
     setSelectedImage(null)
   }
 
-  // Calculer les cartes visibles (3-4 cartes selon la taille d'écran)
+  // Calculer les cartes visibles (3 cartes pour une meilleure visibilité)
   const getVisibleCards = () => {
     const cards = []
-    for (let i = 0; i < 4; i++) {
+    for (let i = 0; i < 3; i++) {
       const index = (currentIndex + i) % allSecurityTopics.length
       cards.push(allSecurityTopics[index])
     }
@@ -157,7 +157,7 @@ export function SecurityCarousel() {
         </Button>
 
         {/* Cartes du carousel - Responsive */}
-        <div className="grid grid-cols-1 xs:grid-cols-2 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-3 sm:gap-4 md:gap-6 px-8 sm:px-12">
+        <div className="grid grid-cols-1 xs:grid-cols-2 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-3 gap-3 sm:gap-4 md:gap-6 px-8 sm:px-12">
           {visibleCards.map((topic, index) => {
             const Icon = topic.icon
             const isHovered = hoveredCardIndex === index
@@ -184,7 +184,7 @@ export function SecurityCarousel() {
 
                 {topic.image ? (
                   <div 
-                    className="relative h-32 sm:h-40 md:h-48 flex items-center justify-center p-1 sm:p-2 cursor-pointer group/image"
+                    className="relative h-40 sm:h-56 md:h-64 lg:h-72 flex items-center justify-center p-1 sm:p-2 cursor-pointer group/image"
                     onClick={() => handleImageClick(topic.image, topic.imageAlt, topic.title)}
                   >
                     <img
@@ -228,8 +228,8 @@ export function SecurityCarousel() {
           })}
         </div>
 
-        {/* Indicateurs de pagination - Responsive */}
-        <div className="flex justify-center mt-4 sm:mt-6 gap-2 sm:gap-3 relative z-10">
+        {/* Indicateurs de pagination - Responsive (masqués sur mobile) */}
+        <div className="hidden sm:flex justify-center mt-4 sm:mt-6 gap-2 sm:gap-3 relative z-10">
           {allSecurityTopics.map((_, index) => (
             <button
               key={index}

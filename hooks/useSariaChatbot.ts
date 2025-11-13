@@ -69,24 +69,24 @@ export function useSariaChatbot() {
 
   const sendMessage = useCallback(async (content: string) => {
     const messageId = Date.now().toString()
-    console.log(`\n🤖 [SARIA-CHATBOT] ========== NOUVEAU MESSAGE [${messageId}] ==========`)
+    console.log(`\n🤖 [MAI-CHATBOT] ========== NOUVEAU MESSAGE [${messageId}] ==========`)
     
     if (!content.trim()) {
-      console.log(`⚠️ [SARIA-CHATBOT] [${messageId}] Message vide, ignoré`)
+      console.log(`⚠️ [MAI-CHATBOT] [${messageId}] Message vide, ignoré`)
       return
     }
 
-    console.log(`📝 [SARIA-CHATBOT] [${messageId}] Message utilisateur:`, content.trim().substring(0, 100) + (content.trim().length > 100 ? '...' : ''))
+    console.log(`📝 [MAI-CHATBOT] [${messageId}] Message utilisateur:`, content.trim().substring(0, 100) + (content.trim().length > 100 ? '...' : ''))
 
     // Ajouter le message de l'utilisateur
     addMessage({
       content: content.trim(),
       sender: 'user'
     })
-    console.log(`✅ [SARIA-CHATBOT] [${messageId}] Message utilisateur ajouté à l'historique`)
+    console.log(`✅ [MAI-CHATBOT] [${messageId}] Message utilisateur ajouté à l'historique`)
 
     // Démarrer les messages de chargement intelligents
-    console.log(`⏳ [SARIA-CHATBOT] [${messageId}] Démarrage des messages de chargement...`)
+    console.log(`⏳ [MAI-CHATBOT] [${messageId}] Démarrage des messages de chargement...`)
     await startLoading(content.trim(), 2000)
     
     // Activer l'indicateur de frappe
@@ -96,48 +96,48 @@ export function useSariaChatbot() {
       loadingMessage: currentLoadingMessage,
       loadingPhase: loadingPhase
     }))
-    console.log(`⏳ [SARIA-CHATBOT] [${messageId}] Indicateur de frappe activé`)
+    console.log(`⏳ [MAI-CHATBOT] [${messageId}] Indicateur de frappe activé`)
 
     try {
       // Convertir l'historique des messages pour Claude
-      console.log(`🔄 [SARIA-CHATBOT] [${messageId}] Conversion de l'historique (${state.messages.length} messages)...`)
+      console.log(`🔄 [MAI-CHATBOT] [${messageId}] Conversion de l'historique (${state.messages.length} messages)...`)
       const claudeMessages = claudeAPI.convertToClaudeMessages(state.messages)
-      console.log(`🔄 [SARIA-CHATBOT] [${messageId}] Historique converti:`, claudeMessages.length, 'messages Claude')
+      console.log(`🔄 [MAI-CHATBOT] [${messageId}] Historique converti:`, claudeMessages.length, 'messages Claude')
       
       // Appeler l'API Claude
-      console.log(`🌐 [SARIA-CHATBOT] [${messageId}] Appel à claudeAPI.sendMessage...`)
+      console.log(`🌐 [MAI-CHATBOT] [${messageId}] Appel à claudeAPI.sendMessage...`)
       const response = await claudeAPI.sendMessage(content.trim(), claudeMessages)
-      console.log(`✅ [SARIA-CHATBOT] [${messageId}] Réponse reçue de Claude (longueur:`, response.length, 'caractères)')
+      console.log(`✅ [MAI-CHATBOT] [${messageId}] Réponse reçue de Claude (longueur:`, response.length, 'caractères)')
       
       // Ajouter la réponse de MAÏ
       addMessage({
         content: response,
         sender: 'mai'
       })
-      console.log(`✅ [SARIA-CHATBOT] [${messageId}] Réponse ajoutée à l'historique`)
-      console.log(`✅ [SARIA-CHATBOT] [${messageId}] ========== MESSAGE TRAITÉ AVEC SUCCÈS ==========\n`)
+      console.log(`✅ [MAI-CHATBOT] [${messageId}] Réponse ajoutée à l'historique`)
+      console.log(`✅ [MAI-CHATBOT] [${messageId}] ========== MESSAGE TRAITÉ AVEC SUCCÈS ==========\n`)
       
     } catch (error) {
-      console.error(`\n❌ [SARIA-CHATBOT] [${messageId}] ========== ERREUR ==========`)
-      console.error(`❌ [SARIA-CHATBOT] [${messageId}] Type:`, error instanceof Error ? error.constructor.name : typeof error)
-      console.error(`❌ [SARIA-CHATBOT] [${messageId}] Message:`, error instanceof Error ? error.message : String(error))
-      console.error(`❌ [SARIA-CHATBOT] [${messageId}] Stack:`, error instanceof Error ? error.stack : 'N/A')
+      console.error(`\n❌ [MAI-CHATBOT] [${messageId}] ========== ERREUR ==========`)
+      console.error(`❌ [MAI-CHATBOT] [${messageId}] Type:`, error instanceof Error ? error.constructor.name : typeof error)
+      console.error(`❌ [MAI-CHATBOT] [${messageId}] Message:`, error instanceof Error ? error.message : String(error))
+      console.error(`❌ [MAI-CHATBOT] [${messageId}] Stack:`, error instanceof Error ? error.stack : 'N/A')
       
       // Utiliser les réponses de fallback intelligentes
-      console.log(`🔄 [SARIA-CHATBOT] [${messageId}] Utilisation de la réponse de fallback...`)
+      console.log(`🔄 [MAI-CHATBOT] [${messageId}] Utilisation de la réponse de fallback...`)
       const fallbackResponse = findFallbackResponse(content.trim())
-      console.log(`✅ [SARIA-CHATBOT] [${messageId}] Réponse de fallback générée (longueur:`, fallbackResponse.length, 'caractères)')
+      console.log(`✅ [MAI-CHATBOT] [${messageId}] Réponse de fallback générée (longueur:`, fallbackResponse.length, 'caractères)')
       
       addMessage({
         content: fallbackResponse,
         sender: 'mai'
       })
-      console.log(`✅ [SARIA-CHATBOT] [${messageId}] Réponse de fallback ajoutée`)
-      console.log(`✅ [SARIA-CHATBOT] [${messageId}] ========== ERREUR GÉRÉE ==========\n`)
+      console.log(`✅ [MAI-CHATBOT] [${messageId}] Réponse de fallback ajoutée`)
+      console.log(`✅ [MAI-CHATBOT] [${messageId}] ========== ERREUR GÉRÉE ==========\n`)
     } finally {
       // Arrêter les messages de chargement
       stopLoading()
-      console.log(`⏹️ [SARIA-CHATBOT] [${messageId}] Messages de chargement arrêtés`)
+      console.log(`⏹️ [MAI-CHATBOT] [${messageId}] Messages de chargement arrêtés`)
       
       // Désactiver l'indicateur de frappe
       setState(prev => ({ 
@@ -146,7 +146,7 @@ export function useSariaChatbot() {
         loadingMessage: '',
         loadingPhase: 'searching'
       }))
-      console.log(`⏹️ [SARIA-CHATBOT] [${messageId}] Indicateur de frappe désactivé`)
+      console.log(`⏹️ [MAI-CHATBOT] [${messageId}] Indicateur de frappe désactivé`)
     }
   }, [addMessage, state.messages, startLoading, stopLoading, currentLoadingMessage, loadingPhase])
 

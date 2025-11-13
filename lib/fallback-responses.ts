@@ -1,4 +1,4 @@
-// Réponses de fallback pour SARIA quand l'API Claude n'est pas disponible
+// Réponses de fallback pour MAÏ quand l'API Claude n'est pas disponible
 
 export interface FallbackResponse {
   keywords: string[]
@@ -9,7 +9,7 @@ export interface FallbackResponse {
 export const fallbackResponses: FallbackResponse[] = [
   {
     keywords: ['salut', 'bonjour', 'hello', 'hi', 'coucou'],
-    response: "Bonjour. Je suis SARIA, votre assistant virtuel d'entreprise. Mon système d'intelligence artificielle principal est temporairement indisponible, mais je peux vous fournir des informations de base concernant nos systèmes internes.",
+    response: "Bonjour. Je suis MAÏ, votre assistant virtuel d'entreprise. Mon système d'intelligence artificielle principal est temporairement indisponible, mais je peux vous fournir des informations de base concernant nos systèmes internes.",
     category: 'greeting'
   },
   {
@@ -67,5 +67,5 @@ export function findFallbackResponse(message: string): string {
   }
   
   // Réponse par défaut si aucune correspondance
-  return "Je suis SARIA, votre assistant virtuel d'entreprise. Mon système d'intelligence artificielle principal est temporairement indisponible, mais je peux vous fournir des informations générales concernant nos systèmes internes. Comment puis-je vous assister ?"
+  return "Je suis MAÏ, votre assistant virtuel d'entreprise. Mon système d'intelligence artificielle principal est temporairement indisponible, mais je peux vous fournir des informations générales concernant nos systèmes internes. Comment puis-je vous assister ?"
 }

@@ -469,12 +469,12 @@ export function AppsWidget() {
             </div>
           </div>
 
-          {/* Section SAR - Applications Externes */}
+          {/* Section SAR - Sites web externes */}
           <div>
             <h3 className="hidden md:flex text-base font-bold text-blue-600 mb-2 md:mb-3 items-center gap-2">
               <div className="w-4 h-4 bg-blue-500 rounded-full shadow-lg"></div>
               <Globe className="h-5 w-5" />
-              SAR - Applications Externes
+              SAR - Sites web externes
             </h3>
             <div className="grid grid-cols-3 md:grid-cols-5 gap-3 sm:gap-3 md:gap-4">
               {toolsApps.map((app) => (
