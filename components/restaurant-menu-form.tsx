@@ -31,7 +31,7 @@ import { useMenu } from '@/hooks/useMenu'
 interface MenuItem {
   id: number
   name: string
-  type: 'senegalese' | 'european'
+  type: 'senegalese' | 'european' | 'dessert'
   type_display: string
   description?: string
   is_available: boolean
@@ -44,6 +44,7 @@ interface DayMenu {
   date: string
   senegalese: MenuItem
   european: MenuItem
+  dessert?: MenuItem | null
   is_active: boolean
 }
 
@@ -86,6 +87,7 @@ export function RestaurantMenuForm() {
     date: '',
     senegalese_id: 0,
     european_id: 0,
+    dessert_id: null as number | null,
     is_active: true
   })
   
@@ -138,9 +140,10 @@ export function RestaurantMenuForm() {
     const dayNames = ['sunday', 'monday', 'tuesday', 'wednesday', 'thursday', 'friday', 'saturday']
     const dayName = dayNames[date.getDay()]
     
-    // Vérifier que c'est un jour de la semaine (lundi à vendredi)
-    if (date.getDay() === 0 || date.getDay() === 6) {
-      setErrorMessage('Seuls les jours de la semaine (lundi à vendredi) sont autorisés')
+    // Vérifier que c'est un jour de la semaine (lundi à jeudi)
+    // getDay() : Dimanche=0, Lundi=1, Mardi=2, Mercredi=3, Jeudi=4, Vendredi=5, Samedi=6
+    if (date.getDay() === 0 || date.getDay() === 5 || date.getDay() === 6) {
+      setErrorMessage('Seuls les jours de la semaine (lundi à jeudi) sont autorisés')
       return
     }
     
@@ -157,12 +160,13 @@ export function RestaurantMenuForm() {
       date: formData.date,
       senegalese_id: Number(formData.senegalese_id),
       european_id: Number(formData.european_id),
+      dessert_id: formData.dessert_id || null,
       is_active: Boolean(formData.is_active)
     })
 
     if (result.success) {
       setSuccessMessage('Menu créé avec succès')
-      setFormData({ date: '', senegalese_id: 0, european_id: 0, is_active: true })
+      setFormData({ date: '', senegalese_id: 0, european_id: 0, dessert_id: null, is_active: true })
       setSelectedWeek('')
       setShowForm(false)
       fetchWeekMenu()
@@ -176,6 +180,7 @@ export function RestaurantMenuForm() {
     const result = await updateDayMenu(dayMenu.id, {
       senegalese_id: dayMenu.senegalese.id,
       european_id: dayMenu.european.id,
+      dessert_id: dayMenu.dessert?.id || null,
       is_active: dayMenu.is_active
     })
 
@@ -205,6 +210,7 @@ export function RestaurantMenuForm() {
       date: dayMenu.date,
       senegalese_id: dayMenu.senegalese.id,
       european_id: dayMenu.european.id,
+      dessert_id: dayMenu.dessert?.id || null,
       is_active: dayMenu.is_active
     })
     setShowForm(true)
@@ -285,8 +291,8 @@ export function RestaurantMenuForm() {
     const mondayDate = new Date(baseDate)
     mondayDate.setDate(baseDate.getDate() - daysSinceMonday)
     
-    // Générer les 5 jours de la semaine (lundi à vendredi)
-    for (let i = 0; i < 5; i++) {
+    // Générer les 4 jours de la semaine (lundi à jeudi)
+    for (let i = 0; i < 4; i++) {
       const date = new Date(mondayDate)
       date.setDate(mondayDate.getDate() + i)
       days.push({
@@ -315,7 +321,7 @@ export function RestaurantMenuForm() {
       
       const weekStart = mondayDate.toISOString().split('T')[0]
       const weekEnd = new Date(mondayDate)
-      weekEnd.setDate(mondayDate.getDate() + 4)
+      weekEnd.setDate(mondayDate.getDate() + 3)
       
       const weekLabel = `Semaine du ${mondayDate.toLocaleDateString('fr-FR', { 
         day: 'numeric', 
@@ -604,7 +610,7 @@ export function RestaurantMenuForm() {
               </div>
             </div>
 
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
               <div>
                 <Label>Plat Sénégalais</Label>
                 <Select
@@ -645,6 +651,27 @@ export function RestaurantMenuForm() {
                   </SelectContent>
                 </Select>
               </div>
+              <div>
+                <Label>Dessert (optionnel)</Label>
+                <Select
+                  value={formData.dessert_id?.toString() || '0'}
+                  onValueChange={(value) => setFormData({ ...formData, dessert_id: value && value !== '0' ? parseInt(value) : null })}
+                >
+                  <SelectTrigger>
+                    <SelectValue placeholder="Sélectionner un dessert" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="0">Aucun dessert</SelectItem>
+                    {safeAvailableItems
+                      .filter(item => item.type === 'dessert' && item.is_available)
+                      .map(item => (
+                        <SelectItem key={item.id} value={item.id.toString()}>
+                          {item.name}
+                        </SelectItem>
+                      ))}
+                  </SelectContent>
+                </Select>
+              </div>
             </div>
 
             <div className="flex space-x-2">
@@ -660,7 +687,7 @@ export function RestaurantMenuForm() {
                     onClick={() => {
                       setShowForm(false)
                       setEditingDay(null)
-                      setFormData({ date: '', senegalese_id: 0, european_id: 0, is_active: true })
+                      setFormData({ date: '', senegalese_id: 0, european_id: 0, dessert_id: null, is_active: true })
                       setSelectedWeek('')
                     }}
                   >

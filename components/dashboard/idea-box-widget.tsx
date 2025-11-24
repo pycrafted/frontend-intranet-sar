@@ -30,13 +30,20 @@ export function IdeaBoxWidget() {
         
         {/* Header avec design amélioré - Responsive */}
         <CardHeader className="pb-2 sm:pb-3 lg:pb-4 flex-shrink-0 relative z-10 p-2 sm:p-3 md:p-6">
-          <CardTitle className="text-lg sm:text-xl font-bold text-gray-900 group-hover:text-orange-700 transition-colors duration-300 flex items-center gap-2 sm:gap-3">
+          <div className="flex items-center gap-2 sm:gap-3">
             <div className="p-2 sm:p-3 bg-gradient-to-br from-yellow-500 to-orange-600 rounded-lg sm:rounded-xl shadow-lg group-hover:shadow-orange-200 group-hover:scale-110 transition-all duration-300">
               <Lightbulb className="h-4 w-4 sm:h-5 sm:w-5 lg:h-6 lg:w-6 text-white" />
             </div>
-            <span className="hidden sm:inline">Boîte à Idées</span>
-            <span className="sm:hidden">Idées</span>
-          </CardTitle>
+            <div>
+              <CardTitle className="text-sm sm:text-base md:text-lg lg:text-xl font-bold text-gray-900 group-hover:text-orange-700 transition-colors duration-300">
+                <span className="hidden sm:inline">Boîte à Idées</span>
+                <span className="sm:hidden">Idées</span>
+              </CardTitle>
+              <p className="text-[10px] sm:text-xs md:text-sm text-slate-600 font-medium">
+                Partagez vos suggestions
+              </p>
+            </div>
+          </div>
         </CardHeader>
         
         <CardContent className="flex-1 flex flex-col justify-center items-center text-center relative z-10 p-2 sm:p-3 md:p-6">

@@ -118,6 +118,60 @@ export function useSafetyData() {
 
   useEffect(() => {
     fetchSafetyData()
+    
+    // Calculer le temps jusqu'à minuit prochain (minuit local)
+    const calculateTimeUntilMidnight = () => {
+      const now = new Date()
+      // Créer une date pour minuit du jour suivant
+      const midnight = new Date(now)
+      midnight.setDate(midnight.getDate() + 1) // Jour suivant
+      midnight.setHours(0, 0, 0, 0) // Minuit (00:00:00.000)
+      return midnight.getTime() - now.getTime()
+    }
+    
+    // Fonction pour programmer le prochain rafraîchissement à minuit
+    const scheduleNextMidnightRefresh = () => {
+      const timeUntilMidnight = calculateTimeUntilMidnight()
+      
+      return setTimeout(() => {
+        // Rafraîchir immédiatement à minuit
+        fetchSafetyData()
+        
+        // Programmer le prochain rafraîchissement pour le minuit suivant
+        scheduleNextMidnightRefresh()
+      }, timeUntilMidnight)
+    }
+    
+    // Programmer le premier rafraîchissement à minuit
+    let midnightTimeout = scheduleNextMidnightRefresh()
+    
+    // Rafraîchir aussi toutes les minutes autour de minuit (23h55 à 00h05) pour garantir la mise à jour
+    // et toutes les heures le reste du temps
+    let checkInterval: NodeJS.Timeout | null = null
+    
+    const startCheckInterval = () => {
+      checkInterval = setInterval(() => {
+        const now = new Date()
+        const hours = now.getHours()
+        const minutes = now.getMinutes()
+        
+        // Si on est entre 23h55 et 00h05, rafraîchir toutes les minutes
+        // Sinon, rafraîchir toutes les heures
+        if ((hours === 23 && minutes >= 55) || (hours === 0 && minutes <= 5)) {
+          fetchSafetyData()
+        } else if (minutes === 0) {
+          // Rafraîchir à chaque heure pile
+          fetchSafetyData()
+        }
+      }, 60 * 1000) // Vérifier toutes les minutes
+    }
+    
+    startCheckInterval()
+    
+    return () => {
+      clearTimeout(midnightTimeout)
+      if (checkInterval) clearInterval(checkInterval)
+    }
   }, [])
 
   return {

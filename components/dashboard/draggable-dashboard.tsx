@@ -35,6 +35,7 @@ import { AppsWidget } from "./apps-widget"
 import { DirectorMessageWidget } from "./director-message-widget"
 import { VideoWidget } from "./video-widget"
 import { RecruitmentWidget } from "./recruitment-widget"
+import { ProjectsWidget } from "./projects-widget"
 import { WidgetManager } from "./widget-manager"
 import { DashboardTour, useDashboardTour } from "./dashboard-tour"
 import { useToast, ToastContainer } from "@/components/ui/toast"
@@ -48,7 +49,7 @@ import { useAuth } from "@/hooks/useAuth"
 // Types pour les widgets
 export interface DashboardWidget {
   id: string
-  type: 'news' | 'ideas' | 'safety' | 'menu' | 'calendar' | 'apps' | 'director' | 'video' | 'recruitment'
+  type: 'news' | 'ideas' | 'safety' | 'menu' | 'calendar' | 'apps' | 'director' | 'video' | 'recruitment' | 'projects'
   title: string
   size: 'small' | 'medium' | 'large' | 'full'
   order: number
@@ -101,6 +102,11 @@ const WIDGET_CONFIG: Record<string, { size: string; component: React.ComponentTy
     size: 'medium', 
     component: RecruitmentWidget, 
     title: 'Recrutements Internes' 
+  },
+  projects: { 
+    size: 'medium', 
+    component: ProjectsWidget, 
+    title: 'Projets' 
   }
 }
 
@@ -404,6 +410,42 @@ export function DraggableDashboard() {
       }
     }
 
+    // S'assurer que le widget projets existe
+    const hasProjectsWidget = migratedWidgets.some(widget => widget.type === 'projects')
+    if (!hasProjectsWidget) {
+      // Placer le widget projets après le recrutement
+      const recruitmentWidget = migratedWidgets.find(widget => widget.type === 'recruitment')
+      if (recruitmentWidget) {
+        const projectsOrder = recruitmentWidget.order + 1
+        // Décaler tous les widgets après les projets
+        migratedWidgets.forEach(widget => {
+          if (widget.order >= projectsOrder) {
+            widget.order = widget.order + 1
+          }
+        })
+        // Ajouter le widget projets
+        migratedWidgets.push({
+          id: 'projects',
+          type: 'projects',
+          title: 'Projets',
+          size: 'medium',
+          order: projectsOrder,
+          isVisible: true
+        })
+      } else {
+        // Si pas de recrutement, ajouter à la fin
+        const maxOrder = Math.max(...migratedWidgets.map(w => w.order), 0)
+        migratedWidgets.push({
+          id: 'projects',
+          type: 'projects',
+          title: 'Projets',
+          size: 'medium',
+          order: maxOrder + 1,
+          isVisible: true
+        })
+      }
+    }
+
     return migratedWidgets
   }
 
@@ -413,7 +455,7 @@ export function DraggableDashboard() {
     
     // Vérifier la version des widgets et forcer la migration si nécessaire
     const widgetVersion = localStorage.getItem('dashboard-widgets-version')
-    const currentVersion = '4.0' // Version avec widget recrutement
+    const currentVersion = '5.0' // Version avec widget projets
     
     // Charger la configuration sauvegardée ou utiliser la configuration par défaut
     const savedWidgets = localStorage.getItem('dashboard-widgets')
@@ -471,9 +513,10 @@ export function DraggableDashboard() {
       { id: 'apps', type: 'apps', title: 'Accès Rapide', size: 'large', order: 4, isVisible: true },
       { id: 'safety', type: 'safety', title: 'Sécurité du Travail', size: 'medium', order: 5, isVisible: true },
       { id: 'recruitment', type: 'recruitment', title: 'Recrutements Internes', size: 'medium', order: 6, isVisible: true },
-      { id: 'calendar', type: 'calendar', title: 'Événements', size: 'medium', order: 7, isVisible: true },
-      { id: 'ideas', type: 'ideas', title: 'Boîte à Idées', size: 'medium', order: 8, isVisible: true },
-      { id: 'menu', type: 'menu', title: 'Menu de la Semaine', size: 'full', order: 9, isVisible: true },
+      { id: 'projects', type: 'projects', title: 'Projets', size: 'medium', order: 7, isVisible: true },
+      { id: 'calendar', type: 'calendar', title: 'Événements', size: 'medium', order: 8, isVisible: true },
+      { id: 'ideas', type: 'ideas', title: 'Boîte à Idées', size: 'medium', order: 9, isVisible: true },
+      { id: 'menu', type: 'menu', title: 'Menu de la Semaine', size: 'full', order: 10, isVisible: true },
     ]
   }
 

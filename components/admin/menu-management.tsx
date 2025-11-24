@@ -39,7 +39,7 @@ import { useMenu } from '@/hooks/useMenu'
 interface MenuItem {
   id: number
   name: string
-  type: 'senegalese' | 'european'
+  type: 'senegalese' | 'european' | 'dessert'
   type_display: string
   description?: string
   is_available: boolean
@@ -54,6 +54,7 @@ interface DayMenu {
   date: string
   senegalese: MenuItem
   european: MenuItem
+  dessert?: MenuItem | null
   is_active: boolean
   created_at: string
   updated_at: string
@@ -102,10 +103,9 @@ export function MenuManagement() {
     if (dayCount === 2) return 'grid-cols-1 md:grid-cols-2'
     if (dayCount === 3) return 'grid-cols-1 md:grid-cols-2 lg:grid-cols-3'
     if (dayCount === 4) return 'grid-cols-1 md:grid-cols-2 lg:grid-cols-4'
-    if (dayCount === 5) return 'grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-5'
     
-    // Pour plus de 5 jours, utiliser une grille flexible
-    return 'grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-5'
+    // Pour plus de 4 jours, utiliser une grille flexible
+    return 'grid-cols-1 md:grid-cols-2 lg:grid-cols-4'
   }
 
   const [activeTab, setActiveTab] = useState<'items' | 'week'>('week')
@@ -139,11 +139,11 @@ export function MenuManagement() {
     const mondayDate = new Date(inputDate)
     mondayDate.setDate(inputDate.getDate() - daysSinceMonday)
     
-    const days = ['monday', 'tuesday', 'wednesday', 'thursday', 'friday']
-    const dayNames = ['Lundi', 'Mardi', 'Mercredi', 'Jeudi', 'Vendredi']
+    const days = ['monday', 'tuesday', 'wednesday', 'thursday']
+    const dayNames = ['Lundi', 'Mardi', 'Mercredi', 'Jeudi']
     const remainingDays = []
     
-    for (let i = 0; i < 5; i++) {
+    for (let i = 0; i < 4; i++) {
       const currentDate = new Date(mondayDate)
       currentDate.setDate(mondayDate.getDate() + i)
       
@@ -161,6 +161,7 @@ export function MenuManagement() {
         date: dateString,
         senegalese_id: existingMenu?.senegalese?.id || 0,
         european_id: existingMenu?.european?.id || 0,
+        dessert_id: existingMenu?.dessert?.id || null,
         is_active: existingMenu?.is_active ?? true,
         existing: !!existingMenu
       })
@@ -177,6 +178,7 @@ export function MenuManagement() {
       date: string
       senegalese_id: number
       european_id: number
+      dessert_id?: number | null
       is_active: boolean
       existing?: boolean
     }>
@@ -288,23 +290,30 @@ export function MenuManagement() {
       return
     }
     
-    // Vérifier que tous les champs sont remplis
-    const hasEmptyFields = weekForm.menus.some(menu => 
-      menu.senegalese_id === 0 || menu.european_id === 0
+    // Filtrer les menus complets (qui ont au moins un plat sénégalais et européen)
+    const completeMenus = weekForm.menus.filter(menu => 
+      menu.senegalese_id !== 0 && menu.european_id !== 0
     )
     
-    if (hasEmptyFields) {
-      setErrorMessage('Veuillez sélectionner un plat sénégalais et européen pour chaque jour')
+    // Vérifier qu'il y a au moins un menu complet
+    if (completeMenus.length === 0) {
+      setErrorMessage('Veuillez remplir au moins un menu complet (plat sénégalais et européen)')
       return
     }
     
+    // Envoyer uniquement les menus complets au backend
     const result = await createWeekMenu({
       week_start: weekForm.week_start,
-      menus: weekForm.menus
+      menus: completeMenus
     })
     
     if (result.success) {
-      setSuccessMessage(`Menu créé avec succès pour ${weekForm.menus.length} jour(s)`)
+      const skippedCount = weekForm.menus.length - completeMenus.length
+      let message = `Menu créé avec succès pour ${completeMenus.length} jour(s)`
+      if (skippedCount > 0) {
+        message += ` (${skippedCount} jour(s) ignoré(s) car incomplet(s))`
+      }
+      setSuccessMessage(message)
       setWeekForm({
         week_start: '',
         menus: []
@@ -319,6 +328,7 @@ export function MenuManagement() {
     const result = await updateDayMenu(dayMenu.id, {
       senegalese_id: dayMenu.senegalese.id,
       european_id: dayMenu.european.id,
+      dessert_id: dayMenu.dessert?.id || null,
       is_active: dayMenu.is_active
     })
     
@@ -348,7 +358,6 @@ export function MenuManagement() {
       'tuesday': 'Mardi', 
       'wednesday': 'Mercredi',
       'thursday': 'Jeudi',
-      'friday': 'Vendredi',
       'saturday': 'Samedi',
       'sunday': 'Dimanche'
     }
@@ -461,6 +470,7 @@ export function MenuManagement() {
                       <SelectContent>
                         <SelectItem value="senegalese">Sénégalais</SelectItem>
                         <SelectItem value="european">Européen</SelectItem>
+                        <SelectItem value="dessert">Dessert</SelectItem>
                       </SelectContent>
                     </Select>
                   </div>
@@ -594,7 +604,7 @@ export function MenuManagement() {
          Les menus seront créés/mis à jour pour les jours restants de la semaine (y compris aujourd'hui si nécessaire)
        </p>
        <p className="text-xs text-blue-600 mt-1">
-         💡 Les menus existants seront mis à jour, les nouveaux seront créés
+         💡 Les menus existants seront mis à jour, les nouveaux seront créés. Vous pouvez laisser certains jours vides (ex: jours fériés).
        </p>
                   {weekForm.week_start && weekForm.menus.length > 0 && (
                     <p className="text-sm text-blue-600 mt-1">
@@ -616,19 +626,28 @@ export function MenuManagement() {
        )}
                 
                 <div className="space-y-4">
-                  {weekForm.menus.map((menu, index) => (
-                    <div key={index} className={`border rounded-lg p-4 ${menu.existing ? 'bg-blue-50 border-blue-200' : ''}`}>
+                  {weekForm.menus.map((menu, index) => {
+                    const isComplete = menu.senegalese_id !== 0 && menu.european_id !== 0
+                    return (
+                    <div key={index} className={`border rounded-lg p-4 ${menu.existing ? 'bg-blue-50 border-blue-200' : ''} ${!isComplete ? 'opacity-75' : ''}`}>
                       <div className="flex items-center justify-between mb-3">
                         <h5 className="font-medium">
                           {menu.dayName} - {menu.date}
                         </h5>
-                        {menu.existing && (
-                          <Badge variant="secondary" className="text-xs">
-                            Menu existant
-                          </Badge>
-                        )}
+                        <div className="flex items-center gap-2">
+                          {!isComplete && (
+                            <Badge variant="outline" className="text-xs text-gray-500">
+                              Optionnel
+                            </Badge>
+                          )}
+                          {menu.existing && (
+                            <Badge variant="secondary" className="text-xs">
+                              Menu existant
+                            </Badge>
+                          )}
+                        </div>
                       </div>
-                      <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
                         <div>
                           <Label>Plat Sénégalais</Label>
                           <Select
@@ -677,9 +696,35 @@ export function MenuManagement() {
                             </SelectContent>
                           </Select>
                         </div>
+                        <div>
+                          <Label>Dessert (optionnel)</Label>
+                          <Select
+                            value={menu.dessert_id?.toString() || '0'}
+                            onValueChange={(value) => {
+                              const newMenus = [...weekForm.menus]
+                              newMenus[index].dessert_id = value && value !== '0' ? parseInt(value) : null
+                              setWeekForm({ ...weekForm, menus: newMenus })
+                            }}
+                          >
+                            <SelectTrigger>
+                              <SelectValue placeholder="Sélectionner un dessert" />
+                            </SelectTrigger>
+                             <SelectContent>
+                               <SelectItem value="0">Aucun dessert</SelectItem>
+                               {safeAvailableItems
+                                 .filter(item => item.type === 'dessert' && item.is_available)
+                                 .map(item => (
+                                  <SelectItem key={item.id} value={item.id.toString()}>
+                                    {item.name}
+                                  </SelectItem>
+                                ))}
+                            </SelectContent>
+                          </Select>
+                        </div>
                       </div>
                     </div>
-                  ))}
+                    )
+                  })}
                 </div>
                 <div className="flex space-x-2">
                   <Button 

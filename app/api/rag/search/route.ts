@@ -8,8 +8,21 @@ export async function POST(request: NextRequest) {
   try {
     const body = await request.json()
     // ⚠️ IMPORTANT: Utiliser getApiUrl() (avec /api) et non getApiBaseUrl() pour les endpoints MAI
-    const BACKEND_URL = config.backend.apiUrl || 'http://localhost:8000'
-    const API_BASE_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:8000/api'
+    const BACKEND_URL = config.backend.apiUrl
+    const API_BASE_URL = process.env.NEXT_PUBLIC_API_URL
+    
+    if (!API_BASE_URL) {
+      console.error(`❌ [RAG API] [${requestId}] NEXT_PUBLIC_API_URL n'est pas définie`)
+      return NextResponse.json(
+        { 
+          success: false, 
+          context: '',
+          error: 'Configuration manquante: NEXT_PUBLIC_API_URL doit être définie dans .env.local',
+          type: 'config_error'
+        },
+        { status: 500 }
+      )
+    }
     
     console.log(`🔍 [RAG API] [${requestId}] Requête reçue:`, body.query?.substring(0, 100) + (body.query?.length > 100 ? '...' : ''))
     console.log(`🔍 [RAG API] [${requestId}] URL backend configurée:`, BACKEND_URL)

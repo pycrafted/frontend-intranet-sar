@@ -119,7 +119,7 @@ export function ControlCenterSidebar({
   return (
     <aside className={cn(
       "hidden lg:flex lg:flex-col lg:fixed lg:top-16 lg:bottom-0 lg:z-30 border-r border-slate-200/60 shadow-sm transition-all duration-300",
-      isCollapsed ? "lg:w-16" : "lg:w-80",
+      isCollapsed ? "lg:w-16" : "lg:w-64",
       isMainSidebarCollapsed ? "lg:left-16" : "lg:left-64"
     )} style={{backgroundColor: "#344256"}}>
       <div className="relative flex flex-col h-full">
@@ -193,19 +193,6 @@ export function ControlCenterSidebar({
                       
                       {!isCollapsed && (
                         <div className="flex items-center space-x-2 relative z-10">
-                          {item.badge && (
-                            <Badge 
-                              variant={isActive ? "default" : "secondary"} 
-                              className={cn(
-                                "h-5 px-2 text-xs font-medium transition-all duration-300",
-                                isActive 
-                                  ? "bg-blue-500/30 text-white border-blue-400/50" 
-                                  : "bg-slate-500/20 text-slate-300 border-slate-400/30"
-                              )}
-                            >
-                              {item.badge}
-                            </Badge>
-                          )}
                           {isActive && (
                             <div className="w-2 h-2 rounded-full bg-blue-400 animate-pulse" />
                           )}

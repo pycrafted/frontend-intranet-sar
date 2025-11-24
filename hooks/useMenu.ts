@@ -5,7 +5,7 @@ import { API_CONFIG } from "@/lib/config"
 interface MenuItem {
   id: number;
   name: string;
-  type: 'senegalese' | 'european';
+  type: 'senegalese' | 'european' | 'dessert';
   type_display: string;
   description?: string;
   is_available: boolean;
@@ -20,6 +20,7 @@ interface DayMenu {
   date: string;
   senegalese: MenuItem;
   european: MenuItem;
+  dessert?: MenuItem | null;
   is_active: boolean;
   created_at: string;
   updated_at: string;
@@ -33,7 +34,7 @@ interface WeekMenu {
 
 interface MenuFormData {
   name: string;
-  type: 'senegalese' | 'european';
+  type: 'senegalese' | 'european' | 'dessert';
   description?: string;
   is_available: boolean;
 }
@@ -43,6 +44,7 @@ interface DayMenuFormData {
   date: string;
   senegalese_id: number;
   european_id: number;
+  dessert_id?: number | null;
   is_active: boolean;
 }
 
@@ -234,7 +236,7 @@ export const useMenu = () => {
   }, [AVAILABLE_ITEMS_URL]);
 
   // ===== WEEK MENU CREATION =====
-  const createWeekMenu = useCallback(async (data: { week_start: string; menus: Array<{ day: string; senegalese_id: number; european_id: number; is_active: boolean }> }) => {
+  const createWeekMenu = useCallback(async (data: { week_start: string; menus: Array<{ day: string; senegalese_id: number; european_id: number; dessert_id?: number | null; is_active: boolean }> }) => {
     setLoading(true);
     setError(null);
     try {

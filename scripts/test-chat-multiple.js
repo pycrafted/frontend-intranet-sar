@@ -1,6 +1,29 @@
 const http = require('http')
+require('dotenv').config({ path: '.env.local' })
+
+// Charger les variables d'environnement
+const FRONTEND_URL = process.env.NEXT_PUBLIC_FRONTEND_URL
+
+if (!FRONTEND_URL) {
+  console.error('❌ Erreur: NEXT_PUBLIC_FRONTEND_URL doit être définie dans .env.local')
+  process.exit(1)
+}
+
+// Extraire le hostname et le port depuis l'URL
+let FRONTEND_HOST
+let FRONTEND_PORT
+
+try {
+  const url = new URL(FRONTEND_URL)
+  FRONTEND_HOST = url.hostname
+  FRONTEND_PORT = url.port || (url.protocol === 'https:' ? '443' : '80')
+} catch (error) {
+  console.error('❌ Erreur: NEXT_PUBLIC_FRONTEND_URL doit être une URL valide (ex: http://127.0.0.1:3000 ou http://example.com:3000)')
+  process.exit(1)
+}
 
 console.log('🧪 ========== TESTS MULTIPLES API CHAT ==========\n')
+console.log(`📍 Configuration: ${FRONTEND_URL}`)
 
 const tests = [
   { message: 'salut', expected: 'success' },
@@ -21,8 +44,8 @@ function runTest(test, index) {
     })
 
     const options = {
-      hostname: 'localhost',
-      port: 3001,
+      hostname: FRONTEND_HOST,
+      port: parseInt(FRONTEND_PORT, 10),
       path: '/api/chat',
       method: 'POST',
       headers: {

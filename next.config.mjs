@@ -14,12 +14,7 @@ const nextConfig = {
   // Utilise NEXT_PUBLIC_FRONTEND_URL depuis les variables d'environnement (.env.local)
   allowedDevOrigins: process.env.NEXT_PUBLIC_FRONTEND_URL 
     ? [process.env.NEXT_PUBLIC_FRONTEND_URL]
-    : process.env.NODE_ENV === 'development'
-      ? [
-          // En développement uniquement, utilise localhost si FRONTEND_URL n'est pas défini
-          'http://localhost:3001',
-        ]
-      : [],
+    : [],
   images: {
     unoptimized: true,
     // Domaines configurés via variables d'environnement

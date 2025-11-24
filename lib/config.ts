@@ -11,22 +11,15 @@
 export const getApiUrl = (): string => {
   const apiUrl = process.env.NEXT_PUBLIC_API_URL
   
-  // Si la variable n'est pas définie, utiliser une valeur par défaut
-  // pour éviter les erreurs lors du build/prerendering et du développement
+  // La variable d'environnement est obligatoire
   if (!apiUrl) {
-    // Utiliser une valeur par défaut pour le développement local
-    // En production, cette variable doit être définie
-    const defaultUrl = 'http://localhost:8000/api'
+    const errorMsg = '⚠️ [CONFIG] NEXT_PUBLIC_API_URL n\'est pas définie. Veuillez la définir dans .env.local'
     if (typeof window !== 'undefined') {
-      // Côté client, afficher un avertissement mais continuer avec la valeur par défaut
-      console.warn(
-        '⚠️ [CONFIG] NEXT_PUBLIC_API_URL n\'est pas définie. ' +
-        'Utilisation de la valeur par défaut:', defaultUrl,
-        '\nPour définir votre URL, créez un fichier .env.local avec:',
-        'NEXT_PUBLIC_API_URL=http://localhost:8000/api'
-      )
+      console.error(errorMsg)
+    } else {
+      throw new Error(errorMsg)
     }
-    return defaultUrl
+    return ''
   }
   
   // S'assurer que l'URL se termine par /api si ce n'est pas déjà le cas
