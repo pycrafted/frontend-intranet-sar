@@ -457,7 +457,7 @@ export function AppsWidget() {
                 <div key={app.id} className="group/app-item relative">
                   <Button
                     variant="ghost"
-                    className="h-14 w-14 sm:h-14 sm:w-14 md:h-16 md:w-16 p-0 hover:bg-slate-200/50 transition-all duration-300 rounded-xl"
+                    className="h-14 w-14 sm:h-14 sm:w-14 md:h-16 md:w-16 p-0 hover:bg-slate-200/50 transition-all duration-300 rounded-xl border-2 !border-blue-400 hover:!border-blue-500"
                     onClick={() => window.open(app.url, '_blank')}
                   >
                     <div className="w-full h-full flex items-center justify-center text-slate-700 group-hover/app-item:scale-110 group-hover/app-item:rotate-3 transition-all duration-300">
@@ -481,7 +481,7 @@ export function AppsWidget() {
                 <div key={app.id} className="group/app-item relative">
                   <Button
                     variant="ghost"
-                    className="h-14 w-14 sm:h-14 sm:w-14 md:h-16 md:w-16 p-0 hover:bg-slate-200/50 transition-all duration-300 rounded-xl"
+                    className="h-14 w-14 sm:h-14 sm:w-14 md:h-16 md:w-16 p-0 hover:bg-slate-200/50 transition-all duration-300 rounded-xl border-2 !border-blue-400 hover:!border-blue-500"
                     onClick={() => handleAppClick(app)}
                   >
                     <div className="w-full h-full flex items-center justify-center text-slate-700 group-hover/app-item:scale-110 group-hover/app-item:rotate-3 transition-all duration-300">

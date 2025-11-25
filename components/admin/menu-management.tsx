@@ -52,9 +52,9 @@ interface DayMenu {
   day: string
   day_display: string
   date: string
-  senegalese: MenuItem
-  european: MenuItem
-  dessert?: MenuItem | null
+  senegalese: string
+  european: string
+  dessert?: string | null
   is_active: boolean
   created_at: string
   updated_at: string
@@ -159,9 +159,9 @@ export function MenuManagement() {
         day: days[i],
         dayName: dayNames[i],
         date: dateString,
-        senegalese_id: existingMenu?.senegalese?.id || 0,
-        european_id: existingMenu?.european?.id || 0,
-        dessert_id: existingMenu?.dessert?.id || null,
+        senegalese: existingMenu?.senegalese || '',
+        european: existingMenu?.european || '',
+        dessert: existingMenu?.dessert || '',
         is_active: existingMenu?.is_active ?? true,
         existing: !!existingMenu
       })
@@ -176,9 +176,9 @@ export function MenuManagement() {
       day: string
       dayName: string
       date: string
-      senegalese_id: number
-      european_id: number
-      dessert_id?: number | null
+      senegalese: string
+      european: string
+      dessert?: string | null
       is_active: boolean
       existing?: boolean
     }>
@@ -292,7 +292,7 @@ export function MenuManagement() {
     
     // Filtrer les menus complets (qui ont au moins un plat sénégalais et européen)
     const completeMenus = weekForm.menus.filter(menu => 
-      menu.senegalese_id !== 0 && menu.european_id !== 0
+      menu.senegalese.trim() !== '' && menu.european.trim() !== ''
     )
     
     // Vérifier qu'il y a au moins un menu complet
@@ -304,7 +304,14 @@ export function MenuManagement() {
     // Envoyer uniquement les menus complets au backend
     const result = await createWeekMenu({
       week_start: weekForm.week_start,
-      menus: completeMenus
+      menus: completeMenus.map(menu => ({
+        day: menu.day,
+        date: menu.date,
+        senegalese: menu.senegalese.trim(),
+        european: menu.european.trim(),
+        dessert: menu.dessert?.trim() || null,
+        is_active: menu.is_active
+      }))
     })
     
     if (result.success) {
@@ -326,9 +333,9 @@ export function MenuManagement() {
 
   const handleUpdateDayMenu = async (dayMenu: DayMenu) => {
     const result = await updateDayMenu(dayMenu.id, {
-      senegalese_id: dayMenu.senegalese.id,
-      european_id: dayMenu.european.id,
-      dessert_id: dayMenu.dessert?.id || null,
+      senegalese: dayMenu.senegalese,
+      european: dayMenu.european,
+      dessert: dayMenu.dessert || null,
       is_active: dayMenu.is_active
     })
     
@@ -627,7 +634,7 @@ export function MenuManagement() {
                 
                 <div className="space-y-4">
                   {weekForm.menus.map((menu, index) => {
-                    const isComplete = menu.senegalese_id !== 0 && menu.european_id !== 0
+                    const isComplete = menu.senegalese.trim() !== '' && menu.european.trim() !== ''
                     return (
                     <div key={index} className={`border rounded-lg p-4 ${menu.existing ? 'bg-blue-50 border-blue-200' : ''} ${!isComplete ? 'opacity-75' : ''}`}>
                       <div className="flex items-center justify-between mb-3">
@@ -650,76 +657,42 @@ export function MenuManagement() {
                       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
                         <div>
                           <Label>Plat Sénégalais</Label>
-                          <Select
-                            value={menu.senegalese_id.toString()}
-                            onValueChange={(value) => {
+                          <Input
+                            type="text"
+                            placeholder="Ex: Thieboudienne"
+                            value={menu.senegalese}
+                            onChange={(e) => {
                               const newMenus = [...weekForm.menus]
-                              newMenus[index].senegalese_id = parseInt(value)
+                              newMenus[index].senegalese = e.target.value
                               setWeekForm({ ...weekForm, menus: newMenus })
                             }}
-                          >
-                            <SelectTrigger>
-                              <SelectValue placeholder="Sélectionner un plat" />
-                            </SelectTrigger>
-                             <SelectContent>
-                               {safeAvailableItems
-                                 .filter(item => item.type === 'senegalese' && item.is_available)
-                                 .map(item => (
-                                  <SelectItem key={item.id} value={item.id.toString()}>
-                                    {item.name}
-                                  </SelectItem>
-                                ))}
-                            </SelectContent>
-                          </Select>
+                          />
                         </div>
                         <div>
                           <Label>Plat Européen</Label>
-                          <Select
-                            value={menu.european_id.toString()}
-                            onValueChange={(value) => {
+                          <Input
+                            type="text"
+                            placeholder="Ex: Spaghetti"
+                            value={menu.european}
+                            onChange={(e) => {
                               const newMenus = [...weekForm.menus]
-                              newMenus[index].european_id = parseInt(value)
+                              newMenus[index].european = e.target.value
                               setWeekForm({ ...weekForm, menus: newMenus })
                             }}
-                          >
-                            <SelectTrigger>
-                              <SelectValue placeholder="Sélectionner un plat" />
-                            </SelectTrigger>
-                             <SelectContent>
-                               {safeAvailableItems
-                                 .filter(item => item.type === 'european' && item.is_available)
-                                 .map(item => (
-                                  <SelectItem key={item.id} value={item.id.toString()}>
-                                    {item.name}
-                                  </SelectItem>
-                                ))}
-                            </SelectContent>
-                          </Select>
+                          />
                         </div>
                         <div>
                           <Label>Dessert (optionnel)</Label>
-                          <Select
-                            value={menu.dessert_id?.toString() || '0'}
-                            onValueChange={(value) => {
+                          <Input
+                            type="text"
+                            placeholder="Ex: Salade de fruits"
+                            value={menu.dessert || ''}
+                            onChange={(e) => {
                               const newMenus = [...weekForm.menus]
-                              newMenus[index].dessert_id = value && value !== '0' ? parseInt(value) : null
+                              newMenus[index].dessert = e.target.value || null
                               setWeekForm({ ...weekForm, menus: newMenus })
                             }}
-                          >
-                            <SelectTrigger>
-                              <SelectValue placeholder="Sélectionner un dessert" />
-                            </SelectTrigger>
-                             <SelectContent>
-                               <SelectItem value="0">Aucun dessert</SelectItem>
-                               {safeAvailableItems
-                                 .filter(item => item.type === 'dessert' && item.is_available)
-                                 .map(item => (
-                                  <SelectItem key={item.id} value={item.id.toString()}>
-                                    {item.name}
-                                  </SelectItem>
-                                ))}
-                            </SelectContent>
-                          </Select>
+                          />
                         </div>
                       </div>
                     </div>
@@ -783,7 +756,7 @@ export function MenuManagement() {
                             <span className="text-xs font-medium text-orange-700">Sénégalais</span>
                           </div>
                           <p className="text-sm text-gray-900 font-medium">
-                            {dayMenu.senegalese.name}
+                            {dayMenu.senegalese || 'Non renseigné'}
                           </p>
                         </div>
 
@@ -794,9 +767,22 @@ export function MenuManagement() {
                             <span className="text-xs font-medium text-blue-700">Européen</span>
                           </div>
                           <p className="text-sm text-gray-900 font-medium">
-                            {dayMenu.european.name}
+                            {dayMenu.european || 'Non renseigné'}
                           </p>
                         </div>
+                        
+                        {/* Dessert (si présent) */}
+                        {dayMenu.dessert && (
+                          <div className="space-y-1">
+                            <div className="flex items-center gap-2">
+                              <div className="w-2 h-2 bg-purple-500 rounded-full"></div>
+                              <span className="text-xs font-medium text-purple-700">Dessert</span>
+                            </div>
+                            <p className="text-sm text-gray-900 font-medium">
+                              {dayMenu.dessert}
+                            </p>
+                          </div>
+                        )}
                       </div>
 
                       {/* Boutons d'action */}

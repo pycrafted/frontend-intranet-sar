@@ -2,7 +2,7 @@
 
 import { LayoutWrapper } from "@/components/layout-wrapper"
 import { DraggableDashboard } from "@/components/dashboard/draggable-dashboard"
-import { User, Building, Calendar as CalendarIcon, Shield } from "lucide-react"
+import { User, Building, Calendar as CalendarIcon, Phone } from "lucide-react"
 import { useAuth } from "@/hooks/useAuth"
 import { authUtils } from "@/lib/auth-api"
 import { } from "react"
@@ -79,10 +79,10 @@ export default function HomePage() {
                   </div>
                 </div>
                 <div className="flex items-center gap-3 bg-white/10 rounded-md p-3 shrink-0 sm:w-[240px] md:w-auto md:flex-1 min-w-0">
-                  <Shield className="h-4 w-4 flex-shrink-0" />
+                  <Phone className="h-4 w-4 flex-shrink-0" />
                   <div className="min-w-0">
-                    <p className="text-[11px] uppercase opacity-80">Matricule</p>
-                    <p className="text-sm font-semibold truncate">{user?.matricule || 'N/A'}</p>
+                    <p className="text-[11px] uppercase opacity-80">Poste téléphonique</p>
+                    <p className="text-sm font-semibold truncate">{user?.office_phone || 'Non renseigné'}</p>
                   </div>
                 </div>
               </div>

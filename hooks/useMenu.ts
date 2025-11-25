@@ -18,9 +18,9 @@ interface DayMenu {
   day: string;
   day_display: string;
   date: string;
-  senegalese: MenuItem;
-  european: MenuItem;
-  dessert?: MenuItem | null;
+  senegalese: string;
+  european: string;
+  dessert?: string | null;
   is_active: boolean;
   created_at: string;
   updated_at: string;
@@ -42,9 +42,9 @@ interface MenuFormData {
 interface DayMenuFormData {
   day: string;
   date: string;
-  senegalese_id: number;
-  european_id: number;
-  dessert_id?: number | null;
+  senegalese: string;
+  european: string;
+  dessert?: string | null;
   is_active: boolean;
 }
 
@@ -236,7 +236,7 @@ export const useMenu = () => {
   }, [AVAILABLE_ITEMS_URL]);
 
   // ===== WEEK MENU CREATION =====
-  const createWeekMenu = useCallback(async (data: { week_start: string; menus: Array<{ day: string; senegalese_id: number; european_id: number; dessert_id?: number | null; is_active: boolean }> }) => {
+  const createWeekMenu = useCallback(async (data: { week_start: string; menus: Array<{ day: string; date: string; senegalese: string; european: string; dessert?: string | null; is_active: boolean }> }) => {
     setLoading(true);
     setError(null);
     try {

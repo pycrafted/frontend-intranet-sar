@@ -6,6 +6,13 @@ import { cn } from "@/lib/utils"
 import { Button } from "@/components/ui/button"
 import { Badge } from "@/components/ui/badge"
 import {
+  Sheet,
+  SheetContent,
+  SheetHeader,
+  SheetTitle,
+  SheetTrigger,
+} from "@/components/ui/sheet"
+import {
   Users,
   FileText,
   Lightbulb,
@@ -18,6 +25,7 @@ import {
   ChevronRight,
   ChevronLeft,
   Building2,
+  X,
 } from "lucide-react"
 
 const controlCenterSections = [
@@ -116,15 +124,11 @@ export function ControlCenterSidebar({
     }
   }
 
-  return (
-    <aside className={cn(
-      "hidden lg:flex lg:flex-col lg:fixed lg:top-16 lg:bottom-0 lg:z-30 border-r border-slate-200/60 shadow-sm transition-all duration-300",
-      isCollapsed ? "lg:w-16" : "lg:w-64",
-      isMainSidebarCollapsed ? "lg:left-16" : "lg:left-64"
-    )} style={{backgroundColor: "#344256"}}>
-      <div className="relative flex flex-col h-full">
-        {/* Bouton de rétractement */}
-        {!disableCollapse && (
+  // Composant réutilisable pour le contenu du menu
+  const MenuContent = ({ onItemClick, showCollapseButton = true }: { onItemClick?: (section: string) => void, showCollapseButton?: boolean }) => (
+    <div className="relative flex flex-col h-full" style={{backgroundColor: "#344256"}}>
+      {/* Bouton de rétractement (desktop uniquement) */}
+      {showCollapseButton && !disableCollapse && (
           <div className="flex justify-end p-2 border-b border-slate-200/20">
             <Button
               variant="ghost"
@@ -146,7 +150,7 @@ export function ControlCenterSidebar({
         <nav className="flex-1 px-4 pt-4 space-y-8 overflow-y-auto">
           {controlCenterSections.map((section) => (
             <div key={section.title} className="space-y-3">
-              {!isCollapsed && (
+            {(!isCollapsed || !showCollapseButton) && (
                 <div className="px-3">
                   <h3 className="text-xs font-semibold text-slate-300 uppercase tracking-wider flex items-center gap-2">
                     <div className="w-1 h-1 rounded-full bg-slate-400"></div>
@@ -158,18 +162,25 @@ export function ControlCenterSidebar({
                 {section.items.map((item) => {
                   const Icon = item.icon
                   const isActive = activeSection === item.section
+                const handleClick = () => {
+                  if (onItemClick) {
+                    onItemClick(item.section)
+                  } else {
+                    onSectionChange?.(item.section)
+                  }
+                }
                   return (
                     <button
                       key={item.name}
-                      onClick={() => onSectionChange?.(item.section)}
+                    onClick={handleClick}
                       className={cn(
                         "group flex items-center justify-between px-3 py-3 text-sm font-medium rounded-xl transition-all duration-300 relative overflow-hidden w-full text-left",
                         isActive
                           ? "bg-gradient-to-r from-blue-500/20 to-indigo-500/20 text-white shadow-sm border border-blue-400/30"
                           : "text-slate-200 hover:bg-slate-500/20 hover:text-white hover:shadow-sm",
-                        isCollapsed ? "justify-center" : ""
+                      (isCollapsed && showCollapseButton) ? "justify-center" : ""
                       )}
-                      title={isCollapsed ? item.name : undefined}
+                    title={(isCollapsed && showCollapseButton) ? item.name : undefined}
                     >
                       {/* Effet de survol avec gradient */}
                       <div className={cn(
@@ -186,12 +197,12 @@ export function ControlCenterSidebar({
                         )}>
                           <Icon className="h-4 w-4" />
                         </div>
-                        {!isCollapsed && (
+                      {(!isCollapsed || !showCollapseButton) && (
                           <span className="ml-3 font-medium">{item.name}</span>
                         )}
                       </div>
                       
-                      {!isCollapsed && (
+                    {(!isCollapsed || !showCollapseButton) && (
                         <div className="flex items-center space-x-2 relative z-10">
                           {isActive && (
                             <div className="w-2 h-2 rounded-full bg-blue-400 animate-pulse" />
@@ -205,8 +216,19 @@ export function ControlCenterSidebar({
             </div>
           ))}
         </nav>
+    </div>
+  )
 
-      </div>
-    </aside>
+  return (
+    <>
+      {/* Sidebar desktop uniquement */}
+      <aside className={cn(
+        "hidden lg:flex lg:flex-col lg:fixed lg:top-16 lg:bottom-0 lg:z-30 border-r border-slate-200/60 shadow-sm transition-all duration-300",
+        isCollapsed ? "lg:w-16" : "lg:w-64",
+        isMainSidebarCollapsed ? "lg:left-16" : "lg:left-64"
+      )} style={{backgroundColor: "#344256"}}>
+        <MenuContent showCollapseButton={true} />
+      </aside>
+    </>
   )
 }

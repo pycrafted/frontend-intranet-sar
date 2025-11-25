@@ -7,6 +7,8 @@ import { ControlCenterTabs } from "@/components/admin/control-center-tabs"
 import { ControlCenterSidebar } from "@/components/control-center-sidebar"
 import { Card, CardContent } from "@/components/ui/card"
 import { Badge } from "@/components/ui/badge"
+import { cn } from "@/lib/utils"
+import { MobileControlCenterMenu } from "@/components/mobile-control-center-menu"
 import { 
   Shield, 
   FileText, 
@@ -65,6 +67,11 @@ export default function CentreDeControlePage() {
       }}
     >
       <div className="w-full space-y-6">
+        {/* Menu mobile - rendu dans la page pour être dans le bon contexte */}
+        <MobileControlCenterMenu 
+          activeSection={activeSection}
+          onSectionChange={handleSectionChange}
+        />
 
         {/* Interface d'administration avec onglets */}
         <div className="space-y-6 stagger-animation">
