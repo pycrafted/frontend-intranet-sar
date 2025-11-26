@@ -121,7 +121,7 @@ export default function OrganigrammePage() {
         departmentOptions
       }}
     >
-      <div className="min-h-screen bg-gray-100">
+      <div className="h-[calc(100vh-12rem)] xs:h-[calc(100vh-14rem)] sm:h-[calc(100vh-16rem)] bg-gray-100 -mt-3 xs:-mt-4 sm:-mt-6">
         {/* Organigramme React Flow */}
         <ReactFlowOrganigramme 
           ref={reactFlowRef}

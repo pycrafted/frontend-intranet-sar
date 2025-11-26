@@ -287,6 +287,49 @@ export function DraggableDashboard() {
   )
 
   // Fonction de migration pour convertir les anciens types et s'assurer que tous les widgets existent
+  // Configuration par défaut des widgets (tailles et ordres)
+  const DEFAULT_WIDGET_CONFIG = {
+    video: { size: 'medium' as const, order: 1 },
+    director: { size: 'medium' as const, order: 2 },
+    news: { size: 'medium' as const, order: 3 },
+    apps: { size: 'large' as const, order: 4 },
+    projects: { size: 'medium' as const, order: 5 },
+    recruitment: { size: 'medium' as const, order: 6 },
+    safety: { size: 'medium' as const, order: 7 },
+    calendar: { size: 'medium' as const, order: 8 },
+    menu: { size: 'large' as const, order: 9 },
+    ideas: { size: 'medium' as const, order: 10 },
+  }
+
+  function getDefaultWidgets(): DashboardWidget[] {
+    // Lire la configuration sauvegardée depuis localStorage
+    const savedDefaultConfig = localStorage.getItem('dashboard-default-config')
+    let config = DEFAULT_WIDGET_CONFIG
+    
+    if (savedDefaultConfig) {
+      try {
+        const parsed = JSON.parse(savedDefaultConfig)
+        // Fusionner avec la config par défaut pour s'assurer que tous les widgets sont présents
+        config = { ...DEFAULT_WIDGET_CONFIG, ...parsed }
+      } catch (error) {
+        console.error('Erreur lors de la lecture de la configuration par défaut:', error)
+      }
+    }
+
+    return [
+      { id: 'video', type: 'video', title: 'Vidéo SAR', size: config.video.size, order: config.video.order, isVisible: true },
+      { id: 'director', type: 'director', title: 'Mot du Directeur', size: config.director.size, order: config.director.order, isVisible: true },
+      { id: 'news', type: 'news', title: 'Actualités', size: config.news.size, order: config.news.order, isVisible: true },
+      { id: 'apps', type: 'apps', title: 'Accès Rapide', size: config.apps.size, order: config.apps.order, isVisible: true },
+      { id: 'projects', type: 'projects', title: 'Projets', size: config.projects.size, order: config.projects.order, isVisible: true },
+      { id: 'recruitment', type: 'recruitment', title: 'Recrutements Internes', size: config.recruitment.size, order: config.recruitment.order, isVisible: true },
+      { id: 'safety', type: 'safety', title: 'Sécurité du Travail', size: config.safety.size, order: config.safety.order, isVisible: true },
+      { id: 'calendar', type: 'calendar', title: 'Événements', size: config.calendar.size, order: config.calendar.order, isVisible: true },
+      { id: 'menu', type: 'menu', title: 'Menu de la Semaine', size: config.menu.size, order: config.menu.order, isVisible: true },
+      { id: 'ideas', type: 'ideas', title: 'Boîte à Idées', size: config.ideas.size, order: config.ideas.order, isVisible: true },
+    ]
+  }
+
   const migrateWidgets = (widgets: any[]): DashboardWidget[] => {
     const defaultWidgets = getDefaultWidgets()
     const defaultWidgetsMap = new Map(defaultWidgets.map(w => [w.id, w]))
@@ -401,21 +444,6 @@ export function DraggableDashboard() {
   const handleReset = () => {
     setWidgets(getDefaultWidgets())
     success('Dashboard réinitialisé', 'Votre dashboard a été remis à zéro')
-  }
-
-  function getDefaultWidgets(): DashboardWidget[] {
-    return [
-      { id: 'video', type: 'video', title: 'Vidéo SAR', size: 'medium', order: 1, isVisible: true },
-      { id: 'director', type: 'director', title: 'Mot du Directeur', size: 'medium', order: 2, isVisible: true },
-      { id: 'news', type: 'news', title: 'Actualités', size: 'medium', order: 3, isVisible: true },
-      { id: 'apps', type: 'apps', title: 'Accès Rapide', size: 'large', order: 4, isVisible: true },
-      { id: 'projects', type: 'projects', title: 'Projets', size: 'medium', order: 5, isVisible: true },
-      { id: 'recruitment', type: 'recruitment', title: 'Recrutements Internes', size: 'medium', order: 6, isVisible: true },
-      { id: 'safety', type: 'safety', title: 'Sécurité du Travail', size: 'medium', order: 7, isVisible: true },
-      { id: 'calendar', type: 'calendar', title: 'Événements', size: 'medium', order: 8, isVisible: true },
-      { id: 'menu', type: 'menu', title: 'Menu de la Semaine', size: 'large', order: 9, isVisible: true },
-      { id: 'ideas', type: 'ideas', title: 'Boîte à Idées', size: 'medium', order: 10, isVisible: true },
-    ]
   }
 
 

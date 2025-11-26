@@ -6,8 +6,6 @@ import {
   ReactFlow,
   ReactFlowProvider,
   Background,
-  Controls,
-  MiniMap,
   addEdge,
   useNodesState,
   useEdgesState,
@@ -19,7 +17,7 @@ import {
 } from "@xyflow/react"
 import "@xyflow/react/dist/style.css"
 import "@/styles/organigramme.css"
-import { X, Mail, Phone, Award as IdCard, User } from "lucide-react"
+import { X, Mail, Phone, Award as IdCard, User, ChevronLeft, ChevronRight, ChevronUp, ChevronDown } from "lucide-react"
 import CustomEdge from "./custom-edge"
 import { EmployeeNode } from "./nodes/employee-node"
 import type { Employee } from "@/hooks/useOrgChart"
@@ -429,7 +427,7 @@ const ReactFlowOrganigramme = forwardRef<ReactFlowOrganigrammeRef, ReactFlowOrga
         else if (screenWidth < 1536) optimalZoom = 0.3 // Large desktop
         else optimalZoom = 0.25                        // Ultra wide
         
-        // Utiliser fitView pour centrer parfaitement
+        // Utiliser fitView pour centrer parfaitement avec padding réduit en haut
         reactFlowInstance.fitView({
           padding: 0.1,
           includeHiddenNodes: false,
@@ -437,9 +435,11 @@ const ReactFlowOrganigramme = forwardRef<ReactFlowOrganigrammeRef, ReactFlowOrga
           maxZoom: 2
         })
         
-        // Ajuster la position Y et le zoom pour remonter l'organigramme
+        // Ajuster la position Y et le zoom pour remonter l'organigramme (comme le minimap)
         const currentViewport = reactFlowInstance.getViewport()
-        const yOffset = screenHeight * 0.15 // Remonte de 15%
+        // Calculer un offset plus important pour remonter significativement l'organigramme
+        // Le minimap était positionné en haut à gauche, donc on remonte beaucoup plus
+        const yOffset = screenHeight * 0.4 // Remonte de 40% de la hauteur d'écran
         
         reactFlowInstance.setViewport({
           x: currentViewport.x,
@@ -447,7 +447,7 @@ const ReactFlowOrganigramme = forwardRef<ReactFlowOrganigrammeRef, ReactFlowOrga
           zoom: Math.min(optimalZoom, currentViewport.zoom) // Utiliser le zoom optimal
         })
         
-        // Initialiser le centre de référence pour le minimap avec méthode robuste
+        // Initialiser le centre de référence avec méthode robuste
         let center
         try {
           center = reactFlowInstance.screenToFlowPosition({
@@ -486,90 +486,6 @@ const ReactFlowOrganigramme = forwardRef<ReactFlowOrganigrammeRef, ReactFlowOrga
     }
   }, [reactFlowInstance, nodes])
 
-  // Hook pour gérer les interactions avec le minimap (clics pour centrer avec référence)
-  useEffect(() => {
-    if (!reactFlowInstance || !reactFlowWrapper.current) return
-
-    // Trouver le minimap dans le DOM après le rendu
-    const findAndSetupMinimap = () => {
-      const minimapElement = reactFlowWrapper.current?.querySelector('.react-flow__minimap') as HTMLElement
-      if (!minimapElement) return null
-
-      const handleMinimapClick = (event: MouseEvent) => {
-        // Vérifier que le clic est bien sur le minimap (pas sur le rectangle de vue)
-        const target = event.target as HTMLElement
-        if (!target.closest('.react-flow__minimap')) return
-
-        // Obtenir les dimensions du minimap
-        const minimapRect = minimapElement.getBoundingClientRect()
-        const clickX = event.clientX - minimapRect.left
-        const clickY = event.clientY - minimapRect.top
-
-        // Calculer la position relative dans le minimap (0-1)
-        const relativeX = clickX / minimapRect.width
-        const relativeY = clickY / minimapRect.height
-
-        // Obtenir les limites de tous les nœuds pour calculer la position dans le flow
-        const nodes = reactFlowInstance.getNodes()
-        if (nodes.length === 0) return
-
-        // Calculer les limites de l'organigramme avec padding pour les grandes structures
-        let minX = Infinity, maxX = -Infinity, minY = Infinity, maxY = -Infinity
-        nodes.forEach(node => {
-          const width = typeof node.width === 'number' ? node.width : (node.style?.width ? parseFloat(node.style.width as string) : 220)
-          const height = typeof node.height === 'number' ? node.height : (node.style?.height ? parseFloat(node.style.height as string) : 280)
-          minX = Math.min(minX, node.position.x)
-          maxX = Math.max(maxX, node.position.x + width)
-          minY = Math.min(minY, node.position.y)
-          maxY = Math.max(maxY, node.position.y + height)
-        })
-
-        // Ajouter un padding pour les grandes structures (comme Direction Générale avec 10 rapports directs)
-        const paddingX = (maxX - minX) * 0.1 // 10% de padding horizontal
-        const paddingY = (maxY - minY) * 0.1 // 10% de padding vertical
-        minX -= paddingX
-        maxX += paddingX
-        minY -= paddingY
-        maxY += paddingY
-
-        // Calculer la position dans le système de coordonnées du flow
-        const flowX = minX + (maxX - minX) * relativeX
-        const flowY = minY + (maxY - minY) * relativeY
-
-        // Centrer la vue sur ce point en utilisant le zoom actuel
-        const viewport = reactFlowInstance.getViewport()
-        reactFlowInstance.setCenter(flowX, flowY, { zoom: viewport.zoom })
-
-        // Mettre à jour le centre de référence
-        const center = reactFlowInstance.screenToFlowPosition({
-          x: window.innerWidth / 2,
-          y: window.innerHeight / 2
-        })
-        setViewportCenter(center)
-
-        console.log('🎯 [REACT_FLOW] Clic sur minimap - Centrage avec référence:', {
-          minimapClick: { x: clickX, y: clickY },
-          relative: { x: relativeX, y: relativeY },
-          flowPosition: { x: flowX, y: flowY },
-          center
-        })
-      }
-
-      minimapElement.addEventListener('click', handleMinimapClick)
-      return () => {
-        minimapElement.removeEventListener('click', handleMinimapClick)
-      }
-    }
-
-    // Attendre que le minimap soit rendu
-    const timeoutId = setTimeout(() => {
-      findAndSetupMinimap()
-    }, 300)
-
-    return () => {
-      clearTimeout(timeoutId)
-    }
-  }, [reactFlowInstance, reactFlowWrapper, nodes])
 
   // Hook pour détecter les changements de taille d'écran et recentrer
   useEffect(() => {
@@ -598,9 +514,10 @@ const ReactFlowOrganigramme = forwardRef<ReactFlowOrganigrammeRef, ReactFlowOrga
             maxZoom: 2
           })
           
-          // Ajuster la position Y et le zoom
+          // Ajuster la position Y et le zoom pour remonter l'organigramme (comme le minimap)
           const currentViewport = reactFlowInstance.getViewport()
-          const yOffset = screenHeight * 0.15
+          // Calculer un offset plus important pour remonter significativement l'organigramme
+          const yOffset = screenHeight * 0.4 // Remonte de 40% de la hauteur d'écran
           
           reactFlowInstance.setViewport({
             x: currentViewport.x,
@@ -841,6 +758,52 @@ const ReactFlowOrganigramme = forwardRef<ReactFlowOrganigrammeRef, ReactFlowOrga
             msUserSelect: 'none'
           }}
         >
+          {/* Boutons de pagination - Gauche et Droite */}
+          <button
+            className="absolute left-4 top-1/2 -translate-y-1/2 z-40 w-12 h-12 rounded-full bg-white/90 backdrop-blur-sm border border-gray-200 shadow-lg flex items-center justify-center hover:bg-white hover:shadow-xl transition-all duration-200 group"
+            aria-label="Page précédente"
+            onClick={() => {
+              // Fonctionnalité à implémenter plus tard
+              console.log('Bouton pagination gauche cliqué')
+            }}
+          >
+            <ChevronLeft className="h-6 w-6 text-gray-700 group-hover:text-gray-900 transition-colors" />
+          </button>
+          
+          <button
+            className="absolute right-4 top-1/2 -translate-y-1/2 z-40 w-12 h-12 rounded-full bg-white/90 backdrop-blur-sm border border-gray-200 shadow-lg flex items-center justify-center hover:bg-white hover:shadow-xl transition-all duration-200 group"
+            aria-label="Page suivante"
+            onClick={() => {
+              // Fonctionnalité à implémenter plus tard
+              console.log('Bouton pagination droite cliqué')
+            }}
+          >
+            <ChevronRight className="h-6 w-6 text-gray-700 group-hover:text-gray-900 transition-colors" />
+          </button>
+
+          {/* Boutons de pagination - Haut et Bas */}
+          <button
+            className="absolute top-4 left-1/2 -translate-x-1/2 z-40 w-12 h-12 rounded-full bg-white/90 backdrop-blur-sm border border-gray-200 shadow-lg flex items-center justify-center hover:bg-white hover:shadow-xl transition-all duration-200 group"
+            aria-label="Page précédente (haut)"
+            onClick={() => {
+              // Fonctionnalité à implémenter plus tard
+              console.log('Bouton pagination haut cliqué')
+            }}
+          >
+            <ChevronUp className="h-6 w-6 text-gray-700 group-hover:text-gray-900 transition-colors" />
+          </button>
+          
+          <button
+            className="absolute bottom-4 left-1/2 -translate-x-1/2 z-40 w-12 h-12 rounded-full bg-white/90 backdrop-blur-sm border border-gray-200 shadow-lg flex items-center justify-center hover:bg-white hover:shadow-xl transition-all duration-200 group"
+            aria-label="Page suivante (bas)"
+            onClick={() => {
+              // Fonctionnalité à implémenter plus tard
+              console.log('Bouton pagination bas cliqué')
+            }}
+          >
+            <ChevronDown className="h-6 w-6 text-gray-700 group-hover:text-gray-900 transition-colors" />
+          </button>
+
           <ReactFlowProvider>
             <ReactFlow
               nodes={nodesWithHoverHandler}
@@ -851,8 +814,10 @@ const ReactFlowOrganigramme = forwardRef<ReactFlowOrganigrammeRef, ReactFlowOrga
               onInit={setReactFlowInstance}
               onNodeClick={onNodeClick}
               onPaneClick={onPaneClick}
+              nodesDraggable={false}
+              nodesConnectable={false}
               onMove={(event, viewport) => {
-                // Pendant le déplacement, maintenir la référence au minimap
+                // Pendant le déplacement, maintenir la référence au centre
                 if (reactFlowInstance) {
                   // Utiliser une méthode plus robuste pour calculer le centre
                   // qui fonctionne même pour les grandes structures comme la Direction Générale
@@ -890,7 +855,7 @@ const ReactFlowOrganigramme = forwardRef<ReactFlowOrganigrammeRef, ReactFlowOrga
                 }
               }}
               onMoveStart={(event, viewport) => {
-                // Début du déplacement - capturer le centre de référence du minimap
+                // Début du déplacement - capturer le centre de référence
                 if (reactFlowInstance) {
                   setIsPanning(true)
                   
@@ -924,11 +889,11 @@ const ReactFlowOrganigramme = forwardRef<ReactFlowOrganigrammeRef, ReactFlowOrga
                   setPanStartCenter(center)
                   setViewportCenter(center)
                   
-                  console.log('🎯 [REACT_FLOW] Début du déplacement - Centre de référence minimap:', center)
+                  console.log('🎯 [REACT_FLOW] Début du déplacement - Centre de référence:', center)
                 }
               }}
               onMoveEnd={(event, viewport) => {
-                // Fin du déplacement - finaliser le centre de référence pour le minimap
+                // Fin du déplacement - finaliser le centre de référence
                 if (reactFlowInstance) {
                   // Calculer le centre avec méthode robuste
                   let center
@@ -998,9 +963,9 @@ const ReactFlowOrganigramme = forwardRef<ReactFlowOrganigrammeRef, ReactFlowOrga
               }}
               nodeTypes={nodeTypes}
               edgeTypes={edgeTypes}
-              fitView={true}
+              fitView={false}
               fitViewOptions={{
-                padding: 0.1,
+                padding: 0.05,
                 includeHiddenNodes: false,
                 minZoom: 0.1,
                 maxZoom: 2
@@ -1018,81 +983,6 @@ const ReactFlowOrganigramme = forwardRef<ReactFlowOrganigrammeRef, ReactFlowOrga
               selectNodesOnDrag={false}
             >
               <Background />
-              <Controls 
-                position="top-right"
-                showZoom={true}
-                showFitView={true}
-                showInteractive={false}
-                style={{
-                  top: '10px',
-                  right: '10px',
-                  zIndex: 10
-                }}
-                className="!bg-white/90 !backdrop-blur-sm !border !border-gray-200 !rounded-lg !shadow-lg"
-                onZoomIn={() => {
-                  // Zoomer en utilisant le minimap comme référence (centre de la vue)
-                  if (reactFlowInstance) {
-                    const viewport = reactFlowInstance.getViewport()
-                    const newZoom = Math.min(viewport.zoom * 1.2, 2)
-                    
-                    // Utiliser le centre actuel de la vue comme point de référence
-                    const center = viewportCenter || reactFlowInstance.screenToFlowPosition({
-                      x: window.innerWidth / 2,
-                      y: window.innerHeight / 2
-                    })
-                    
-                    // Zoomer en gardant le centre de la vue fixe
-                    reactFlowInstance.setCenter(center.x, center.y, { zoom: newZoom })
-                    
-                    console.log('🔍 [REACT_FLOW] Zoom in avec minimap comme référence:', {
-                      center,
-                      newZoom,
-                      oldZoom: viewport.zoom
-                    })
-                  }
-                }}
-                onZoomOut={() => {
-                  // Dézoomer en utilisant le minimap comme référence (centre de la vue)
-                  if (reactFlowInstance) {
-                    const viewport = reactFlowInstance.getViewport()
-                    const newZoom = Math.max(viewport.zoom / 1.2, 0.1)
-                    
-                    // Utiliser le centre actuel de la vue comme point de référence
-                    const center = viewportCenter || reactFlowInstance.screenToFlowPosition({
-                      x: window.innerWidth / 2,
-                      y: window.innerHeight / 2
-                    })
-                    
-                    // Dézoomer en gardant le centre de la vue fixe
-                    reactFlowInstance.setCenter(center.x, center.y, { zoom: newZoom })
-                    
-                    console.log('🔍 [REACT_FLOW] Zoom out avec minimap comme référence:', {
-                      center,
-                      newZoom,
-                      oldZoom: viewport.zoom
-                    })
-                  }
-                }}
-              />
-              <MiniMap 
-                position="top-left"
-                style={{
-                  top: '10px',
-                  left: '10px',
-                  zIndex: 10
-                }}
-                className="!bg-white/90 !backdrop-blur-sm !border !border-gray-200 !rounded-lg !shadow-lg"
-                nodeColor={(node) => {
-                  const employee = node.data?.employee as Employee
-                  if (employee && !employee.manager) {
-                    return '#f59e0b' // Amber pour le CEO
-                  }
-                  return '#6b7280' // Gray pour les autres
-                }}
-                maskColor="rgba(0, 0, 0, 0.1)"
-                pannable={true}
-                zoomable={true}
-              />
             </ReactFlow>
           </ReactFlowProvider>
         </div>

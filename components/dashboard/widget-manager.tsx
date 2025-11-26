@@ -13,6 +13,9 @@ import {
   EyeOff,
   GripVertical,
   Save,
+  X,
+  ChevronUp,
+  ChevronDown,
 } from "lucide-react"
 import { DashboardWidget } from "./draggable-dashboard"
 
@@ -157,6 +160,74 @@ export function WidgetManager({ widgets, onWidgetsChange, onReset }: WidgetManag
     onWidgetsChange(updatedWidgets)
   }
 
+  // Changer l'ordre (monter)
+  const moveUp = (widgetId: string) => {
+    const currentIndex = widgets.findIndex(w => w.id === widgetId)
+    if (currentIndex > 0) {
+      const updatedWidgets = [...widgets]
+      const temp = updatedWidgets[currentIndex]
+      updatedWidgets[currentIndex] = updatedWidgets[currentIndex - 1]
+      updatedWidgets[currentIndex - 1] = temp
+      // Mettre à jour les ordres
+      const reorderedWidgets = updatedWidgets.map((w, index) => ({
+        ...w,
+        order: index + 1
+      }))
+      onWidgetsChange(reorderedWidgets)
+    }
+  }
+
+  // Changer l'ordre (descendre)
+  const moveDown = (widgetId: string) => {
+    const currentIndex = widgets.findIndex(w => w.id === widgetId)
+    if (currentIndex < widgets.length - 1) {
+      const updatedWidgets = [...widgets]
+      const temp = updatedWidgets[currentIndex]
+      updatedWidgets[currentIndex] = updatedWidgets[currentIndex + 1]
+      updatedWidgets[currentIndex + 1] = temp
+      // Mettre à jour les ordres
+      const reorderedWidgets = updatedWidgets.map((w, index) => ({
+        ...w,
+        order: index + 1
+      }))
+      onWidgetsChange(reorderedWidgets)
+    }
+  }
+
+  // Fonction pour sauvegarder la disposition comme nouvelle disposition par défaut
+  const handleSave = () => {
+    try {
+      console.log('[WidgetManager] 💾 Sauvegarde de la disposition par défaut')
+      
+      // Sauvegarder les widgets dans localStorage
+      localStorage.setItem('dashboard-widgets', JSON.stringify(widgets))
+      
+      // Extraire la configuration par défaut (tailles et ordres) et la sauvegarder
+      const defaultConfig: Record<string, { size: DashboardWidget['size'], order: number }> = {}
+      widgets.forEach(widget => {
+        defaultConfig[widget.id] = {
+          size: widget.size,
+          order: widget.order
+        }
+      })
+      localStorage.setItem('dashboard-default-config', JSON.stringify(defaultConfig))
+      
+      // Mettre à jour la version pour que cette disposition devienne la nouvelle disposition par défaut
+      const currentVersion = '6.0'
+      localStorage.setItem('dashboard-widgets-version', currentVersion)
+      
+      // Déclencher l'événement pour notifier les autres composants
+      window.dispatchEvent(new Event('dashboard-widgets-changed'))
+      
+      console.log('[WidgetManager] ✅ Disposition sauvegardée avec succès')
+      
+      // Fermer le modal
+      setIsOpen(false)
+    } catch (error) {
+      console.error('[WidgetManager] ❌ Erreur lors de la sauvegarde:', error)
+    }
+  }
+
 
   return (
     <Dialog open={isOpen} onOpenChange={setIsOpen}>
@@ -188,33 +259,45 @@ export function WidgetManager({ widgets, onWidgetsChange, onReset }: WidgetManag
                 Vos cartes ({activeWidgets.length})
               </h3>
               
-              <div className="grid gap-3 sm:grid-cols-2">
+              <div className="space-y-3">
                 {activeWidgets.length === 0 ? (
-                  <div className="text-center py-8 text-gray-500 sm:col-span-2">
+                  <div className="text-center py-8 text-gray-500">
                     <Settings className="h-12 w-12 mx-auto mb-3 text-gray-300" />
                     <p>Aucune carte configurée</p>
                     <p className="text-sm">Les cartes apparaîtront ici une fois ajoutées</p>
                   </div>
                 ) : (
-                  activeWidgets.map((widget) => (
-                    <ActiveWidgetCard
-                      key={widget.id}
-                      widget={widget}
-                      onToggleVisibility={toggleVisibility}
-                      onChangeSize={changeSize}
-                    />
-                  ))
+                  activeWidgets
+                    .sort((a, b) => a.order - b.order)
+                    .map((widget, index) => (
+                      <ActiveWidgetCard
+                        key={widget.id}
+                        widget={widget}
+                        index={index}
+                        total={activeWidgets.length}
+                        onToggleVisibility={toggleVisibility}
+                        onChangeSize={changeSize}
+                        onMoveUp={moveUp}
+                        onMoveDown={moveDown}
+                      />
+                    ))
                 )}
               </div>
             </div>
           </div>
 
-          {/* Footer avec bouton Sauvegarder */}
-          <div className="border-t bg-white px-4 sm:px-6 py-3 sm:py-4 flex justify-end sticky bottom-0 z-10 flex-shrink-0">
+          {/* Footer avec boutons Fermer et Sauvegarder */}
+          <div className="border-t bg-white px-4 sm:px-6 py-3 sm:py-4 flex justify-end gap-2 sticky bottom-0 z-10 flex-shrink-0">
             <Button 
-              onClick={() => {
-                // Ne fait rien pour l'instant
-              }}
+              variant="outline"
+              onClick={() => setIsOpen(false)}
+              className="flex items-center gap-2"
+            >
+              <X className="h-4 w-4" />
+              Fermer
+            </Button>
+            <Button 
+              onClick={handleSave}
               className="flex items-center gap-2"
             >
               <Save className="h-4 w-4" />
@@ -230,12 +313,20 @@ export function WidgetManager({ widgets, onWidgetsChange, onReset }: WidgetManag
 // Composant pour une carte active
 function ActiveWidgetCard({ 
   widget, 
+  index,
+  total,
   onToggleVisibility, 
-  onChangeSize 
+  onChangeSize,
+  onMoveUp,
+  onMoveDown
 }: {
   widget: DashboardWidget
+  index: number
+  total: number
   onToggleVisibility: (id: string) => void
   onChangeSize: (id: string, size: DashboardWidget['size']) => void
+  onMoveUp: (id: string) => void
+  onMoveDown: (id: string) => void
 }) {
   const widgetConfig = AVAILABLE_WIDGETS[widget.type] ?? {
     id: widget.id,
@@ -256,7 +347,30 @@ function ActiveWidgetCard({
   return (
     <Card className={`p-3 h-full transition-all duration-200 hover:shadow-md bg-white ${!widget.isVisible ? 'opacity-60' : ''}`}>
       <div className="flex flex-col gap-2">
-        <div className="flex items-start">
+        <div className="flex items-start gap-3">
+          {/* Boutons de réorganisation */}
+          <div className="flex flex-col gap-1 flex-shrink-0">
+            <Button
+              variant="ghost"
+              size="sm"
+              onClick={() => onMoveUp(widget.id)}
+              disabled={index === 0}
+              className="h-6 w-6 p-0"
+              title="Monter"
+            >
+              <ChevronUp className="h-3 w-3" />
+            </Button>
+            <Button
+              variant="ghost"
+              size="sm"
+              onClick={() => onMoveDown(widget.id)}
+              disabled={index === total - 1}
+              className="h-6 w-6 p-0"
+              title="Descendre"
+            >
+              <ChevronDown className="h-3 w-3" />
+            </Button>
+          </div>
           <div className="flex-1 min-w-0">
             <div className="font-semibold text-gray-900 text-sm sm:text-base">{widget.title}</div>
             <div className="text-xs sm:text-sm text-gray-500">{widgetConfig.description}</div>

@@ -162,14 +162,14 @@ export default function ActualitesPage() {
             {/* Toutes les publications - Responsive */}
             {allArticles.length > 0 && (
               <div className="space-y-3 xs:space-y-4">
-                <div className="flex items-center gap-2 mb-3 xs:mb-4 px-1">
+                <div className="flex items-center gap-2 mb-3 xs:mb-4 px-1 max-w-4xl mx-auto">
                   <div className="w-1 h-4 xs:h-6 bg-gradient-to-b from-blue-400 to-indigo-400 rounded-full shadow-sm"></div>
                   <h3 className="text-base xs:text-lg font-semibold text-gray-900">Toutes les publications</h3>
                   <Badge variant="secondary" className="ml-2 bg-blue-100 text-blue-800 text-xs xs:text-sm px-2 py-1">
                     {allArticles.length}
                   </Badge>
                 </div>
-                <div className="space-y-3 xs:space-y-4">
+                <div className="space-y-3 xs:space-y-4 max-w-4xl mx-auto">
                   {allArticles.map((article) => (
                     <AdaptivePublicationCard
                       key={article.id}
@@ -188,17 +188,19 @@ export default function ActualitesPage() {
 
         {/* Empty State - Responsive */}
         {!loading && !error && articles.length === 0 && (
-          <Card className="p-8 xs:p-12 text-center rounded-lg">
-            <div className="space-y-3 xs:space-y-4">
-              <div className="w-12 h-12 xs:w-16 xs:h-16 bg-muted rounded-full flex items-center justify-center mx-auto">
-                <Search className="h-6 w-6 xs:h-8 xs:w-8 text-muted-foreground" />
+          <div className="max-w-4xl mx-auto">
+            <Card className="p-8 xs:p-12 text-center rounded-lg">
+              <div className="space-y-3 xs:space-y-4">
+                <div className="w-12 h-12 xs:w-16 xs:h-16 bg-muted rounded-full flex items-center justify-center mx-auto">
+                  <Search className="h-6 w-6 xs:h-8 xs:w-8 text-muted-foreground" />
+                </div>
+                <div>
+                  <h3 className="text-base xs:text-lg font-semibold">Aucune actualité ou annonce publiée</h3>
+                  <p className="text-sm text-gray-500 mt-1">Vérifiez les filtres ou revenez plus tard</p>
+                </div>
               </div>
-              <div>
-                <h3 className="text-base xs:text-lg font-semibold">Aucune actualité ou annonce publiée</h3>
-                <p className="text-sm text-gray-500 mt-1">Vérifiez les filtres ou revenez plus tard</p>
-              </div>
-            </div>
-          </Card>
+            </Card>
+          </div>
         )}
       </div>
     </LayoutWrapper>

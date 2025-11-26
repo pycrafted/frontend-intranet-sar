@@ -47,7 +47,7 @@ export function SecondaryNavbar({
   const [searchFocused, setSearchFocused] = useState(false)
 
   return (
-    <header className="w-full border-b border-gray-200 bg-white shadow-sm sticky top-16 z-30">
+    <header className="w-full border-b border-gray-200 bg-white shadow-sm sticky top-12 xs:top-14 sm:top-16 z-30">
       <div className="flex h-12 xs:h-14 sm:h-16 items-center justify-center px-2 xs:px-3 sm:px-4 lg:px-6">
         {/* Conteneur responsive avec recherche et filtre */}
         <div className="flex flex-col xs:flex-row items-stretch xs:items-center justify-center gap-2 xs:gap-3 sm:gap-4 w-full max-w-7xl">
