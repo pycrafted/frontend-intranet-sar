@@ -8,10 +8,11 @@ import { BaseEdge, EdgeLabelRenderer, type EdgeProps, useReactFlow } from "@xyfl
 export default function CustomEdge({ id, sourceX, sourceY, targetX, targetY, data, style = {}, markerEnd }: EdgeProps) {
   const { setEdges } = useReactFlow()
 
-  // 1. Ligne verticale du parent vers le milieu
-  // 2. Ligne horizontale au milieu
-  // 3. Ligne verticale du milieu vers l'enfant
-  const midY = sourceY + (targetY - sourceY) / 2
+  // Ligne en forme de T (design classique horizontal)
+  // Augmenter la longueur de la branche verticale descendante
+  // Au lieu de s'arrêter à mi-chemin, descendre plus bas (70% de la distance au lieu de 50%)
+  const verticalBranchLength = (targetY - sourceY) * 0.7
+  const midY = sourceY + verticalBranchLength
 
   // Créer le chemin SVG en forme de T
   const edgePath = `

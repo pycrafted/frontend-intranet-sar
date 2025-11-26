@@ -6,6 +6,7 @@ import {
   ReactFlow,
   ReactFlowProvider,
   Background,
+  MiniMap,
   addEdge,
   useNodesState,
   useEdgesState,
@@ -17,7 +18,7 @@ import {
 } from "@xyflow/react"
 import "@xyflow/react/dist/style.css"
 import "@/styles/organigramme.css"
-import { X, Mail, Phone, Award as IdCard, User, ChevronLeft, ChevronRight, ChevronUp, ChevronDown } from "lucide-react"
+import { X, Mail, Phone, Award as IdCard, User } from "lucide-react"
 import CustomEdge from "./custom-edge"
 import { EmployeeNode } from "./nodes/employee-node"
 import type { Employee } from "@/hooks/useOrgChart"
@@ -50,7 +51,56 @@ const ReactFlowOrganigramme = forwardRef<ReactFlowOrganigrammeRef, ReactFlowOrga
   const [viewportCenter, setViewportCenter] = useState<{ x: number; y: number } | null>(null)
   const [isPanning, setIsPanning] = useState(false)
   const [panStartCenter, setPanStartCenter] = useState<{ x: number; y: number } | null>(null)
-  // Le viewport sera calculé dynamiquement
+  // État pour gérer l'expansion des niveaux (rendu conditionnel)
+  // Utiliser un Map pour que React détecte les changements
+  const [expandedNodes, setExpandedNodes] = useState<Map<number, boolean>>(new Map())
+  const [expansionVersion, setExpansionVersion] = useState(0) // Version pour forcer le re-render
+  
+  // Initialiser l'expansion des 2 premiers niveaux par défaut
+  useEffect(() => {
+    if (employees && employees.length > 0) {
+      const ceo = employees.find(emp => !emp.manager)
+      if (ceo) {
+        const initialExpanded = new Map<number, boolean>()
+        initialExpanded.set(ceo.id, true)
+        // Ajouter les n-1 du DG (niveau 1)
+        const level1 = employees.filter(emp => emp.manager === ceo.id)
+        level1.forEach(emp => initialExpanded.set(emp.id, true))
+        // Ajouter les n-2 du DG (niveau 2)
+        level1.forEach(emp => {
+          const level2 = employees.filter(e => e.manager === emp.id)
+          level2.forEach(e => initialExpanded.set(e.id, true))
+        })
+        setExpandedNodes(initialExpanded)
+        setExpansionVersion(prev => prev + 1)
+      }
+    }
+  }, [employees])
+  
+  // Fonction pour basculer l'expansion d'un nœud
+  const toggleNodeExpansion = useCallback((nodeId: number) => {
+    setExpandedNodes(prev => {
+      const newMap = new Map(prev)
+      const isCurrentlyExpanded = newMap.get(nodeId) || false
+      
+      if (isCurrentlyExpanded) {
+        // Si on ferme un nœud, fermer aussi tous ses descendants
+        const removeDescendants = (id: number) => {
+          const children = employees?.filter(e => e.manager === id) || []
+          children.forEach(child => {
+            newMap.delete(child.id)
+            removeDescendants(child.id)
+          })
+        }
+        newMap.delete(nodeId)
+        removeDescendants(nodeId)
+      } else {
+        newMap.set(nodeId, true)
+      }
+      return newMap
+    })
+    setExpansionVersion(prev => prev + 1)
+  }, [employees])
 
   // Debug: Log des employés reçus
   console.log('🎯 [REACT_FLOW] Employés reçus:', {
@@ -63,14 +113,14 @@ const ReactFlowOrganigramme = forwardRef<ReactFlowOrganigrammeRef, ReactFlowOrga
     })) || []
   })
 
-  // Calculer la configuration responsive basée sur la grille
+  // Calculer la configuration responsive avec taille fixe des cartes
   const getResponsiveConfig = useCallback(() => {
     if (typeof window === 'undefined') {
       return {
-        nodeWidth: 220, // Largeur comme dans l'exemple
-        nodeHeight: 280,
-        horizontalSpacing: 300,
-        verticalSpacing: 200,
+        nodeWidth: 240, // Taille fixe - ne varie pas selon le nombre de cartes
+        nodeHeight: 300,
+        horizontalSpacing: 280, // Gap adaptatif
+        verticalSpacing: 350,
         zoom: 0.6,
         padding: 50,
         gridCols: 1
@@ -78,73 +128,72 @@ const ReactFlowOrganigramme = forwardRef<ReactFlowOrganigrammeRef, ReactFlowOrga
     }
 
     const width = window.innerWidth
-    const employeeCount = employees?.length || 1
 
-    // Configuration basée sur la largeur d'écran avec espacement fixe comme dans l'exemple
+    // Configuration avec taille fixe des cartes et gap adaptatif
     let config
     if (width < 640) {
-      // Mobile - 1 colonne
+      // Mobile - pleine largeur, scroll vertical
       config = {
-        nodeWidth: 200, // Mobile - légèrement plus petit
+        nodeWidth: 200, // Taille fixe sur mobile
         nodeHeight: 240,
-        horizontalSpacing: 0,
+        horizontalSpacing: 0, // Pas d'espacement horizontal sur mobile (vertical)
         verticalSpacing: 250,
-        zoom: 1.2,
+        zoom: 1.0,
         padding: 20,
         gridCols: 1
       }
     } else if (width < 768) {
-      // Small tablet - 2 colonnes
+      // Small tablet
       config = {
-        nodeWidth: 220, // Largeur comme dans l'exemple
+        nodeWidth: 220, // Taille fixe
         nodeHeight: 260,
-        horizontalSpacing: 320, // Espacement proportionnel (220 + 100)
-        verticalSpacing: 280,
-        zoom: 1.1,
+        horizontalSpacing: 280, // gap-4 sm:gap-6 équivalent
+        verticalSpacing: 300,
+        zoom: 0.9,
         padding: 30,
         gridCols: 2
       }
     } else if (width < 1024) {
-      // Tablet - 3 colonnes
+      // Tablet
       config = {
-        nodeWidth: 220, // Largeur comme dans l'exemple
-        nodeHeight: 280,
-        horizontalSpacing: 320, // Espacement proportionnel (220 + 100)
-        verticalSpacing: 320,
-        zoom: 1.0,
+        nodeWidth: 240, // Taille fixe - w-56 md:w-64 équivalent
+        nodeHeight: 300,
+        horizontalSpacing: 300, // gap-6 md:gap-8 équivalent
+        verticalSpacing: 350,
+        zoom: 0.8,
         padding: 40,
         gridCols: 3
       }
     } else if (width < 1280) {
-      // Desktop - 4 colonnes
+      // Desktop - largeurs fixes
       config = {
-        nodeWidth: 240, // Desktop - plus grand
+        nodeWidth: 240, // w-56 md:w-64 - taille fixe
         nodeHeight: 300,
-        horizontalSpacing: 340, // Espacement proportionnel (240 + 100)
-        verticalSpacing: 360,
-        zoom: 0.9,
+        horizontalSpacing: 320, // gap-8
+        verticalSpacing: 380,
+        zoom: 0.7,
         padding: 50,
         gridCols: 4
       }
     } else if (width < 1536) {
-      // Large desktop - 5 colonnes
+      // Large desktop
       config = {
-        nodeWidth: 260, // Large desktop - encore plus grand
+        nodeWidth: 256, // w-64 - taille fixe
         nodeHeight: 320,
-        horizontalSpacing: 360, // Espacement proportionnel (260 + 100)
+        horizontalSpacing: 340,
         verticalSpacing: 400,
-        zoom: 0.8,
+        zoom: 0.65,
         padding: 60,
         gridCols: 5
       }
     } else {
-      // Ultra wide - 6 colonnes
+      // Ultra wide
       config = {
-        nodeWidth: 280, // Ultra wide - le plus grand
-        nodeHeight: 340,
-        horizontalSpacing: 380, // Espacement proportionnel (280 + 100)
-        verticalSpacing: 440,
-        zoom: 0.7,
+        nodeWidth: 256, // w-64 - taille fixe
+        nodeHeight: 320,
+        horizontalSpacing: 360,
+        verticalSpacing: 420,
+        zoom: 0.6,
         padding: 80,
         gridCols: 6
       }
@@ -156,24 +205,60 @@ const ReactFlowOrganigramme = forwardRef<ReactFlowOrganigrammeRef, ReactFlowOrga
   const config = getResponsiveConfig()
   console.log('📐 [REACT_FLOW] Configuration responsive:', config)
 
-  // Fonction pour calculer la largeur totale d'un sous-arbre
+  // Fonction pour calculer la largeur totale d'un sous-arbre (avec rendu conditionnel et répartition équitable)
   const calculateTotalWidth = (emp: Employee, level: number = 0): number => {
     const subordinates = employees?.filter(e => e.manager === emp.id) || []
     if (subordinates.length === 0) return config.nodeWidth
     
-    // Calculer la largeur totale nécessaire pour tous les subordonnés
-    let totalChildrenWidth = 0
+    // Rendu conditionnel : ne calculer que si le nœud est expansé
+    const isExpanded = expandedNodes.get(emp.id) || level < 2
+    if (!isExpanded) return config.nodeWidth // Si pas expansé, retourner juste la largeur du nœud
+    
+    // Calculer la largeur totale nécessaire pour tous les subordonnés (seulement si expansé)
+    const childWidths: number[] = []
     subordinates.forEach(sub => {
       const subWidth = calculateTotalWidth(sub, level + 1)
-      totalChildrenWidth += subWidth
+      childWidths.push(subWidth)
     })
     
-    // Ajouter l'espacement entre les enfants (nombre d'enfants - 1) * espacement
-    if (subordinates.length > 1) {
-      totalChildrenWidth += (subordinates.length - 1) * config.horizontalSpacing
+    // Répartition équitable selon la règle :
+    // - Si nombre pair x : x/2 à gauche, x/2 à droite
+    // - Si nombre impair x : (x-1)/2 à gauche, 1 au centre, (x-1)/2 à droite
+    const isOdd = subordinates.length % 2 === 1
+    const hasCenterCard = isOdd
+    const sideCount = Math.floor(subordinates.length / 2)  // (x-1)/2 si impair, x/2 si pair
+    
+    let leftWidth = 0
+    let rightWidth = 0
+    let centerCardWidth = 0
+    
+    // Si carte centrale, calculer sa largeur
+    if (hasCenterCard) {
+      centerCardWidth = childWidths[sideCount]
     }
     
-    return Math.max(config.nodeWidth, totalChildrenWidth)
+    // Largeur totale à gauche
+    for (let i = 0; i < sideCount; i++) {
+      leftWidth += childWidths[i]
+      if (i < sideCount - 1) {
+        leftWidth += config.horizontalSpacing
+      }
+    }
+    
+    // Largeur totale à droite (en sautant la carte centrale si elle existe)
+    const rightStartIndex = hasCenterCard ? sideCount + 1 : sideCount
+    for (let i = rightStartIndex; i < subordinates.length; i++) {
+      rightWidth += childWidths[i]
+      if (i < subordinates.length - 1) {
+        rightWidth += config.horizontalSpacing
+      }
+    }
+    
+    // Largeur totale = largeur gauche + largeur droite + carte centrale + espacements
+    const centerGap = config.horizontalSpacing
+    const totalWidth = leftWidth + rightWidth + centerCardWidth + (hasCenterCard ? centerGap * 2 : 0)
+    
+    return Math.max(config.nodeWidth, totalWidth)
   }
 
   // Callbacks pour les événements de souris
@@ -185,15 +270,18 @@ const ReactFlowOrganigramme = forwardRef<ReactFlowOrganigrammeRef, ReactFlowOrga
     setHoveredNodeId(null)
   }, [])
 
-  // Fonction pour construire la hiérarchie récursivement
+  // Fonction pour construire la hiérarchie avec rendu conditionnel (expansion)
   const buildHierarchy = (employee: Employee, level: number = 0, x: number = 0, y: number = 0): { nodes: Node[], edges: Edge[], optimalViewport: { x: number, y: number, zoom: number } } => {
+      // Rendu conditionnel : ne rendre que si le nœud est expansé (ou niveau < 2 par défaut)
+      const isExpanded = expandedNodes.get(employee.id) || level < 2
+      
       const node: Node = {
         id: employee.id.toString(),
         type: "employee",
         position: { x, y },
       style: {
-        width: config.nodeWidth,
-        height: config.nodeHeight,
+        width: config.nodeWidth, // Taille fixe - ne varie pas
+        height: config.nodeHeight, // Taille fixe
       },
         data: {
           employee,
@@ -201,6 +289,9 @@ const ReactFlowOrganigramme = forwardRef<ReactFlowOrganigrammeRef, ReactFlowOrga
         onMouseLeave: handleMouseLeave,
           isHighlighted: false,
         config: config, // Passer la config au composant
+        isExpanded: isExpanded,
+        hasChildren: false, // Sera mis à jour ci-dessous
+        onToggleExpand: () => toggleNodeExpansion(employee.id),
         },
       }
 
@@ -210,61 +301,222 @@ const ReactFlowOrganigramme = forwardRef<ReactFlowOrganigrammeRef, ReactFlowOrga
       // Trouver les subordonnés
     const subordinates = employees?.filter(emp => emp.manager === employee.id) || []
       
-      if (subordinates.length > 0) {
-      // Calculer la largeur totale nécessaire pour tous les subordonnés
-      let totalChildrenWidth = 0
-      const childWidths: number[] = []
+      // Mettre à jour hasChildren dans les données du nœud
+      node.data.hasChildren = subordinates.length > 0
       
-      subordinates.forEach(sub => {
-        const subWidth = calculateTotalWidth(sub)
-        childWidths.push(subWidth)
-        totalChildrenWidth += subWidth
-      })
-      
-      // Ajouter l'espacement entre les enfants
-      if (subordinates.length > 1) {
-        totalChildrenWidth += (subordinates.length - 1) * config.horizontalSpacing
-      }
-      
-      // Centrer les subordonnés sous le manager
-      const startX = x - totalChildrenWidth / 2
-      const startY = y + config.verticalSpacing
-      
-      let currentX = startX
+      // Rendu conditionnel : ne rendre les subordonnés que si le nœud est expansé
+      if (subordinates.length > 0 && isExpanded) {
+        // Design horizontal avec espacement optimisé pour permettre le scroll
+        // Calculer la largeur totale nécessaire pour tous les subordonnés
+        let totalChildrenWidth = 0
+        const childWidths: number[] = []
         
-        subordinates.forEach((sub, index) => {
-        const subWidth = childWidths[index]
-        const subX = currentX + subWidth / 2 - config.nodeWidth / 2
-        const subY = startY
+        subordinates.forEach(sub => {
+          const subWidth = calculateTotalWidth(sub)
+          childWidths.push(subWidth)
+          totalChildrenWidth += subWidth
+        })
+        
+        // Gap adaptatif : espacement horizontal fixe (comme gap-4 sm:gap-6 md:gap-8)
+        const horizontalSpacing = config.horizontalSpacing
+        
+        // Répartition équitable selon la règle :
+        // - Si nombre pair x : x/2 à gauche, x/2 à droite
+        // - Si nombre impair x : (x-1)/2 à gauche, 1 au centre, (x-1)/2 à droite
+        const totalSubordinates = subordinates.length
+        const isOdd = totalSubordinates % 2 === 1
+        const hasCenterCard = isOdd
+        
+        // Nombre de cartes de chaque côté (sans compter le centre si impair)
+        // Pour pair : sideCount = x/2
+        // Pour impair : sideCount = (x-1)/2
+        const sideCount = Math.floor(totalSubordinates / 2)
+        
+        const startY = y + config.verticalSpacing
+        
+        // Calculer les largeurs pour chaque côté
+        let leftWidth = 0
+        let rightWidth = 0
+        let centerCardWidth = 0
+        
+        // Si carte centrale, calculer sa largeur
+        if (hasCenterCard) {
+          centerCardWidth = childWidths[sideCount]
+        }
+        
+        // Largeur totale à gauche
+        for (let i = 0; i < sideCount; i++) {
+          leftWidth += childWidths[i]
+          if (i < sideCount - 1) {
+            leftWidth += horizontalSpacing
+          }
+        }
+        
+        // Largeur totale à droite (en sautant la carte centrale si elle existe)
+        const rightStartIndex = hasCenterCard ? sideCount + 1 : sideCount
+        for (let i = rightStartIndex; i < totalSubordinates; i++) {
+          rightWidth += childWidths[i]
+          if (i < totalSubordinates - 1) {
+            rightWidth += horizontalSpacing
+          }
+        }
+        
+        // Espacement régulier : même espacement partout
+        const centerGap = horizontalSpacing  // Espacement entre les groupes et la carte centrale
+        
+        // Positionner les subordonnés selon la répartition équitable
+        // Si nombre pair : symétrie parfaite autour du centre
+        // Si nombre impair : carte centrale + symétrie de chaque côté
+        
+        if (hasCenterCard) {
+          // NOMBRE IMPAIR : carte centrale + répartition équitable de chaque côté
+          // IMPORTANT : utiliser config.nodeWidth (largeur fixe) pour positionner les cartes, pas childWidths
+          // Exemple avec 3 cartes A, B, C : A à gauche, B au centre (aligné avec branche), C à droite
+          // Distance égale : A-B = B-C = horizontalSpacing
           
-          const subResult = buildHierarchy(sub, level + 1, subX, subY)
-          nodes.push(...subResult.nodes)
-          edges.push(...subResult.edges)
+          const fixedCardWidth = config.nodeWidth // Largeur fixe de la carte, indépendante des enfants
           
-          // Ajouter l'edge vers le subordonné
-          edges.push({
-            id: `e-${employee.id}-${sub.id}`,
-            source: employee.id.toString(),
-            target: sub.id.toString(),
-            type: "custom",
-            data: { isHighlighted: false }
+          // Calculer les positions en utilisant uniquement la largeur fixe
+          const cardPositions: number[] = []
+          
+          // Positionner les cartes à gauche (de droite à gauche)
+          // La dernière carte à gauche doit être à horizontalSpacing de la carte centrale
+          for (let i = sideCount - 1; i >= 0; i--) {
+            let cardCenterX: number
+            
+            if (i === sideCount - 1) {
+              // Dernière carte à gauche : son bord droit est à x - horizontalSpacing/2 - fixedCardWidth/2
+              // Mais on veut que la distance entre cette carte et la carte centrale soit horizontalSpacing
+              // Donc : cardCenterX + fixedCardWidth/2 + horizontalSpacing = x - fixedCardWidth/2
+              // Donc : cardCenterX = x - fixedCardWidth - horizontalSpacing
+              cardCenterX = x - fixedCardWidth - horizontalSpacing
+            } else {
+              // Cartes précédentes : positionnées à gauche de la carte suivante avec espacement fixe
+              const nextCardCenterX = cardPositions[0]
+              cardCenterX = nextCardCenterX - fixedCardWidth - horizontalSpacing
+            }
+            
+            cardPositions.unshift(cardCenterX)
+          }
+          
+          // Positionner la carte centrale (alignée avec la branche verticale)
+          cardPositions.push(x) // La carte centrale est exactement à x (alignée avec la branche)
+          
+          // Positionner les cartes à droite (de gauche à droite)
+          // La première carte à droite doit être à horizontalSpacing de la carte centrale
+          for (let i = rightStartIndex; i < totalSubordinates; i++) {
+            let cardCenterX: number
+            
+            if (i === rightStartIndex) {
+              // Première carte à droite : son bord gauche est à x + fixedCardWidth/2 + horizontalSpacing
+              // Donc : cardCenterX = x + fixedCardWidth + horizontalSpacing
+              cardCenterX = x + fixedCardWidth + horizontalSpacing
+            } else {
+              // Cartes suivantes : positionnées à droite de la carte précédente avec espacement fixe
+              const prevCardCenterX = cardPositions[cardPositions.length - 1]
+              cardCenterX = prevCardCenterX + fixedCardWidth + horizontalSpacing
+            }
+            
+            cardPositions.push(cardCenterX)
+          }
+          
+          // Maintenant positionner toutes les cartes avec leurs positions calculées
+          subordinates.forEach((sub, index) => {
+            const subX = cardPositions[index]
+            const subY = startY
+            
+            const subResult = buildHierarchy(sub, level + 1, subX, subY)
+            nodes.push(...subResult.nodes)
+            edges.push(...subResult.edges)
+            
+            if (isExpanded) {
+              edges.push({
+                id: `e-${employee.id}-${sub.id}`,
+                source: employee.id.toString(),
+                target: sub.id.toString(),
+                type: "custom",
+                data: { isHighlighted: false }
+              })
+            }
           })
-        
-        // Déplacer la position pour le prochain enfant
-        currentX += subWidth + config.horizontalSpacing
-      })
+        } else {
+          // NOMBRE PAIR : symétrie parfaite, pas de carte centrale
+          // La branche verticale (x) doit être au milieu entre les deux cartes centrales
+          // Exemple avec 4 cartes A, B, C, D : la branche doit être entre B et C
+          // Distance égale entre toutes les cartes : A-B = B-C = C-D = horizontalSpacing
+          // IMPORTANT : utiliser config.nodeWidth (largeur fixe de la carte) et non childWidths (largeur totale du sous-arbre)
+          
+          const fixedCardWidth = config.nodeWidth // Largeur fixe de la carte, indépendante des enfants
+          
+          // Calculer les positions en utilisant uniquement la largeur fixe de la carte
+          const cardPositions: number[] = []
+          
+          // Positionner les cartes à gauche (de droite à gauche, indices décroissants)
+          // La dernière carte à gauche (indice sideCount-1) doit avoir son bord droit à x - horizontalSpacing/2
+          for (let i = sideCount - 1; i >= 0; i--) {
+            let cardCenterX: number
+            
+            if (i === sideCount - 1) {
+              // Dernière carte à gauche : son bord droit est à x - horizontalSpacing/2
+              cardCenterX = x - horizontalSpacing / 2 - fixedCardWidth / 2
+            } else {
+              // Cartes précédentes : positionnées à gauche de la carte suivante avec espacement fixe
+              const nextCardCenterX = cardPositions[0] // La première dans cardPositions est la plus à droite
+              cardCenterX = nextCardCenterX - fixedCardWidth / 2 - horizontalSpacing - fixedCardWidth / 2
+            }
+            
+            cardPositions.unshift(cardCenterX) // Ajouter au début pour garder l'ordre
+          }
+          
+          // Positionner les cartes à droite (de gauche à droite)
+          // La première carte à droite (indice rightStartIndex) doit avoir son bord gauche à x + horizontalSpacing/2
+          for (let i = rightStartIndex; i < totalSubordinates; i++) {
+            let cardCenterX: number
+            
+            if (i === rightStartIndex) {
+              // Première carte à droite : son bord gauche est à x + horizontalSpacing/2
+              cardCenterX = x + horizontalSpacing / 2 + fixedCardWidth / 2
+            } else {
+              // Cartes suivantes : positionnées à droite de la carte précédente avec espacement fixe
+              const prevCardCenterX = cardPositions[cardPositions.length - 1]
+              cardCenterX = prevCardCenterX + fixedCardWidth / 2 + horizontalSpacing + fixedCardWidth / 2
+            }
+            
+            cardPositions.push(cardCenterX)
+          }
+          
+          // Maintenant positionner toutes les cartes avec leurs positions calculées
+          subordinates.forEach((sub, index) => {
+            const subX = cardPositions[index]
+            const subY = startY
+            
+            const subResult = buildHierarchy(sub, level + 1, subX, subY)
+            nodes.push(...subResult.nodes)
+            edges.push(...subResult.edges)
+            
+            if (isExpanded) {
+              edges.push({
+                id: `e-${employee.id}-${sub.id}`,
+                source: employee.id.toString(),
+                target: sub.id.toString(),
+                type: "custom",
+                data: { isHighlighted: false }
+              })
+            }
+          })
+        }
     }
 
     return { nodes, edges, optimalViewport: { x: 0, y: 0, zoom: 1 } }
   }
 
   // Convertir les employés en nœuds React Flow et calculer le viewport optimal
-  const { nodes, edges, optimalViewport } = useMemo((): { nodes: Node[], edges: Edge[], optimalViewport: { x: number, y: number, zoom: number } } => {
+  const { nodes, edges, optimalViewport, calculatedExtent } = useMemo((): { nodes: Node[], edges: Edge[], optimalViewport: { x: number, y: number, zoom: number }, calculatedExtent?: [[number, number], [number, number]] } => {
     console.log('🔄 [REACT_FLOW] Construction des nœuds avec employés:', employees?.length || 0)
     
     if (!employees || employees.length === 0) {
       console.log('❌ [REACT_FLOW] Aucun employé, retour de nœuds vides')
-      return { nodes: [], edges: [], optimalViewport: { x: 0, y: 0, zoom: 1 } }
+      return { nodes: [], edges: [], optimalViewport: { x: 0, y: 0, zoom: 1 }, calculatedExtent: undefined }
     }
 
     // Créer un map des employés par ID
@@ -368,31 +620,77 @@ const ReactFlowOrganigramme = forwardRef<ReactFlowOrganigrammeRef, ReactFlowOrga
         }))
       })
       
+      // Calculer les dimensions pour le translateExtent
+      let minX = Infinity, maxX = -Infinity, minY = Infinity, maxY = -Infinity
+      nodes.forEach(node => {
+        const x = node.position.x
+        const y = node.position.y
+        const width = (node.style?.width as number) || config.nodeWidth
+        const height = (node.style?.height as number) || config.nodeHeight
+        
+        minX = Math.min(minX, x - width / 2)
+        maxX = Math.max(maxX, x + width / 2)
+        minY = Math.min(minY, y - height / 2)
+        maxY = Math.max(maxY, y + height / 2)
+      })
+      
+      const padding = 500
+      const calculatedExtent: [[number, number], [number, number]] = [
+        [minX - padding, minY - padding],
+        [maxX + padding, maxY + padding]
+      ]
+      
       // Le viewport sera géré par fitView et les useEffect
-      return { nodes, edges, optimalViewport: { x: 0, y: 0, zoom: 1 } }
+      return { nodes, edges, optimalViewport: { x: 0, y: 0, zoom: 1 }, calculatedExtent }
     }
 
     
-    const totalOrgWidth = calculateTotalWidth(ceo)
-    const ceoX = -totalOrgWidth / 2
+    // Placer le CEO au centre
+    const ceoX = 0  // Centré
+    const ceoY = 0
     
-    console.log('👑 [REACT_FLOW] Calcul du CEO:', {
-      totalOrgWidth,
+    console.log('👑 [REACT_FLOW] Calcul du CEO (centré):', {
       ceoX,
-      ceoName: ceo.full_name
+      ceoY,
+      ceoName: ceo.full_name,
+      subordinatesCount: employees?.filter(e => e.manager === ceo.id).length || 0
     })
     
-    const result = buildHierarchy(ceo, 0, ceoX, 0)
+    const result = buildHierarchy(ceo, 0, ceoX, ceoY)
+    
+    // Calculer les dimensions réelles de l'organigramme pour adapter le translateExtent
+    let minX = Infinity, maxX = -Infinity, minY = Infinity, maxY = -Infinity
+    result.nodes.forEach(node => {
+      const x = node.position.x
+      const y = node.position.y
+      const width = (node.style?.width as number) || config.nodeWidth
+      const height = (node.style?.height as number) || config.nodeHeight
+      
+      minX = Math.min(minX, x - width / 2)
+      maxX = Math.max(maxX, x + width / 2)
+      minY = Math.min(minY, y - height / 2)
+      maxY = Math.max(maxY, y + height / 2)
+    })
+    
+    // Ajouter un padding pour le scroll
+    // Padding plus petit en haut car le DG est positionné en haut
+    const paddingX = 500
+    const paddingYTop = 100  // Petit padding en haut car le DG est près du bord
+    const paddingYBottom = 500  // Plus de padding en bas pour les subordonnés
+    const calculatedExtent: [[number, number], [number, number]] = [
+      [minX - paddingX, minY - paddingYTop],
+      [maxX + paddingX, maxY + paddingYBottom]
+    ]
+    
     console.log('✅ [REACT_FLOW] Nœuds générés:', { 
       nodesCount: result.nodes.length, 
       edgesCount: result.edges.length,
-      nodeIds: result.nodes.map(n => n.id),
-      nodePositions: result.nodes.map(n => ({ id: n.id, x: n.position.x, y: n.position.y }))
+      dimensions: { minX, maxX, minY, maxY },
+      calculatedExtent
     })
     
-    // Le viewport sera géré par fitView et les useEffect
-    return { ...result, optimalViewport: { x: 0, y: 0, zoom: 1 } }
-  }, [employees, config.horizontalSpacing, config.verticalSpacing, config.gridCols])
+    return { ...result, optimalViewport: { x: 0, y: 0, zoom: 1 }, calculatedExtent }
+  }, [employees, config.horizontalSpacing, config.verticalSpacing, config.gridCols, expansionVersion, handleMouseEnter, handleMouseLeave])
 
   const [nodesState, setNodes, onNodesChange] = useNodesState(nodes)
   const [edgesState, setEdges, onEdgesChange] = useEdgesState(edges)
@@ -415,72 +713,42 @@ const ReactFlowOrganigramme = forwardRef<ReactFlowOrganigrammeRef, ReactFlowOrga
       
       // Délai pour s'assurer que React Flow est complètement initialisé
       setTimeout(() => {
-        // Calculer le zoom optimal selon la taille d'écran
+        // Zoom fixe - ne varie pas selon le nombre de cartes
         const screenWidth = window.innerWidth
-        const screenHeight = window.innerHeight
+        let fixedZoom = 0.7  // Zoom fixe par défaut
+        if (screenWidth < 640) fixedZoom = 0.8      // Mobile
+        else if (screenWidth < 768) fixedZoom = 0.75  // Small tablet
+        else if (screenWidth < 1024) fixedZoom = 0.7 // Tablet
+        else if (screenWidth < 1280) fixedZoom = 0.65 // Desktop
+        else if (screenWidth < 1536) fixedZoom = 0.6 // Large desktop
+        else fixedZoom = 0.55                        // Ultra wide
         
-        let optimalZoom = 0.5
-        if (screenWidth < 640) optimalZoom = 0.8      // Mobile
-        else if (screenWidth < 768) optimalZoom = 0.6  // Small tablet
-        else if (screenWidth < 1024) optimalZoom = 0.5 // Tablet
-        else if (screenWidth < 1280) optimalZoom = 0.4 // Desktop
-        else if (screenWidth < 1536) optimalZoom = 0.3 // Large desktop
-        else optimalZoom = 0.25                        // Ultra wide
+        // Positionner le DG près du bord haut du Background
+        // Le DG est à y=0, on veut qu'il soit visible en haut de l'écran
+        const screenCenterX = window.innerWidth / 2
+        const screenTop = 100 // Offset du haut pour laisser de l'espace (navbar, etc.)
         
-        // Utiliser fitView pour centrer parfaitement avec padding réduit en haut
-        reactFlowInstance.fitView({
-          padding: 0.1,
-          includeHiddenNodes: false,
-          minZoom: 0.1,
-          maxZoom: 2
-        })
-        
-        // Ajuster la position Y et le zoom pour remonter l'organigramme (comme le minimap)
-        const currentViewport = reactFlowInstance.getViewport()
-        // Calculer un offset plus important pour remonter significativement l'organigramme
-        // Le minimap était positionné en haut à gauche, donc on remonte beaucoup plus
-        const yOffset = screenHeight * 0.4 // Remonte de 40% de la hauteur d'écran
+        // Calculer la position du viewport pour placer le DG (0, 0) en haut de l'écran
+        const viewportX = screenCenterX - (0 * fixedZoom)  // DG à x=0, centré horizontalement
+        const viewportY = screenTop - (0 * fixedZoom)   // DG à y=0, positionné en haut
         
         reactFlowInstance.setViewport({
-          x: currentViewport.x,
-          y: currentViewport.y - yOffset,
-          zoom: Math.min(optimalZoom, currentViewport.zoom) // Utiliser le zoom optimal
+          x: viewportX,
+          y: viewportY,
+          zoom: fixedZoom  // Zoom fixe - toujours le même
         })
         
-        // Initialiser le centre de référence avec méthode robuste
-        let center
-        try {
-          center = reactFlowInstance.screenToFlowPosition({
-            x: window.innerWidth / 2,
-            y: window.innerHeight / 2
-          })
-          
-          // Vérifier la validité du centre (important pour les grandes structures)
-          if (!center || isNaN(center.x) || isNaN(center.y) || 
-              !isFinite(center.x) || !isFinite(center.y)) {
-            // Fallback: calculer depuis le viewport ajusté
-            center = {
-              x: -(currentViewport.x) / currentViewport.zoom,
-              y: -(currentViewport.y - yOffset) / currentViewport.zoom
-            }
-          }
-        } catch (error) {
-          console.warn('⚠️ [REACT_FLOW] Erreur calcul centre initial:', error)
-          // Fallback: calculer depuis le viewport ajusté
-          center = {
-            x: -(currentViewport.x) / currentViewport.zoom,
-            y: -(currentViewport.y - yOffset) / currentViewport.zoom
-          }
-        }
-        
+        // Initialiser le centre de référence
+        const center = { x: 0, y: 0 }  // Le DG est toujours à (0, 0)
         setViewportCenter(center)
         
-        console.log('✅ [REACT_FLOW] Centrage parfait appliqué:', {
-          originalY: currentViewport.y,
-          adjustedY: currentViewport.y - yOffset,
-          zoom: currentViewport.zoom,
+        console.log('✅ [REACT_FLOW] Viewport fixe appliqué:', {
+          viewportX,
+          viewportY,
+          zoom: fixedZoom,
           center,
-          nodesCount: nodes.length
+          nodesCount: nodes.length,
+          message: 'Zoom fixe - scroll horizontal pour voir les autres cartes'
         })
       }, 200)
     }
@@ -493,63 +761,33 @@ const ReactFlowOrganigramme = forwardRef<ReactFlowOrganigrammeRef, ReactFlowOrga
       if (reactFlowInstance && employees && employees.length > 0) {
         console.log('📱 [REACT_FLOW] Redimensionnement détecté, recentrage...')
         
-        // Recentrer avec fitView après redimensionnement
+        // Recentrer avec zoom fixe après redimensionnement
         setTimeout(() => {
-          // Calculer le zoom optimal selon la nouvelle taille d'écran
+          // Zoom fixe - ne varie pas selon le nombre de cartes
           const screenWidth = window.innerWidth
-          const screenHeight = window.innerHeight
+          let fixedZoom = 0.7  // Zoom fixe par défaut
+          if (screenWidth < 640) fixedZoom = 0.8      // Mobile
+          else if (screenWidth < 768) fixedZoom = 0.75  // Small tablet
+          else if (screenWidth < 1024) fixedZoom = 0.7 // Tablet
+          else if (screenWidth < 1280) fixedZoom = 0.65 // Desktop
+          else if (screenWidth < 1536) fixedZoom = 0.6 // Large desktop
+          else fixedZoom = 0.55                        // Ultra wide
           
-          let optimalZoom = 0.5
-          if (screenWidth < 640) optimalZoom = 0.8      // Mobile
-          else if (screenWidth < 768) optimalZoom = 0.6  // Small tablet
-          else if (screenWidth < 1024) optimalZoom = 0.5 // Tablet
-          else if (screenWidth < 1280) optimalZoom = 0.4 // Desktop
-          else if (screenWidth < 1536) optimalZoom = 0.3 // Large desktop
-          else optimalZoom = 0.25                        // Ultra wide
+          // Positionner le DG près du bord haut du Background
+          const screenCenterX = window.innerWidth / 2
+          const screenTop = 100 // Offset du haut pour laisser de l'espace
           
-          reactFlowInstance.fitView({
-            padding: 0.1,
-            includeHiddenNodes: false,
-            minZoom: 0.1,
-            maxZoom: 2
-          })
-          
-          // Ajuster la position Y et le zoom pour remonter l'organigramme (comme le minimap)
-          const currentViewport = reactFlowInstance.getViewport()
-          // Calculer un offset plus important pour remonter significativement l'organigramme
-          const yOffset = screenHeight * 0.4 // Remonte de 40% de la hauteur d'écran
+          const viewportX = screenCenterX - (0 * fixedZoom)  // DG à x=0, centré horizontalement
+          const viewportY = screenTop - (0 * fixedZoom)   // DG à y=0, positionné en haut
           
           reactFlowInstance.setViewport({
-            x: currentViewport.x,
-            y: currentViewport.y - yOffset,
-            zoom: Math.min(optimalZoom, currentViewport.zoom)
+            x: viewportX,
+            y: viewportY,
+            zoom: fixedZoom  // Zoom fixe - toujours le même
           })
 
-          // Mettre à jour le centre de référence après redimensionnement avec méthode robuste
-          let center
-          try {
-            center = reactFlowInstance.screenToFlowPosition({
-              x: window.innerWidth / 2,
-              y: window.innerHeight / 2
-            })
-            
-            // Vérifier la validité du centre (important pour les grandes structures)
-            if (!center || isNaN(center.x) || isNaN(center.y) || 
-                !isFinite(center.x) || !isFinite(center.y)) {
-              // Fallback: calculer depuis le viewport ajusté
-              center = {
-                x: -(currentViewport.x) / currentViewport.zoom,
-                y: -(currentViewport.y - yOffset) / currentViewport.zoom
-              }
-            }
-          } catch (error) {
-            console.warn('⚠️ [REACT_FLOW] Erreur calcul centre redimensionnement:', error)
-            // Fallback: calculer depuis le viewport ajusté
-            center = {
-              x: -(currentViewport.x) / currentViewport.zoom,
-              y: -(currentViewport.y - yOffset) / currentViewport.zoom
-            }
-          }
+          // Mettre à jour le centre de référence
+          const center = { x: 0, y: 0 }  // Le DG est toujours à (0, 0)
           setViewportCenter(center)
         }, 100)
       }
@@ -745,65 +983,21 @@ const ReactFlowOrganigramme = forwardRef<ReactFlowOrganigrammeRef, ReactFlowOrga
   }
 
   return (
-    <div className="flex h-screen relative bg-gray-50">
-      <div className="flex-1 flex flex-col">
+    <div className="flex h-full w-full relative bg-gray-50">
+      <div className="flex-1 flex flex-col h-full">
         <div 
-          className="flex-1 relative organigramme-container" 
+          className="flex-1 relative organigramme-container overflow-x-auto overflow-y-hidden" 
           ref={reactFlowWrapper}
           style={{
-            touchAction: 'none',
+            touchAction: 'pan-x pan-y pinch-zoom',
             userSelect: 'none',
             WebkitUserSelect: 'none',
             MozUserSelect: 'none',
-            msUserSelect: 'none'
+            msUserSelect: 'none',
+            minWidth: 'max-content', // Le conteneur prend la largeur minimale nécessaire
+            height: '100%' // Prend toute la hauteur disponible
           }}
         >
-          {/* Boutons de pagination - Gauche et Droite */}
-          <button
-            className="absolute left-4 top-1/2 -translate-y-1/2 z-40 w-12 h-12 rounded-full bg-white/90 backdrop-blur-sm border border-gray-200 shadow-lg flex items-center justify-center hover:bg-white hover:shadow-xl transition-all duration-200 group"
-            aria-label="Page précédente"
-            onClick={() => {
-              // Fonctionnalité à implémenter plus tard
-              console.log('Bouton pagination gauche cliqué')
-            }}
-          >
-            <ChevronLeft className="h-6 w-6 text-gray-700 group-hover:text-gray-900 transition-colors" />
-          </button>
-          
-          <button
-            className="absolute right-4 top-1/2 -translate-y-1/2 z-40 w-12 h-12 rounded-full bg-white/90 backdrop-blur-sm border border-gray-200 shadow-lg flex items-center justify-center hover:bg-white hover:shadow-xl transition-all duration-200 group"
-            aria-label="Page suivante"
-            onClick={() => {
-              // Fonctionnalité à implémenter plus tard
-              console.log('Bouton pagination droite cliqué')
-            }}
-          >
-            <ChevronRight className="h-6 w-6 text-gray-700 group-hover:text-gray-900 transition-colors" />
-          </button>
-
-          {/* Boutons de pagination - Haut et Bas */}
-          <button
-            className="absolute top-4 left-1/2 -translate-x-1/2 z-40 w-12 h-12 rounded-full bg-white/90 backdrop-blur-sm border border-gray-200 shadow-lg flex items-center justify-center hover:bg-white hover:shadow-xl transition-all duration-200 group"
-            aria-label="Page précédente (haut)"
-            onClick={() => {
-              // Fonctionnalité à implémenter plus tard
-              console.log('Bouton pagination haut cliqué')
-            }}
-          >
-            <ChevronUp className="h-6 w-6 text-gray-700 group-hover:text-gray-900 transition-colors" />
-          </button>
-          
-          <button
-            className="absolute bottom-4 left-1/2 -translate-x-1/2 z-40 w-12 h-12 rounded-full bg-white/90 backdrop-blur-sm border border-gray-200 shadow-lg flex items-center justify-center hover:bg-white hover:shadow-xl transition-all duration-200 group"
-            aria-label="Page suivante (bas)"
-            onClick={() => {
-              // Fonctionnalité à implémenter plus tard
-              console.log('Bouton pagination bas cliqué')
-            }}
-          >
-            <ChevronDown className="h-6 w-6 text-gray-700 group-hover:text-gray-900 transition-colors" />
-          </button>
-
           <ReactFlowProvider>
             <ReactFlow
               nodes={nodesWithHoverHandler}
@@ -975,14 +1169,24 @@ const ReactFlowOrganigramme = forwardRef<ReactFlowOrganigrammeRef, ReactFlowOrga
               defaultEdgeOptions={{ type: "custom" }}
               minZoom={0.1}
               maxZoom={2}
-              translateExtent={[[-2000, -2000], [2000, 2000]]}
+              translateExtent={calculatedExtent || [[-5000, -2000], [5000, 2000]]}
               panOnScroll={true}
               zoomOnScroll={true}
               zoomOnPinch={true}
-              panOnDrag={false}
+              panOnDrag={true}
               selectNodesOnDrag={false}
             >
               <Background />
+              <MiniMap
+                nodeColor={(node: Node) => {
+                  const employee = node.data?.employee as Employee
+                  return employee && !employee.manager ? '#f59e0b' : '#94a3b8'
+                }}
+                position="bottom-left"
+                className="!bottom-4 !left-4 !bg-white/90 !backdrop-blur-sm !border !border-gray-200 !rounded-lg !shadow-lg"
+                pannable
+                zoomable
+              />
             </ReactFlow>
           </ReactFlowProvider>
         </div>
@@ -1072,7 +1276,7 @@ const ReactFlowOrganigramme = forwardRef<ReactFlowOrganigrammeRef, ReactFlowOrga
                     <p className={`text-sm sm:text-base lg:text-lg mb-2 sm:mb-3 font-medium ${
                       isCEO ? "text-amber-800" : "text-slate-600"
                     }`}>
-                      {employee.position_title}
+                      {employee.job_title}
                     </p>
                     <span className={`inline-flex items-center px-3 py-1 sm:px-4 sm:py-1.5 text-xs sm:text-sm font-medium rounded-full shadow-sm ${
                       isCEO 
