@@ -613,6 +613,15 @@ export function Navbar({ onMenuClick }: NavbarProps) {
                           style={{ borderColor: '#344256' }}
                           onFocus={(e) => { e.currentTarget.style.borderColor = '#344256' }}
                           onBlur={(e) => { e.currentTarget.style.borderColor = '#344256' }}
+                          onKeyDown={(e) => {
+                            if (e.key === 'Tab' && !e.shiftKey) {
+                              e.preventDefault()
+                              const passwordInput = document.getElementById('login-password')
+                              if (passwordInput) {
+                                passwordInput.focus()
+                              }
+                            }
+                          }}
                           required
                         />
                       </div>
@@ -621,7 +630,7 @@ export function Navbar({ onMenuClick }: NavbarProps) {
                         <Input
                           id="login-password"
                           type="password"
-                          placeholder="••••••••"
+                          placeholder="mot de passe"
                           value={loginPassword}
                           onChange={(e) => setLoginPassword(e.target.value)}
                           disabled={isLoggingIn}
@@ -629,6 +638,15 @@ export function Navbar({ onMenuClick }: NavbarProps) {
                           style={{ borderColor: '#344256' }}
                           onFocus={(e) => { e.currentTarget.style.borderColor = '#344256' }}
                           onBlur={(e) => { e.currentTarget.style.borderColor = '#344256' }}
+                          onKeyDown={(e) => {
+                            if (e.key === 'Enter') {
+                              e.preventDefault()
+                              const form = e.currentTarget.closest('form')
+                              if (form) {
+                                form.requestSubmit()
+                              }
+                            }
+                          }}
                           required
                         />
                       </div>

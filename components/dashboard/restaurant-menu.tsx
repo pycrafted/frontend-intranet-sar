@@ -64,11 +64,118 @@ interface DayMenu {
 
 
 
+// Hook pour détecter la taille du widget depuis le localStorage
+function useWidgetSize() {
+  const [size, setSize] = useState<'small' | 'medium' | 'large' | 'full'>('medium')
+  
+  useEffect(() => {
+    // Lire la taille depuis le localStorage au lieu de la détecter par la largeur
+    const updateSize = () => {
+      try {
+        const savedWidgets = localStorage.getItem('dashboard-widgets')
+        console.log('[RestaurantMenu] 🔍 Lecture du localStorage:', savedWidgets ? 'trouvé' : 'vide')
+        
+        if (savedWidgets) {
+          const widgets = JSON.parse(savedWidgets)
+          console.log('[RestaurantMenu] 📦 Widgets chargés:', widgets.length, 'widgets')
+          
+          const menuWidget = widgets.find((w: any) => w.id === 'menu' || w.type === 'menu')
+          console.log('[RestaurantMenu] 🍽️ Widget menu trouvé:', menuWidget ? `Oui (size: ${menuWidget.size})` : 'Non')
+          
+          if (menuWidget && menuWidget.size) {
+            console.log('[RestaurantMenu] ✅ Définition de la taille à:', menuWidget.size)
+            // Utiliser la fonction callback pour éviter les problèmes de closure
+            setSize((prevSize) => {
+              if (prevSize !== menuWidget.size) {
+                console.log('[RestaurantMenu] 🔄 Changement de taille détecté:', { from: prevSize, to: menuWidget.size })
+                return menuWidget.size
+              }
+              return prevSize
+            })
+            return
+          }
+        }
+        // Si pas trouvé dans localStorage, utiliser la valeur par défaut depuis WIDGET_CONFIG
+        console.log('[RestaurantMenu] ⚠️ Widget menu non trouvé, utilisation de la taille par défaut: medium')
+        setSize((prevSize) => prevSize !== 'medium' ? 'medium' : prevSize)
+      } catch (error) {
+        console.error('[RestaurantMenu] ❌ Erreur lors de la lecture de la taille du widget:', error)
+        setSize((prevSize) => prevSize !== 'medium' ? 'medium' : prevSize)
+      }
+    }
+    
+    // Lire la taille initiale
+    console.log('[RestaurantMenu] 🚀 Initialisation du hook useWidgetSize')
+    updateSize()
+    
+    // Écouter les changements dans le localStorage (entre onglets)
+    const handleStorageChange = () => {
+      console.log('[RestaurantMenu] 📡 Événement storage détecté')
+      updateSize()
+    }
+    window.addEventListener('storage', handleStorageChange)
+    
+    // Écouter les changements dans la même fenêtre via un événement personnalisé
+    const handleWidgetChange = (event?: Event) => {
+      console.log('[RestaurantMenu] 🔔 Événement dashboard-widgets-changed détecté', event)
+      // Petit délai pour s'assurer que le localStorage est bien mis à jour
+      setTimeout(() => {
+        console.log('[RestaurantMenu] ⏳ Mise à jour différée après événement')
+        updateSize()
+      }, 50)
+    }
+    window.addEventListener('dashboard-widgets-changed', handleWidgetChange)
+    
+    // Vérifier périodiquement (fallback si les événements ne fonctionnent pas)
+    // Utiliser une ref pour éviter les problèmes de closure
+    const interval = setInterval(() => {
+      try {
+        const currentSaved = localStorage.getItem('dashboard-widgets')
+        if (currentSaved) {
+          const currentMenuWidget = JSON.parse(currentSaved).find((w: any) => w.id === 'menu' || w.type === 'menu')
+          const currentSize = currentMenuWidget?.size || 'medium'
+          // Utiliser setSize avec callback pour comparer avec la valeur actuelle
+          setSize((prevSize) => {
+            if (prevSize !== currentSize) {
+              console.log('[RestaurantMenu] ⏰ Vérification périodique: taille différente détectée', { currentSize, prevSize })
+              return currentSize
+            }
+            return prevSize
+          })
+        }
+      } catch (error) {
+        console.error('[RestaurantMenu] ❌ Erreur dans la vérification périodique:', error)
+      }
+    }, 1000)
+    
+    return () => {
+      console.log('[RestaurantMenu] 🧹 Nettoyage des event listeners')
+      window.removeEventListener('storage', handleStorageChange)
+      window.removeEventListener('dashboard-widgets-changed', handleWidgetChange)
+      clearInterval(interval)
+    }
+  }, [])
+  
+  console.log('[RestaurantMenu] 📊 Taille actuelle du widget:', size)
+  return size
+}
+
+
+
 export function RestaurantMenu() {
 
   const { weekMenu, loading, error, fetchWeekMenu } = useMenu()
 
   const [currentDayIndex, setCurrentDayIndex] = useState(0)
+
+  const widgetSize = useWidgetSize()
+
+  // Gestion du swipe pour mobile
+  const [touchStart, setTouchStart] = useState<number | null>(null)
+  const [touchEnd, setTouchEnd] = useState<number | null>(null)
+
+  // Distance minimale pour déclencher un swipe
+  const minSwipeDistance = 50
 
 
 
@@ -197,6 +304,31 @@ export function RestaurantMenu() {
 
   }
 
+  // Gestion du swipe
+  const onTouchStart = (e: React.TouchEvent) => {
+    setTouchEnd(null)
+    setTouchStart(e.targetTouches[0].clientX)
+  }
+
+  const onTouchMove = (e: React.TouchEvent) => {
+    setTouchEnd(e.targetTouches[0].clientX)
+  }
+
+  const onTouchEnd = () => {
+    if (!touchStart || !touchEnd) return
+    
+    const distance = touchStart - touchEnd
+    const isLeftSwipe = distance > minSwipeDistance
+    const isRightSwipe = distance < -minSwipeDistance
+
+    if (isLeftSwipe) {
+      goToNextDay()
+    }
+    if (isRightSwipe) {
+      goToPreviousDay()
+    }
+  }
+
 
 
   // Initialiser l'index sur le jour d'aujourd'hui si disponible
@@ -320,6 +452,73 @@ export function RestaurantMenu() {
     return desserts[day] || 'Dessert du jour'
   }
 
+  // Configuration responsive basée sur la taille du widget et l'écran
+  const getResponsiveConfig = () => {
+    const baseConfig = {
+      small: {
+        cardHeight: 'h-[20rem] sm:h-[22rem]',
+        headerPadding: 'pb-2 sm:pb-3',
+        contentPadding: 'p-1 sm:p-2',
+        titleSize: 'text-sm sm:text-base',
+        subtitleSize: 'text-xs sm:text-sm',
+        dayTitleSize: 'text-xs sm:text-sm',
+        dayDateSize: 'text-[10px] sm:text-xs',
+        platTextSize: 'text-[10px] sm:text-xs',
+        platLabelSize: 'text-[10px] sm:text-xs',
+        gapSize: 'gap-1 sm:gap-1.5',
+        paddingSize: 'p-1 sm:p-1.5'
+      },
+      medium: {
+        cardHeight: 'h-[26rem] sm:h-[28rem] lg:h-[28rem]',
+        headerPadding: 'pb-2 sm:pb-3 lg:pb-4',
+        contentPadding: 'p-1 sm:p-2 md:p-2',
+        titleSize: 'text-base sm:text-lg lg:text-xl',
+        subtitleSize: 'text-xs sm:text-sm',
+        dayTitleSize: 'text-sm sm:text-base lg:text-lg',
+        dayDateSize: 'text-xs sm:text-sm',
+        platTextSize: 'text-xs sm:text-sm',
+        platLabelSize: 'text-[10px] sm:text-xs',
+        gapSize: 'gap-2 sm:gap-2.5',
+        paddingSize: 'p-1.5 sm:p-2 md:p-3'
+      },
+      large: {
+        cardHeight: 'h-[26rem] sm:h-[28rem] lg:h-[28rem]',
+        headerPadding: 'pb-3 sm:pb-4 lg:pb-6',
+        contentPadding: 'p-2 sm:p-3 lg:p-4',
+        titleSize: 'text-lg sm:text-xl',
+        subtitleSize: 'text-sm',
+        dayTitleSize: 'text-base sm:text-lg lg:text-xl',
+        dayDateSize: 'text-sm sm:text-base',
+        platTextSize: 'text-sm sm:text-base',
+        platLabelSize: 'text-xs sm:text-sm',
+        gapSize: 'gap-2.5 sm:gap-3',
+        paddingSize: 'p-2 sm:p-3 lg:p-4'
+      },
+      full: {
+        cardHeight: 'h-[24rem] sm:h-[28rem] lg:h-[32rem]',
+        headerPadding: 'pb-4 sm:pb-6 lg:pb-8',
+        contentPadding: 'p-3 sm:p-4 lg:p-6 xl:p-8',
+        titleSize: 'text-xl sm:text-2xl',
+        subtitleSize: 'text-sm sm:text-base',
+        dayTitleSize: 'text-lg sm:text-xl lg:text-2xl',
+        dayDateSize: 'text-sm sm:text-base lg:text-lg',
+        platTextSize: 'text-base sm:text-lg lg:text-xl',
+        platLabelSize: 'text-sm sm:text-base lg:text-lg',
+        gapSize: 'gap-3 sm:gap-4 lg:gap-6',
+        paddingSize: 'p-3 sm:p-4 lg:p-6'
+      }
+    }
+    
+    return baseConfig[widgetSize] || baseConfig.medium
+  }
+
+  const config = getResponsiveConfig()
+  
+  console.log('[RestaurantMenu] 🎨 Configuration responsive appliquée:', {
+    widgetSize,
+    cardHeight: config.cardHeight,
+    titleSize: config.titleSize
+  })
 
   // Gestion des états de chargement et d'erreur
 
@@ -327,7 +526,7 @@ export function RestaurantMenu() {
 
     return (
 
-      <Card className="h-[26rem] sm:h-[28rem] lg:h-[28rem] bg-gradient-to-br from-slate-100 via-gray-100 to-blue-100 border-0 hover:shadow-xl transition-all duration-500 cursor-pointer group flex flex-col overflow-hidden relative">
+      <Card className={`${config.cardHeight} bg-gradient-to-br from-slate-100 via-gray-100 to-blue-100 border-0 hover:shadow-xl transition-all duration-500 cursor-pointer group flex flex-col overflow-hidden relative`} data-widget-id="menu">
 
         {/* Effet de brillance subtil */}
 
@@ -423,7 +622,7 @@ export function RestaurantMenu() {
 
     return (
 
-      <Card className="h-[26rem] sm:h-[28rem] lg:h-[28rem] bg-gradient-to-br from-slate-100 via-gray-100 to-blue-100 border-0 hover:shadow-xl transition-all duration-500 cursor-pointer group flex flex-col overflow-hidden relative">
+      <Card className={`${config.cardHeight} bg-gradient-to-br from-slate-100 via-gray-100 to-blue-100 border-0 hover:shadow-xl transition-all duration-500 cursor-pointer group flex flex-col overflow-hidden relative`} data-widget-id="menu">
 
         {/* Effet de brillance subtil */}
 
@@ -538,7 +737,7 @@ export function RestaurantMenu() {
   if (!weekMenu || !weekMenu.days || weekMenu.days.length === 0) {
   return (
 
-      <Card className="h-[26rem] sm:h-[28rem] lg:h-[28rem] bg-gradient-to-br from-slate-100 via-gray-100 to-blue-100 border-0 hover:shadow-xl transition-all duration-500 cursor-pointer group flex flex-col overflow-hidden relative">
+      <Card className={`${config.cardHeight} bg-gradient-to-br from-slate-100 via-gray-100 to-blue-100 border-0 hover:shadow-xl transition-all duration-500 cursor-pointer group flex flex-col overflow-hidden relative`} data-widget-id="menu">
       {/* Effet de brillance subtil */}
 
       <div className="absolute inset-0 bg-gradient-to-br from-slate-200/40 via-transparent to-blue-200/40 opacity-0 group-hover:opacity-100 transition-opacity duration-500"></div>
@@ -606,41 +805,21 @@ export function RestaurantMenu() {
   }
 
   return (
-    <Card className="h-[26rem] sm:h-[28rem] lg:h-[28rem] bg-gradient-to-br from-slate-100 via-gray-100 to-blue-100 border-0 hover:shadow-xl transition-all duration-500 cursor-pointer group flex flex-col overflow-hidden relative">
+    <Card className={`${config.cardHeight} bg-gradient-to-br from-slate-100 via-gray-100 to-blue-100 border-0 hover:shadow-xl transition-all duration-500 cursor-pointer group flex flex-col overflow-hidden relative`} data-widget-id="menu">
       {/* Effet de brillance subtil */}
       <div className="absolute inset-0 bg-gradient-to-br from-slate-200/40 via-transparent to-blue-200/40 opacity-0 group-hover:opacity-100 transition-opacity duration-500"></div>
       
-      <CardContent className="flex-1 overflow-hidden relative z-10 p-1 sm:p-2 md:p-2 flex items-center justify-center">
+      <CardContent className="flex-1 overflow-hidden relative z-10 p-0 sm:p-2 md:p-2 flex items-center justify-center">
         {/* Design responsive : Pagination sur mobile, grille sur desktop */}
-        <div className="block sm:hidden w-full">
-          {/* Version mobile : Pagination avec un jour à la fois */}
-          <div className="relative w-full h-full flex flex-col">
-            {/* Boutons de navigation */}
-            {getWeekDays().length > 1 && (
-              <>
-                <Button
-                  variant="ghost"
-                  size="sm"
-                  className="absolute left-1 sm:left-2 top-1/2 -translate-y-1/2 z-20 bg-white/90 hover:bg-white text-gray-700 border-2 border-gray-300 shadow-lg h-9 w-9 p-0 rounded-full transition-all duration-200 hover:scale-110"
-                  onClick={goToPreviousDay}
-                  aria-label="Jour précédent"
-                >
-                  <ChevronLeft className="h-5 w-5" />
-                </Button>
-                
-                <Button
-                  variant="ghost"
-                  size="sm"
-                  className="absolute right-1 sm:right-2 top-1/2 -translate-y-1/2 z-20 bg-white/90 hover:bg-white text-gray-700 border-2 border-gray-300 shadow-lg h-9 w-9 p-0 rounded-full transition-all duration-200 hover:scale-110"
-                  onClick={goToNextDay}
-                  aria-label="Jour suivant"
-                >
-                  <ChevronRight className="h-5 w-5" />
-                </Button>
-              </>
-            )}
-
-            {/* Carte du jour actuel */}
+        <div className="block sm:hidden w-full h-full">
+          {/* Version mobile : Pagination avec un jour à la fois avec swipe */}
+          <div 
+            className="relative w-full h-full flex flex-col"
+            onTouchStart={onTouchStart}
+            onTouchMove={onTouchMove}
+            onTouchEnd={onTouchEnd}
+          >
+            {/* Carte du jour actuel - Optimisée pour l'espace mobile */}
             {getWeekDays().length > 0 && (() => {
               const weekDays = getWeekDays()
               const safeIndex = Math.min(currentDayIndex, weekDays.length - 1)
@@ -652,72 +831,59 @@ export function RestaurantMenu() {
               return (
                 <div 
                   key={dayInfo.day} 
-                  className={`w-full max-w-sm backdrop-blur-sm rounded-lg border transition-all duration-300 overflow-hidden mx-auto flex flex-col ${
-                    dayInfo.isToday 
-                      ? 'bg-gradient-to-br from-red-50 to-orange-50 border-2 border-red-400 shadow-lg ring-2 ring-red-100' 
-                      : 'bg-white/90 border-slate-300 hover:bg-white hover:shadow-lg'
-                  }`}
-                  style={{ marginLeft: '2.5rem', marginRight: '2.5rem' }}
+                  className="w-full h-full backdrop-blur-sm rounded-lg border border-slate-300 bg-white/90 hover:bg-white hover:shadow-lg transition-all duration-300 overflow-hidden flex flex-col"
                 >
-                  {/* En-tête du jour compact */}
-                  <div className={`flex-shrink-0 p-2 sm:p-3 text-gray-900 ${
-                    dayInfo.isToday 
-                      ? 'bg-gradient-to-r from-red-100 to-orange-100' 
-                      : 'bg-gradient-to-r from-slate-100 to-blue-100'
-                  }`}>
-                    <h3 className={`font-bold text-xs sm:text-sm text-center ${
-                      dayInfo.isToday ? 'text-red-800' : ''
-                    }`}>
+                  {/* En-tête du jour compact - Optimisé pour mobile */}
+                  <div className="flex-shrink-0 p-2 text-gray-900 bg-gradient-to-r from-slate-100 to-blue-100">
+                    <h3 className="font-bold text-sm text-center">
                       {dayInfo.dayName}
                     </h3>
-                    <p className={`text-[10px] sm:text-xs text-center ${
-                      dayInfo.isToday ? 'text-red-600 font-semibold' : 'text-gray-600'
-                    }`}>
+                    <p className="text-xs text-center text-gray-600">
                       {formatDate(dayInfo.date)}
                     </p>
                   </div>
 
-                  {/* Contenu du jour compact */}
-                  <div className="flex-1 flex flex-col p-2 sm:p-3 gap-2 sm:gap-2.5">
+                  {/* Contenu du jour compact - Optimisé pour exploiter tout l'espace */}
+                  <div className="flex-1 flex flex-col p-2 gap-2 min-h-0">
                     {dayMenu ? (
                       <>
-                        {/* Plat sénégalais compact */}
-                        <div className={`flex-1 flex flex-col justify-center ${senegaleseInfo.bgColor} ${senegaleseInfo.borderColor} border rounded p-1.5 sm:p-2`}>
-                          <div className="flex items-center justify-start gap-1 mb-0.5 sm:mb-1">
-                            <div className={`w-1.5 h-1.5 sm:w-2 sm:h-2 rounded-full bg-gradient-to-r ${senegaleseInfo.color}`}></div>
-                            <span className={`text-[10px] sm:text-xs font-bold ${senegaleseInfo.textColor} flex items-center gap-1`}>
-                              <span className="text-[10px] sm:text-xs">{senegaleseInfo.emoji}</span>
+                        {/* Plat sénégalais compact - Optimisé pour mobile */}
+                        <div className={`flex-1 flex flex-col justify-center ${senegaleseInfo.bgColor} ${senegaleseInfo.borderColor} border rounded p-2.5 min-h-0`}>
+                          <div className="flex items-center justify-start gap-1.5 mb-1.5">
+                            <div className={`w-2 h-2 rounded-full bg-gradient-to-r ${senegaleseInfo.color}`}></div>
+                            <span className={`text-xs font-bold ${senegaleseInfo.textColor} flex items-center gap-1`}>
+                              <span className="text-xs">{senegaleseInfo.emoji}</span>
                               {senegaleseInfo.name}
                             </span>
                           </div>
-                          <p className="text-[10px] sm:text-xs font-semibold text-gray-900 leading-tight text-center">
+                          <p className="text-sm font-semibold text-gray-900 leading-snug text-center px-1">
                             {dayMenu.senegalese}
                           </p>
                         </div>
 
-                        {/* Plat européen compact */}
-                        <div className={`flex-1 flex flex-col justify-center ${europeanInfo.bgColor} ${europeanInfo.borderColor} border rounded p-1.5 sm:p-2`}>
-                          <div className="flex items-center justify-start gap-1 mb-0.5 sm:mb-1">
-                            <div className={`w-1.5 h-1.5 sm:w-2 sm:h-2 rounded-full bg-gradient-to-r ${europeanInfo.color}`}></div>
-                            <span className={`text-[10px] sm:text-xs font-bold ${europeanInfo.textColor} flex items-center gap-1`}>
-                              <span className="text-[10px] sm:text-xs">{europeanInfo.emoji}</span>
+                        {/* Plat européen compact - Optimisé pour mobile */}
+                        <div className={`flex-1 flex flex-col justify-center ${europeanInfo.bgColor} ${europeanInfo.borderColor} border rounded p-2.5 min-h-0`}>
+                          <div className="flex items-center justify-start gap-1.5 mb-1.5">
+                            <div className={`w-2 h-2 rounded-full bg-gradient-to-r ${europeanInfo.color}`}></div>
+                            <span className={`text-xs font-bold ${europeanInfo.textColor} flex items-center gap-1`}>
+                              <span className="text-xs">{europeanInfo.emoji}</span>
                               {europeanInfo.name}
                             </span>
                           </div>
-                          <p className="text-[10px] sm:text-xs font-semibold text-gray-900 leading-tight text-center">
+                          <p className="text-sm font-semibold text-gray-900 leading-snug text-center px-1">
                             {dayMenu.european}
                           </p>
                         </div>
 
-                        {/* Dessert compact */}
-                        <div className="flex-1 flex flex-col justify-center bg-gradient-to-r from-pink-100 to-purple-100 border-pink-200 border rounded p-2">
-                          <div className="flex items-center justify-start gap-1 mb-1">
+                        {/* Dessert compact - Optimisé pour mobile */}
+                        <div className="flex-1 flex flex-col justify-center bg-gradient-to-r from-pink-100 to-purple-100 border-pink-200 border rounded p-2.5 min-h-0">
+                          <div className="flex items-center justify-start gap-1.5 mb-1.5">
                             <div className="w-2 h-2 rounded-full bg-gradient-to-r from-pink-500 to-purple-500"></div>
                             <span className="text-xs font-bold text-pink-700 flex items-center gap-1">
                               Dessert
                             </span>
                           </div>
-                          <p className="text-xs font-semibold text-gray-900 leading-tight text-center">
+                          <p className="text-sm font-semibold text-gray-900 leading-snug text-center px-1">
                             {getDessertName(dayInfo.day)}
                           </p>
                         </div>
@@ -735,9 +901,9 @@ export function RestaurantMenu() {
               )
             })()}
 
-            {/* Indicateurs de pagination (dots) et compteur */}
+            {/* Indicateurs de pagination (dots) et compteur - Masqués sur mobile */}
             {getWeekDays().length > 1 && (
-              <div className="flex flex-col items-center gap-2 mt-3">
+              <div className="hidden sm:flex flex-col items-center gap-2 mt-3">
                 {/* Compteur de position */}
                 <div className="text-xs font-semibold text-gray-600">
                   {currentDayIndex + 1} / {getWeekDays().length}

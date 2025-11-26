@@ -225,27 +225,29 @@ export function Navigation({ isOpen, onClose, onCollapseChange }: NavigationProp
         ))}
       </nav>
 
-      {/* Bouton de déconnexion fixé en bas */}
-      <div className="border-t border-slate-200/60 bg-slate-50/50 p-3 mt-auto">
-        <Button 
-          variant="outline" 
-          className="w-full text-slate-700 hover:text-red-600 hover:border-red-200 hover:bg-red-50 transition-all duration-300 border-slate-200 hover:shadow-sm justify-start text-sm py-2.5"
-          onClick={handleLogout}
-          disabled={isLoading}
-        >
-          {isLoading ? (
-            <>
-              <div className="h-3.5 w-3.5 border-2 border-slate-400 border-t-transparent rounded-full animate-spin" />
-              <span className="ml-2.5">Déconnexion...</span>
-            </>
-          ) : (
-            <>
-              <LogOut className="h-3.5 w-3.5" />
-              <span className="ml-2.5">Se déconnecter</span>
-            </>
-          )}
-        </Button>
-      </div>
+      {/* Bouton de déconnexion fixé en bas - Affiché uniquement si connecté */}
+      {user && (
+        <div className="border-t border-slate-200/60 bg-slate-50/50 p-3 mt-auto">
+          <Button 
+            variant="outline" 
+            className="w-full text-slate-700 hover:text-red-600 hover:border-red-200 hover:bg-red-50 transition-all duration-300 border-slate-200 hover:shadow-sm justify-start text-sm py-2.5"
+            onClick={handleLogout}
+            disabled={isLoading}
+          >
+            {isLoading ? (
+              <>
+                <div className="h-3.5 w-3.5 border-2 border-slate-400 border-t-transparent rounded-full animate-spin" />
+                <span className="ml-2.5">Déconnexion...</span>
+              </>
+            ) : (
+              <>
+                <LogOut className="h-3.5 w-3.5" />
+                <span className="ml-2.5">Se déconnecter</span>
+              </>
+            )}
+          </Button>
+        </div>
+      )}
     </div>
   )
 
@@ -264,7 +266,10 @@ export function Navigation({ isOpen, onClose, onCollapseChange }: NavigationProp
         </Button>
       </div>
 
-      <nav className="flex-1 px-2 sm:px-3 lg:px-4 pt-3 sm:pt-4 space-y-6 sm:space-y-8 overflow-y-auto">
+      <nav className={cn(
+        "flex-1 pt-3 sm:pt-4 space-y-6 sm:space-y-8 overflow-y-auto",
+        isCollapsed ? "px-1 sm:px-1" : "px-2 sm:px-3 lg:px-4"
+      )}>
         {navigationSections.map((section) => (
           <div key={section.title} className="space-y-2 sm:space-y-3">
             {!isCollapsed && (
@@ -290,11 +295,14 @@ export function Navigation({ isOpen, onClose, onCollapseChange }: NavigationProp
                       if (onClose) onClose()
                     }}
                     className={cn(
-                      "group flex items-center justify-between px-2 sm:px-3 py-2 sm:py-3 text-xs sm:text-sm font-medium rounded-lg sm:rounded-xl transition-all duration-300 relative overflow-hidden",
+                      "group flex items-center transition-all duration-300 relative overflow-hidden",
+                      isCollapsed 
+                        ? "justify-center px-1 py-2 sm:py-2.5" 
+                        : "justify-between px-2 sm:px-3 py-2 sm:py-3",
+                      "text-xs sm:text-sm font-medium rounded-lg sm:rounded-xl",
                       isActive
                         ? "bg-gradient-to-r from-blue-50 to-indigo-50 text-blue-700 shadow-sm border border-blue-200/50"
-                        : "text-slate-700 hover:bg-slate-50 hover:text-slate-900 hover:shadow-sm",
-                      isCollapsed ? "justify-center" : ""
+                        : "text-slate-700 hover:bg-slate-50 hover:text-slate-900 hover:shadow-sm"
                     )}
                     title={isCollapsed ? item.name : undefined}
                   >
@@ -304,14 +312,20 @@ export function Navigation({ isOpen, onClose, onCollapseChange }: NavigationProp
                       "group-hover:opacity-100"
                     )} />
                     
-                    <div className="flex items-center relative z-10">
+                    <div className={cn(
+                      "flex items-center relative z-10",
+                      isCollapsed ? "justify-center w-full" : ""
+                    )}>
                       <div className={cn(
-                        "p-1.5 sm:p-2 rounded-md sm:rounded-lg transition-all duration-300",
+                        "rounded-md sm:rounded-lg transition-all duration-300",
+                        isCollapsed ? "p-1.5 sm:p-2" : "p-1.5 sm:p-2",
                         isActive 
                           ? "bg-blue-100 text-blue-600 shadow-sm" 
                           : "bg-slate-100 text-slate-500 group-hover:bg-blue-100 group-hover:text-blue-600"
                       )}>
-                        <Icon className="h-3.5 w-3.5 sm:h-4 sm:w-4" />
+                        <Icon className={cn(
+                          isCollapsed ? "h-4 w-4 sm:h-5 sm:w-5" : "h-3.5 w-3.5 sm:h-4 sm:w-4"
+                        )} />
                       </div>
                       {!isCollapsed && (
                         <span className="ml-2 sm:ml-3 font-medium text-xs sm:text-sm">{item.name}</span>
@@ -333,31 +347,33 @@ export function Navigation({ isOpen, onClose, onCollapseChange }: NavigationProp
         ))}
       </nav>
 
-      {/* Bouton de déconnexion fixé en bas - Responsive */}
-      <div className="border-t border-slate-200/60 bg-slate-50/50 p-2 sm:p-3 lg:p-4 mt-auto">
-        <Button 
-          variant="outline" 
-          className={cn(
-            "w-full text-slate-700 hover:text-red-600 hover:border-red-200 hover:bg-red-50 transition-all duration-300 border-slate-200 hover:shadow-sm text-xs sm:text-sm",
-            isCollapsed ? "justify-center" : "justify-start"
-          )}
-          onClick={handleLogout}
-          disabled={isLoading}
-          title={isCollapsed ? "Se déconnecter" : undefined}
-        >
-          {isLoading ? (
-            <>
-              <div className="h-3 w-3 sm:h-4 sm:w-4 border-2 border-slate-400 border-t-transparent rounded-full animate-spin" />
-              {!isCollapsed && <span className="ml-2 sm:ml-3">Déconnexion...</span>}
-            </>
-          ) : (
-            <>
-              <LogOut className="h-3.5 w-3.5 sm:h-4 sm:w-4" />
-              {!isCollapsed && <span className="ml-2 sm:ml-3">Se déconnecter</span>}
-            </>
-          )}
-        </Button>
-      </div>
+      {/* Bouton de déconnexion fixé en bas - Responsive - Affiché uniquement si connecté */}
+      {user && (
+        <div className="border-t border-slate-200/60 bg-slate-50/50 p-2 sm:p-3 lg:p-4 mt-auto">
+          <Button 
+            variant="outline" 
+            className={cn(
+              "w-full text-slate-700 hover:text-red-600 hover:border-red-200 hover:bg-red-50 transition-all duration-300 border-slate-200 hover:shadow-sm text-xs sm:text-sm",
+              isCollapsed ? "justify-center" : "justify-start"
+            )}
+            onClick={handleLogout}
+            disabled={isLoading}
+            title={isCollapsed ? "Se déconnecter" : undefined}
+          >
+            {isLoading ? (
+              <>
+                <div className="h-3 w-3 sm:h-4 sm:w-4 border-2 border-slate-400 border-t-transparent rounded-full animate-spin" />
+                {!isCollapsed && <span className="ml-2 sm:ml-3">Déconnexion...</span>}
+              </>
+            ) : (
+              <>
+                <LogOut className="h-3.5 w-3.5 sm:h-4 sm:w-4" />
+                {!isCollapsed && <span className="ml-2 sm:ml-3">Se déconnecter</span>}
+              </>
+            )}
+          </Button>
+        </div>
+      )}
     </div>
   )
 

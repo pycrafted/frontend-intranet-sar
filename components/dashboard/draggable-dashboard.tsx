@@ -94,7 +94,7 @@ const WIDGET_CONFIG: Record<string, { size: string; component: React.ComponentTy
     title: 'Boîte à Idées' 
   },
   menu: { 
-    size: 'full', 
+    size: 'large', 
     component: RestaurantMenu, 
     title: 'Menu de la Semaine' 
   },
@@ -286,8 +286,12 @@ export function DraggableDashboard() {
     })
   )
 
-  // Fonction de migration pour convertir les anciens types
+  // Fonction de migration pour convertir les anciens types et s'assurer que tous les widgets existent
   const migrateWidgets = (widgets: any[]): DashboardWidget[] => {
+    const defaultWidgets = getDefaultWidgets()
+    const defaultWidgetsMap = new Map(defaultWidgets.map(w => [w.id, w]))
+    
+    // Migrer les widgets existants
     const migratedWidgets = widgets.map(widget => {
       // Migrer countdown vers ideas
       if (widget.type === 'countdown') {
@@ -300,153 +304,33 @@ export function DraggableDashboard() {
       return widget
     })
 
-    // S'assurer que le widget directeur existe
-    const hasDirectorWidget = migratedWidgets.some(widget => widget.type === 'director')
-    if (!hasDirectorWidget) {
-      // Trouver le plus petit ordre existant et placer le directeur avant
-      const minOrder = Math.min(...migratedWidgets.map(w => w.order), 1)
-      migratedWidgets.push({
-        id: 'director',
-        type: 'director',
-        title: 'Mot du Directeur',
-        size: 'small',
-        order: minOrder,
-        isVisible: true
-      })
+    // Créer un map des widgets migrés par ID
+    const migratedMap = new Map(migratedWidgets.map(w => [w.id, w]))
+
+    // Pour chaque widget par défaut, s'assurer qu'il existe avec la bonne configuration
+    const finalWidgets: DashboardWidget[] = []
+    
+    defaultWidgets.forEach(defaultWidget => {
+      const existingWidget = migratedMap.get(defaultWidget.id)
       
-      // Ajuster l'ordre des autres widgets
-      migratedWidgets.forEach(widget => {
-        if (widget.type !== 'director') {
-          widget.order = widget.order + 1
-        }
-      })
-    }
-
-
-
-    // S'assurer que le widget vidéo existe (juste avant sécurité)
-    const hasVideoWidget = migratedWidgets.some(widget => widget.type === 'video')
-    if (!hasVideoWidget) {
-      // Trouver l'ordre du widget sécurité et placer la vidéo juste avant
-      const safetyWidget = migratedWidgets.find(widget => widget.type === 'safety')
-      if (safetyWidget) {
-        const videoOrder = safetyWidget.order
-        // Décaler tous les widgets après la vidéo
-        migratedWidgets.forEach(widget => {
-          if (widget.order >= videoOrder) {
-            widget.order = widget.order + 1
-          }
-        })
-        // Ajouter le widget vidéo
-        migratedWidgets.push({
-          id: 'video',
-          type: 'video',
-          title: 'Vidéo SAR',
-          size: 'medium',
-          order: videoOrder,
-          isVisible: true
+      if (existingWidget) {
+        // Widget existe : conserver sa visibilité mais mettre à jour l'ordre et la taille selon la disposition par défaut
+        finalWidgets.push({
+          ...existingWidget,
+          order: defaultWidget.order,
+          size: defaultWidget.size,
+          title: defaultWidget.title
         })
       } else {
-        // Si pas de sécurité, ajouter à la fin
-        const maxOrder = Math.max(...migratedWidgets.map(w => w.order), 0)
-        migratedWidgets.push({
-          id: 'video',
-          type: 'video',
-          title: 'Vidéo SAR',
-          size: 'medium',
-          order: maxOrder + 1,
-          isVisible: true
-        })
+        // Widget n'existe pas : l'ajouter avec la configuration par défaut
+        finalWidgets.push(defaultWidget)
       }
-    }
+    })
 
-    // S'assurer que le widget calendrier existe
-    const hasCalendarWidget = migratedWidgets.some(widget => widget.type === 'calendar')
-    if (!hasCalendarWidget) {
-      const maxOrder = Math.max(...migratedWidgets.map(w => w.order), 0)
-      migratedWidgets.push({
-        id: 'calendar',
-        type: 'calendar',
-        title: 'Calendrier des Événements',
-        size: 'medium',
-        order: maxOrder + 1,
-        isVisible: true
-      })
-    }
+    // Trier par ordre pour s'assurer que l'ordre est correct
+    finalWidgets.sort((a, b) => a.order - b.order)
 
-    // S'assurer que le widget recrutement existe
-    const hasRecruitmentWidget = migratedWidgets.some(widget => widget.type === 'recruitment')
-    if (!hasRecruitmentWidget) {
-      // Placer le widget recrutement après le directeur
-      const directorWidget = migratedWidgets.find(widget => widget.type === 'director')
-      if (directorWidget) {
-        const recruitmentOrder = directorWidget.order + 1
-        // Décaler tous les widgets après le recrutement
-        migratedWidgets.forEach(widget => {
-          if (widget.order >= recruitmentOrder) {
-            widget.order = widget.order + 1
-          }
-        })
-        // Ajouter le widget recrutement
-        migratedWidgets.push({
-          id: 'recruitment',
-          type: 'recruitment',
-          title: 'Recrutements Internes',
-          size: 'medium',
-          order: recruitmentOrder,
-          isVisible: true
-        })
-      } else {
-        // Si pas de directeur, ajouter à la fin
-        const maxOrder = Math.max(...migratedWidgets.map(w => w.order), 0)
-        migratedWidgets.push({
-          id: 'recruitment',
-          type: 'recruitment',
-          title: 'Recrutements Internes',
-          size: 'medium',
-          order: maxOrder + 1,
-          isVisible: true
-        })
-      }
-    }
-
-    // S'assurer que le widget projets existe
-    const hasProjectsWidget = migratedWidgets.some(widget => widget.type === 'projects')
-    if (!hasProjectsWidget) {
-      // Placer le widget projets après le recrutement
-      const recruitmentWidget = migratedWidgets.find(widget => widget.type === 'recruitment')
-      if (recruitmentWidget) {
-        const projectsOrder = recruitmentWidget.order + 1
-        // Décaler tous les widgets après les projets
-        migratedWidgets.forEach(widget => {
-          if (widget.order >= projectsOrder) {
-            widget.order = widget.order + 1
-          }
-        })
-        // Ajouter le widget projets
-        migratedWidgets.push({
-          id: 'projects',
-          type: 'projects',
-          title: 'Projets',
-          size: 'medium',
-          order: projectsOrder,
-          isVisible: true
-        })
-      } else {
-        // Si pas de recrutement, ajouter à la fin
-        const maxOrder = Math.max(...migratedWidgets.map(w => w.order), 0)
-        migratedWidgets.push({
-          id: 'projects',
-          type: 'projects',
-          title: 'Projets',
-          size: 'medium',
-          order: maxOrder + 1,
-          isVisible: true
-        })
-      }
-    }
-
-    return migratedWidgets
+    return finalWidgets
   }
 
   // Initialiser les widgets au montage
@@ -455,7 +339,7 @@ export function DraggableDashboard() {
     
     // Vérifier la version des widgets et forcer la migration si nécessaire
     const widgetVersion = localStorage.getItem('dashboard-widgets-version')
-    const currentVersion = '5.0' // Version avec widget projets
+    const currentVersion = '6.0' // Version avec nouvelle disposition par défaut (menu en large, ordre mis à jour)
     
     // Charger la configuration sauvegardée ou utiliser la configuration par défaut
     const savedWidgets = localStorage.getItem('dashboard-widgets')
@@ -470,7 +354,7 @@ export function DraggableDashboard() {
         localStorage.setItem('dashboard-widgets-version', currentVersion)
       }
     } else {
-      // Utiliser les widgets par défaut et marquer la version
+      // Version différente ou pas de sauvegarde : utiliser les widgets par défaut et marquer la version
       setWidgets(getDefaultWidgets())
       localStorage.setItem('dashboard-widgets-version', currentVersion)
     }
@@ -480,12 +364,25 @@ export function DraggableDashboard() {
   // Sauvegarder les widgets quand ils changent
   useEffect(() => {
     if (isClient && widgets.length > 0) {
+      const menuWidget = widgets.find(w => w.id === 'menu' || w.type === 'menu')
+      console.log('[DraggableDashboard] 💾 Sauvegarde des widgets dans localStorage')
+      console.log('[DraggableDashboard] 🍽️ Widget menu:', menuWidget ? `size: ${menuWidget.size}` : 'non trouvé')
+      console.log('[DraggableDashboard] 📋 Tous les widgets:', widgets.map(w => ({ id: w.id, type: w.type, size: w.size })))
+      
       localStorage.setItem('dashboard-widgets', JSON.stringify(widgets))
+      
+      // Déclencher un événement personnalisé pour notifier les composants des changements
+      console.log('[DraggableDashboard] 🔔 Déclenchement de l\'événement dashboard-widgets-changed')
+      window.dispatchEvent(new Event('dashboard-widgets-changed'))
     }
   }, [widgets, isClient])
 
   // Fonction pour gérer les changements de widgets avec notifications
   const handleWidgetsChange = (newWidgets: DashboardWidget[]) => {
+    console.log('[DraggableDashboard] 🔄 handleWidgetsChange appelé avec', newWidgets.length, 'widgets')
+    const menuWidget = newWidgets.find(w => w.id === 'menu' || w.type === 'menu')
+    console.log('[DraggableDashboard] 🍽️ Widget menu dans les nouveaux widgets:', menuWidget ? `size: ${menuWidget.size}` : 'non trouvé')
+    
     const oldCount = widgets.length
     const newCount = newWidgets.length
     
@@ -495,6 +392,7 @@ export function DraggableDashboard() {
       success('Carte supprimée', 'La carte a été retirée de votre dashboard')
     }
     
+    console.log('[DraggableDashboard] ✅ Mise à jour du state widgets')
     setWidgets(newWidgets)
   }
 
@@ -511,12 +409,12 @@ export function DraggableDashboard() {
       { id: 'director', type: 'director', title: 'Mot du Directeur', size: 'medium', order: 2, isVisible: true },
       { id: 'news', type: 'news', title: 'Actualités', size: 'medium', order: 3, isVisible: true },
       { id: 'apps', type: 'apps', title: 'Accès Rapide', size: 'large', order: 4, isVisible: true },
-      { id: 'safety', type: 'safety', title: 'Sécurité du Travail', size: 'medium', order: 5, isVisible: true },
+      { id: 'projects', type: 'projects', title: 'Projets', size: 'medium', order: 5, isVisible: true },
       { id: 'recruitment', type: 'recruitment', title: 'Recrutements Internes', size: 'medium', order: 6, isVisible: true },
-      { id: 'projects', type: 'projects', title: 'Projets', size: 'medium', order: 7, isVisible: true },
+      { id: 'safety', type: 'safety', title: 'Sécurité du Travail', size: 'medium', order: 7, isVisible: true },
       { id: 'calendar', type: 'calendar', title: 'Événements', size: 'medium', order: 8, isVisible: true },
-      { id: 'ideas', type: 'ideas', title: 'Boîte à Idées', size: 'medium', order: 9, isVisible: true },
-      { id: 'menu', type: 'menu', title: 'Menu de la Semaine', size: 'full', order: 10, isVisible: true },
+      { id: 'menu', type: 'menu', title: 'Menu de la Semaine', size: 'large', order: 9, isVisible: true },
+      { id: 'ideas', type: 'ideas', title: 'Boîte à Idées', size: 'medium', order: 10, isVisible: true },
     ]
   }
 
