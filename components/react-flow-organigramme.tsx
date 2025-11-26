@@ -333,183 +333,96 @@ const ReactFlowOrganigramme = forwardRef<ReactFlowOrganigrammeRef, ReactFlowOrga
         const sideCount = Math.floor(totalSubordinates / 2)
         
         const startY = y + config.verticalSpacing
-        
-        // Calculer les largeurs pour chaque côté
-        let leftWidth = 0
-        let rightWidth = 0
-        let centerCardWidth = 0
-        
-        // Si carte centrale, calculer sa largeur
-        if (hasCenterCard) {
-          centerCardWidth = childWidths[sideCount]
-        }
-        
-        // Largeur totale à gauche
-        for (let i = 0; i < sideCount; i++) {
-          leftWidth += childWidths[i]
-          if (i < sideCount - 1) {
-            leftWidth += horizontalSpacing
-          }
-        }
-        
-        // Largeur totale à droite (en sautant la carte centrale si elle existe)
         const rightStartIndex = hasCenterCard ? sideCount + 1 : sideCount
-        for (let i = rightStartIndex; i < totalSubordinates; i++) {
-          rightWidth += childWidths[i]
-          if (i < totalSubordinates - 1) {
-            rightWidth += horizontalSpacing
+        
+        // SOLUTION HYBRIDE : Positionner avec largeur fixe pour distances égales, puis ajuster pour éviter chevauchements
+        
+        // Étape 1 : Calculer les positions initiales avec config.nodeWidth (largeur fixe) pour avoir des distances égales
+        const fixedCardWidth = config.nodeWidth
+        const initialPositions: number[] = []
+        
+        if (hasCenterCard) {
+          // NOMBRE IMPAIR : carte centrale + répartition équitable
+          // Positionner les cartes à gauche (de droite à gauche)
+          // La dernière carte à gauche doit être à horizontalSpacing de la carte centrale
+          let currentX = x - fixedCardWidth / 2 - horizontalSpacing
+          for (let i = sideCount - 1; i >= 0; i--) {
+            initialPositions[i] = currentX
+            currentX -= fixedCardWidth + horizontalSpacing
+          }
+          
+          // Carte centrale alignée avec la branche verticale
+          initialPositions[sideCount] = x
+          
+          // Positionner les cartes à droite (de gauche à droite)
+          currentX = x + fixedCardWidth / 2 + horizontalSpacing
+          for (let i = rightStartIndex; i < totalSubordinates; i++) {
+            initialPositions[i] = currentX
+            currentX += fixedCardWidth + horizontalSpacing
+          }
+        } else {
+          // NOMBRE PAIR : symétrie parfaite
+          // La branche verticale (x) est au milieu entre les deux cartes centrales
+          // Positionner les cartes à gauche (de droite à gauche)
+          let currentX = x - horizontalSpacing / 2 - fixedCardWidth / 2
+          for (let i = sideCount - 1; i >= 0; i--) {
+            initialPositions[i] = currentX
+            currentX -= fixedCardWidth + horizontalSpacing
+          }
+          
+          // Positionner les cartes à droite (de gauche à droite)
+          currentX = x + horizontalSpacing / 2 + fixedCardWidth / 2
+          for (let i = rightStartIndex; i < totalSubordinates; i++) {
+            initialPositions[i] = currentX
+            currentX += fixedCardWidth + horizontalSpacing
           }
         }
         
-        // Espacement régulier : même espacement partout
-        const centerGap = horizontalSpacing  // Espacement entre les groupes et la carte centrale
+        // Étape 2 : Ajuster les positions pour éviter les chevauchements entre sous-arbres
+        const finalPositions: number[] = [...initialPositions]
         
-        // Positionner les subordonnés selon la répartition équitable
-        // Si nombre pair : symétrie parfaite autour du centre
-        // Si nombre impair : carte centrale + symétrie de chaque côté
-        
-        if (hasCenterCard) {
-          // NOMBRE IMPAIR : carte centrale + répartition équitable de chaque côté
+        // Vérifier et ajuster les chevauchements de gauche à droite
+        for (let i = 0; i < totalSubordinates - 1; i++) {
+          const currentPos = finalPositions[i]
+          const currentSubtreeWidth = childWidths[i]
+          const currentRightEdge = currentPos + currentSubtreeWidth / 2
           
-          // Positionner les cartes à gauche (de droite à gauche)
-          let currentX = x - centerCardWidth / 2 - centerGap - leftWidth
-          for (let i = sideCount - 1; i >= 0; i--) {
-            const sub = subordinates[i]
-            const subWidth = childWidths[i]
-            const subX = currentX + subWidth / 2 - config.nodeWidth / 2
-            const subY = startY
+          const nextPos = finalPositions[i + 1]
+          const nextSubtreeWidth = childWidths[i + 1]
+          const nextLeftEdge = nextPos - nextSubtreeWidth / 2
+          
+          // Si chevauchement détecté
+          if (currentRightEdge + horizontalSpacing > nextLeftEdge) {
+            // Calculer la position minimale pour éviter le chevauchement
+            const minRequiredPos = currentRightEdge + horizontalSpacing + nextSubtreeWidth / 2
             
-            const subResult = buildHierarchy(sub, level + 1, subX, subY)
-            nodes.push(...subResult.nodes)
-            edges.push(...subResult.edges)
-            
-            if (isExpanded) {
-              edges.push({
-                id: `e-${employee.id}-${sub.id}`,
-                source: employee.id.toString(),
-                target: sub.id.toString(),
-                type: "custom",
-                data: { isHighlighted: false }
-              })
+            // Décaler la carte suivante et toutes celles après
+            const offset = minRequiredPos - nextPos
+            for (let j = i + 1; j < totalSubordinates; j++) {
+              finalPositions[j] += offset
             }
-            
-            currentX += subWidth + horizontalSpacing
           }
+        }
+        
+        // Étape 3 : Positionner toutes les cartes avec les positions finales ajustées
+        subordinates.forEach((sub, index) => {
+          const subX = finalPositions[index]
+          const subY = startY
           
-          // Positionner la carte centrale
-          const centerSub = subordinates[sideCount]
-          const centerSubWidth = childWidths[sideCount]
-          const centerSubX = x  // Exactement au centre du parent
-          const centerSubY = startY
-          
-          const centerResult = buildHierarchy(centerSub, level + 1, centerSubX, centerSubY)
-          nodes.push(...centerResult.nodes)
-          edges.push(...centerResult.edges)
+          const subResult = buildHierarchy(sub, level + 1, subX, subY)
+          nodes.push(...subResult.nodes)
+          edges.push(...subResult.edges)
           
           if (isExpanded) {
             edges.push({
-              id: `e-${employee.id}-${centerSub.id}`,
+              id: `e-${employee.id}-${sub.id}`,
               source: employee.id.toString(),
-              target: centerSub.id.toString(),
+              target: sub.id.toString(),
               type: "custom",
               data: { isHighlighted: false }
             })
           }
-          
-          // Positionner les cartes à droite (de gauche à droite)
-          currentX = x + centerCardWidth / 2 + centerGap
-          for (let i = rightStartIndex; i < totalSubordinates; i++) {
-            const sub = subordinates[i]
-            const subWidth = childWidths[i]
-            const subX = currentX + subWidth / 2 - config.nodeWidth / 2
-            const subY = startY
-            
-            const subResult = buildHierarchy(sub, level + 1, subX, subY)
-            nodes.push(...subResult.nodes)
-            edges.push(...subResult.edges)
-            
-            if (isExpanded) {
-              edges.push({
-                id: `e-${employee.id}-${sub.id}`,
-                source: employee.id.toString(),
-                target: sub.id.toString(),
-                type: "custom",
-                data: { isHighlighted: false }
-              })
-            }
-            
-            currentX += subWidth + horizontalSpacing
-          }
-        } else {
-          // NOMBRE PAIR : symétrie parfaite, pas de carte centrale
-          // La branche verticale (x) doit être au milieu entre les deux cartes centrales
-          // Exemple avec 4 cartes A, B, C, D : la branche doit être entre B et C
-          // Distance égale entre toutes les cartes : A-B = B-C = C-D = horizontalSpacing
-          
-          // Calculer les positions de toutes les cartes de manière symétrique
-          // Pour 4 cartes : positions des centres = [x - 1.5*spacing - widths, x - 0.5*spacing - width, x + 0.5*spacing + width, x + 1.5*spacing + widths]
-          // Mais on doit tenir compte des largeurs réelles des cartes
-          
-          // Calculer la position de chaque carte individuellement pour garantir des distances égales
-          const cardPositions: number[] = []
-          
-          // Positionner les cartes à gauche (de droite à gauche, indices décroissants)
-          // La dernière carte à gauche (indice sideCount-1) doit avoir son bord droit à x - horizontalSpacing/2
-          for (let i = sideCount - 1; i >= 0; i--) {
-            const cardWidth = childWidths[i]
-            let cardCenterX: number
-            
-            if (i === sideCount - 1) {
-              // Dernière carte à gauche : son bord droit est à x - horizontalSpacing/2
-              cardCenterX = x - horizontalSpacing / 2 - cardWidth / 2
-            } else {
-              // Cartes précédentes : positionnées à gauche de la carte suivante avec espacement
-              const nextCardCenterX = cardPositions[0] // La première dans cardPositions est la plus à droite
-              cardCenterX = nextCardCenterX - cardWidth / 2 - horizontalSpacing - cardWidth / 2
-            }
-            
-            cardPositions.unshift(cardCenterX) // Ajouter au début pour garder l'ordre
-          }
-          
-          // Positionner les cartes à droite (de gauche à droite)
-          // La première carte à droite (indice rightStartIndex) doit avoir son bord gauche à x + horizontalSpacing/2
-          for (let i = rightStartIndex; i < totalSubordinates; i++) {
-            const cardWidth = childWidths[i]
-            let cardCenterX: number
-            
-            if (i === rightStartIndex) {
-              // Première carte à droite : son bord gauche est à x + horizontalSpacing/2
-              cardCenterX = x + horizontalSpacing / 2 + cardWidth / 2
-            } else {
-              // Cartes suivantes : positionnées à droite de la carte précédente avec espacement
-              const prevCardCenterX = cardPositions[cardPositions.length - 1]
-              const prevCardWidth = childWidths[i - 1]
-              cardCenterX = prevCardCenterX + prevCardWidth / 2 + horizontalSpacing + cardWidth / 2
-            }
-            
-            cardPositions.push(cardCenterX)
-          }
-          
-          // Maintenant positionner toutes les cartes avec leurs positions calculées
-          subordinates.forEach((sub, index) => {
-            const subX = cardPositions[index]
-            const subY = startY
-            
-            const subResult = buildHierarchy(sub, level + 1, subX, subY)
-            nodes.push(...subResult.nodes)
-            edges.push(...subResult.edges)
-            
-            if (isExpanded) {
-              edges.push({
-                id: `e-${employee.id}-${sub.id}`,
-                source: employee.id.toString(),
-                target: sub.id.toString(),
-                type: "custom",
-                data: { isHighlighted: false }
-              })
-            }
-          })
-        }
+        })
     }
 
     return { nodes, edges, optimalViewport: { x: 0, y: 0, zoom: 1 } }
