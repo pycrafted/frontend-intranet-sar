@@ -370,59 +370,13 @@ const ReactFlowOrganigramme = forwardRef<ReactFlowOrganigrammeRef, ReactFlowOrga
         
         if (hasCenterCard) {
           // NOMBRE IMPAIR : carte centrale + répartition équitable de chaque côté
-          // IMPORTANT : utiliser config.nodeWidth (largeur fixe) pour positionner les cartes, pas childWidths
-          // Exemple avec 3 cartes A, B, C : A à gauche, B au centre (aligné avec branche), C à droite
-          // Distance égale : A-B = B-C = horizontalSpacing
-          
-          const fixedCardWidth = config.nodeWidth // Largeur fixe de la carte, indépendante des enfants
-          
-          // Calculer les positions en utilisant uniquement la largeur fixe
-          const cardPositions: number[] = []
           
           // Positionner les cartes à gauche (de droite à gauche)
-          // La dernière carte à gauche doit être à horizontalSpacing de la carte centrale
+          let currentX = x - centerCardWidth / 2 - centerGap - leftWidth
           for (let i = sideCount - 1; i >= 0; i--) {
-            let cardCenterX: number
-            
-            if (i === sideCount - 1) {
-              // Dernière carte à gauche : son bord droit est à x - horizontalSpacing/2 - fixedCardWidth/2
-              // Mais on veut que la distance entre cette carte et la carte centrale soit horizontalSpacing
-              // Donc : cardCenterX + fixedCardWidth/2 + horizontalSpacing = x - fixedCardWidth/2
-              // Donc : cardCenterX = x - fixedCardWidth - horizontalSpacing
-              cardCenterX = x - fixedCardWidth - horizontalSpacing
-            } else {
-              // Cartes précédentes : positionnées à gauche de la carte suivante avec espacement fixe
-              const nextCardCenterX = cardPositions[0]
-              cardCenterX = nextCardCenterX - fixedCardWidth - horizontalSpacing
-            }
-            
-            cardPositions.unshift(cardCenterX)
-          }
-          
-          // Positionner la carte centrale (alignée avec la branche verticale)
-          cardPositions.push(x) // La carte centrale est exactement à x (alignée avec la branche)
-          
-          // Positionner les cartes à droite (de gauche à droite)
-          // La première carte à droite doit être à horizontalSpacing de la carte centrale
-          for (let i = rightStartIndex; i < totalSubordinates; i++) {
-            let cardCenterX: number
-            
-            if (i === rightStartIndex) {
-              // Première carte à droite : son bord gauche est à x + fixedCardWidth/2 + horizontalSpacing
-              // Donc : cardCenterX = x + fixedCardWidth + horizontalSpacing
-              cardCenterX = x + fixedCardWidth + horizontalSpacing
-            } else {
-              // Cartes suivantes : positionnées à droite de la carte précédente avec espacement fixe
-              const prevCardCenterX = cardPositions[cardPositions.length - 1]
-              cardCenterX = prevCardCenterX + fixedCardWidth + horizontalSpacing
-            }
-            
-            cardPositions.push(cardCenterX)
-          }
-          
-          // Maintenant positionner toutes les cartes avec leurs positions calculées
-          subordinates.forEach((sub, index) => {
-            const subX = cardPositions[index]
+            const sub = subordinates[i]
+            const subWidth = childWidths[i]
+            const subX = currentX + subWidth / 2 - config.nodeWidth / 2
             const subY = startY
             
             const subResult = buildHierarchy(sub, level + 1, subX, subY)
@@ -438,31 +392,80 @@ const ReactFlowOrganigramme = forwardRef<ReactFlowOrganigrammeRef, ReactFlowOrga
                 data: { isHighlighted: false }
               })
             }
-          })
+            
+            currentX += subWidth + horizontalSpacing
+          }
+          
+          // Positionner la carte centrale
+          const centerSub = subordinates[sideCount]
+          const centerSubWidth = childWidths[sideCount]
+          const centerSubX = x  // Exactement au centre du parent
+          const centerSubY = startY
+          
+          const centerResult = buildHierarchy(centerSub, level + 1, centerSubX, centerSubY)
+          nodes.push(...centerResult.nodes)
+          edges.push(...centerResult.edges)
+          
+          if (isExpanded) {
+            edges.push({
+              id: `e-${employee.id}-${centerSub.id}`,
+              source: employee.id.toString(),
+              target: centerSub.id.toString(),
+              type: "custom",
+              data: { isHighlighted: false }
+            })
+          }
+          
+          // Positionner les cartes à droite (de gauche à droite)
+          currentX = x + centerCardWidth / 2 + centerGap
+          for (let i = rightStartIndex; i < totalSubordinates; i++) {
+            const sub = subordinates[i]
+            const subWidth = childWidths[i]
+            const subX = currentX + subWidth / 2 - config.nodeWidth / 2
+            const subY = startY
+            
+            const subResult = buildHierarchy(sub, level + 1, subX, subY)
+            nodes.push(...subResult.nodes)
+            edges.push(...subResult.edges)
+            
+            if (isExpanded) {
+              edges.push({
+                id: `e-${employee.id}-${sub.id}`,
+                source: employee.id.toString(),
+                target: sub.id.toString(),
+                type: "custom",
+                data: { isHighlighted: false }
+              })
+            }
+            
+            currentX += subWidth + horizontalSpacing
+          }
         } else {
           // NOMBRE PAIR : symétrie parfaite, pas de carte centrale
           // La branche verticale (x) doit être au milieu entre les deux cartes centrales
           // Exemple avec 4 cartes A, B, C, D : la branche doit être entre B et C
           // Distance égale entre toutes les cartes : A-B = B-C = C-D = horizontalSpacing
-          // IMPORTANT : utiliser config.nodeWidth (largeur fixe de la carte) et non childWidths (largeur totale du sous-arbre)
           
-          const fixedCardWidth = config.nodeWidth // Largeur fixe de la carte, indépendante des enfants
+          // Calculer les positions de toutes les cartes de manière symétrique
+          // Pour 4 cartes : positions des centres = [x - 1.5*spacing - widths, x - 0.5*spacing - width, x + 0.5*spacing + width, x + 1.5*spacing + widths]
+          // Mais on doit tenir compte des largeurs réelles des cartes
           
-          // Calculer les positions en utilisant uniquement la largeur fixe de la carte
+          // Calculer la position de chaque carte individuellement pour garantir des distances égales
           const cardPositions: number[] = []
           
           // Positionner les cartes à gauche (de droite à gauche, indices décroissants)
           // La dernière carte à gauche (indice sideCount-1) doit avoir son bord droit à x - horizontalSpacing/2
           for (let i = sideCount - 1; i >= 0; i--) {
+            const cardWidth = childWidths[i]
             let cardCenterX: number
             
             if (i === sideCount - 1) {
               // Dernière carte à gauche : son bord droit est à x - horizontalSpacing/2
-              cardCenterX = x - horizontalSpacing / 2 - fixedCardWidth / 2
+              cardCenterX = x - horizontalSpacing / 2 - cardWidth / 2
             } else {
-              // Cartes précédentes : positionnées à gauche de la carte suivante avec espacement fixe
+              // Cartes précédentes : positionnées à gauche de la carte suivante avec espacement
               const nextCardCenterX = cardPositions[0] // La première dans cardPositions est la plus à droite
-              cardCenterX = nextCardCenterX - fixedCardWidth / 2 - horizontalSpacing - fixedCardWidth / 2
+              cardCenterX = nextCardCenterX - cardWidth / 2 - horizontalSpacing - cardWidth / 2
             }
             
             cardPositions.unshift(cardCenterX) // Ajouter au début pour garder l'ordre
@@ -471,15 +474,17 @@ const ReactFlowOrganigramme = forwardRef<ReactFlowOrganigrammeRef, ReactFlowOrga
           // Positionner les cartes à droite (de gauche à droite)
           // La première carte à droite (indice rightStartIndex) doit avoir son bord gauche à x + horizontalSpacing/2
           for (let i = rightStartIndex; i < totalSubordinates; i++) {
+            const cardWidth = childWidths[i]
             let cardCenterX: number
             
             if (i === rightStartIndex) {
               // Première carte à droite : son bord gauche est à x + horizontalSpacing/2
-              cardCenterX = x + horizontalSpacing / 2 + fixedCardWidth / 2
+              cardCenterX = x + horizontalSpacing / 2 + cardWidth / 2
             } else {
-              // Cartes suivantes : positionnées à droite de la carte précédente avec espacement fixe
+              // Cartes suivantes : positionnées à droite de la carte précédente avec espacement
               const prevCardCenterX = cardPositions[cardPositions.length - 1]
-              cardCenterX = prevCardCenterX + fixedCardWidth / 2 + horizontalSpacing + fixedCardWidth / 2
+              const prevCardWidth = childWidths[i - 1]
+              cardCenterX = prevCardCenterX + prevCardWidth / 2 + horizontalSpacing + cardWidth / 2
             }
             
             cardPositions.push(cardCenterX)
