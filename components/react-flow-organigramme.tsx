@@ -51,56 +51,6 @@ const ReactFlowOrganigramme = forwardRef<ReactFlowOrganigrammeRef, ReactFlowOrga
   const [viewportCenter, setViewportCenter] = useState<{ x: number; y: number } | null>(null)
   const [isPanning, setIsPanning] = useState(false)
   const [panStartCenter, setPanStartCenter] = useState<{ x: number; y: number } | null>(null)
-  // État pour gérer l'expansion des niveaux (rendu conditionnel)
-  // Utiliser un Map pour que React détecte les changements
-  const [expandedNodes, setExpandedNodes] = useState<Map<number, boolean>>(new Map())
-  const [expansionVersion, setExpansionVersion] = useState(0) // Version pour forcer le re-render
-  
-  // Initialiser l'expansion des 2 premiers niveaux par défaut
-  useEffect(() => {
-    if (employees && employees.length > 0) {
-      const ceo = employees.find(emp => !emp.manager)
-      if (ceo) {
-        const initialExpanded = new Map<number, boolean>()
-        initialExpanded.set(ceo.id, true)
-        // Ajouter les n-1 du DG (niveau 1)
-        const level1 = employees.filter(emp => emp.manager === ceo.id)
-        level1.forEach(emp => initialExpanded.set(emp.id, true))
-        // Ajouter les n-2 du DG (niveau 2)
-        level1.forEach(emp => {
-          const level2 = employees.filter(e => e.manager === emp.id)
-          level2.forEach(e => initialExpanded.set(e.id, true))
-        })
-        setExpandedNodes(initialExpanded)
-        setExpansionVersion(prev => prev + 1)
-      }
-    }
-  }, [employees])
-  
-  // Fonction pour basculer l'expansion d'un nœud
-  const toggleNodeExpansion = useCallback((nodeId: number) => {
-    setExpandedNodes(prev => {
-      const newMap = new Map(prev)
-      const isCurrentlyExpanded = newMap.get(nodeId) || false
-      
-      if (isCurrentlyExpanded) {
-        // Si on ferme un nœud, fermer aussi tous ses descendants
-        const removeDescendants = (id: number) => {
-          const children = employees?.filter(e => e.manager === id) || []
-          children.forEach(child => {
-            newMap.delete(child.id)
-            removeDescendants(child.id)
-          })
-        }
-        newMap.delete(nodeId)
-        removeDescendants(nodeId)
-      } else {
-        newMap.set(nodeId, true)
-      }
-      return newMap
-    })
-    setExpansionVersion(prev => prev + 1)
-  }, [employees])
 
   // Debug: Log des employés reçus
   console.log('🎯 [REACT_FLOW] Employés reçus:', {
@@ -120,7 +70,7 @@ const ReactFlowOrganigramme = forwardRef<ReactFlowOrganigrammeRef, ReactFlowOrga
         nodeWidth: 240, // Taille fixe - ne varie pas selon le nombre de cartes
         nodeHeight: 300,
         horizontalSpacing: 280, // Gap adaptatif
-        verticalSpacing: 350,
+        verticalSpacing: 500, // Augmenté pour une ligne verticale plus longue
         zoom: 0.6,
         padding: 50,
         gridCols: 1
@@ -130,16 +80,17 @@ const ReactFlowOrganigramme = forwardRef<ReactFlowOrganigrammeRef, ReactFlowOrga
     const width = window.innerWidth
 
     // Configuration avec taille fixe des cartes et gap adaptatif
+    // Même configuration sur mobile et desktop pour permettre le scroll
     let config
     if (width < 640) {
-      // Mobile - pleine largeur, scroll vertical
+      // Mobile - même configuration que desktop pour permettre le scroll
       config = {
-        nodeWidth: 200, // Taille fixe sur mobile
-        nodeHeight: 240,
-        horizontalSpacing: 0, // Pas d'espacement horizontal sur mobile (vertical)
-        verticalSpacing: 250,
-        zoom: 1.0,
-        padding: 20,
+        nodeWidth: 240, // Même taille que desktop
+        nodeHeight: 300,
+        horizontalSpacing: 280, // Même espacement que desktop
+        verticalSpacing: 500, // Augmenté pour une ligne verticale plus longue
+        zoom: 0.6, // Même zoom que desktop pour voir tout l'organigramme
+        padding: 50,
         gridCols: 1
       }
     } else if (width < 768) {
@@ -148,7 +99,7 @@ const ReactFlowOrganigramme = forwardRef<ReactFlowOrganigrammeRef, ReactFlowOrga
         nodeWidth: 220, // Taille fixe
         nodeHeight: 260,
         horizontalSpacing: 280, // gap-4 sm:gap-6 équivalent
-        verticalSpacing: 300,
+        verticalSpacing: 450, // Augmenté pour une ligne verticale plus longue
         zoom: 0.9,
         padding: 30,
         gridCols: 2
@@ -159,7 +110,7 @@ const ReactFlowOrganigramme = forwardRef<ReactFlowOrganigrammeRef, ReactFlowOrga
         nodeWidth: 240, // Taille fixe - w-56 md:w-64 équivalent
         nodeHeight: 300,
         horizontalSpacing: 300, // gap-6 md:gap-8 équivalent
-        verticalSpacing: 350,
+        verticalSpacing: 500, // Augmenté pour une ligne verticale plus longue
         zoom: 0.8,
         padding: 40,
         gridCols: 3
@@ -170,7 +121,7 @@ const ReactFlowOrganigramme = forwardRef<ReactFlowOrganigrammeRef, ReactFlowOrga
         nodeWidth: 240, // w-56 md:w-64 - taille fixe
         nodeHeight: 300,
         horizontalSpacing: 320, // gap-8
-        verticalSpacing: 380,
+        verticalSpacing: 550, // Augmenté pour une ligne verticale plus longue
         zoom: 0.7,
         padding: 50,
         gridCols: 4
@@ -181,7 +132,7 @@ const ReactFlowOrganigramme = forwardRef<ReactFlowOrganigrammeRef, ReactFlowOrga
         nodeWidth: 256, // w-64 - taille fixe
         nodeHeight: 320,
         horizontalSpacing: 340,
-        verticalSpacing: 400,
+        verticalSpacing: 580, // Augmenté pour une ligne verticale plus longue
         zoom: 0.65,
         padding: 60,
         gridCols: 5
@@ -192,7 +143,7 @@ const ReactFlowOrganigramme = forwardRef<ReactFlowOrganigrammeRef, ReactFlowOrga
         nodeWidth: 256, // w-64 - taille fixe
         nodeHeight: 320,
         horizontalSpacing: 360,
-        verticalSpacing: 420,
+        verticalSpacing: 600, // Augmenté pour une ligne verticale plus longue
         zoom: 0.6,
         padding: 80,
         gridCols: 6
@@ -210,11 +161,7 @@ const ReactFlowOrganigramme = forwardRef<ReactFlowOrganigrammeRef, ReactFlowOrga
     const subordinates = employees?.filter(e => e.manager === emp.id) || []
     if (subordinates.length === 0) return config.nodeWidth
     
-    // Rendu conditionnel : ne calculer que si le nœud est expansé
-    const isExpanded = expandedNodes.get(emp.id) || level < 2
-    if (!isExpanded) return config.nodeWidth // Si pas expansé, retourner juste la largeur du nœud
-    
-    // Calculer la largeur totale nécessaire pour tous les subordonnés (seulement si expansé)
+    // Calculer la largeur totale nécessaire pour tous les subordonnés
     const childWidths: number[] = []
     subordinates.forEach(sub => {
       const subWidth = calculateTotalWidth(sub, level + 1)
@@ -270,11 +217,8 @@ const ReactFlowOrganigramme = forwardRef<ReactFlowOrganigrammeRef, ReactFlowOrga
     setHoveredNodeId(null)
   }, [])
 
-  // Fonction pour construire la hiérarchie avec rendu conditionnel (expansion)
+  // Fonction pour construire la hiérarchie (tous les nœuds sont toujours affichés)
   const buildHierarchy = (employee: Employee, level: number = 0, x: number = 0, y: number = 0): { nodes: Node[], edges: Edge[], optimalViewport: { x: number, y: number, zoom: number } } => {
-      // Rendu conditionnel : ne rendre que si le nœud est expansé (ou niveau < 2 par défaut)
-      const isExpanded = expandedNodes.get(employee.id) || level < 2
-      
       const node: Node = {
         id: employee.id.toString(),
         type: "employee",
@@ -289,9 +233,6 @@ const ReactFlowOrganigramme = forwardRef<ReactFlowOrganigrammeRef, ReactFlowOrga
         onMouseLeave: handleMouseLeave,
           isHighlighted: false,
         config: config, // Passer la config au composant
-        isExpanded: isExpanded,
-        hasChildren: false, // Sera mis à jour ci-dessous
-        onToggleExpand: () => toggleNodeExpansion(employee.id),
         },
       }
 
@@ -301,11 +242,8 @@ const ReactFlowOrganigramme = forwardRef<ReactFlowOrganigrammeRef, ReactFlowOrga
       // Trouver les subordonnés
     const subordinates = employees?.filter(emp => emp.manager === employee.id) || []
       
-      // Mettre à jour hasChildren dans les données du nœud
-      node.data.hasChildren = subordinates.length > 0
-      
-      // Rendu conditionnel : ne rendre les subordonnés que si le nœud est expansé
-      if (subordinates.length > 0 && isExpanded) {
+      // Toujours afficher tous les subordonnés
+      if (subordinates.length > 0) {
         // Design horizontal avec espacement optimisé pour permettre le scroll
         // Calculer la largeur totale nécessaire pour tous les subordonnés
         let totalChildrenWidth = 0
@@ -413,15 +351,14 @@ const ReactFlowOrganigramme = forwardRef<ReactFlowOrganigrammeRef, ReactFlowOrga
           nodes.push(...subResult.nodes)
           edges.push(...subResult.edges)
           
-          if (isExpanded) {
-            edges.push({
-              id: `e-${employee.id}-${sub.id}`,
-              source: employee.id.toString(),
-              target: sub.id.toString(),
-              type: "custom",
-              data: { isHighlighted: false }
-            })
-          }
+          // Toujours créer les edges pour connecter le parent à ses subordonnés
+          edges.push({
+            id: `e-${employee.id}-${sub.id}`,
+            source: employee.id.toString(),
+            target: sub.id.toString(),
+            type: "custom",
+            data: { isHighlighted: false }
+          })
         })
     }
 
@@ -608,7 +545,7 @@ const ReactFlowOrganigramme = forwardRef<ReactFlowOrganigrammeRef, ReactFlowOrga
     })
     
     return { ...result, optimalViewport: { x: 0, y: 0, zoom: 1 }, calculatedExtent }
-  }, [employees, config.horizontalSpacing, config.verticalSpacing, config.gridCols, expansionVersion, handleMouseEnter, handleMouseLeave])
+  }, [employees, config.horizontalSpacing, config.verticalSpacing, config.gridCols, handleMouseEnter, handleMouseLeave])
 
   const [nodesState, setNodes, onNodesChange] = useNodesState(nodes)
   const [edgesState, setEdges, onEdgesChange] = useEdgesState(edges)
@@ -904,7 +841,7 @@ const ReactFlowOrganigramme = forwardRef<ReactFlowOrganigrammeRef, ReactFlowOrga
     <div className="flex h-full w-full relative bg-gray-50">
       <div className="flex-1 flex flex-col h-full">
         <div 
-          className="flex-1 relative organigramme-container overflow-x-auto overflow-y-hidden" 
+          className="flex-1 relative organigramme-container overflow-auto" 
           ref={reactFlowWrapper}
           style={{
             touchAction: 'pan-x pan-y pinch-zoom',
@@ -913,6 +850,7 @@ const ReactFlowOrganigramme = forwardRef<ReactFlowOrganigrammeRef, ReactFlowOrga
             MozUserSelect: 'none',
             msUserSelect: 'none',
             minWidth: 'max-content', // Le conteneur prend la largeur minimale nécessaire
+            minHeight: 'max-content', // Le conteneur prend la hauteur minimale nécessaire
             height: '100%' // Prend toute la hauteur disponible
           }}
         >
@@ -1101,7 +1039,7 @@ const ReactFlowOrganigramme = forwardRef<ReactFlowOrganigrammeRef, ReactFlowOrga
                   return employee && !employee.manager ? '#f59e0b' : '#94a3b8'
                 }}
                 position="bottom-left"
-                className="!bottom-4 !left-4 !bg-white/90 !backdrop-blur-sm !border !border-gray-200 !rounded-lg !shadow-lg"
+                className="!bottom-4 !left-4 !bg-white/90 !backdrop-blur-sm !border !border-gray-200 !rounded-lg !shadow-lg hidden sm:block"
                 pannable
                 zoomable
               />

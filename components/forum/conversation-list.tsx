@@ -79,53 +79,55 @@ export function ConversationList({ conversations, onSelectConversation, forumId,
       </div>
 
       {conversations.length > 0 && (
-        <div className="space-y-3">
-          {conversations.map((conversation) => (
-            <div
-              key={conversation.id}
-              onClick={() => onSelectConversation(conversation)}
-              className="group rounded-lg border border-border bg-card p-4 transition-all hover:border-primary/50 hover:shadow-sm cursor-pointer"
-            >
-              <div className="flex gap-4">
-                <div className="flex-shrink-0">
-                  <div className="relative h-10 w-10 overflow-hidden rounded-full">
-                    <Image
-                      src={conversation.authorAvatar || "/placeholder.svg"}
-                      alt={conversation.author}
-                      fill
-                      className="object-cover"
-                    />
-                  </div>
-                </div>
-
-                <div className="flex-1 min-w-0">
-                  <div className="mb-2 flex items-start justify-between gap-3">
-                    <h4 className="font-medium text-foreground group-hover:text-primary transition-colors text-pretty">
-                      {conversation.message && conversation.message.length > 100 
-                        ? conversation.message.substring(0, 100) + "..." 
-                        : conversation.message || 'Sans message'}
-                    </h4>
+        <div className="rounded-lg border border-border bg-card overflow-hidden">
+          <div className="divide-y divide-border">
+            {conversations.map((conversation) => (
+              <div
+                key={conversation.id}
+                onClick={() => onSelectConversation(conversation)}
+                className="group p-4 transition-all hover:bg-muted/50 cursor-pointer"
+              >
+                <div className="flex gap-4">
+                  <div className="flex-shrink-0">
+                    <div className="relative h-10 w-10 overflow-hidden rounded-full">
+                      <Image
+                        src={conversation.authorAvatar || "/placeholder.svg"}
+                        alt={conversation.author}
+                        fill
+                        className="object-cover"
+                      />
+                    </div>
                   </div>
 
-                  <div className="mb-3 text-sm text-muted-foreground">
-                    Par <span className="font-medium">{conversation.author}</span>
-                  </div>
+                  <div className="flex-1 min-w-0">
+                    <div className="mb-2 flex items-start justify-between gap-3">
+                      <h4 className="font-medium text-foreground group-hover:text-primary transition-colors text-pretty">
+                        {conversation.message && conversation.message.length > 100 
+                          ? conversation.message.substring(0, 100) + "..." 
+                          : conversation.message || 'Sans message'}
+                      </h4>
+                    </div>
 
-                  <div className="flex items-center gap-4 text-xs text-muted-foreground">
-                    <span className="flex items-center gap-1">
-                      <MessageSquare className="h-3.5 w-3.5" />
-                      {conversation.replies} réponses
-                    </span>
-                    <span className="flex items-center gap-1">
-                      <Eye className="h-3.5 w-3.5" />
-                      {conversation.views} vues
-                    </span>
-                    <span className="ml-auto">{conversation.lastActivity}</span>
+                    <div className="mb-3 text-sm text-muted-foreground">
+                      Par <span className="font-medium">{conversation.author}</span>
+                    </div>
+
+                    <div className="flex items-center gap-4 text-xs text-muted-foreground">
+                      <span className="flex items-center gap-1">
+                        <MessageSquare className="h-3.5 w-3.5" />
+                        {conversation.replies} réponses
+                      </span>
+                      <span className="flex items-center gap-1">
+                        <Eye className="h-3.5 w-3.5" />
+                        {conversation.views} vues
+                      </span>
+                      <span className="ml-auto">{conversation.lastActivity}</span>
+                    </div>
                   </div>
                 </div>
               </div>
-            </div>
-          ))}
+            ))}
+          </div>
         </div>
       )}
       

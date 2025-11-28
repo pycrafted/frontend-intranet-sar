@@ -450,7 +450,7 @@ export function AppsWidget() {
         <div className="absolute top-1/2 left-1/2 w-16 h-16 bg-purple-300/20 rounded-full -translate-x-8 -translate-y-8 group-hover:bg-purple-200/30 transition-colors duration-500" />
       </div>
 
-      <CardHeader className="relative pb-2 sm:pb-3 md:pb-4 flex-shrink-0 z-10 p-2 sm:p-3 md:p-4">
+      <CardHeader className="relative pb-1 sm:pb-2 md:pb-3 flex-shrink-0 z-10 p-2 sm:p-3 md:p-4">
         <div className="flex items-center justify-between">
           <div className="flex items-center gap-2 sm:gap-3">
             <div className="p-2 sm:p-2.5 md:p-3 bg-gradient-to-br from-blue-500 to-indigo-600 rounded-lg sm:rounded-xl shadow-lg group-hover:shadow-blue-300/50 group-hover:scale-105 transition-all duration-300">
@@ -469,8 +469,8 @@ export function AppsWidget() {
         </div>
       </CardHeader>
       
-      <CardContent className="relative flex-1 flex flex-col justify-start md:justify-center p-4 sm:p-4 md:p-6 pt-2 z-10">
-        <div className="space-y-2 sm:space-y-3 md:space-y-8">
+      <CardContent className="relative flex-1 flex flex-col justify-start md:justify-center p-4 sm:p-4 md:p-6 pt-0 sm:pt-1 md:pt-2 z-10">
+        <div className="space-y-2 sm:space-y-2 md:space-y-6">
           {/* Carousel automatique pour mobile - Section SAR */}
           <div className="block sm:hidden w-full h-full flex-1">
             {carouselApps.length > 0 && (() => {

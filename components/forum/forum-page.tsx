@@ -25,17 +25,15 @@ function ContentArea({ isSidebarCollapsed, children }: { isSidebarCollapsed: boo
   
   const style = mounted && isLargeScreen
     ? {
-        width: `calc(100% - ${isSidebarCollapsed ? '64px' : '320px'})`,
         marginLeft: isSidebarCollapsed ? '64px' : '320px'
       }
     : {
-        width: '100%',
         marginLeft: '0px'
       }
   
   return (
     <div 
-      className="min-h-full flex items-start justify-center px-4 sm:px-6 lg:px-8 py-6 lg:py-8 transition-all duration-300"
+      className="min-h-full w-full flex items-start justify-center px-4 sm:px-6 lg:px-8 py-6 lg:py-8 transition-all duration-300"
       style={style}
     >
       {children}
@@ -266,11 +264,11 @@ export function ForumPage({ isMainSidebarCollapsed = false }: ForumPageProps) {
         />
       </div>
 
-      {/* Contenu principal - centré dynamiquement dans l'espace disponible après les deux sidebars */}
+      {/* Contenu principal - centré comme la page actualités */}
       {/* Le sidebar secondaire est fixe (w-16 = 64px rétracté, w-80 = 320px développé) */}
-      {/* On centre le contenu dans l'espace restant en utilisant calc() pour la largeur */}
+      {/* Le contenu est centré avec max-w-4xl comme la page actualités */}
         <ContentArea isSidebarCollapsed={isSidebarCollapsed}>
-          <div className="w-full max-w-5xl mx-auto">
+          <div className="w-full max-w-4xl mx-auto">
             {selectedConversation ? (
               <ConversationDetail conversation={selectedConversation} onBack={handleBackFromConversation} />
             ) : selectedForum ? (

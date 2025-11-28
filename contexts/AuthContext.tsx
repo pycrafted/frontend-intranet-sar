@@ -393,44 +393,148 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
   }
 
   // Fonction de mise à jour du profil
-  const updateProfile = async (data: Partial<User>): Promise<{ success: boolean; error?: string }> => {
+  const updateProfile = async (data: Partial<User> | FormData): Promise<{ success: boolean; error?: string }> => {
+    console.log('🔄 [AUTH] === DÉBUT updateProfile ===')
+    console.log('📦 [AUTH] Données reçues pour mise à jour:', data)
+    console.log('👤 [AUTH] Utilisateur actuel avant mise à jour:', { id: user?.id, email: user?.email })
+    
     try {
       setIsLoading(true)
+      console.log('⏳ [AUTH] État de chargement activé')
       
       // Récupérer le token CSRF
+      console.log('🍪 [AUTH] Récupération du token CSRF...')
       const csrfToken = await getCSRFToken()
+      console.log('🍪 [AUTH] Token CSRF récupéré:', csrfToken ? 'Oui' : 'Non', csrfToken ? csrfToken.substring(0, 10) + '...' : '')
       
       const baseUrl = getApiUrl()
-      const response = await fetch(`${baseUrl}/auth/current-user/`, {
-        method: 'PUT',
-        credentials: 'include',
-        headers: {
+      const url = `${baseUrl}/auth/current-user/`
+      console.log('🌐 [AUTH] URL de l\'API:', url)
+      console.log('🌐 [AUTH] Base URL:', baseUrl)
+      
+      // Vérifier si c'est FormData (pour l'upload d'image)
+      const isFormData = data instanceof FormData
+      console.log('📋 [AUTH] Type de données:', isFormData ? 'FormData' : 'JSON')
+      
+      let requestBody: string | FormData
+      let requestHeaders: Record<string, string>
+      
+      if (isFormData) {
+        // Pour FormData, ne pas définir Content-Type (le navigateur le fera automatiquement avec la boundary)
+        requestBody = data
+        requestHeaders = {
+          'X-CSRFToken': csrfToken || '',
+        }
+        console.log('📤 [AUTH] Envoi FormData avec avatar')
+        console.log('📋 [AUTH] Headers de la requête (FormData):', { 'X-CSRFToken': csrfToken ? 'Présent (' + csrfToken.substring(0, 10) + '...)' : 'Absent' })
+      } else {
+        // Pour JSON, définir Content-Type
+        requestBody = JSON.stringify(data)
+        requestHeaders = {
           'Content-Type': 'application/json',
           'X-CSRFToken': csrfToken || '',
-        },
-        body: JSON.stringify(data),
+        }
+        console.log('📤 [AUTH] Corps de la requête (JSON):', requestBody)
+        console.log('📤 [AUTH] Taille du corps:', requestBody.length, 'bytes')
+        console.log('📋 [AUTH] Headers de la requête (JSON):', { ...requestHeaders, 'X-CSRFToken': csrfToken ? 'Présent (' + csrfToken.substring(0, 10) + '...)' : 'Absent' })
+      }
+      
+      console.log('🚀 [AUTH] Envoi de la requête PUT...')
+      const response = await fetch(url, {
+        method: 'PUT',
+        credentials: 'include',
+        headers: requestHeaders,
+        body: requestBody,
+      })
+
+      console.log('📥 [AUTH] Réponse reçue:', {
+        status: response.status,
+        statusText: response.statusText,
+        ok: response.ok,
+        headers: Object.fromEntries(response.headers.entries())
       })
 
       if (response.ok) {
+        console.log('✅ [AUTH] Réponse OK - Parsing du JSON...')
         const result = await response.json()
+        console.log('✅ [AUTH] Données utilisateur mises à jour:', {
+          id: result.id,
+          email: result.email,
+          first_name: result.first_name,
+          last_name: result.last_name,
+          department: result.department,
+          manager: result.manager
+        })
+        
+        console.log('💾 [AUTH] Mise à jour de l\'état utilisateur...')
         setUser(result)
+        
         // Mettre à jour le cache
         if (typeof window !== 'undefined') {
           try {
+            console.log('💾 [AUTH] Mise à jour du cache localStorage...')
             localStorage.setItem(USER_CACHE_KEY, JSON.stringify(result))
             localStorage.setItem(AUTH_TIMESTAMP_KEY, Date.now().toString())
+            console.log('✅ [AUTH] Cache mis à jour avec succès')
           } catch (error) {
             console.error('❌ [AUTH] Erreur lors de la mise à jour du cache:', error)
           }
         }
+        
+        console.log('✅ [AUTH] === FIN updateProfile - SUCCÈS ===')
         return { success: true }
       } else {
-        const error = await response.json()
-        return { success: false, error: error.detail || 'Erreur de mise à jour' }
+        console.error('❌ [AUTH] Réponse non OK - Parsing de l\'erreur...')
+        let errorData
+        try {
+          const errorText = await response.text()
+          console.log('📄 [AUTH] Texte de l\'erreur:', errorText)
+          try {
+            errorData = JSON.parse(errorText)
+            console.log('📄 [AUTH] Erreur parsée (JSON):', errorData)
+          } catch (parseError) {
+            console.error('❌ [AUTH] Impossible de parser l\'erreur en JSON:', parseError)
+            errorData = { detail: errorText || 'Erreur inconnue' }
+          }
+        } catch (textError) {
+          console.error('❌ [AUTH] Impossible de lire le texte de l\'erreur:', textError)
+          errorData = { detail: `Erreur HTTP ${response.status}: ${response.statusText}` }
+        }
+        
+        // Gérer les erreurs de validation Django (format: {"field": ["message"]})
+        let errorMessage = 'Erreur de mise à jour'
+        if (errorData?.detail) {
+          errorMessage = errorData.detail
+        } else if (errorData?.error) {
+          errorMessage = errorData.error
+        } else if (errorData?.message) {
+          errorMessage = errorData.message
+        } else if (typeof errorData === 'object') {
+          // Si c'est un objet avec des clés (erreurs de validation Django)
+          const errorFields = Object.keys(errorData)
+          if (errorFields.length > 0) {
+            const firstField = errorFields[0]
+            const firstError = Array.isArray(errorData[firstField]) 
+              ? errorData[firstField][0] 
+              : errorData[firstField]
+            errorMessage = `${firstField}: ${firstError}`
+            console.error('❌ [AUTH] Erreur de validation Django:', errorData)
+          }
+        }
+        
+        console.error('❌ [AUTH] Message d\'erreur final:', errorMessage)
+        console.log('❌ [AUTH] === FIN updateProfile - ÉCHEC ===')
+        return { success: false, error: errorMessage }
       }
     } catch (error) {
-      return { success: false, error: 'Erreur de mise à jour' }
+      console.error('💥 [AUTH] Exception dans updateProfile:', error)
+      console.error('💥 [AUTH] Type d\'erreur:', error instanceof Error ? error.constructor.name : typeof error)
+      console.error('💥 [AUTH] Message d\'erreur:', error instanceof Error ? error.message : String(error))
+      console.error('💥 [AUTH] Stack trace:', error instanceof Error ? error.stack : 'N/A')
+      console.log('❌ [AUTH] === FIN updateProfile - EXCEPTION ===')
+      return { success: false, error: error instanceof Error ? error.message : 'Erreur de mise à jour' }
     } finally {
+      console.log('🏁 [AUTH] Finally - Désactivation du chargement')
       setIsLoading(false)
     }
   }

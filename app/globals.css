@@ -3059,7 +3059,7 @@ body {
 
 /* Styles pour l'affichage des images - Responsive */
 .publication-image {
-  @apply w-full rounded-lg;
+  @apply w-full;
   max-height: 600px;
   object-fit: contain;
   background-color: #ffffff;
@@ -3098,7 +3098,7 @@ body {
 }
 
 .publication-image-text {
-  @apply w-full rounded-lg;
+  @apply w-full;
   max-height: 500px;
   object-fit: contain;
   background-color: #ffffff;
@@ -3643,6 +3643,33 @@ html {
 
 .animate-shimmer-event {
   animation: shimmer-event 2.5s ease-in-out infinite;
+}
+
+/* ===== ANIMATIONS POUR LA BANDE DÉFILANTE (MARQUEE) DE LA PAGE SÉCURITÉ ===== */
+@keyframes marquee-left {
+  0% {
+    transform: translateX(0);
+  }
+  100% {
+    transform: translateX(-50%);
+  }
+}
+
+@keyframes marquee-right {
+  0% {
+    transform: translateX(-50%);
+  }
+  100% {
+    transform: translateX(0);
+  }
+}
+
+.security-marquee-left {
+  animation: marquee-left linear infinite;
+}
+
+.security-marquee-right {
+  animation: marquee-right linear infinite;
 }
 
 @layer utilities {

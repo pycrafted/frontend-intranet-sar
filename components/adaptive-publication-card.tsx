@@ -139,8 +139,8 @@ export function AdaptivePublicationCard({ article, onDelete, onUpdate, searchTer
         <div className="px-3 xs:px-4 sm:px-6 pt-2 xs:pt-3 pb-1">
           {/* Date de publication en haut à gauche - Responsive */}
           <div className="flex items-center justify-between mb-2 xs:mb-3">
-            <div className="publication-date flex items-center gap-1 xs:gap-2 text-xs xs:text-sm text-gray-500">
-              <Calendar className="w-3 h-3 xs:w-4 xs:h-4 flex-shrink-0" />
+            <div className="publication-date flex items-center gap-1 xs:gap-2 text-base xs:text-lg text-gray-500">
+              <Calendar className="w-4 h-4 xs:w-5 xs:h-5 flex-shrink-0" />
               <span className="date-text font-medium text-gray-600 hidden xs:inline">
                 {new Date(article.date).toLocaleDateString("fr-FR", {
                   weekday: 'long',
@@ -182,14 +182,14 @@ export function AdaptivePublicationCard({ article, onDelete, onUpdate, searchTer
 
           {/* Type - Responsive */}
           <div className="flex items-center gap-1 xs:gap-2 flex-wrap">
-            <Badge variant="outline" className="text-xs px-2 py-1">
+            <Badge variant="outline" className="text-base px-3 py-1.5">
               {article.type === "event" ? "Événement" :
                article.type === "announcement" ? "Annonce" : 
                article.type === "news" ? "Actualité" : "Publication"}
             </Badge>
             {article.type === "announcement" && (
-              <Badge className="important-badge text-xs px-2 py-1">
-                <AlertTriangle className="w-2 h-2 xs:w-3 xs:h-3 mr-1" />
+              <Badge className="important-badge text-base px-3 py-1.5">
+                <AlertTriangle className="w-3 h-3 xs:w-4 xs:h-4 mr-1" />
                 <span className="hidden xs:inline">IMPORTANT</span>
                 <span className="xs:hidden">!</span>
               </Badge>
@@ -233,7 +233,7 @@ function TextOnlyContent({ article, searchTerm }: { article: Article; searchTerm
   return (
     <div className="px-3 xs:px-4 sm:px-6 pb-4 xs:pb-6 w-full">
       {article.title && (
-        <h2 className="article-title mb-2 xs:mb-3 w-full block text-lg xs:text-xl font-bold text-gray-900 leading-tight">
+        <h2 className="article-title mb-2 xs:mb-3 w-full block text-2xl xs:text-3xl font-bold text-gray-900 leading-tight">
           <HighlightText 
             text={article.title} 
             searchTerm={searchTerm || ""} 
@@ -241,7 +241,7 @@ function TextOnlyContent({ article, searchTerm }: { article: Article; searchTerm
         </h2>
       )}
       
-      <div className="text-gray-700 leading-relaxed text-sm xs:text-base">
+      <div className="text-gray-700 leading-relaxed text-xl xs:text-2xl">
         <div className={cn(
           "publication-content",
           !showFullContent && article.content && article.content.length > 200 ? "line-clamp-3" : ""
@@ -256,15 +256,15 @@ function TextOnlyContent({ article, searchTerm }: { article: Article; searchTerm
             variant="ghost"
             size="sm"
             onClick={() => setShowFullContent(!showFullContent)}
-            className="mt-2 p-0 h-auto text-blue-600 hover:text-blue-700 text-xs xs:text-sm"
+            className="mt-2 p-0 h-auto text-blue-600 hover:text-blue-700 text-base xs:text-lg"
           >
             {showFullContent ? (
               <>
-                Voir moins <ChevronUp className="w-3 h-3 xs:w-4 xs:h-4 ml-1" />
+                Voir moins <ChevronUp className="w-4 h-4 xs:w-5 xs:h-5 ml-1" />
               </>
             ) : (
               <>
-                Voir plus <ChevronDown className="w-3 h-3 xs:w-4 xs:h-4 ml-1" />
+                Voir plus <ChevronDown className="w-4 h-4 xs:w-5 xs:h-5 ml-1" />
               </>
             )}
           </Button>
@@ -274,12 +274,12 @@ function TextOnlyContent({ article, searchTerm }: { article: Article; searchTerm
   )
 }
 
-// Composant pour le contenu image seule - Responsive
+// Composant pour le contenu image seule - Responsive (Style LinkedIn)
 function ImageOnlyContent({ article, searchTerm }: { article: Article; searchTerm?: string }) {
   return (
-    <div className="px-3 xs:px-4 sm:px-6 pb-4 xs:pb-6 w-full">
+    <div className="px-3 xs:px-4 sm:px-6 w-full">
       {article.title && (
-        <h2 className="article-title mb-3 xs:mb-4 w-full block text-lg xs:text-xl font-bold text-gray-900 leading-tight">
+        <h2 className="article-title mb-3 xs:mb-4 w-full block text-2xl xs:text-3xl font-bold text-gray-900 leading-tight">
           <HighlightText 
             text={article.title} 
             searchTerm={searchTerm || ""} 
@@ -287,25 +287,30 @@ function ImageOnlyContent({ article, searchTerm }: { article: Article; searchTer
         </h2>
       )}
       
-      <div className="relative group">
+      <div className="relative group overflow-hidden bg-gray-50 -mx-3 xs:-mx-4 sm:-mx-6">
         <ImageFallback
-          src={article.image_url || article.image}
+          src={article.image_url || article.image || ""}
           alt={article.title || "Image"}
-          className="publication-image w-full rounded-lg max-h-64 xs:max-h-80 sm:max-h-96 object-cover"
+          className="publication-image w-full h-auto object-contain"
+          onLoad={(e: React.SyntheticEvent<HTMLImageElement>) => {
+            // L'image garde son ratio d'aspect naturel
+            const img = e.target as HTMLImageElement
+            img.style.maxHeight = 'none'
+          }}
         />
       </div>
     </div>
   )
 }
 
-// Composant pour le contenu texte + image - Responsive
+// Composant pour le contenu texte + image - Responsive (Style LinkedIn)
 function TextImageContent({ article, searchTerm }: { article: Article; searchTerm?: string }) {
   const [showFullContent, setShowFullContent] = useState(false)
 
   return (
-    <div className="px-3 xs:px-4 sm:px-6 pb-4 xs:pb-6 w-full">
+    <div className="px-3 xs:px-4 sm:px-6 w-full">
       {article.title && (
-        <h2 className="article-title mb-2 xs:mb-3 w-full block text-lg xs:text-xl font-bold text-gray-900 leading-tight">
+        <h2 className="article-title mb-2 xs:mb-3 w-full block text-2xl xs:text-3xl font-bold text-gray-900 leading-tight">
           <HighlightText 
             text={article.title} 
             searchTerm={searchTerm || ""} 
@@ -314,7 +319,7 @@ function TextImageContent({ article, searchTerm }: { article: Article; searchTer
       )}
       
       {article.content && (
-        <div className="text-gray-700 leading-relaxed mb-3 xs:mb-4 text-sm xs:text-base">
+        <div className="text-gray-700 leading-relaxed mb-3 xs:mb-4 text-xl xs:text-2xl">
           <div className={cn(
             "publication-content",
             !showFullContent && article.content.length > 200 ? "line-clamp-3" : ""
@@ -329,15 +334,15 @@ function TextImageContent({ article, searchTerm }: { article: Article; searchTer
               variant="ghost"
               size="sm"
               onClick={() => setShowFullContent(!showFullContent)}
-              className="mt-2 p-0 h-auto text-blue-600 hover:text-blue-700 text-xs xs:text-sm"
+              className="mt-2 p-0 h-auto text-blue-600 hover:text-blue-700 text-base xs:text-lg"
             >
               {showFullContent ? (
                 <>
-                  Voir moins <ChevronUp className="w-3 h-3 xs:w-4 xs:h-4 ml-1" />
+                  Voir moins <ChevronUp className="w-4 h-4 xs:w-5 xs:h-5 ml-1" />
                 </>
               ) : (
                 <>
-                  Voir plus <ChevronDown className="w-3 h-3 xs:w-4 xs:h-4 ml-1" />
+                  Voir plus <ChevronDown className="w-4 h-4 xs:w-5 xs:h-5 ml-1" />
                 </>
               )}
             </Button>
@@ -345,11 +350,16 @@ function TextImageContent({ article, searchTerm }: { article: Article; searchTer
         </div>
       )}
       
-      <div className="relative group">
+      <div className="relative group overflow-hidden bg-gray-50 -mx-3 xs:-mx-4 sm:-mx-6">
         <ImageFallback
-          src={article.image_url || article.image}
+          src={article.image_url || article.image || ""}
           alt={article.title || "Image"}
-          className="publication-image-text w-full rounded-lg max-h-64 xs:max-h-80 sm:max-h-96 object-cover"
+          className="publication-image-text w-full h-auto object-contain"
+          onLoad={(e: React.SyntheticEvent<HTMLImageElement>) => {
+            // L'image garde son ratio d'aspect naturel
+            const img = e.target as HTMLImageElement
+            img.style.maxHeight = 'none'
+          }}
         />
       </div>
     </div>
@@ -371,7 +381,7 @@ function VideoContent({ article, searchTerm }: { article: Article; searchTerm?: 
       </h2>
       
       {article.content && (
-        <div className="text-gray-700 leading-relaxed mb-3 xs:mb-4 text-sm xs:text-base">
+        <div className="text-gray-700 leading-relaxed mb-3 xs:mb-4 text-xl xs:text-2xl">
          <div className={cn(
            "publication-content",
            !showFullContent && article.content.length > 200 ? "line-clamp-3" : ""
@@ -386,15 +396,15 @@ function VideoContent({ article, searchTerm }: { article: Article; searchTerm?: 
               variant="ghost"
               size="sm"
               onClick={() => setShowFullContent(!showFullContent)}
-              className="mt-2 p-0 h-auto text-blue-600 hover:text-blue-700 text-xs xs:text-sm"
+              className="mt-2 p-0 h-auto text-blue-600 hover:text-blue-700 text-base xs:text-lg"
             >
               {showFullContent ? (
                 <>
-                  Voir moins <ChevronUp className="w-3 h-3 xs:w-4 xs:h-4 ml-1" />
+                  Voir moins <ChevronUp className="w-4 h-4 xs:w-5 xs:h-5 ml-1" />
                 </>
               ) : (
                 <>
-                  Voir plus <ChevronDown className="w-3 h-3 xs:w-4 xs:h-4 ml-1" />
+                  Voir plus <ChevronDown className="w-4 h-4 xs:w-5 xs:h-5 ml-1" />
                 </>
               )}
             </Button>
@@ -451,7 +461,7 @@ function EventContent({ article, searchTerm }: { article: Article; searchTerm?: 
   const [showFullContent, setShowFullContent] = useState(false)
 
   return (
-    <div className="px-3 xs:px-4 sm:px-6 pb-4 xs:pb-6 w-full">
+    <div className="px-3 xs:px-4 sm:px-6 w-full">
       <h2 className="article-title mb-2 xs:mb-3 w-full block text-lg xs:text-xl font-bold text-gray-900 leading-tight">
         <HighlightText 
           text={article.title} 
@@ -474,15 +484,15 @@ function EventContent({ article, searchTerm }: { article: Article; searchTerm?: 
             variant="ghost"
             size="sm"
             onClick={() => setShowFullContent(!showFullContent)}
-            className="mt-2 p-0 h-auto text-blue-600 hover:text-blue-700 text-xs xs:text-sm"
+            className="mt-2 p-0 h-auto text-blue-600 hover:text-blue-700 text-base xs:text-lg"
           >
             {showFullContent ? (
               <>
-                Voir moins <ChevronUp className="w-3 h-3 xs:w-4 xs:h-4 ml-1" />
+                Voir moins <ChevronUp className="w-4 h-4 xs:w-5 xs:h-5 ml-1" />
               </>
             ) : (
               <>
-                Voir plus <ChevronDown className="w-3 h-3 xs:w-4 xs:h-4 ml-1" />
+                Voir plus <ChevronDown className="w-4 h-4 xs:w-5 xs:h-5 ml-1" />
               </>
             )}
           </Button>
@@ -491,17 +501,17 @@ function EventContent({ article, searchTerm }: { article: Article; searchTerm?: 
       
       {/* Informations de l'événement - Responsive */}
       <div className="space-y-3 xs:space-y-4 p-4 xs:p-6 bg-gradient-to-br from-green-50 to-emerald-50 rounded-xl border border-green-100">
-        <div className="flex items-center gap-2 xs:gap-3 text-base xs:text-lg font-semibold text-gray-800">
+        <div className="flex items-center gap-2 xs:gap-3 text-xl xs:text-2xl font-semibold text-gray-800">
           <div className="p-1.5 xs:p-2 bg-green-100 rounded-lg">
-            <Calendar className="w-4 h-4 xs:w-5 xs:h-5 text-green-600" />
+            <Calendar className="w-5 h-5 xs:w-6 xs:h-6 text-green-600" />
           </div>
           <span>Détails de l'événement</span>
         </div>
         
         {article.event_date && (
           <div className="flex items-center gap-2 p-2 xs:p-3 bg-white rounded-lg border border-gray-200">
-            <Calendar className="w-3 h-3 xs:w-4 xs:h-4 text-green-500 flex-shrink-0" />
-            <span className="text-xs xs:text-sm font-medium text-gray-700">
+            <Calendar className="w-4 h-4 xs:w-5 xs:h-5 text-green-500 flex-shrink-0" />
+            <span className="text-base xs:text-lg font-medium text-gray-700">
               Date: {new Date(article.event_date).toLocaleDateString("fr-FR")}
             </span>
           </div>
@@ -509,24 +519,32 @@ function EventContent({ article, searchTerm }: { article: Article; searchTerm?: 
         
         {(article as any).end_date && (
           <div className="flex items-center gap-2 p-2 xs:p-3 bg-white rounded-lg border border-gray-200">
-            <Calendar className="w-3 h-3 xs:w-4 xs:h-4 text-orange-500 flex-shrink-0" />
-            <span className="text-xs xs:text-sm font-medium text-gray-700">
+            <Calendar className="w-4 h-4 xs:w-5 xs:h-5 text-orange-500 flex-shrink-0" />
+            <span className="text-base xs:text-lg font-medium text-gray-700">
               Fin des inscriptions: {new Date((article as any).end_date).toLocaleDateString("fr-FR")}
             </span>
           </div>
         )}
       </div>
       
-      {/* Image de l'événement si disponible - Responsive */}
-      {(article.image_url || article.image) && (
-        <div className="mt-3 xs:mt-4 relative group">
-          <ImageFallback
-            src={article.image_url || article.image}
-            alt={article.title || "Image"}
-            className="publication-image-text w-full rounded-lg max-h-64 xs:max-h-80 sm:max-h-96 object-cover"
-          />
-        </div>
-      )}
+      {/* Image de l'événement si disponible - Responsive (Style LinkedIn) */}
+      {(() => {
+        const imageUrl = article.image_url || article.image
+        return imageUrl ? (
+          <div className="mt-3 xs:mt-4 relative group overflow-hidden bg-gray-50 -mx-3 xs:-mx-4 sm:-mx-6 mb-0">
+            <ImageFallback
+              src={imageUrl}
+              alt={article.title || "Image"}
+              className="publication-image-text w-full h-auto object-contain"
+              onLoad={(e: React.SyntheticEvent<HTMLImageElement>) => {
+                // L'image garde son ratio d'aspect naturel
+                const img = e.target as HTMLImageElement
+                img.style.maxHeight = 'none'
+              }}
+            />
+          </div>
+        ) : null
+      })()}
     </div>
   )
 }

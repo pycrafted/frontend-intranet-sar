@@ -240,7 +240,24 @@ export default function AnnuairePage() {
   const [selectedDepartment, setSelectedDepartment] = useState("Tous")
   const [filteredEmployees, setFilteredEmployees] = useState<Employee[]>([])
   const [currentPage, setCurrentPage] = useState(1)
-  const itemsPerPage = 12 // 4 cartes x 3 lignes en mobile pour éviter les cartes vides
+  // Items par page responsive : moins sur mobile, plus sur desktop
+  const getItemsPerPage = () => {
+    if (typeof window === 'undefined') return 12;
+    if (window.innerWidth < 640) return 6; // Mobile : 1 colonne x 6
+    if (window.innerWidth < 1024) return 9; // Tablette : 2-3 colonnes x 3
+    return 12; // Desktop : 3-4 colonnes x 3-4
+  }
+  const [itemsPerPage, setItemsPerPage] = useState(12)
+  
+  // Mettre à jour itemsPerPage lors du redimensionnement
+  useEffect(() => {
+    const updateItemsPerPage = () => {
+      setItemsPerPage(getItemsPerPage())
+    }
+    updateItemsPerPage()
+    window.addEventListener('resize', updateItemsPerPage)
+    return () => window.removeEventListener('resize', updateItemsPerPage)
+  }, [])
 
   // Utiliser l'API
   const { 
@@ -421,56 +438,34 @@ export default function AnnuairePage() {
           overflow: hidden;
         }
         
-        /* Amélioration de l'affichage mobile */
-        @media (max-width: 640px) {
-          .container {
-            padding-left: 0.75rem;
-            padding-right: 0.75rem;
+        /* Optimisations responsive globales */
+        .touch-manipulation {
+          touch-action: manipulation;
+        }
+        
+        /* Désactiver les effets hover sur mobile */
+        @media (hover: none) and (pointer: coarse) {
+          .group:hover {
+            transform: none !important;
           }
-          
-          /* Assurer un espacement minimum entre les cartes */
-          .grid {
-            gap: 0.5rem !important;
-          }
-          
-          /* Réduire la taille des cartes en mobile */
-          .card-mobile {
-            min-height: 200px;
-            max-height: 280px;
-          }
-          
-          /* Optimiser les espacements internes */
-          .card-content-mobile {
-            padding: 0.5rem !important;
-          }
-          
-          /* Réduire la taille des avatars en mobile */
-          .avatar-mobile {
-            width: 2.5rem !important;
-            height: 2.5rem !important;
+          .group:hover * {
+            transform: none !important;
           }
         }
         
-        /* Breakpoint pour très petits écrans */
-        @media (max-width: 480px) {
+        /* Amélioration de l'affichage mobile */
+        @media (max-width: 640px) {
           .container {
             padding-left: 0.5rem;
             padding-right: 0.5rem;
           }
-          
-          .grid {
-            gap: 0.375rem !important;
-          }
-          
-          /* Ajustements supplémentaires pour très petits écrans */
-          .card-mobile {
-            min-height: 180px;
-            max-height: 250px;
-          }
-          
-          .avatar-mobile {
-            width: 2rem !important;
-            height: 2rem !important;
+        }
+        
+        /* Breakpoint pour très petits écrans */
+        @media (max-width: 375px) {
+          .container {
+            padding-left: 0.375rem;
+            padding-right: 0.375rem;
           }
         }
         
@@ -478,6 +473,17 @@ export default function AnnuairePage() {
         .grid > * {
           min-width: 0;
           flex-shrink: 1;
+        }
+        
+        /* Améliorer le rendu des textes sur petits écrans */
+        @media (max-width: 640px) {
+          .line-clamp-2 {
+            display: -webkit-box;
+            -webkit-line-clamp: 2;
+            -webkit-box-orient: vertical;
+            overflow: hidden;
+            text-overflow: ellipsis;
+          }
         }
         
         /* Animations personnalisées pour plus de dynamisme */
@@ -537,33 +543,33 @@ export default function AnnuairePage() {
         }}
       >
         <div className="min-h-screen" style={{backgroundColor: "#e5e7eb"}}>
-          <main className="container mx-auto px-4 py-8 max-w-7xl">
+          <main className="container mx-auto px-2 xs:px-3 sm:px-4 md:px-6 lg:px-8 py-4 xs:py-6 sm:py-8 max-w-7xl">
 
             {/* Compteur de résultats - Affiché seulement s'il y a des employés */}
             {displayData.length > 0 && (
-              <div className="mb-6">
-                <div className="flex items-center gap-3">
-                  <div className="w-2 h-2 rounded-full bg-primary animate-pulse"></div>
-                  <span className="text-lg font-semibold text-foreground">
+              <div className="mb-4 xs:mb-5 sm:mb-6">
+                <div className="flex items-center gap-2 xs:gap-3">
+                  <div className="w-1.5 h-1.5 xs:w-2 xs:h-2 rounded-full bg-primary animate-pulse"></div>
+                  <span className="text-sm xs:text-base sm:text-lg font-semibold text-foreground">
                     {displayData.length} employé{displayData.length > 1 ? 's' : ''} trouvé{displayData.length > 1 ? 's' : ''}
                   </span>
                 </div>
               </div>
             )}
 
-            {/* Grille des employés - Responsive avec 4 cartes en mobile */}
-            <div className="grid grid-cols-2 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-3 xl:grid-cols-4 gap-2 sm:gap-3 md:gap-4 lg:gap-6 mb-8">
+            {/* Grille des employés - Responsive optimisée pour tous les écrans */}
+            <div className="grid grid-cols-1 xs:grid-cols-2 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-3 xl:grid-cols-4 gap-3 xs:gap-3 sm:gap-4 md:gap-5 lg:gap-6 mb-6 xs:mb-8">
               {displayEmployees.map((employee, index) => (
                 employee ? (
                   <Card 
                     key={employee.id} 
-                    className="overflow-hidden hover:shadow-2xl hover:-translate-y-4 hover:scale-110 hover:rotate-1 transition-all duration-500 ease-out border-border transform card-mobile group"
+                    className="overflow-hidden sm:hover:shadow-2xl sm:hover:-translate-y-2 sm:hover:scale-105 transition-all duration-300 ease-out border-border transform group touch-manipulation"
                     style={{backgroundColor: "#344256"}}
                   >
-                    <div className="h-12 sm:h-16" style={{backgroundColor: "#344256"}} />
-                    <CardContent className="pt-0 px-2 sm:px-4 md:px-6 pb-2 sm:pb-4 md:pb-6 card-content-mobile">
-                      <div className="flex flex-col items-center -mt-10 sm:-mt-12 md:-mt-14">
-                        <Avatar className="w-12 h-12 sm:w-16 sm:h-16 md:w-20 md:h-20 border-2 sm:border-4 border-white shadow-lg avatar-mobile group-hover:scale-110 group-hover:rotate-3 group-hover:shadow-2xl transition-all duration-500 ease-out">
+                    <div className="h-10 xs:h-12 sm:h-14 md:h-16" style={{backgroundColor: "#344256"}} />
+                    <CardContent className="pt-0 px-3 xs:px-4 sm:px-5 md:px-6 pb-3 xs:pb-4 sm:pb-5 md:pb-6">
+                      <div className="flex flex-col items-center -mt-8 xs:-mt-10 sm:-mt-12 md:-mt-14">
+                        <Avatar className="w-14 h-14 xs:w-16 xs:h-16 sm:w-18 sm:h-18 md:w-20 md:h-20 border-2 xs:border-3 sm:border-4 border-white shadow-lg sm:group-hover:scale-110 sm:group-hover:shadow-2xl transition-all duration-300 ease-out">
                           <AvatarImage
                             src={employee.avatar || "/placeholder-user.jpg"}
                             alt={`${employee.full_name}`}
@@ -576,63 +582,63 @@ export default function AnnuairePage() {
                               target.style.display = 'none';
                             }}
                           />
-                          <AvatarFallback className="bg-primary text-primary-foreground text-sm sm:text-lg md:text-xl font-semibold">
+                          <AvatarFallback className="bg-primary text-primary-foreground text-xs xs:text-sm sm:text-base md:text-lg lg:text-xl font-semibold">
                             {employee.initials}
                           </AvatarFallback>
                         </Avatar>
 
-                        <div className="text-center mt-2 sm:mt-3 md:mt-4 mb-2 sm:mb-3 md:mb-4 group-hover:scale-105 transition-all duration-500 ease-out">
-                          <h3 className="text-sm sm:text-base md:text-lg lg:text-xl font-bold text-white text-balance leading-tight group-hover:text-yellow-200 transition-colors duration-500">
+                        <div className="text-center mt-2 xs:mt-2.5 sm:mt-3 md:mt-4 mb-2 xs:mb-2.5 sm:mb-3 md:mb-4 sm:group-hover:scale-105 transition-all duration-300 ease-out">
+                          <h3 className="text-xs xs:text-sm sm:text-base md:text-lg lg:text-xl font-bold text-white text-balance leading-tight sm:group-hover:text-yellow-200 transition-colors duration-300 px-1">
                             {employee.full_name}
                           </h3>
-                          <div className="mt-1 sm:mt-2 group-hover:scale-110 transition-transform duration-500 ease-out">
-                            <span className="inline-block bg-white/10 text-white text-xs sm:text-sm font-medium px-2 py-1 rounded-full border border-white/20 group-hover:bg-yellow-400/20 group-hover:text-yellow-200 group-hover:border-yellow-300/40 group-hover:shadow-lg transition-all duration-500">
+                          <div className="mt-1 xs:mt-1.5 sm:mt-2 sm:group-hover:scale-110 transition-transform duration-300 ease-out">
+                            <span className="inline-block bg-white/10 text-white text-[10px] xs:text-xs sm:text-sm font-medium px-2 xs:px-2.5 sm:px-3 py-0.5 xs:py-1 rounded-full border border-white/20 sm:group-hover:bg-yellow-400/20 sm:group-hover:text-yellow-200 sm:group-hover:border-yellow-300/40 sm:group-hover:shadow-lg transition-all duration-300 line-clamp-2">
                               {employee.position_title}
                             </span>
                           </div>
                         </div>
 
-                        {/* Informations compactes pour mobile */}
-                        <div className="w-full space-y-1 sm:space-y-2 md:space-y-3 mb-2 sm:mb-3 md:mb-5 group-hover:translate-x-2 transition-transform duration-500 ease-out">
-                          <div className="flex items-center gap-2 sm:gap-3 text-xs sm:text-sm group-hover:scale-105 transition-transform duration-500 ease-out">
-                            <Mail className="w-3 h-3 sm:w-4 sm:h-4 text-white flex-shrink-0 group-hover:text-blue-300 group-hover:scale-125 transition-all duration-500 ease-out" />
+                        {/* Informations compactes - Responsive */}
+                        <div className="w-full space-y-1 xs:space-y-1.5 sm:space-y-2 md:space-y-2.5 mb-2 xs:mb-2.5 sm:mb-3 md:mb-4 sm:group-hover:translate-x-1 transition-transform duration-300 ease-out">
+                          <div className="flex items-start gap-1.5 xs:gap-2 sm:gap-2.5 text-[10px] xs:text-xs sm:text-sm sm:group-hover:scale-105 transition-transform duration-300 ease-out">
+                            <Mail className="w-3 h-3 xs:w-3.5 xs:h-3.5 sm:w-4 sm:h-4 text-white flex-shrink-0 mt-0.5 sm:group-hover:text-blue-300 sm:group-hover:scale-125 transition-all duration-300 ease-out" />
                             <a
                               href={`mailto:${employee.email}`}
-                              className="text-gray-200 hover:text-blue-300 transition-colors break-all text-xs sm:text-sm group-hover:text-blue-200"
+                              className="text-gray-200 hover:text-blue-300 active:text-blue-400 transition-colors break-all text-[10px] xs:text-xs sm:text-sm sm:group-hover:text-blue-200 leading-tight"
                             >
                               {employee.email}
                             </a>
                           </div>
 
-                          <div className="flex items-center gap-2 sm:gap-3 text-xs sm:text-sm group-hover:scale-105 transition-transform duration-500 ease-out">
-                            <Phone className="w-3 h-3 sm:w-4 sm:h-4 text-white flex-shrink-0 group-hover:text-green-300 group-hover:scale-125 transition-all duration-500 ease-out" />
+                          <div className="flex items-center gap-1.5 xs:gap-2 sm:gap-2.5 text-[10px] xs:text-xs sm:text-sm sm:group-hover:scale-105 transition-transform duration-300 ease-out">
+                            <Phone className="w-3 h-3 xs:w-3.5 xs:h-3.5 sm:w-4 sm:h-4 text-white flex-shrink-0 sm:group-hover:text-green-300 sm:group-hover:scale-125 transition-all duration-300 ease-out" />
                             {employee.phone_fixed ? (
-                              <a href={`tel:${employee.phone_fixed}`} className="text-gray-200 hover:text-blue-300 transition-colors text-xs sm:text-sm group-hover:text-green-200">
+                              <a href={`tel:${employee.phone_fixed}`} className="text-gray-200 hover:text-blue-300 active:text-blue-400 transition-colors text-[10px] xs:text-xs sm:text-sm sm:group-hover:text-green-200">
                                 {employee.phone_fixed}
                               </a>
                             ) : (
-                              <span className="text-gray-400 text-xs sm:text-sm group-hover:text-gray-300">Non renseigné</span>
+                              <span className="text-gray-400 text-[10px] xs:text-xs sm:text-sm sm:group-hover:text-gray-300">Non renseigné</span>
                             )}
                           </div>
 
-                          <div className="flex items-center gap-2 sm:gap-3 text-xs sm:text-sm group-hover:scale-105 transition-transform duration-500 ease-out">
-                            <Smartphone className="w-3 h-3 sm:w-4 sm:h-4 text-white flex-shrink-0 group-hover:text-purple-300 group-hover:scale-125 transition-all duration-500 ease-out" />
+                          <div className="flex items-center gap-1.5 xs:gap-2 sm:gap-2.5 text-[10px] xs:text-xs sm:text-sm sm:group-hover:scale-105 transition-transform duration-300 ease-out">
+                            <Smartphone className="w-3 h-3 xs:w-3.5 xs:h-3.5 sm:w-4 sm:h-4 text-white flex-shrink-0 sm:group-hover:text-purple-300 sm:group-hover:scale-125 transition-all duration-300 ease-out" />
                             {employee.phone_mobile ? (
-                              <a href={`tel:${employee.phone_mobile}`} className="text-gray-200 hover:text-blue-300 transition-colors text-xs sm:text-sm group-hover:text-purple-200">
+                              <a href={`tel:${employee.phone_mobile}`} className="text-gray-200 hover:text-blue-300 active:text-blue-400 transition-colors text-[10px] xs:text-xs sm:text-sm sm:group-hover:text-purple-200">
                                 {employee.phone_mobile}
                               </a>
                             ) : (
-                              <span className="text-gray-400 text-xs sm:text-sm group-hover:text-gray-300">Non renseigné</span>
+                              <span className="text-gray-400 text-[10px] xs:text-xs sm:text-sm sm:group-hover:text-gray-300">Non renseigné</span>
                             )}
                           </div>
                         </div>
 
-                        {/* Boutons compacts pour mobile */}
-                        <div className="flex gap-1 sm:gap-2 w-full mt-1 sm:mt-2 group-hover:scale-105 group-hover:-translate-y-1 transition-all duration-500 ease-out">
+                        {/* Boutons - Responsive optimisé */}
+                        <div className="flex gap-1.5 xs:gap-2 sm:gap-2.5 w-full mt-1.5 xs:mt-2 sm:mt-2.5 sm:group-hover:scale-105 sm:group-hover:-translate-y-0.5 transition-all duration-300 ease-out">
                           <Button
                             variant="outline"
                             size="sm"
-                            className="flex-1 gap-1 sm:gap-2 text-xs sm:text-sm h-8 sm:h-9"
+                            className="flex-1 gap-1 xs:gap-1.5 sm:gap-2 text-[10px] xs:text-xs sm:text-sm h-7 xs:h-8 sm:h-9 px-2 xs:px-2.5 sm:px-3"
                             style={{
                               backgroundColor: 'white',
                               color: '#344256',
@@ -640,42 +646,50 @@ export default function AnnuairePage() {
                               borderWidth: '1px'
                             }}
                             onMouseEnter={(e) => {
-                              e.currentTarget.style.backgroundColor = '#4a5568';
-                              e.currentTarget.style.color = 'white';
+                              if (window.innerWidth >= 640) {
+                                e.currentTarget.style.backgroundColor = '#4a5568';
+                                e.currentTarget.style.color = 'white';
+                              }
                             }}
                             onMouseLeave={(e) => {
-                              e.currentTarget.style.backgroundColor = 'white';
-                              e.currentTarget.style.color = '#344256';
+                              if (window.innerWidth >= 640) {
+                                e.currentTarget.style.backgroundColor = 'white';
+                                e.currentTarget.style.color = '#344256';
+                              }
                             }}
                             onClick={(e) => {
                               e.stopPropagation();
                               window.location.href = `mailto:${employee.email}`;
                             }}
                           >
-                            <Mail className="w-3 h-3 sm:w-4 sm:h-4" />
-                            <span className="hidden sm:inline">Email</span>
+                            <Mail className="w-3 h-3 xs:w-3.5 xs:h-3.5 sm:w-4 sm:h-4" />
+                            <span className="hidden xs:inline">Email</span>
                           </Button>
                           <Button 
                             size="sm" 
-                            className="flex-1 gap-1 sm:gap-2 text-xs sm:text-sm h-8 sm:h-9"
+                            className="flex-1 gap-1 xs:gap-1.5 sm:gap-2 text-[10px] xs:text-xs sm:text-sm h-7 xs:h-8 sm:h-9 px-2 xs:px-2.5 sm:px-3"
                             style={{
                               backgroundColor: '#4a5568',
                               color: 'white',
                               borderColor: '#4a5568'
                             }}
                             onMouseEnter={(e) => {
-                              e.currentTarget.style.backgroundColor = '#2d3748';
+                              if (window.innerWidth >= 640) {
+                                e.currentTarget.style.backgroundColor = '#2d3748';
+                              }
                             }}
                             onMouseLeave={(e) => {
-                              e.currentTarget.style.backgroundColor = '#4a5568';
+                              if (window.innerWidth >= 640) {
+                                e.currentTarget.style.backgroundColor = '#4a5568';
+                              }
                             }}
                             onClick={(e) => {
                               e.stopPropagation();
                               handleChatClick(employee);
                             }}
                           >
-                            <MessageCircle className="w-3 h-3 sm:w-4 sm:h-4" />
-                            <span className="hidden sm:inline">Chat</span>
+                            <MessageCircle className="w-3 h-3 xs:w-3.5 xs:h-3.5 sm:w-4 sm:h-4" />
+                            <span className="hidden xs:inline">Chat</span>
                           </Button>
                         </div>
                       </div>
@@ -685,55 +699,110 @@ export default function AnnuairePage() {
               ))}
             </div>
 
-            {/* Empty State */}
+            {/* Empty State - Responsive */}
             {displayData.length === 0 && (
-              <Card className="p-12 text-center rounded-lg">
-                <div className="space-y-4">
-                  <div className="w-16 h-16 bg-muted rounded-full flex items-center justify-center mx-auto">
-                    <Search className="h-8 w-8 text-muted-foreground" />
+              <Card className="p-6 xs:p-8 sm:p-10 md:p-12 text-center rounded-lg">
+                <div className="space-y-3 xs:space-y-4">
+                  <div className="w-12 h-12 xs:w-14 xs:h-14 sm:w-16 sm:h-16 bg-muted rounded-full flex items-center justify-center mx-auto">
+                    <Search className="h-6 w-6 xs:h-7 xs:w-7 sm:h-8 sm:w-8 text-muted-foreground" />
                   </div>
                   <div>
-                    <h3 className="text-lg font-semibold">Aucun employé ajouté à l'annuaire</h3>
+                    <h3 className="text-base xs:text-lg sm:text-xl font-semibold">Aucun employé trouvé</h3>
+                    <p className="text-sm xs:text-base text-muted-foreground mt-2">Essayez de modifier vos critères de recherche</p>
                   </div>
                 </div>
               </Card>
             )}
 
-            {/* Pagination */}
+            {/* Pagination - Responsive optimisée */}
             {totalPages > 1 && (
-              <div className="flex items-center justify-center gap-2">
+              <div className="flex items-center justify-center gap-1.5 xs:gap-2 sm:gap-2.5 flex-wrap">
                 <Button
                   onClick={goToPreviousPage}
                   disabled={currentPage === 1}
-                  className="flex items-center justify-center w-10 h-10 rounded-lg bg-card border border-border text-foreground hover:bg-accent hover:text-accent-foreground transition-colors disabled:opacity-50 disabled:cursor-not-allowed disabled:hover:bg-card"
+                  className="flex items-center justify-center w-8 h-8 xs:w-9 xs:h-9 sm:w-10 sm:h-10 rounded-lg bg-card border border-border text-foreground hover:bg-accent hover:text-accent-foreground transition-colors disabled:opacity-50 disabled:cursor-not-allowed disabled:hover:bg-card"
                   aria-label="Page précédente"
                 >
-                  <ChevronLeft className="w-5 h-5" />
+                  <ChevronLeft className="w-4 h-4 xs:w-4.5 xs:h-4.5 sm:w-5 sm:h-5" />
                 </Button>
 
-                {Array.from({ length: totalPages }, (_, i) => i + 1).map((page) => (
-                  <Button
-                    key={page}
-                    onClick={() => setCurrentPage(page)}
-                    className={`flex items-center justify-center w-10 h-10 rounded-lg border transition-colors font-medium ${
-                      currentPage === page
-                        ? "bg-primary text-primary-foreground border-primary"
-                        : "bg-card text-foreground border-border hover:bg-accent hover:text-accent-foreground"
-                    }`}
-                    aria-label={`Page ${page}`}
-                    aria-current={currentPage === page ? "page" : undefined}
-                  >
-                    {page}
-                  </Button>
-                ))}
+                {/* Afficher les pages - Simplifié pour éviter les problèmes d'hydratation */}
+                {totalPages <= 7 ? (
+                  // Afficher toutes les pages si 7 ou moins
+                  Array.from({ length: totalPages }, (_, i) => i + 1).map((page) => (
+                    <Button
+                      key={page}
+                      onClick={() => setCurrentPage(page)}
+                      className={`flex items-center justify-center w-8 h-8 xs:w-9 xs:h-9 sm:w-10 sm:h-10 rounded-lg border transition-colors font-medium text-xs xs:text-sm ${
+                        currentPage === page
+                          ? "bg-primary text-primary-foreground border-primary"
+                          : "bg-card text-foreground border-border hover:bg-accent hover:text-accent-foreground"
+                      }`}
+                      aria-label={`Page ${page}`}
+                      aria-current={currentPage === page ? "page" : undefined}
+                    >
+                      {page}
+                    </Button>
+                  ))
+                ) : (
+                  // Afficher avec ellipses si plus de 7 pages
+                  <>
+                    {currentPage > 3 && (
+                      <>
+                        <Button
+                          onClick={() => setCurrentPage(1)}
+                          className="flex items-center justify-center w-8 h-8 xs:w-9 xs:h-9 sm:w-10 sm:h-10 rounded-lg border transition-colors font-medium text-xs xs:text-sm bg-card text-foreground border-border hover:bg-accent hover:text-accent-foreground"
+                          aria-label="Page 1"
+                        >
+                          1
+                        </Button>
+                        {currentPage > 4 && (
+                          <span className="px-1 xs:px-2 text-foreground text-xs xs:text-sm">...</span>
+                        )}
+                      </>
+                    )}
+                    {Array.from({ length: Math.min(5, totalPages) }, (_, i) => {
+                      const startPage = Math.max(1, Math.min(currentPage - 2, totalPages - 4));
+                      return startPage + i;
+                    }).filter(page => page <= totalPages).map((page) => (
+                      <Button
+                        key={page}
+                        onClick={() => setCurrentPage(page)}
+                        className={`flex items-center justify-center w-8 h-8 xs:w-9 xs:h-9 sm:w-10 sm:h-10 rounded-lg border transition-colors font-medium text-xs xs:text-sm ${
+                          currentPage === page
+                            ? "bg-primary text-primary-foreground border-primary"
+                            : "bg-card text-foreground border-border hover:bg-accent hover:text-accent-foreground"
+                        }`}
+                        aria-label={`Page ${page}`}
+                        aria-current={currentPage === page ? "page" : undefined}
+                      >
+                        {page}
+                      </Button>
+                    ))}
+                    {currentPage < totalPages - 2 && (
+                      <>
+                        {currentPage < totalPages - 3 && (
+                          <span className="px-1 xs:px-2 text-foreground text-xs xs:text-sm">...</span>
+                        )}
+                        <Button
+                          onClick={() => setCurrentPage(totalPages)}
+                          className="flex items-center justify-center w-8 h-8 xs:w-9 xs:h-9 sm:w-10 sm:h-10 rounded-lg border transition-colors font-medium text-xs xs:text-sm bg-card text-foreground border-border hover:bg-accent hover:text-accent-foreground"
+                          aria-label={`Page ${totalPages}`}
+                        >
+                          {totalPages}
+                        </Button>
+                      </>
+                    )}
+                  </>
+                )}
 
                 <Button
                   onClick={goToNextPage}
                   disabled={currentPage === totalPages}
-                  className="flex items-center justify-center w-10 h-10 rounded-lg bg-card border border-border text-foreground hover:bg-accent hover:text-accent-foreground transition-colors disabled:opacity-50 disabled:cursor-not-allowed disabled:hover:bg-card"
+                  className="flex items-center justify-center w-8 h-8 xs:w-9 xs:h-9 sm:w-10 sm:h-10 rounded-lg bg-card border border-border text-foreground hover:bg-accent hover:text-accent-foreground transition-colors disabled:opacity-50 disabled:cursor-not-allowed disabled:hover:bg-card"
                   aria-label="Page suivante"
                 >
-                  <ChevronRight className="w-5 h-5" />
+                  <ChevronRight className="w-4 h-4 xs:w-4.5 xs:h-4.5 sm:w-5 sm:h-5" />
                 </Button>
               </div>
             )}

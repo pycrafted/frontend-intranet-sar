@@ -7,7 +7,7 @@ interface ImageFallbackProps {
   src: string
   alt: string
   className?: string
-  onLoad?: () => void
+  onLoad?: (e: React.SyntheticEvent<HTMLImageElement>) => void
   onError?: (error: any) => void
   fallbackComponent?: React.ReactNode
 }

@@ -7,7 +7,7 @@ import { Input } from "@/components/ui/input"
 import { Textarea } from "@/components/ui/textarea"
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
 import { Label } from "@/components/ui/label"
-import { Lightbulb, Send } from "lucide-react"
+import { Lightbulb, Send, Lock, CheckCircle, Building2, MessageSquare, AlertTriangle, RotateCcw, X } from "lucide-react"
 import { useIdeas } from "@/hooks/useIdeas"
 
 interface IdeaFormData {
@@ -110,11 +110,12 @@ export function IdeaBoxModal({ isOpen, onClose }: IdeaBoxModalProps) {
             <div className="p-2 sm:p-3 bg-gradient-to-br from-yellow-500 to-orange-600 rounded-xl shadow-lg">
               <Lightbulb className="h-4 w-4 sm:h-5 sm:w-5 md:h-6 md:w-6 text-white" />
             </div>
-            <span className="whitespace-nowrap">💡 Boîte à Idées</span>
+            <span className="whitespace-nowrap">Boîte à Idées</span>
           </DialogTitle>
           <div className="flex flex-col sm:flex-row items-start sm:items-center gap-2 mt-2">
-            <div className="text-xs sm:text-sm font-semibold text-orange-600 bg-orange-100 px-2 sm:px-3 py-1 rounded-full whitespace-nowrap">
-              🔒 Anonyme
+            <div className="text-xs sm:text-sm font-semibold text-orange-600 bg-orange-100 px-2 sm:px-3 py-1 rounded-full whitespace-nowrap flex items-center gap-1.5">
+              <Lock className="h-3 w-3" />
+              <span>Anonyme</span>
             </div>
             <p className="text-xs sm:text-sm text-gray-600">
               Partagez vos idées pour améliorer la SAR
@@ -129,8 +130,9 @@ export function IdeaBoxModal({ isOpen, onClose }: IdeaBoxModalProps) {
                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
               </svg>
             </div>
-            <h3 className="text-lg sm:text-xl font-bold text-gray-900 mb-2 sm:mb-3 px-2">
-              🎉 Idée soumise avec succès !
+            <h3 className="text-lg sm:text-xl font-bold text-gray-900 mb-2 sm:mb-3 px-2 flex items-center justify-center gap-2">
+              <CheckCircle className="h-5 w-5 sm:h-6 sm:w-6 text-emerald-600" />
+              <span>Idée soumise avec succès !</span>
             </h3>
             <p className="text-sm sm:text-base text-gray-600 mb-4 sm:mb-6 px-2">
               Votre idée a été transmise au département concerné.
@@ -139,9 +141,10 @@ export function IdeaBoxModal({ isOpen, onClose }: IdeaBoxModalProps) {
               <Button
                 onClick={handleReset}
                 variant="outline"
-                className="w-full sm:w-auto bg-white border-orange-200 text-orange-700 hover:bg-orange-50 text-sm sm:text-base"
+                className="w-full sm:w-auto bg-white border-orange-200 text-orange-700 hover:bg-orange-50 text-sm sm:text-base flex items-center gap-2"
               >
-                💡 Soumettre une autre idée
+                <Lightbulb className="h-4 w-4" />
+                <span>Soumettre une autre idée</span>
               </Button>
               <Button
                 onClick={handleClose}
@@ -156,18 +159,31 @@ export function IdeaBoxModal({ isOpen, onClose }: IdeaBoxModalProps) {
             {/* Département */}
             <div>
               <Label htmlFor="department" className="text-xs sm:text-sm font-semibold text-gray-700 flex items-center gap-2 mb-2">
-                🏢 Département concerné *
+                <Building2 className="h-4 w-4 text-gray-600" />
+                <span>Département concerné *</span>
               </Label>
               <Select
                 value={formData.department}
                 onValueChange={(value) => handleInputChange('department', value)}
               >
                 <SelectTrigger className={`${errors.department ? 'border-red-500' : 'border-orange-200 focus:border-orange-400'} bg-white rounded-lg shadow-sm text-sm sm:text-base h-10 sm:h-11`}>
-                  <SelectValue placeholder="Sélectionnez un département" />
+                  {formData.department ? (() => {
+                    const selectedDept = departments.find(d => String(d.id) === String(formData.department));
+                    return selectedDept ? (
+                      <div className="flex items-center gap-2 w-full">
+                        <span>{selectedDept.icon}</span>
+                        <span className="font-medium">{selectedDept.name}</span>
+                      </div>
+                    ) : (
+                      <SelectValue placeholder="Sélectionnez un département" />
+                    );
+                  })() : (
+                    <SelectValue placeholder="Sélectionnez un département" />
+                  )}
                 </SelectTrigger>
                 <SelectContent className="max-h-[200px] sm:max-h-[300px]">
                   {departments.map((dept) => (
-                    <SelectItem key={dept.id} value={dept.id} className="text-sm sm:text-base">
+                    <SelectItem key={dept.id} value={String(dept.id)} className="text-sm sm:text-base">
                       <div className="flex items-center gap-2">
                         <span>{dept.icon}</span>
                         <div>
@@ -179,8 +195,9 @@ export function IdeaBoxModal({ isOpen, onClose }: IdeaBoxModalProps) {
                 </SelectContent>
               </Select>
               {errors.department && (
-                <p className="text-xs text-red-500 mt-1 flex items-center gap-1">
-                  ⚠️ {errors.department}
+                <p className="text-xs text-red-500 mt-1 flex items-center gap-1.5">
+                  <AlertTriangle className="h-3.5 w-3.5" />
+                  <span>{errors.department}</span>
                 </p>
               )}
             </div>
@@ -188,7 +205,8 @@ export function IdeaBoxModal({ isOpen, onClose }: IdeaBoxModalProps) {
             {/* Description */}
             <div>
               <Label htmlFor="description" className="text-xs sm:text-sm font-semibold text-gray-700 flex items-center gap-2 mb-2">
-                😊 Parlez-nous de votre idée *
+                <MessageSquare className="h-4 w-4 text-gray-600" />
+                <span>Parlez-nous de votre idée *</span>
               </Label>
               <Textarea
                 id="description"
@@ -199,8 +217,9 @@ export function IdeaBoxModal({ isOpen, onClose }: IdeaBoxModalProps) {
                 className={`${errors.description ? 'border-red-500' : 'border-orange-200 focus:border-orange-400'} bg-white rounded-lg shadow-sm text-sm sm:text-base resize-none`}
               />
               {errors.description && (
-                <p className="text-xs text-red-500 mt-1 flex items-center gap-1">
-                  ⚠️ {errors.description}
+                <p className="text-xs text-red-500 mt-1 flex items-center gap-1.5">
+                  <AlertTriangle className="h-3.5 w-3.5" />
+                  <span>{errors.description}</span>
                 </p>
               )}
             </div>
@@ -210,11 +229,12 @@ export function IdeaBoxModal({ isOpen, onClose }: IdeaBoxModalProps) {
               <Button
                 type="button"
                 variant="outline"
-                onClick={handleReset}
+                onClick={handleClose}
                 className="w-full sm:flex-1 bg-white border-orange-200 text-orange-700 hover:bg-orange-50 hover:border-orange-300 text-sm sm:text-base h-10 sm:h-11"
               >
                 <span className="flex items-center justify-center gap-2">
-                  🔄 Annuler
+                  <X className="h-4 w-4" />
+                  <span>Annuler</span>
                 </span>
               </Button>
               <Button
@@ -230,7 +250,7 @@ export function IdeaBoxModal({ isOpen, onClose }: IdeaBoxModalProps) {
                 ) : (
                   <span className="flex items-center justify-center gap-2">
                     <Send className="h-4 w-4" />
-                    🚀 Soumettre
+                    <span>Soumettre</span>
                   </span>
                 )}
               </Button>

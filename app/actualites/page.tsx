@@ -109,8 +109,15 @@ export default function ActualitesPage() {
     window.location.reload()
   }
 
-  // Tous les articles dans une seule liste, en filtrant les articles supprimés
-  const allArticles = articles.filter(article => !deletedArticles.includes(article.id))
+  // Tous les articles dans une seule liste, en filtrant les articles supprimés et triés par date de publication (plus récents en premier)
+  const allArticles = articles
+    .filter(article => !deletedArticles.includes(article.id))
+    .sort((a, b) => {
+      // Trier par date de publication (plus récent en premier)
+      const dateA = new Date(`${a.date}T${a.time}`).getTime()
+      const dateB = new Date(`${b.date}T${b.time}`).getTime()
+      return dateB - dateA // Ordre décroissant (plus récent en premier)
+    })
 
 
 

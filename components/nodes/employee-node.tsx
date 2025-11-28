@@ -9,9 +9,6 @@ interface EmployeeNodeData {
   onMouseEnter?: () => void
   onMouseLeave?: () => void
   isHighlighted?: boolean
-  isExpanded?: boolean
-  hasChildren?: boolean
-  onToggleExpand?: () => void
   config?: {
     nodeWidth: number
     nodeHeight: number
@@ -19,7 +16,7 @@ interface EmployeeNodeData {
 }
 
 export const EmployeeNode = memo(({ data, isConnectable }: NodeProps) => {
-  const { employee, onMouseEnter, onMouseLeave, isHighlighted, isExpanded = false, hasChildren = false, onToggleExpand, config } = data as unknown as EmployeeNodeData
+  const { employee, onMouseEnter, onMouseLeave, isHighlighted, config } = data as unknown as EmployeeNodeData
   
   // Détecter si c'est le DG (pas de manager)
   const isCEO = !employee.manager
@@ -156,31 +153,6 @@ export const EmployeeNode = memo(({ data, isConnectable }: NodeProps) => {
               : "!bg-gray-400"
         }`}
       />
-      
-      {/* Bouton d'expansion/contraction si le nœud a des enfants */}
-      {hasChildren && onToggleExpand && (
-        <button
-          onClick={(e) => {
-            e.stopPropagation()
-            onToggleExpand()
-          }}
-          className={`absolute bottom-2 right-2 w-6 h-6 rounded-full flex items-center justify-center transition-all duration-200 ${
-            isExpanded
-              ? "bg-blue-500 hover:bg-blue-600 text-white"
-              : "bg-gray-300 hover:bg-gray-400 text-gray-700"
-          }`}
-          title={isExpanded ? "Réduire" : "Développer"}
-        >
-          <svg
-            className={`w-4 h-4 transition-transform duration-200 ${isExpanded ? "rotate-180" : ""}`}
-            fill="none"
-            stroke="currentColor"
-            viewBox="0 0 24 24"
-          >
-            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" />
-          </svg>
-        </button>
-      )}
     </div>
   )
 })

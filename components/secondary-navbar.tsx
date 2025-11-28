@@ -3,6 +3,7 @@
 import { Search, X, Building, Calendar } from "lucide-react"
 import { useState } from "react"
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
+import { useAuth } from "@/hooks/useAuth"
 
 interface SecondaryNavbarProps {
   searchTerm?: string
@@ -45,13 +46,28 @@ export function SecondaryNavbar({
   showDepartmentFilter = true
 }: SecondaryNavbarProps) {
   const [searchFocused, setSearchFocused] = useState(false)
+  const { isAuthenticated } = useAuth()
+  
+  // Masquer le champ de recherche si les props ne sont pas fournies
+  // Utiliser une vérification stricte pour éviter les problèmes d'hydratation
+  const showSearch = Boolean(searchTerm !== undefined && onSearchChange !== undefined && searchPlaceholder)
+
+  // Gestion du changement de département avec vérification de connexion
+  const handleDepartmentChange = (value: string) => {
+    if (!isAuthenticated) {
+      alert("Veuillez vous connecter pour accéder à l'organigramme des autres directions et services de la SAR")
+      return
+    }
+    onDepartmentChange?.(value)
+  }
 
   return (
     <header className="w-full border-b border-gray-200 bg-white shadow-sm sticky top-12 xs:top-14 sm:top-16 z-30">
       <div className="flex h-12 xs:h-14 sm:h-16 items-center justify-center px-2 xs:px-3 sm:px-4 lg:px-6">
         {/* Conteneur responsive avec recherche et filtre */}
         <div className="flex flex-col xs:flex-row items-stretch xs:items-center justify-center gap-2 xs:gap-3 sm:gap-4 w-full max-w-7xl">
-          {/* Champ de recherche - responsive */}
+          {/* Champ de recherche - responsive - masqué si showSearch est false */}
+          {showSearch && (
           <div className="relative w-full xs:max-w-xs sm:max-w-md lg:max-w-xl">
             <Search className={`absolute left-2 xs:left-3 top-1/2 transform -translate-y-1/2 h-3 w-3 xs:h-4 xs:w-4 transition-colors ${
               searchFocused ? 'text-blue-500' : 'text-gray-400'
@@ -94,16 +110,27 @@ export function SecondaryNavbar({
               </div>
             )}
           </div>
+          )}
 
           {/* Filtres - conditionnels et responsive */}
           {showFilter && (
             <div className="flex items-center gap-2 xs:gap-3 w-full xs:w-auto">
               {/* Filtre par département - responsive - seulement si showDepartmentFilter est true */}
               {showDepartmentFilter && (
-                <div className="flex items-center gap-1 xs:gap-2 flex-1 xs:flex-none">
-                  <Building className="h-3 w-3 xs:h-4 xs:w-4 sm:h-5 sm:w-5 text-slate-500 flex-shrink-0" />
-                  <Select value={selectedDepartment} onValueChange={onDepartmentChange}>
-                    <SelectTrigger className="w-full xs:w-32 sm:w-40 lg:w-48 h-8 xs:h-9 sm:h-10 lg:h-12 border-slate-300 focus:border-blue-500 focus:ring-blue-500 text-xs xs:text-sm">
+                <div className={`flex items-center gap-1 xs:gap-2 ${showSearch ? 'flex-1 xs:flex-none' : 'w-full'}`}>
+                  <Building className={`h-3 w-3 xs:h-4 xs:w-4 sm:h-5 sm:w-5 flex-shrink-0 ${isAuthenticated ? 'text-slate-500' : 'text-gray-300'}`} />
+                  <Select 
+                    value={selectedDepartment} 
+                    onValueChange={handleDepartmentChange}
+                    disabled={!isAuthenticated}
+                  >
+                    <SelectTrigger 
+                      className={`w-full ${showSearch ? 'xs:w-32 sm:w-40 lg:w-48' : 'xs:w-64 sm:w-80 lg:w-96'} h-8 xs:h-9 sm:h-10 lg:h-12 border-2 text-xs xs:text-sm rounded-lg ${
+                        isAuthenticated 
+                          ? 'border-slate-300 focus:border-blue-500 focus:ring-blue-500 cursor-pointer' 
+                          : 'border-gray-200 bg-gray-50 cursor-not-allowed opacity-60'
+                      }`}
+                    >
                       <SelectValue placeholder="Département" />
                     </SelectTrigger>
                     <SelectContent>

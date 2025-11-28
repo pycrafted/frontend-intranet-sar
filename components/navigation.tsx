@@ -68,9 +68,15 @@ export function Navigation({ isOpen, onClose, onCollapseChange }: NavigationProp
   const router = useRouter()
   const [isLoading, setIsLoading] = useState(false)
   const [isCollapsed, setIsCollapsed] = useState(false) // Ouvert par défaut
+  const [mounted, setMounted] = useState(false) // Pour éviter les erreurs d'hydratation
   const { logout } = useLogout()
   const { stats } = useArticleStats()
   const { user } = useAuth()
+
+  // Marquer comme monté après le premier rendu côté client
+  useEffect(() => {
+    setMounted(true)
+  }, [])
 
   // Arrêter le loader quand la page change
   useEffect(() => {
@@ -384,7 +390,16 @@ export function Navigation({ isOpen, onClose, onCollapseChange }: NavigationProp
         "hidden tablet:flex tablet:flex-col tablet:fixed tablet:top-16 tablet:bottom-0 tablet:z-40 border-r border-gray-200 shadow-sm transition-all duration-300",
         isCollapsed ? "tablet:w-12 md:w-14 lg:w-16" : "tablet:w-56 md:w-60 lg:w-64"
       )}>
-        <NavigationContent />
+        {mounted ? <NavigationContent /> : (
+          <div className="relative flex flex-col h-full bg-gradient-to-b from-slate-50 to-white border-r border-slate-200/60 shadow-sm">
+            <div className="flex justify-end p-1.5 sm:p-2 border-b border-slate-200/60">
+              <div className="h-7 w-7 sm:h-8 sm:w-8 rounded-lg bg-slate-100 animate-pulse" />
+            </div>
+            <nav className="flex-1 pt-3 sm:pt-4 space-y-6 sm:space-y-8 overflow-y-auto px-2 sm:px-3 lg:px-4">
+              {/* Placeholder pour éviter l'erreur d'hydratation */}
+            </nav>
+          </div>
+        )}
       </aside>
 
       {/* Sheet Mobile - Responsive */}

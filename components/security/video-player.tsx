@@ -43,16 +43,16 @@ export function VideoPlayer({ video, onPrevious, onNext, currentIndex, totalVide
   const currentVideoInfo = videos[currentIndex] || videos[0]
 
   return (
-    <Card className="overflow-hidden shadow-2xl border-0 bg-white backdrop-blur-xl hover:shadow-xl transition-all duration-500 group">
-      {/* Header avec titre et bouton questionnaire - Responsive */}
-      <CardHeader className="bg-gradient-to-r from-slate-50 to-slate-100 border-b border-slate-200/50 pb-3 sm:pb-4">
-        <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3 sm:gap-4">
-          <div className="flex items-center gap-3 sm:gap-4">
-            <div className={`p-2 sm:p-3 rounded-xl bg-gradient-to-r ${currentVideoInfo.color} shadow-lg flex-shrink-0`}>
-              <Play className="h-4 w-4 sm:h-6 sm:w-6 text-white" />
+    <Card className="overflow-hidden shadow-2xl border-0 bg-white backdrop-blur-xl sm:hover:shadow-xl transition-all duration-500 group w-full">
+      {/* Header avec titre et bouton questionnaire - Responsive optimisé */}
+      <CardHeader className="bg-gradient-to-r from-slate-50 to-slate-100 border-b border-slate-200/50 pb-2 xs:pb-2.5 sm:pb-3 md:pb-4 px-2 xs:px-3 sm:px-4 md:px-6">
+        <div className="flex flex-col xs:flex-row xs:items-center xs:justify-between gap-2.5 xs:gap-3 sm:gap-4">
+          <div className="flex items-center gap-2 xs:gap-2.5 sm:gap-3 md:gap-4 min-w-0 flex-1">
+            <div className={`p-1.5 xs:p-2 sm:p-2.5 md:p-3 rounded-lg xs:rounded-xl bg-gradient-to-r ${currentVideoInfo.color} shadow-lg flex-shrink-0`}>
+              <Play className="h-3.5 w-3.5 xs:h-4 xs:w-4 sm:h-5 sm:w-5 md:h-6 md:w-6 text-white" />
             </div>
             <div className="min-w-0 flex-1">
-              <CardTitle className="text-lg sm:text-xl md:text-2xl font-bold text-slate-800 group-hover:text-slate-900 transition-colors leading-tight">
+              <CardTitle className="text-sm xs:text-base sm:text-lg md:text-xl lg:text-2xl font-bold text-slate-800 sm:group-hover:text-slate-900 transition-colors leading-tight break-words">
                 {currentVideoInfo.title}
               </CardTitle>
             </div>
@@ -61,23 +61,26 @@ export function VideoPlayer({ video, onPrevious, onNext, currentIndex, totalVide
           {onQuizClick && (
             <Button
               onClick={onQuizClick}
-              className="text-white font-semibold px-4 py-2 sm:px-6 sm:py-2 rounded-lg shadow-lg hover:shadow-xl transition-all duration-300 hover:scale-105 flex items-center justify-center gap-2 w-full sm:w-auto text-sm sm:text-base"
+              className="text-white font-semibold px-3 py-1.5 xs:px-4 xs:py-2 sm:px-5 sm:py-2.5 md:px-6 md:py-2 rounded-md xs:rounded-lg shadow-lg sm:hover:shadow-xl transition-all duration-300 sm:hover:scale-105 active:scale-95 flex items-center justify-center gap-1.5 xs:gap-2 w-full xs:w-auto text-xs xs:text-sm sm:text-base touch-manipulation"
               style={{
                 backgroundColor: "#344256",
                 borderColor: "#344256"
               }}
               onMouseEnter={(e) => {
-                e.currentTarget.style.backgroundColor = "#2a3441"
-                e.currentTarget.style.borderColor = "#2a3441"
+                if (typeof window !== 'undefined' && window.innerWidth >= 640) {
+                  e.currentTarget.style.backgroundColor = "#2a3441"
+                  e.currentTarget.style.borderColor = "#2a3441"
+                }
               }}
               onMouseLeave={(e) => {
-                e.currentTarget.style.backgroundColor = "#344256"
-                e.currentTarget.style.borderColor = "#344256"
+                if (typeof window !== 'undefined' && window.innerWidth >= 640) {
+                  e.currentTarget.style.backgroundColor = "#344256"
+                  e.currentTarget.style.borderColor = "#344256"
+                }
               }}
             >
-              <ClipboardCheck className="h-3 w-3 sm:h-4 sm:w-4" />
-              <span className="hidden xs:inline">Questionnaire</span>
-              <span className="xs:hidden">Quiz</span>
+              <ClipboardCheck className="h-3 w-3 xs:h-3.5 xs:w-3.5 sm:h-4 sm:w-4" />
+              <span>Quiz</span>
             </Button>
           )}
         </div>
@@ -112,21 +115,21 @@ export function VideoPlayer({ video, onPrevious, onNext, currentIndex, totalVide
             </>
           )}
           
-          {/* Boutons de navigation - Responsive */}
-          <div className="absolute bottom-2 left-2 right-2 sm:bottom-4 sm:left-4 sm:right-4 flex items-center justify-between z-50">
+          {/* Boutons de navigation - Responsive optimisé */}
+          <div className="absolute bottom-1.5 xs:bottom-2 sm:bottom-3 md:bottom-4 left-1.5 xs:left-2 sm:left-3 md:left-4 right-1.5 xs:right-2 sm:right-3 md:right-4 flex items-center justify-between z-50 gap-1 xs:gap-2">
             <Button
               onClick={onPrevious}
               variant="ghost"
               size="sm"
-              className="gap-1 sm:gap-2 hover:bg-white/30 text-white font-semibold hover:text-white transition-all duration-200 hover:scale-105 backdrop-blur-md border border-white/30 bg-black/20 hover:bg-black/40 px-2 py-1 sm:px-3 sm:py-2"
+              className="gap-1 xs:gap-1.5 sm:gap-2 sm:hover:bg-white/30 text-white font-semibold sm:hover:text-white transition-all duration-200 sm:hover:scale-105 active:scale-95 backdrop-blur-md border border-white/30 bg-black/30 sm:bg-black/20 sm:hover:bg-black/40 px-1.5 py-1 xs:px-2 xs:py-1.5 sm:px-3 sm:py-2 text-xs xs:text-sm touch-manipulation"
             >
-              <ChevronLeft className="h-3 w-3 sm:h-4 sm:w-4" />
+              <ChevronLeft className="h-3 w-3 xs:h-3.5 xs:w-3.5 sm:h-4 sm:w-4" />
               <span className="hidden sm:inline">Précédent</span>
             </Button>
 
-            <div className="flex items-center gap-1 sm:gap-2 bg-black/60 backdrop-blur-sm rounded-full px-2 py-1 sm:px-4 sm:py-2">
-              <div className="w-1.5 h-1.5 sm:w-2 sm:h-2 bg-white rounded-full"></div>
-              <span className="text-white text-xs sm:text-sm font-medium">
+            <div className="flex items-center gap-1 xs:gap-1.5 sm:gap-2 bg-black/60 backdrop-blur-sm rounded-full px-1.5 py-0.5 xs:px-2 xs:py-1 sm:px-3 sm:py-1.5 md:px-4 md:py-2">
+              <div className="w-1 h-1 xs:w-1.5 xs:h-1.5 sm:w-2 sm:h-2 bg-white rounded-full"></div>
+              <span className="text-white text-[10px] xs:text-xs sm:text-sm font-medium whitespace-nowrap">
                 {currentIndex + 1} / {totalVideos}
               </span>
             </div>
@@ -135,10 +138,10 @@ export function VideoPlayer({ video, onPrevious, onNext, currentIndex, totalVide
               onClick={onNext}
               variant="ghost"
               size="sm"
-              className="gap-1 sm:gap-2 hover:bg-white/30 text-white font-semibold hover:text-white transition-all duration-200 hover:scale-105 backdrop-blur-md border border-white/30 bg-black/20 hover:bg-black/40 px-2 py-1 sm:px-3 sm:py-2"
+              className="gap-1 xs:gap-1.5 sm:gap-2 sm:hover:bg-white/30 text-white font-semibold sm:hover:text-white transition-all duration-200 sm:hover:scale-105 active:scale-95 backdrop-blur-md border border-white/30 bg-black/30 sm:bg-black/20 sm:hover:bg-black/40 px-1.5 py-1 xs:px-2 xs:py-1.5 sm:px-3 sm:py-2 text-xs xs:text-sm touch-manipulation"
             >
               <span className="hidden sm:inline">Suivant</span>
-              <ChevronRight className="h-3 w-3 sm:h-4 sm:w-4" />
+              <ChevronRight className="h-3 w-3 xs:h-3.5 xs:w-3.5 sm:h-4 sm:w-4" />
             </Button>
           </div>
           
