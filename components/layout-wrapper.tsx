@@ -8,6 +8,7 @@ import { useAuth } from "@/hooks/useAuth"
 import { authUtils } from "@/lib/auth-api"
 import { SecondaryNavbar } from "./secondary-navbar"
 import { ControlCenterSidebar } from "./control-center-sidebar"
+import { ForumSidebar } from "./forum-sidebar"
 // import { DocumentsSidebar } from "./documents-sidebar" // Supprimé
 // import { RecrutementSidebar } from "./recrutement-sidebar" // Supprimé
 import { PublicationModal } from "./publication-modal"
@@ -27,10 +28,6 @@ interface LayoutWrapperProps {
     selectedDepartment?: string
     onDepartmentChange?: (department: string) => void
     departmentOptions?: string[]
-  }
-  forumSidebarProps?: {
-    isCollapsed?: boolean
-    onCollapseChange?: (isCollapsed: boolean) => void
   }
   sidebarProps?: {
     activeFilter?: string
@@ -68,10 +65,14 @@ interface LayoutWrapperProps {
       urgency: string
       experience: string
     }
+    // Props spécifiques au forum
+    forums?: any[]
+    forumsLoading?: boolean
+    onCreateForumClick?: () => void
   }
 }
 
-export function LayoutWrapper({ children, secondaryNavbarProps, sidebarProps, forumSidebarProps }: LayoutWrapperProps) {
+export function LayoutWrapper({ children, secondaryNavbarProps, sidebarProps }: LayoutWrapperProps) {
   const [sidebarOpen, setSidebarOpen] = useState(false)
   const [isSidebarCollapsed, setIsSidebarCollapsed] = useState(false) // Ouvert par défaut
   const [isSecondarySidebarCollapsed, setIsSecondarySidebarCollapsed] = useState(true) // Rétracté par défaut
@@ -116,6 +117,9 @@ export function LayoutWrapper({ children, secondaryNavbarProps, sidebarProps, fo
         // On ne force pas le développement, on laisse l'utilisateur contrôler
         // setIsSecondarySidebarCollapsed(false)
       }
+    } else if (pathname === "/forum" || pathname?.startsWith("/forum/")) {
+      // Pour les pages forum, la sidebar secondaire est toujours visible
+      setIsSecondarySidebarCollapsed(false)
     }
   }, [isSidebarCollapsed, pathname])
 
@@ -123,8 +127,13 @@ export function LayoutWrapper({ children, secondaryNavbarProps, sidebarProps, fo
   useEffect(() => {
     // Sidebar principal ouvert par défaut, sidebar secondaire rétracté par défaut
     setIsSidebarCollapsed(false)
-    setIsSecondarySidebarCollapsed(true)
-  }, [])
+    // Si on est sur une page forum, la sidebar secondaire est visible
+    if (pathname === "/forum" || pathname?.startsWith("/forum/")) {
+      setIsSecondarySidebarCollapsed(false)
+    } else {
+      setIsSecondarySidebarCollapsed(true)
+    }
+  }, [pathname])
 
   // Contenu du layout
   const layoutContent = (
@@ -141,9 +150,9 @@ export function LayoutWrapper({ children, secondaryNavbarProps, sidebarProps, fo
         <main className={`flex-1 flex flex-col transition-all duration-300 ${isSidebarCollapsed ? 'tablet:ml-12 md:ml-14 lg:ml-16' : 'tablet:ml-56 md:ml-60 lg:ml-64'}`}>
           <div className={`flex-1 bg-gray-200 transition-all duration-300 ${
             pathname === "/centre_de_controle" ? (
-              isSecondarySidebarCollapsed ? "lg:ml-0" : "lg:ml-80"
-            ) : pathname === "/forum" ? (
-              "" // Le forum gère lui-même les marges pour le sidebar secondaire
+              isSecondarySidebarCollapsed ? "lg:ml-16" : "lg:ml-80"
+            ) : pathname === "/forum" || pathname?.startsWith("/forum/") ? (
+              isSecondarySidebarCollapsed ? "lg:ml-20" : "lg:ml-80"
             ) : ""}`}>
       {/* Secondary Navbar pour les pages actualités, organigramme, annuaire, documents - dans la zone de contenu */}
       {(pathname === "/actualites" || pathname === "/organigramme" || pathname === "/annuaire" || pathname === "/documents") && (
@@ -155,17 +164,10 @@ export function LayoutWrapper({ children, secondaryNavbarProps, sidebarProps, fo
         />
       )}
             
-            <div className={`mx-auto px-2 xs:px-3 sm:px-4 md:px-5 py-3 xs:py-4 sm:py-6 lg:px-8 max-w-full overflow-x-hidden ${pathname === "/" || pathname === "/securite" || pathname === "/recrutement" || pathname === "/reseau-social" || pathname === "/forum" ? (pathname === "/forum" ? "max-w-none p-0" : pathname === "/reseau-social" ? "max-w-none p-0" : "max-w-none px-1 xs:px-1.5 sm:px-2 md:px-3 lg:px-4") : pathname === "/organigramme" ? "max-w-none px-0" : "max-w-7xl"}`}>
+            <div className={`mx-auto px-2 xs:px-3 sm:px-4 md:px-5 py-3 xs:py-4 sm:py-6 lg:px-8 max-w-full overflow-x-hidden ${pathname === "/" || pathname === "/securite" || pathname === "/recrutement" || pathname === "/reseau-social" ? (pathname === "/reseau-social" ? "max-w-none p-0" : "max-w-none px-1 xs:px-1.5 sm:px-2 md:px-3 lg:px-4") : pathname === "/organigramme" ? "max-w-none px-0" : "max-w-7xl"}`}>
               {(() => {
                 // Vérifier si l'enfant est un composant React (pas un élément DOM)
-                if (pathname === "/forum" && React.isValidElement(children)) {
-                  const child = children as React.ReactElement<any>
-                  // Vérifier que ce n'est pas un élément DOM (type string = élément DOM)
-                  if (typeof child.type !== 'string' && child.type) {
-                    return React.cloneElement(child, { isMainSidebarCollapsed: isSidebarCollapsed })
-                  }
-                }
-                if (pathname === "/reseau-social" && React.isValidElement(children)) {
+                if ((pathname === "/reseau-social" || pathname === "/forum" || pathname?.startsWith("/forum/")) && React.isValidElement(children)) {
                   const child = children as React.ReactElement<any>
                   // Vérifier que ce n'est pas un élément DOM (type string = élément DOM)
                   if (typeof child.type !== 'string' && child.type) {
@@ -182,6 +184,16 @@ export function LayoutWrapper({ children, secondaryNavbarProps, sidebarProps, fo
             onCollapseChange={setIsSecondarySidebarCollapsed}
             isMainSidebarCollapsed={isSidebarCollapsed}
           />}
+          {(pathname === "/forum" || pathname?.startsWith("/forum/")) && sidebarProps?.forums !== undefined && (
+            <ForumSidebar
+              forums={sidebarProps.forums || []}
+              loading={sidebarProps.forumsLoading}
+              onCreateClick={sidebarProps.onCreateForumClick}
+              isMainSidebarCollapsed={isSidebarCollapsed}
+              isCollapsed={isSecondarySidebarCollapsed}
+              onCollapseChange={setIsSecondarySidebarCollapsed}
+            />
+          )}
           {/* Sidebar des documents supprimée */}
           {/* Sidebar de recrutement supprimée */}
           

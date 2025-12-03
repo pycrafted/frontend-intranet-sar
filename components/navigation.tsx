@@ -44,8 +44,8 @@ const getBaseNavigationSections = () => [
     items: [
       { name: "Organigramme", href: "/organigramme", icon: Users },
       { name: "Annuaire", href: "/annuaire", icon: Phone },
-      { name: "Chat", href: "/reseau-social", icon: MessageSquare },
       { name: "Forum", href: "/forum", icon: MessageCircle },
+      { name: "Chat", href: "/reseau-social", icon: MessageSquare },
     ],
   },
   {
@@ -111,12 +111,8 @@ export function Navigation({ isOpen, onClose, onCollapseChange }: NavigationProp
     sections.forEach(section => {
       if (section.title === "Collaboration") {
         section.items = section.items.filter(item => {
-          // Masquer "Chat" si non authentifié
-          if (item.name === "Chat" && !isAuthenticated) {
-            return false
-          }
-          // Masquer "Forum" si non authentifié
-          if (item.name === "Forum" && !isAuthenticated) {
+          // Masquer "Chat" et "Forum" si non authentifié
+          if ((item.name === "Chat" || item.name === "Forum") && !isAuthenticated) {
             return false
           }
           return true

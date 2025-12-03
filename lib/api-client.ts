@@ -119,7 +119,6 @@ export class APIClient {
     console.log('🌐 [API_CLIENT] requireAuth:', requireAuth)
     console.log('🌐 [API_CLIENT] credentials:', requestConfig.credentials)
     console.log('🌐 [API_CLIENT] isDocumentsEndpoint:', endpoint.includes('/documents/'))
-    console.log('🌐 [API_CLIENT] isForumEndpoint:', endpoint.includes('/forum/'))
     
     const response = await fetch(fullUrl, requestConfig)
     
@@ -141,7 +140,6 @@ export class APIClient {
     console.log('📡 [API_CLIENT] Content-Length:', response.headers.get('Content-Length'))
     console.log('📡 [API_CLIENT] requireAuth:', requireAuth)
     console.log('📡 [API_CLIENT] isDocumentsEndpoint:', endpoint.includes('/documents/'))
-    console.log('📡 [API_CLIENT] isForumEndpoint:', endpoint.includes('/forum/'))
     console.log('📡 [API_CLIENT] ===== FIN RÉPONSE =====')
 
     // Vérifier l'authentification si requise

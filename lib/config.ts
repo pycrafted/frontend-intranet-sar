@@ -50,7 +50,6 @@ export const API_CONFIG = {
   get ACTUALITES() { return `${getApiUrl()}/actualites` },
   get ACCUEIL() { return `${getApiUrl()}/accueil` },
   get AUTH() { return `${getApiUrl()}/auth` },
-  get FORUM() { return `${getApiUrl()}/forum` },
   get DOCUMENTS() { return `${getApiUrl()}/documents` },
 }
 
