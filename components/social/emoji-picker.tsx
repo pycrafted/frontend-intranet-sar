@@ -71,7 +71,7 @@ export function EmojiPicker({ onEmojiSelect, className }: EmojiPickerProps) {
             className="fixed inset-0 z-40"
             onClick={() => setIsOpen(false)}
           />
-          <div className="absolute bottom-full right-0 mb-2 w-80 h-96 bg-background border border-border rounded-lg shadow-xl z-50 flex flex-col">
+          <div className="absolute bottom-full right-0 mb-2 w-80 h-96 bg-background border border-border rounded-lg shadow-xl z-[100] flex flex-col">
             {/* En-tête avec catégories */}
             <div className="flex items-center justify-between p-2 border-b border-border">
               <div className="flex gap-1 overflow-x-auto flex-1 scrollbar-hide">

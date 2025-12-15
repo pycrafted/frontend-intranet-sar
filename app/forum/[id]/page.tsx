@@ -498,19 +498,19 @@ export default function ForumDetailPage({ isMainSidebarCollapsed = false }: Foru
               </div>
 
               {/* Formulaire de réponse - Style actualités */}
-              <Card className="adaptive-publication-card rounded-xl overflow-hidden fade-in w-full news-card">
-                <CardContent className="p-0 w-full">
+              <Card className="adaptive-publication-card rounded-xl overflow-visible fade-in w-full" style={{ backgroundColor: '#344256' }}>
+                <CardContent className="p-0 w-full overflow-visible">
                   <div className="px-3 xs:px-4 sm:px-6 pt-2 xs:pt-3 pb-1">
                     <div className="flex items-center gap-1 xs:gap-2 flex-wrap mb-3 xs:mb-4">
-                      <Badge variant="outline" className="text-base px-3 py-1.5 bg-blue-100 text-blue-700 border-blue-200">
+                      <Badge variant="outline" className="text-base px-3 py-1.5 bg-white/20 text-white border-white/30">
                         Nouvelle réponse
                       </Badge>
                     </div>
                   </div>
                   
-                  <div className="px-3 xs:px-4 sm:px-6 pb-4 xs:pb-6 w-full">
+                  <div className="px-3 xs:px-4 sm:px-6 pb-4 xs:pb-6 w-full overflow-visible">
                     <div className="flex items-start gap-3 xs:gap-4 mb-3 xs:mb-4">
-                      <div className="relative h-10 w-10 xs:h-12 xs:w-12 flex-shrink-0 overflow-hidden rounded-full ring-2 ring-gray-200">
+                      <div className="relative h-10 w-10 xs:h-12 xs:w-12 flex-shrink-0 overflow-hidden rounded-full ring-2 ring-white/20">
                         {user?.avatar_url ? (
                           <img
                             src={user.avatar_url}
@@ -518,7 +518,7 @@ export default function ForumDetailPage({ isMainSidebarCollapsed = false }: Foru
                             className="w-full h-full object-cover"
                           />
                         ) : (
-                          <div className="w-full h-full bg-gray-100 flex items-center justify-center text-gray-600 font-semibold text-xs xs:text-sm">
+                          <div className="w-full h-full bg-white/20 flex items-center justify-center text-white font-semibold text-xs xs:text-sm">
                             {user?.full_name
                               ?.split(" ")
                               .map((n) => n[0])
@@ -529,16 +529,18 @@ export default function ForumDetailPage({ isMainSidebarCollapsed = false }: Foru
                         )}
                       </div>
                       <div className="flex-1">
-                        <div className="font-semibold text-gray-900 text-base xs:text-lg mb-1">{user?.full_name || "Vous"}</div>
-                        <p className="text-sm xs:text-base text-gray-500 mb-3 xs:mb-4">Partagez votre point de vue avec la communauté</p>
+                        <div className="font-semibold text-white text-base xs:text-lg mb-1">{user?.full_name || "Vous"}</div>
+                        <p className="text-sm xs:text-base text-white/80 mb-3 xs:mb-4">Partagez votre point de vue avec la communauté</p>
                       </div>
                     </div>
 
-                    <ForumMessageForm
-                      onSubmit={handleCreateMessage}
-                      loading={loading}
-                      placeholder="Partagez vos idées, posez vos questions..."
-                    />
+                    <div className="relative overflow-visible">
+                      <ForumMessageForm
+                        onSubmit={handleCreateMessage}
+                        loading={loading}
+                        placeholder="Partagez vos idées, posez vos questions..."
+                      />
+                    </div>
                   </div>
                 </CardContent>
               </Card>
