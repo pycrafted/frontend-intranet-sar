@@ -172,15 +172,6 @@ export function ChatInterface() {
       filtered = filtered.filter(conv => conv.is_pinned === true)
     }
     
-    // Appliquer la recherche textuelle
-    if (searchQuery.trim()) {
-      const query = searchQuery.toLowerCase()
-      filtered = filtered.filter((conv) =>
-        conv.name.toLowerCase().includes(query) ||
-        conv.lastMessage.toLowerCase().includes(query)
-      )
-    }
-    
     // Trier : favoris en premier, puis par date de dernier message
     return filtered.sort((a, b) => {
       // Favoris en premier
@@ -191,7 +182,7 @@ export function ChatInterface() {
       const dateB = new Date(b.last_message_at || b.created_at || 0).getTime()
       return dateB - dateA
     })
-  }, [conversations, searchQuery, activeFilter])
+  }, [conversations, activeFilter])
 
   // Sélectionner la première conversation si aucune n'est sélectionnée
   useEffect(() => {
@@ -200,14 +191,8 @@ export function ChatInterface() {
     }
   }, [conversations, selectedChat])
 
-  // Recherche d'utilisateurs avec debounce
+  // Recherche d'utilisateurs avec debounce (déclenchée directement depuis le champ de recherche)
   useEffect(() => {
-    if (!showUserSearchDialog) {
-      setUserSearchQuery("")
-      clearSearch()
-      return
-    }
-
     const timeoutId = setTimeout(() => {
       if (userSearchQuery.length >= 2) {
         searchUsers(userSearchQuery)
@@ -217,7 +202,7 @@ export function ChatInterface() {
     }, 300)
 
     return () => clearTimeout(timeoutId)
-  }, [userSearchQuery, showUserSearchDialog, searchUsers, clearSearch])
+  }, [userSearchQuery, searchUsers, clearSearch])
 
   const handleSelectChat = (chatId: string) => {
     setSelectedChat(chatId)
@@ -233,7 +218,6 @@ export function ChatInterface() {
     const conversation = await createConversationWithUser(userId)
     if (conversation) {
       setSelectedChat(conversation.id)
-      setShowUserSearchDialog(false)
       setUserSearchQuery("")
       clearSearch()
     }
@@ -365,155 +349,193 @@ export function ChatInterface() {
   return (
     <>
       <div
-        className="flex w-full h-full overflow-hidden border-0 rounded-none m-0 p-0"
-        style={{ backgroundColor: '#fdfdfe' }}
+        className="flex w-full h-full overflow-hidden border-0 rounded-none m-0 p-0 bg-white"
       >
         {/* Sidebar conversations */}
         <div
-          className={`fixed lg:relative inset-y-0 left-0 z-10 w-full max-w-full sm:w-[320px] lg:w-[340px] border-r border-border flex flex-col shadow-sm transform transition-transform duration-300 ease-in-out ${isSidebarOpen ? "translate-x-0" : "-translate-x-full lg:translate-x-0"}`}
-          style={{ backgroundColor: '#fdfdfe' }}
+          className={`fixed lg:relative inset-y-0 left-0 z-10 w-full max-w-full sm:w-[320px] lg:w-[340px] border-r border-gray-200 flex flex-col shadow-sm transform transition-transform duration-300 ease-in-out bg-white ${isSidebarOpen ? "translate-x-0" : "-translate-x-full lg:translate-x-0"}`}
         >
-          {/* Header */}
-          <div className="p-4 sm:p-5 border-b border-border">
-            <div className="flex items-center justify-between mb-4 sm:mb-5">
-              <h1 className="text-xl sm:text-2xl font-semibold tracking-tight">Messages</h1>
-              <div className="flex items-center gap-1">
-                <Button variant="ghost" size="icon" className="h-9 w-9 rounded-lg hover:bg-muted lg:hidden" onClick={() => setIsSidebarOpen(false)}>
-                  <X className="h-5 w-5" />
-                </Button>
-                <Button 
-                  variant="ghost" 
-                  size="icon" 
-                  className="h-9 w-9 rounded-lg hover:bg-muted"
-                  onClick={() => setShowUserSearchDialog(true)}
-                  title="Nouvelle conversation"
-                >
-                  <Plus className="h-5 w-5" />
-                </Button>
-                <Button variant="ghost" size="icon" className="h-9 w-9 rounded-lg hover:bg-muted">
-                  <MoreVertical className="h-5 w-5" />
-                </Button>
-              </div>
-            </div>
-            {/* Search */}
-            <div className="relative">
-              <Search className="absolute left-3.5 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
-              <Input 
-                placeholder="Rechercher une conversation..." 
-                value={searchQuery} 
-                onChange={(e) => setSearchQuery(e.target.value)} 
-                className="pl-10 h-10 bg-muted/30 border-0 focus-visible:bg-muted/50 transition-colors rounded-lg" 
-              />
-              {searchQuery && (
-                <Button variant="ghost" size="icon" className="absolute right-1 top-1/2 -translate-y-1/2 h-7 w-7" onClick={() => setSearchQuery("")}> 
-                  <X className="h-3.5 w-3.5" />
-                </Button>
-              )}
-            </div>
-          </div>
+           {/* Header avec champ de recherche */}
+           <div className="p-4 sm:p-5 border-b border-gray-200 bg-white">
+             <div className="flex items-center justify-between mb-3">
+               <div className="flex items-center gap-1">
+                 <Button variant="ghost" size="icon" className="h-9 w-9 rounded-lg hover:bg-gray-100 lg:hidden" onClick={() => setIsSidebarOpen(false)}>
+                   <X className="h-5 w-5" />
+                 </Button>
+               </div>
+             </div>
+             {/* Search users for new conversation - Plus visible */}
+             <div className="relative">
+               <UserPlus className="absolute left-4 top-1/2 -translate-y-1/2 h-5 w-5 text-gray-500" />
+               <Input 
+                 placeholder="Nouvelle conversation..." 
+                 value={userSearchQuery} 
+                 onChange={(e) => setUserSearchQuery(e.target.value)} 
+                 className="pl-12 pr-12 h-12 bg-white border-2 border-gray-200 focus-visible:bg-white focus-visible:border-primary focus-visible:ring-2 focus-visible:ring-primary/20 transition-all rounded-lg text-base" 
+               />
+               {isSearching && (
+                 <div className="absolute right-4 top-1/2 -translate-y-1/2">
+                   <Loader2 className="h-5 w-5 animate-spin text-gray-400" />
+                 </div>
+               )}
+               {userSearchQuery && !isSearching && (
+                 <Button variant="ghost" size="icon" className="absolute right-2 top-1/2 -translate-y-1/2 h-8 w-8" onClick={() => {
+                   setUserSearchQuery("")
+                   clearSearch()
+                 }}> 
+                   <X className="h-4 w-4" />
+                 </Button>
+               )}
+             </div>
+           </div>
 
-          <div className="px-3 py-3 border-b border-border flex gap-2 overflow-x-auto scrollbar-thin">
+           <div className="px-3 py-3 border-b border-gray-200 flex gap-2 overflow-x-auto scrollbar-thin bg-white">
             <Badge 
               variant={activeFilter === 'all' ? "secondary" : "outline"} 
-              className="rounded-full px-3 py-1 text-xs font-medium cursor-pointer whitespace-nowrap hover:bg-muted"
+              className={`rounded-full px-3 py-1 text-xs font-medium cursor-pointer whitespace-nowrap ${activeFilter === 'all' ? "bg-blue-100 text-blue-800 border-blue-200" : "hover:bg-gray-100 border-gray-200"}`}
               onClick={() => setActiveFilter('all')}
             >
-              Tous
+              Tous ({conversations.length})
             </Badge>
             <Badge 
               variant={activeFilter === 'unread' ? "secondary" : "outline"} 
-              className="rounded-full px-3 py-1 text-xs font-medium cursor-pointer hover:bg-muted whitespace-nowrap"
+              className={`rounded-full px-3 py-1 text-xs font-medium cursor-pointer whitespace-nowrap ${activeFilter === 'unread' ? "bg-blue-100 text-blue-800 border-blue-200" : "hover:bg-gray-100 border-gray-200"}`}
               onClick={() => setActiveFilter('unread')}
             >
               Non lus ({conversations.filter(c => (c.unread || 0) > 0).length})
             </Badge>
             <Badge 
               variant={activeFilter === 'favorites' ? "secondary" : "outline"} 
-              className="rounded-full px-3 py-1 text-xs font-medium cursor-pointer hover:bg-muted whitespace-nowrap"
+              className={`rounded-full px-3 py-1 text-xs font-medium cursor-pointer whitespace-nowrap ${activeFilter === 'favorites' ? "bg-blue-100 text-blue-800 border-blue-200" : "hover:bg-gray-100 border-gray-200"}`}
               onClick={() => setActiveFilter('favorites')}
             >
               <Star className="h-3 w-3 mr-1" /> Favoris ({conversations.filter(c => c.is_pinned).length})
             </Badge>
           </div>
 
-          {/* Conversations */}
+          {/* Conversations ou résultats de recherche utilisateurs */}
           <div className="flex-1 overflow-y-auto min-h-0">
             <div className="p-2">
-              {isLoadingConversations ? (
-                <div className="flex items-center justify-center py-8">
-                  <Loader2 className="h-6 w-6 animate-spin text-muted-foreground" />
-                </div>
-              ) : conversationsError ? (
-                <div className="text-center py-8 text-sm text-destructive">
-                  <p>Erreur : {conversationsError}</p>
-                </div>
-              ) : filteredConversations.length === 0 ? (
-                <div className="text-center py-8 text-sm text-muted-foreground">
-                  <p>{searchQuery ? 'Aucune conversation trouvée' : 'Aucune conversation'}</p>
-                  {!searchQuery && (
-                    <Button
-                      variant="outline"
-                      size="sm"
-                      className="mt-4"
-                      onClick={() => setShowUserSearchDialog(true)}
-                    >
-                      <UserPlus className="h-4 w-4 mr-2" />
-                      Nouvelle conversation
-                    </Button>
-                  )}
-                </div>
-              ) : (
-                filteredConversations.map((conv) => (
-                  <div
-                    key={conv.id}
-                    className={`group relative w-full p-3 sm:p-3.5 rounded-xl flex items-start gap-3 transition-all duration-200 ${selectedChat === conv.id ? "bg-primary/10 shadow-sm" : "hover:bg-muted/50"}`}
-                    onContextMenu={(e) => handleConversationContextMenu(e, conv.id)}
-                  >
-                    <button
-                      onClick={() => handleSelectChat(conv.id)}
-                      className="flex items-start gap-3 flex-1 min-w-0"
-                    >
-                      <div className="relative flex-shrink-0">
-                        <Avatar className="h-11 w-11 sm:h-12 sm:w-12 border-2 border-background shadow-sm">
-                          <AvatarImage src={conv.avatar || "/placeholder.svg"} alt={conv.name} onError={(e) => { (e.currentTarget as HTMLImageElement).src = '/placeholder.svg' }} />
-                          <AvatarFallback className="text-sm font-medium">{conv.name.slice(0, 2).toUpperCase()}</AvatarFallback>
-                        </Avatar>
-                        {conv.online && <span className="absolute bottom-0 right-0 h-3.5 w-3.5 bg-green-500 rounded-full border-[2.5px] border-card shadow-sm" />}
-                      </div>
-                      <div className="flex-1 text-left min-w-0">
-                        <div className="flex items-center justify-between mb-1">
-                          <div className="flex items-center gap-1.5 min-w-0 flex-1">
-                            {conv.is_pinned && (
-                              <Star className="h-3 w-3 text-yellow-500 fill-yellow-500 flex-shrink-0" />
+              {/* Afficher les résultats de recherche d'utilisateurs si une recherche est en cours */}
+              {userSearchQuery.length >= 2 ? (
+                <>
+                  {isSearching ? (
+                    <div className="flex items-center justify-center py-8">
+                      <Loader2 className="h-6 w-6 animate-spin text-gray-400" />
+                    </div>
+                  ) : searchError ? (
+                    <div className="text-center py-8 text-sm text-destructive">
+                      <p>Erreur : {searchError}</p>
+                    </div>
+                  ) : searchResults.length === 0 ? (
+                    <div className="text-center py-8 text-sm text-gray-500">
+                      <p>Aucun utilisateur trouvé</p>
+                    </div>
+                  ) : (
+                    <div className="space-y-1">
+                      {searchResults.map((user) => (
+                        <div
+                          key={user.id}
+                          onClick={() => handleCreateConversation(user.id)}
+                          className="w-full p-3 rounded-xl hover:bg-gray-50 flex items-center gap-3 transition-colors cursor-pointer border border-transparent hover:border-gray-200"
+                          role="button"
+                          tabIndex={0}
+                          onKeyDown={(e) => {
+                            if (e.key === 'Enter' || e.key === ' ') {
+                              e.preventDefault()
+                              handleCreateConversation(user.id)
+                            }
+                          }}
+                        >
+                          <Avatar className="h-11 w-11 sm:h-12 sm:w-12 border-2 border-white shadow-sm">
+                            <AvatarImage src={user.avatar_url || "/placeholder.svg"} alt={user.full_name} />
+                            <AvatarFallback className="text-sm font-medium">{user.full_name?.slice(0, 2).toUpperCase() || user.username?.slice(0, 2).toUpperCase()}</AvatarFallback>
+                          </Avatar>
+                          <div className="flex-1 min-w-0">
+                            <p className="font-semibold text-sm text-gray-900 truncate">{user.full_name || user.username}</p>
+                            {user.position && (
+                              <p className="text-xs text-gray-500 truncate">{user.position}</p>
                             )}
-                            <span className="font-semibold text-sm truncate">{conv.name}</span>
+                            {user.matricule && (
+                              <p className="text-xs text-gray-500">Matricule: {user.matricule}</p>
+                            )}
                           </div>
-                          <span className="text-xs text-muted-foreground flex-shrink-0 ml-2 font-medium">{conv.time}</span>
+                          <div className="flex-shrink-0">
+                            <UserPlus className="h-4 w-4 text-gray-400" />
+                          </div>
                         </div>
-                        <div className="flex items-center justify-between gap-2">
-                          <p className="text-sm text-muted-foreground truncate leading-relaxed">{conv.lastMessage}</p>
-                          {conv.unread && conv.unread > 0 && (
-                            <Badge className="flex-shrink-0 bg-primary text-primary-foreground text-xs rounded-full h-5 min-w-5 px-1.5 flex items-center justify-center font-semibold shadow-sm">
-                              {conv.unread}
-                            </Badge>
-                          )}
-                        </div>
+                      ))}
+                    </div>
+                  )}
+                </>
+              ) : (
+                <>
+                  {isLoadingConversations ? (
+                    <div className="flex items-center justify-center py-8">
+                      <Loader2 className="h-6 w-6 animate-spin text-gray-400" />
+                    </div>
+                  ) : conversationsError ? (
+                    <div className="text-center py-8 text-sm text-destructive">
+                      <p>Erreur : {conversationsError}</p>
+                    </div>
+                  ) : filteredConversations.length === 0 ? (
+                    <div className="text-center py-8 text-sm text-gray-500">
+                      <p>Aucune conversation</p>
+                    </div>
+                  ) : (
+                    filteredConversations.map((conv) => {
+                      const hasUnread = (conv.unread || 0) > 0
+                      return (
+                      <div
+                        key={conv.id}
+                        className={`group relative w-full p-3 sm:p-3.5 rounded-xl flex items-start gap-3 transition-all duration-200 ${selectedChat === conv.id ? "bg-blue-50 shadow-sm border border-blue-200/50" : hasUnread ? "bg-green-50 border border-green-200/50 hover:bg-green-100" : "bg-white hover:bg-gray-50 border border-transparent hover:border-gray-200"}`}
+                        onContextMenu={(e) => handleConversationContextMenu(e, conv.id)}
+                      >
+                        <button
+                          onClick={() => handleSelectChat(conv.id)}
+                          className="flex items-start gap-3 flex-1 min-w-0"
+                        >
+                          <div className="relative flex-shrink-0">
+                            <Avatar className="h-11 w-11 sm:h-12 sm:w-12 border-2 border-white shadow-sm">
+                              <AvatarImage src={conv.avatar || "/placeholder.svg"} alt={conv.name} onError={(e) => { (e.currentTarget as HTMLImageElement).src = '/placeholder.svg' }} />
+                              <AvatarFallback className="text-sm font-medium">{conv.name.slice(0, 2).toUpperCase()}</AvatarFallback>
+                            </Avatar>
+                            {conv.online && <span className="absolute bottom-0 right-0 h-3.5 w-3.5 bg-green-500 rounded-full border-[2.5px] border-white shadow-sm" />}
+                          </div>
+                          <div className="flex-1 text-left min-w-0">
+                            <div className="flex items-center justify-between mb-1">
+                              <div className="flex items-center gap-1.5 min-w-0 flex-1">
+                                <span className="font-semibold text-sm text-gray-900 truncate">{conv.name}</span>
+                              </div>
+                              <span className="text-xs text-gray-500 flex-shrink-0 ml-2 font-medium">{conv.time}</span>
+                            </div>
+                            <div className="flex items-center justify-between gap-2">
+                              <p className="text-sm text-gray-700 truncate leading-relaxed">{conv.lastMessage}</p>
+                              {conv.unread && conv.unread > 0 ? (
+                                <Badge className="flex-shrink-0 bg-primary text-primary-foreground text-xs rounded-full h-5 min-w-5 px-1.5 flex items-center justify-center font-semibold shadow-sm">
+                                  {conv.unread}
+                                </Badge>
+                              ) : null}
+                            </div>
+                          </div>
+                        </button>
+                        <Button
+                          variant="ghost"
+                          size="icon"
+                          className={`h-6 w-6 opacity-0 group-hover:opacity-100 transition-opacity flex-shrink-0 ${conv.is_pinned ? 'text-yellow-500 fill-yellow-500 opacity-100' : ''}`}
+                          onClick={(e) => {
+                            e.stopPropagation()
+                            toggleFavorite(conv.id).catch(err => console.error('Erreur lors du basculement favori:', err))
+                          }}
+                          title={conv.is_pinned ? "Retirer des favoris" : "Mettre en favoris"}
+                        >
+                          <Star className={`h-4 w-4 ${conv.is_pinned ? 'fill-current' : ''}`} />
+                        </Button>
                       </div>
-                    </button>
-                    <Button
-                      variant="ghost"
-                      size="icon"
-                      className={`h-6 w-6 opacity-0 group-hover:opacity-100 transition-opacity flex-shrink-0 ${conv.is_pinned ? 'text-yellow-500 fill-yellow-500 opacity-100' : ''}`}
-                      onClick={(e) => {
-                        e.stopPropagation()
-                        toggleFavorite(conv.id).catch(err => console.error('Erreur lors du basculement favori:', err))
-                      }}
-                      title={conv.is_pinned ? "Retirer des favoris" : "Mettre en favoris"}
-                    >
-                      <Star className={`h-4 w-4 ${conv.is_pinned ? 'fill-current' : ''}`} />
-                    </Button>
-                  </div>
-                ))
+                      )
+                    })
+                  )}
+                </>
               )}
             </div>
           </div>
@@ -539,27 +561,27 @@ export function ChatInterface() {
                     {selectedConversation.online && <span className="absolute bottom-0 right-0 h-3 w-3 bg-green-500 rounded-full border-[2.5px] border-card" />}
                   </div>
                   <div className="min-w-0 flex-1">
-                    <h2 className="font-semibold text-sm sm:text-base truncate">{selectedConversation.name}</h2>
-                    <p className="text-xs text-muted-foreground font-medium">{selectedConversation.online ? "En ligne" : "Hors ligne"}</p>
+                    <h2 className="font-semibold text-base sm:text-lg text-gray-900 truncate">{selectedConversation.name}</h2>
+                    <p className="text-sm text-gray-500 font-medium">{selectedConversation.online ? "En ligne" : "Hors ligne"}</p>
                   </div>
                 </div>
                 <div className="flex items-center gap-0.5 sm:gap-1 flex-shrink-0">
-                  <Button 
-                    variant="ghost" 
-                    size="icon" 
-                    className={`h-9 w-9 sm:h-10 sm:w-10 rounded-lg hover:bg-muted hidden sm:flex ${selectedConversation?.is_pinned ? 'text-yellow-500 fill-yellow-500' : ''}`}
-                    onClick={() => selectedChat && toggleFavorite(selectedChat).catch(err => console.error('Erreur lors du basculement favori:', err))}
-                    title={selectedConversation?.is_pinned ? "Retirer des favoris" : "Mettre en favoris"}
-                  >
-                    <Star className={`h-5 w-5 ${selectedConversation?.is_pinned ? 'fill-current' : ''}`} />
-                  </Button>
-                  <div className="w-px h-6 bg-border mx-1 hidden sm:block" />
-                  <DropdownMenu>
-                    <DropdownMenuTrigger asChild>
-                      <Button variant="ghost" size="icon" className="h-9 w-9 sm:h-10 sm:w-10 rounded-lg hover:bg-muted">
-                        <MoreVertical className="h-4 w-4 sm:h-5 sm:w-5" />
-                      </Button>
-                    </DropdownMenuTrigger>
+                   <Button 
+                     variant="ghost" 
+                     size="icon" 
+                     className={`h-9 w-9 sm:h-10 sm:w-10 rounded-lg hover:bg-gray-100 hidden sm:flex ${selectedConversation?.is_pinned ? 'text-yellow-500 fill-yellow-500' : ''}`}
+                     onClick={() => selectedChat && toggleFavorite(selectedChat).catch(err => console.error('Erreur lors du basculement favori:', err))}
+                     title={selectedConversation?.is_pinned ? "Retirer des favoris" : "Mettre en favoris"}
+                   >
+                     <Star className={`h-5 w-5 ${selectedConversation?.is_pinned ? 'fill-current' : ''}`} />
+                   </Button>
+                   <div className="w-px h-6 bg-gray-200 mx-1 hidden sm:block" />
+                   <DropdownMenu>
+                     <DropdownMenuTrigger asChild>
+                       <Button variant="ghost" size="icon" className="h-9 w-9 sm:h-10 sm:w-10 rounded-lg hover:bg-gray-100">
+                         <MoreVertical className="h-4 w-4 sm:h-5 sm:w-5" />
+                       </Button>
+                     </DropdownMenuTrigger>
                     <DropdownMenuContent align="end">
                       <DropdownMenuItem
                         variant="destructive"
@@ -575,7 +597,7 @@ export function ChatInterface() {
               </div>
 
               {/* Messages */}
-              <div className="flex-1 overflow-y-auto min-h-0" style={{ backgroundColor: '#fdfdfe', WebkitOverflowScrolling: 'touch', overscrollBehavior: 'contain' }}>
+              <div className="flex-1 overflow-y-auto min-h-0 bg-white" style={{ WebkitOverflowScrolling: 'touch', overscrollBehavior: 'contain' }}>
                 <div className="py-2 sm:py-4 md:py-5 px-2 sm:px-4 md:px-8 space-y-3 sm:space-y-4">
                   {isLoadingMessages ? (
                     <div className="flex items-center justify-center py-8">
@@ -593,8 +615,8 @@ export function ChatInterface() {
                   ) : (
                     <>
                       <div className="flex items-center justify-center my-4 sm:my-6">
-                        <div className="bg-muted/80 backdrop-blur-sm px-3 sm:px-4 py-1.5 rounded-full">
-                          <span className="text-xs font-medium text-muted-foreground">Aujourd'hui</span>
+                        <div className="bg-gray-100 backdrop-blur-sm px-3 sm:px-4 py-1.5 rounded-full">
+                          <span className="text-xs font-medium text-gray-600">Aujourd'hui</span>
                         </div>
                       </div>
                       {currentMessages.map((message) => (
@@ -604,7 +626,7 @@ export function ChatInterface() {
                           onContextMenu={(e) => handleContextMenu(e, message.id, message.sent)}
                         >
                           <div className="flex items-end gap-2 max-w-[85%] sm:max-w-[75%] lg:max-w-[65%]">
-                            <div className={`relative ${message.sent ? "bg-primary text-primary-foreground shadow-md" : "bg-card text-foreground shadow-sm border border-border/50"} rounded-2xl px-3 sm:px-4 py-2.5 sm:py-3 transition-all duration-200 hover:shadow-lg ${message.is_deleted ? "opacity-60 italic" : ""}`}>
+                            <div className={`relative ${message.sent ? "bg-primary text-primary-foreground shadow-md" : "bg-white text-gray-900 shadow-sm border border-gray-200"} rounded-2xl px-3 sm:px-4 py-2.5 sm:py-3 transition-all duration-200 hover:shadow-lg ${message.is_deleted ? "opacity-60 italic" : ""}`}>
                               
                               {/* Afficher l'image si c'est un message image et non supprimé */}
                               {message.message_type === 'image' && message.attachment_url && !message.is_deleted && (
@@ -621,14 +643,14 @@ export function ChatInterface() {
                               
                               {/* Afficher le document si c'est un message file et non supprimé */}
                               {message.message_type === 'file' && message.attachment_url && !message.is_deleted && (
-                                <div className="mb-2 p-2 bg-background/50 rounded-lg border border-border/50">
+                                <div className="mb-2 p-2 bg-gray-50 rounded-lg border border-gray-200">
                                   <div className="flex items-center gap-2">
-                                    <Paperclip className="h-4 w-4" />
+                                    <Paperclip className="h-4 w-4 text-gray-600" />
                                     <a 
                                       href={message.attachment_url} 
                                       target="_blank" 
                                       rel="noopener noreferrer"
-                                      className="text-sm underline hover:no-underline truncate flex-1"
+                                      className="text-sm text-gray-700 underline hover:no-underline truncate flex-1"
                                     >
                                       {message.attachment || 'Document'}
                                     </a>
@@ -639,17 +661,17 @@ export function ChatInterface() {
                               {/* Afficher le texte avec liens détectés */}
                               {message.text && (
                                 <p 
-                                  className={`text-sm sm:text-[15px] leading-relaxed ${message.is_deleted ? "text-muted-foreground" : ""}`}
+                                  className={`leading-relaxed text-xl xs:text-2xl ${message.is_deleted ? "text-muted-foreground" : message.sent ? "text-primary-foreground" : "text-gray-700"}`}
                                   dangerouslySetInnerHTML={{ __html: message.is_deleted ? "Message supprimé" : detectLinks(message.text) }}
                                 />
                               )}
                               
                               {/* Afficher uniquement l'heure si pas de texte mais un fichier */}
                               {!message.text && (message.attachment_url || message.message_type !== 'text') && !message.is_deleted && (
-                                <div className="text-xs text-muted-foreground/70 italic">Pièce jointe</div>
+                                <div className="text-xs text-gray-500 italic">Pièce jointe</div>
                               )}
                               
-                              <span className={`text-[11px] mt-1 sm:mt-1.5 block font-medium ${message.sent ? "text-primary-foreground/70" : "text-muted-foreground"}`}>{message.time}</span>
+                              <span className={`text-[11px] mt-1 sm:mt-1.5 block font-medium ${message.sent ? "text-primary-foreground/70" : "text-gray-500"}`}>{message.time}</span>
                             </div>
                           </div>
                         </div>
@@ -661,7 +683,7 @@ export function ChatInterface() {
               </div>
 
               {/* Composer */}
-              <div className="border-t border-border p-2 sm:p-3 md:p-5" style={{ backgroundColor: '#fdfdfe' }}>
+              <div className="border-t border-gray-200 p-2 sm:p-3 md:p-5 bg-white">
                 <div className="px-0 sm:px-3">
                   <div className="flex items-end gap-2 sm:gap-3">
                     <div className="hidden sm:flex gap-1">

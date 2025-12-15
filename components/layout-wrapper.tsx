@@ -216,8 +216,8 @@ export function LayoutWrapper({ children, secondaryNavbarProps, sidebarProps }: 
         onClose={() => setShowAnnouncementModal(false)} 
       />
       
-      {/* Chatbot MAÏ - disponible sur toutes les pages */}
-      <MaiChatbot />
+      {/* Chatbot MAÏ - disponible sur toutes les pages sauf /reseau-social */}
+      {pathname !== "/reseau-social" && <MaiChatbot />}
     </div>
   )
 
