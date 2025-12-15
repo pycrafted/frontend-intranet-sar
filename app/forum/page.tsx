@@ -24,6 +24,7 @@ import {
 import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
 import { Card, CardContent } from "@/components/ui/card"
+import { Badge } from "@/components/ui/badge"
 import { ImageIcon, X } from "lucide-react"
 
 interface ForumPageProps {
@@ -56,6 +57,8 @@ export default function ForumPage({ isMainSidebarCollapsed = false }: ForumPageP
   const [editErrors, setEditErrors] = useState<Partial<Record<keyof ForumUpdateData, string>>>({})
   const editFileInputRef = useRef<HTMLInputElement>(null)
 
+  const [isRedirecting, setIsRedirecting] = useState(false)
+
   useEffect(() => {
     fetchForums().catch((err) => {
       console.error("Erreur lors du chargement des forums:", err)
@@ -64,7 +67,8 @@ export default function ForumPage({ isMainSidebarCollapsed = false }: ForumPageP
 
   // Rediriger vers le forum avec l'ID 1 s'il existe, sinon vers le premier forum disponible
   useEffect(() => {
-    if (!loading && forums.length > 0) {
+    if (!loading && forums.length > 0 && !isRedirecting) {
+      setIsRedirecting(true)
       // Chercher d'abord le forum avec l'ID 1
       const forumId1 = forums.find(f => f.id === 1)
       if (forumId1) {
@@ -74,7 +78,7 @@ export default function ForumPage({ isMainSidebarCollapsed = false }: ForumPageP
         router.replace(`/forum/${forums[0].id}`)
       }
     }
-  }, [loading, forums, router])
+  }, [loading, forums, router, isRedirecting])
 
   const handleCreateForum = async (data: ForumCreateData) => {
     try {
@@ -230,44 +234,27 @@ export default function ForumPage({ isMainSidebarCollapsed = false }: ForumPageP
                   </CardContent>
                 </Card>
               ) : (
-                <div className="max-w-4xl mx-auto space-y-6 w-full">
-                  {/* En-tête élégant avec gradient subtil */}
-                  <div className="space-y-3 pb-4 border-b border-border w-full">
-                    <div className="flex items-center justify-between flex-wrap gap-4">
-                      <div>
-                        <h1 className="text-3xl sm:text-4xl font-bold text-foreground mb-2">Forums</h1>
-                        <p className="text-muted-foreground">
-                          Rejoignez les discussions et partagez vos idées avec vos collègues
-                        </p>
-                      </div>
+                <div className="w-full space-y-4 xs:space-y-6">
+                  {/* Header - Style actualités */}
+                  <div className="flex items-center gap-2 mb-3 xs:mb-4 px-1 max-w-4xl mx-auto">
+                    <div className="w-1 h-4 xs:h-6 bg-gradient-to-b from-blue-400 to-indigo-400 rounded-full shadow-sm"></div>
+                    <h3 className="text-base xs:text-lg font-semibold text-gray-900">Tous les forums</h3>
+                    <Badge variant="secondary" className="ml-2 bg-blue-100 text-blue-800 text-xs xs:text-sm px-2 py-1">
+                      {forums.length}
+                    </Badge>
+                    <div className="ml-auto">
                       <Button 
                         onClick={() => setIsCreateModalOpen(true)}
-                        className="shrink-0"
+                        className="shrink-0 text-sm xs:text-base"
                       >
                         <Plus className="h-4 w-4 mr-2" />
                         Nouveau forum
                       </Button>
                     </div>
-                    
-                    {/* Statistiques élégantes */}
-                    <div className="flex items-center gap-6 flex-wrap">
-                      <div className="flex items-center gap-2 text-sm">
-                        <div className="w-2 h-2 rounded-full bg-primary"></div>
-                        <span className="font-medium text-foreground">
-                          {forums.length} {forums.length === 1 ? "forum" : "forums"}
-                        </span>
-                      </div>
-                      <div className="flex items-center gap-2 text-sm text-muted-foreground">
-                        <MessageCircle className="h-4 w-4" />
-                        <span>
-                          {forums.reduce((acc, f) => acc + f.message_count, 0)} messages au total
-                        </span>
-                      </div>
-                    </div>
                   </div>
 
-                  {/* Grille de forums - Design moderne - Centrée */}
-                  <div className="grid gap-4 sm:gap-6 md:grid-cols-2 lg:grid-cols-3 w-full place-items-center">
+                  {/* Liste de forums - Style actualités */}
+                  <div className="space-y-3 xs:space-y-4 max-w-4xl mx-auto">
                     {forums.map((forum) => (
                       <ForumCard
                         key={forum.id}
@@ -392,18 +379,28 @@ export default function ForumPage({ isMainSidebarCollapsed = false }: ForumPageP
 
         {/* Modal de confirmation de suppression */}
         <Dialog open={isDeleteModalOpen} onOpenChange={setIsDeleteModalOpen}>
-          <DialogContent>
+          <DialogContent className="sm:max-w-[425px] max-w-[90vw] mx-4">
             <DialogHeader>
-              <DialogTitle>Supprimer le forum</DialogTitle>
-              <DialogDescription>
+              <DialogTitle className="text-base sm:text-lg">Supprimer le forum</DialogTitle>
+              <DialogDescription className="text-sm sm:text-base">
                 Êtes-vous sûr de vouloir supprimer le forum "{selectedForum?.title}" ? Cette action est irréversible et supprimera tous les messages associés.
               </DialogDescription>
             </DialogHeader>
-            <DialogFooter>
-              <Button type="button" variant="outline" onClick={() => setIsDeleteModalOpen(false)}>
+            <DialogFooter className="flex-col sm:flex-row gap-2 sm:gap-0">
+              <Button 
+                type="button" 
+                variant="outline" 
+                onClick={() => setIsDeleteModalOpen(false)}
+                className="w-full sm:w-auto"
+              >
                 Annuler
               </Button>
-              <Button type="button" variant="destructive" onClick={confirmDeleteForum}>
+              <Button 
+                type="button" 
+                variant="destructive" 
+                onClick={confirmDeleteForum}
+                className="w-full sm:w-auto"
+              >
                 Supprimer
               </Button>
             </DialogFooter>

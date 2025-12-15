@@ -5,7 +5,7 @@ import { useParams, useRouter } from "next/navigation"
 import { AuthGuard } from "@/components/auth-guard"
 import { Button } from "@/components/ui/button"
 import { cn } from "@/lib/utils"
-import { MessageSquare, ImageIcon, X } from "lucide-react"
+import { MessageSquare, ImageIcon, X, Calendar } from "lucide-react"
 import { LayoutWrapper } from "@/components/layout-wrapper"
 import { ForumMessageForm } from "@/components/forum/forum-message-form"
 import { ForumCreateModal } from "@/components/forum/forum-create-modal"
@@ -24,6 +24,7 @@ import { Textarea } from "@/components/ui/textarea"
 import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
 import { Card, CardContent } from "@/components/ui/card"
+import { Badge } from "@/components/ui/badge"
 import type { ForumMessage, ForumUpdateData, ForumCreateData } from "@/lib/types/forum"
 
 interface ForumDetailPageProps {
@@ -195,7 +196,7 @@ export default function ForumDetailPage({ isMainSidebarCollapsed = false }: Foru
 
   const handleRemoveEditForumImage = () => {
     setEditForumFormData({ ...editForumFormData, image: null })
-    setEditForumImagePreview(currentForum?.image_url || null)
+    setEditForumImagePreview(null)
     if (editForumFileInputRef.current) {
       editForumFileInputRef.current.value = ''
     }
@@ -308,86 +309,157 @@ export default function ForumDetailPage({ isMainSidebarCollapsed = false }: Foru
           onDeleteForumClick: handleDeleteForum,
         }}
       >
-        <div className="w-full">
-          {/* Contenu principal - Design moderne et centré */}
+        <div className="w-full space-y-4 xs:space-y-6">
+          {/* Contenu principal - Style actualités */}
           <div className="px-4 sm:px-6 lg:px-8 py-6 lg:py-8">
-            <div className="max-w-4xl mx-auto space-y-6">
-              {/* Image header avec overlay - Design moderne */}
-              <div className="relative h-64 sm:h-80 w-full overflow-hidden rounded-xl shadow-lg">
-                {currentForum.image_url ? (
-                  <img
-                    src={currentForum.image_url}
-                    alt={currentForum.title}
-                    className="w-full h-full object-cover"
-                  />
-                ) : (
-                  <div className="w-full h-full bg-gradient-to-br from-blue-100 to-indigo-100 flex items-center justify-center">
-                    <ImageIcon className="h-16 w-16 text-muted-foreground/50" />
-                  </div>
-                )}
-                <div className="absolute inset-0 bg-black/30" />
-
-                <div className="absolute bottom-0 left-0 right-0 p-6 space-y-4">
-                  <h1 className="text-3xl font-bold text-white text-balance">{currentForum.title}</h1>
-
-                  <div className="flex items-center justify-between gap-4 flex-wrap">
-                    <div className="flex items-center gap-3">
-                      <div className="relative h-10 w-10 overflow-hidden rounded-full ring-2 ring-white/20">
-                        {currentForum.created_by_info.avatar_url ? (
-                          <img
-                            src={currentForum.created_by_info.avatar_url}
-                            alt={currentForum.created_by_info.full_name}
-                            className="w-full h-full object-cover"
-                          />
-                        ) : (
-                          <div className="w-full h-full bg-white/20 flex items-center justify-center text-white font-semibold">
-                            {currentForum.created_by_info.full_name
-                              .split(" ")
-                              .map((n) => n[0])
-                              .join("")
-                              .toUpperCase()
-                              .slice(0, 2)}
-                          </div>
-                        )}
-                      </div>
-                      <div>
-                        <div className="font-medium text-white">{currentForum.created_by_info.full_name}</div>
-                        <div className="text-sm text-white/80">
+            <div className="max-w-4xl mx-auto space-y-3 xs:space-y-4">
+              {/* Carte du forum - Style actualités */}
+              <Card className="adaptive-publication-card rounded-xl overflow-hidden group fade-in w-full news-card">
+                <CardContent className="p-0 w-full">
+                  {/* Image header avec overlay - Style actualités */}
+                  {currentForum.image_url && (
+                    <div className="relative h-64 sm:h-80 w-full overflow-hidden bg-gray-50 -mx-0">
+                      <img
+                        src={currentForum.image_url}
+                        alt={currentForum.title}
+                        className="w-full h-full object-cover"
+                      />
+                      <div className="absolute inset-0 bg-black/30" />
+                    </div>
+                  )}
+                  
+                  {/* Header avec date et auteur - Style actualités */}
+                  <div className="px-3 xs:px-4 sm:px-6 pt-2 xs:pt-3 pb-1">
+                    <div className="flex items-center justify-between mb-2 xs:mb-3">
+                      <div className="publication-date flex items-center gap-1 xs:gap-2 text-base xs:text-lg text-gray-500">
+                        <Calendar className="w-4 h-4 xs:w-5 xs:h-5 flex-shrink-0" />
+                        <span className="date-text font-medium text-gray-600 hidden xs:inline">
                           {currentForum.last_message
-                            ? `Dernière activité ${new Date(currentForum.last_message.created_at).toLocaleDateString('fr-FR')}`
-                            : "Nouveau forum"}
+                            ? new Date(currentForum.last_message.created_at).toLocaleDateString("fr-FR", {
+                                weekday: 'long',
+                                year: 'numeric',
+                                month: 'long',
+                                day: 'numeric'
+                              })
+                            : new Date().toLocaleDateString("fr-FR", {
+                                weekday: 'long',
+                                year: 'numeric',
+                                month: 'long',
+                                day: 'numeric'
+                              })}
+                        </span>
+                        <span className="date-text font-medium text-gray-600 xs:hidden">
+                          {currentForum.last_message
+                            ? new Date(currentForum.last_message.created_at).toLocaleDateString("fr-FR", {
+                                day: 'numeric',
+                                month: 'short',
+                                year: '2-digit'
+                              })
+                            : new Date().toLocaleDateString("fr-FR", {
+                                day: 'numeric',
+                                month: 'short',
+                                year: '2-digit'
+                              })}
+                        </span>
+                      </div>
+                      
+                      {/* Auteur à droite */}
+                      <div className="flex items-center gap-3 xs:gap-4">
+                        <div className="relative h-10 w-10 xs:h-12 xs:w-12 flex-shrink-0 overflow-hidden rounded-full ring-2 ring-gray-200">
+                          {currentForum.created_by_info.avatar_url ? (
+                            <img
+                              src={currentForum.created_by_info.avatar_url}
+                              alt={currentForum.created_by_info.full_name}
+                              className="w-full h-full object-cover"
+                            />
+                          ) : (
+                            <div className="w-full h-full bg-gray-100 flex items-center justify-center text-gray-600 font-semibold text-xs xs:text-sm">
+                              {currentForum.created_by_info.full_name
+                                .split(" ")
+                                .map((n) => n[0])
+                                .join("")
+                                .toUpperCase()
+                                .slice(0, 2)}
+                            </div>
+                          )}
+                        </div>
+                        <div className="text-right">
+                          <div className="font-semibold text-gray-900 text-base xs:text-lg">{currentForum.created_by_info.full_name}</div>
+                          <div className="text-sm xs:text-base text-gray-500">
+                            {currentForum.last_message
+                              ? `Dernière activité ${new Date(currentForum.last_message.created_at).toLocaleDateString('fr-FR')}`
+                              : "Nouveau forum"}
+                          </div>
                         </div>
                       </div>
                     </div>
-
-                    <div className="flex items-center gap-6 text-sm text-white/90">
-                      <span className="flex items-center gap-1.5">
-                        <MessageSquare className="h-4 w-4" />
-                        {currentForum.message_count} messages
-                      </span>
-                    </div>
                   </div>
-                </div>
-              </div>
 
-              {/* Messages section - Design moderne et centré */}
-              <div className="space-y-4">
-                <div className="flex items-center justify-between">
-                  <h3 className="text-xl font-semibold text-foreground">Réponses ({messages.length})</h3>
+                  {/* Titre - Style actualités */}
+                  <div className="px-3 xs:px-4 sm:px-6 pb-4 xs:pb-6 w-full">
+                    <h1 className="article-title mb-0 w-full block text-2xl xs:text-3xl font-bold text-gray-900 leading-tight">
+                      {currentForum.title}
+                    </h1>
+                  </div>
+                </CardContent>
+              </Card>
+
+              {/* Messages section - Style actualités */}
+              <div className="space-y-3 xs:space-y-4">
+                <div className="flex items-center gap-2 mb-3 xs:mb-4 px-1 max-w-4xl mx-auto">
+                  <div className="w-1 h-4 xs:h-6 bg-gradient-to-b from-blue-400 to-indigo-400 rounded-full shadow-sm"></div>
+                  <h3 className="text-base xs:text-lg font-semibold text-gray-900">Réponses</h3>
+                  <Badge variant="secondary" className="ml-2 bg-blue-100 text-blue-800 text-xs xs:text-sm px-2 py-1">
+                    {messages.length}
+                  </Badge>
                 </div>
 
-                <Card className="overflow-hidden shadow-sm">
-                  <CardContent className="p-0">
-                    {messages.length === 0 ? (
-                      <div className="py-12 text-center text-muted-foreground">
-                        <p className="text-sm">Aucun message pour le moment. Soyez le premier à participer !</p>
-                      </div>
-                    ) : (
-                      <div className="divide-y divide-border/50">
-                        {messages.map((message) => (
-                          <div key={message.id} className="p-5 hover:bg-muted/30 transition-colors">
-                            <div className="flex items-start gap-4">
-                              <div className="relative h-10 w-10 flex-shrink-0 overflow-hidden rounded-full ring-2 ring-background">
+                {messages.length === 0 ? (
+                  <Card className="adaptive-publication-card rounded-xl overflow-hidden fade-in w-full">
+                    <CardContent className="py-12 text-center">
+                      <p className="text-sm xs:text-base text-gray-500">Aucun message pour le moment. Soyez le premier à participer !</p>
+                    </CardContent>
+                  </Card>
+                ) : (
+                  <div className="space-y-3 xs:space-y-4 max-w-4xl mx-auto">
+                    {messages.map((message) => (
+                      <Card key={message.id} className="adaptive-publication-card rounded-xl overflow-hidden group fade-in w-full news-card">
+                        <CardContent className="p-0 w-full">
+                          {/* Header avec date - Style actualités */}
+                          <div className="px-3 xs:px-4 sm:px-6 pt-2 xs:pt-3 pb-1">
+                            <div className="flex items-center justify-between mb-2 xs:mb-3">
+                              <div className="publication-date flex items-center gap-1 xs:gap-2 text-base xs:text-lg text-gray-500">
+                                <Calendar className="w-4 h-4 xs:w-5 xs:h-5 flex-shrink-0" />
+                                <span className="date-text font-medium text-gray-600 hidden xs:inline">
+                                  {new Date(message.created_at).toLocaleDateString("fr-FR", {
+                                    weekday: 'long',
+                                    year: 'numeric',
+                                    month: 'long',
+                                    day: 'numeric'
+                                  })}
+                                </span>
+                                <span className="date-text font-medium text-gray-600 xs:hidden">
+                                  {new Date(message.created_at).toLocaleDateString("fr-FR", {
+                                    day: 'numeric',
+                                    month: 'short',
+                                    year: '2-digit'
+                                  })}
+                                </span>
+                                <span className="separator text-gray-400 hidden xs:inline">•</span>
+                                <span className="time-text text-gray-500 hidden xs:inline">
+                                  {new Date(message.created_at).toLocaleTimeString("fr-FR", {
+                                    hour: '2-digit',
+                                    minute: '2-digit'
+                                  })}
+                                </span>
+                              </div>
+                            </div>
+                          </div>
+
+                          {/* Contenu du message - Style actualités */}
+                          <div className="px-3 xs:px-4 sm:px-6 pb-4 xs:pb-6 w-full">
+                            <div className="flex items-start gap-3 xs:gap-4 mb-3 xs:mb-4">
+                              <div className="relative h-10 w-10 xs:h-12 xs:w-12 flex-shrink-0 overflow-hidden rounded-full ring-2 ring-gray-200">
                                 {message.author_info.avatar_url ? (
                                   <img
                                     src={message.author_info.avatar_url}
@@ -395,7 +467,7 @@ export default function ForumDetailPage({ isMainSidebarCollapsed = false }: Foru
                                     className="w-full h-full object-cover"
                                   />
                                 ) : (
-                                  <div className="w-full h-full bg-primary/10 flex items-center justify-center text-primary font-semibold text-xs">
+                                  <div className="w-full h-full bg-gray-100 flex items-center justify-center text-gray-600 font-semibold text-xs xs:text-sm">
                                     {message.author_info.full_name
                                       .split(" ")
                                       .map((n) => n[0])
@@ -405,63 +477,69 @@ export default function ForumDetailPage({ isMainSidebarCollapsed = false }: Foru
                                   </div>
                                 )}
                               </div>
-
                               <div className="flex-1 min-w-0">
-                                <div className="mb-2 flex items-center gap-3 flex-wrap">
-                                  <span className="font-semibold text-foreground">{message.author_info.full_name}</span>
-                                  <span className="text-xs text-muted-foreground">
-                                    {new Date(message.created_at).toLocaleDateString('fr-FR', {
-                                      day: 'numeric',
-                                      month: 'short',
-                                      hour: '2-digit',
-                                      minute: '2-digit'
-                                    })}
-                                  </span>
+                                <div className="mb-2 xs:mb-3">
+                                  <span className="font-semibold text-gray-900 text-base xs:text-lg">{message.author_info.full_name}</span>
                                 </div>
-                                <p className="text-sm leading-relaxed text-foreground/90 whitespace-pre-wrap break-words">{message.content}</p>
+                              </div>
+                            </div>
+                            
+                            <div className="text-gray-700 leading-relaxed text-xl xs:text-2xl">
+                              <div className="publication-content whitespace-pre-wrap break-words">
+                                {message.content}
                               </div>
                             </div>
                           </div>
-                        ))}
-                      </div>
-                    )}
-                  </CardContent>
-                </Card>
+                        </CardContent>
+                      </Card>
+                    ))}
+                  </div>
+                )}
               </div>
 
-              {/* Formulaire de réponse - Design moderne et centré */}
-              <Card className="overflow-hidden shadow-sm border-2">
-                <CardContent className="p-6 sm:p-8">
-                  <div className="mb-6 flex items-center gap-4">
-                    <div className="relative h-12 w-12 flex-shrink-0 overflow-hidden rounded-full ring-2 ring-primary/20">
-                      {user?.avatar_url ? (
-                        <img
-                          src={user.avatar_url}
-                          alt={user.full_name || "Vous"}
-                          className="w-full h-full object-cover"
-                        />
-                      ) : (
-                        <div className="w-full h-full bg-primary/10 flex items-center justify-center text-primary font-semibold">
-                          {user?.full_name
-                            ?.split(" ")
-                            .map((n) => n[0])
-                            .join("")
-                            .toUpperCase()
-                            .slice(0, 2) || "VO"}
-                        </div>
-                      )}
-                    </div>
-                    <div>
-                      <h4 className="text-lg font-semibold text-foreground">Ajouter votre réponse</h4>
-                      <p className="text-sm text-muted-foreground">Partagez votre point de vue avec la communauté</p>
+              {/* Formulaire de réponse - Style actualités */}
+              <Card className="adaptive-publication-card rounded-xl overflow-hidden fade-in w-full news-card">
+                <CardContent className="p-0 w-full">
+                  <div className="px-3 xs:px-4 sm:px-6 pt-2 xs:pt-3 pb-1">
+                    <div className="flex items-center gap-1 xs:gap-2 flex-wrap mb-3 xs:mb-4">
+                      <Badge variant="outline" className="text-base px-3 py-1.5 bg-blue-100 text-blue-700 border-blue-200">
+                        Nouvelle réponse
+                      </Badge>
                     </div>
                   </div>
+                  
+                  <div className="px-3 xs:px-4 sm:px-6 pb-4 xs:pb-6 w-full">
+                    <div className="flex items-start gap-3 xs:gap-4 mb-3 xs:mb-4">
+                      <div className="relative h-10 w-10 xs:h-12 xs:w-12 flex-shrink-0 overflow-hidden rounded-full ring-2 ring-gray-200">
+                        {user?.avatar_url ? (
+                          <img
+                            src={user.avatar_url}
+                            alt={user.full_name || "Vous"}
+                            className="w-full h-full object-cover"
+                          />
+                        ) : (
+                          <div className="w-full h-full bg-gray-100 flex items-center justify-center text-gray-600 font-semibold text-xs xs:text-sm">
+                            {user?.full_name
+                              ?.split(" ")
+                              .map((n) => n[0])
+                              .join("")
+                              .toUpperCase()
+                              .slice(0, 2) || "VO"}
+                          </div>
+                        )}
+                      </div>
+                      <div className="flex-1">
+                        <div className="font-semibold text-gray-900 text-base xs:text-lg mb-1">{user?.full_name || "Vous"}</div>
+                        <p className="text-sm xs:text-base text-gray-500 mb-3 xs:mb-4">Partagez votre point de vue avec la communauté</p>
+                      </div>
+                    </div>
 
-                  <ForumMessageForm
-                    onSubmit={handleCreateMessage}
-                    loading={loading}
-                    placeholder="Partagez vos idées, posez vos questions..."
-                  />
+                    <ForumMessageForm
+                      onSubmit={handleCreateMessage}
+                      loading={loading}
+                      placeholder="Partagez vos idées, posez vos questions..."
+                    />
+                  </div>
                 </CardContent>
               </Card>
             </div>
@@ -588,9 +666,9 @@ export default function ForumDetailPage({ isMainSidebarCollapsed = false }: Foru
                         </Button>
                       </div>
                     ) : (
-                      <div
-                        onClick={() => editForumFileInputRef.current?.click()}
-                        className="border-2 border-dashed border-muted-foreground/25 rounded-lg p-8 text-center cursor-pointer hover:border-primary/50 transition-colors"
+                      <Label
+                        htmlFor="edit-forum-image"
+                        className="border-2 border-dashed border-muted-foreground/25 rounded-lg p-8 text-center cursor-pointer hover:border-primary/50 transition-colors block"
                       >
                         <ImageIcon className="h-12 w-12 mx-auto mb-2 text-muted-foreground" />
                         <p className="text-sm text-muted-foreground">
@@ -599,7 +677,7 @@ export default function ForumDetailPage({ isMainSidebarCollapsed = false }: Foru
                         <p className="text-xs text-muted-foreground mt-1">
                           PNG, JPG, GIF jusqu'à 5MB
                         </p>
-                      </div>
+                      </Label>
                     )}
                     <Input
                       ref={editForumFileInputRef}
@@ -637,22 +715,28 @@ export default function ForumDetailPage({ isMainSidebarCollapsed = false }: Foru
 
         {/* Modal de confirmation de suppression de forum */}
         <Dialog open={isDeleteForumModalOpen} onOpenChange={setIsDeleteForumModalOpen}>
-          <DialogContent>
+          <DialogContent className="sm:max-w-[425px] max-w-[90vw] mx-4">
             <DialogHeader>
-              <DialogTitle>Supprimer le forum</DialogTitle>
-              <DialogDescription>
+              <DialogTitle className="text-base sm:text-lg">Supprimer le forum</DialogTitle>
+              <DialogDescription className="text-sm sm:text-base">
                 Êtes-vous sûr de vouloir supprimer le forum "{currentForum.title}" ? Cette action est irréversible.
               </DialogDescription>
             </DialogHeader>
-            <DialogFooter>
+            <DialogFooter className="flex-col sm:flex-row gap-2 sm:gap-0">
               <Button
                 variant="outline"
                 onClick={() => setIsDeleteForumModalOpen(false)}
                 disabled={loading}
+                className="w-full sm:w-auto"
               >
                 Annuler
               </Button>
-              <Button variant="destructive" onClick={confirmDeleteForum} disabled={loading}>
+              <Button 
+                variant="destructive" 
+                onClick={confirmDeleteForum} 
+                disabled={loading}
+                className="w-full sm:w-auto"
+              >
                 {loading ? "Suppression..." : "Supprimer"}
               </Button>
             </DialogFooter>

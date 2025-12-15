@@ -5,6 +5,7 @@ import { useLogout } from "@/hooks/useAuth"
 import { useArticleStats } from "@/hooks/useArticles"
 import { useState, useEffect } from "react"
 import { cn } from "@/lib/utils"
+import { getForums } from "@/lib/forum-api"
 import { Button } from "@/components/ui/button"
 import { Sheet, SheetContent } from "@/components/ui/sheet"
 import { Badge } from "@/components/ui/badge"
@@ -178,17 +179,46 @@ export function Navigation({ isOpen, onClose, onCollapseChange }: NavigationProp
             <div className="space-y-1">
               {section.items.map((item) => {
                 const Icon = item.icon
-                const isActive = pathname === item.href
+                const isActive = pathname === item.href || (item.name === "Forum" && pathname?.startsWith("/forum/"))
+                const handleForumClick = async (e: React.MouseEvent) => {
+                  if (item.name === "Forum") {
+                    e.preventDefault()
+                    setIsLoading(true)
+                    try {
+                      const forums = await getForums()
+                      if (forums.length > 0) {
+                        // Chercher d'abord le forum avec l'ID 1
+                        const forumId1 = forums.find(f => f.id === 1)
+                        if (forumId1) {
+                          router.push(`/forum/1`)
+                        } else if (forums[0]?.id) {
+                          // Sinon, rediriger vers le premier forum disponible
+                          router.push(`/forum/${forums[0].id}`)
+                        } else {
+                          router.push("/forum")
+                        }
+                      } else {
+                        router.push("/forum")
+                      }
+                    } catch (error) {
+                      console.error("Erreur lors du chargement des forums:", error)
+                      router.push("/forum")
+                    } finally {
+                      setIsLoading(false)
+                    }
+                    if (onClose) onClose()
+                  } else {
+                    if (item.href !== pathname && !item.href.startsWith('#')) {
+                      setIsLoading(true)
+                    }
+                    if (onClose) onClose()
+                  }
+                }
                 return (
                   <Link
                     key={item.name}
                     href={item.href}
-                    onClick={(e) => {
-                      if (item.href !== pathname && !item.href.startsWith('#')) {
-                        setIsLoading(true)
-                      }
-                      if (onClose) onClose()
-                    }}
+                    onClick={handleForumClick}
                     className={cn(
                       "group flex items-center justify-between px-2 py-2.5 text-sm font-medium rounded-lg transition-all duration-300 relative overflow-hidden",
                       isActive
@@ -285,17 +315,46 @@ export function Navigation({ isOpen, onClose, onCollapseChange }: NavigationProp
             <div className="space-y-1">
               {section.items.map((item) => {
                 const Icon = item.icon
-                const isActive = pathname === item.href
+                const isActive = pathname === item.href || (item.name === "Forum" && pathname?.startsWith("/forum/"))
+                const handleForumClick = async (e: React.MouseEvent) => {
+                  if (item.name === "Forum") {
+                    e.preventDefault()
+                    setIsLoading(true)
+                    try {
+                      const forums = await getForums()
+                      if (forums.length > 0) {
+                        // Chercher d'abord le forum avec l'ID 1
+                        const forumId1 = forums.find(f => f.id === 1)
+                        if (forumId1) {
+                          router.push(`/forum/1`)
+                        } else if (forums[0]?.id) {
+                          // Sinon, rediriger vers le premier forum disponible
+                          router.push(`/forum/${forums[0].id}`)
+                        } else {
+                          router.push("/forum")
+                        }
+                      } else {
+                        router.push("/forum")
+                      }
+                    } catch (error) {
+                      console.error("Erreur lors du chargement des forums:", error)
+                      router.push("/forum")
+                    } finally {
+                      setIsLoading(false)
+                    }
+                    if (onClose) onClose()
+                  } else {
+                    if (item.href !== pathname && !item.href.startsWith('#')) {
+                      setIsLoading(true)
+                    }
+                    if (onClose) onClose()
+                  }
+                }
                 return (
                   <Link
                     key={item.name}
                     href={item.href}
-                    onClick={(e) => {
-                      if (item.href !== pathname && !item.href.startsWith('#')) {
-                        setIsLoading(true)
-                      }
-                      if (onClose) onClose()
-                    }}
+                    onClick={handleForumClick}
                     className={cn(
                       "group flex items-center transition-all duration-300 relative overflow-hidden",
                       isCollapsed 
