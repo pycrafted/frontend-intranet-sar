@@ -5,7 +5,7 @@ import { useParams, useRouter } from "next/navigation"
 import { AuthGuard } from "@/components/auth-guard"
 import { Button } from "@/components/ui/button"
 import { cn } from "@/lib/utils"
-import { MessageSquare, ImageIcon, X, Calendar } from "lucide-react"
+import { MessageSquare, ImageIcon, X, Calendar, MoreVertical } from "lucide-react"
 import { LayoutWrapper } from "@/components/layout-wrapper"
 import { ForumMessageForm } from "@/components/forum/forum-message-form"
 import { ForumCreateModal } from "@/components/forum/forum-create-modal"
@@ -25,6 +25,12 @@ import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
 import { Card, CardContent } from "@/components/ui/card"
 import { Badge } from "@/components/ui/badge"
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuTrigger,
+} from "@/components/ui/dropdown-menu"
 import type { ForumMessage, ForumUpdateData, ForumCreateData } from "@/lib/types/forum"
 
 interface ForumDetailPageProps {
@@ -453,6 +459,34 @@ export default function ForumDetailPage({ isMainSidebarCollapsed = false }: Foru
                                   })}
                                 </span>
                               </div>
+                              {/* Menu à trois points - visible uniquement pour l'auteur */}
+                              {user && message.author === user.id && (
+                                <DropdownMenu>
+                                  <DropdownMenuTrigger asChild>
+                                    <Button
+                                      variant="ghost"
+                                      size="icon"
+                                      className="h-8 w-8 text-gray-500 hover:text-gray-700 hover:bg-gray-100"
+                                    >
+                                      <MoreVertical className="h-4 w-4" />
+                                    </Button>
+                                  </DropdownMenuTrigger>
+                                  <DropdownMenuContent align="end">
+                                    <DropdownMenuItem
+                                      onClick={() => handleEditMessage(message)}
+                                      className="cursor-pointer"
+                                    >
+                                      Modifier
+                                    </DropdownMenuItem>
+                                    <DropdownMenuItem
+                                      onClick={() => handleDeleteMessage(message)}
+                                      className="cursor-pointer text-destructive focus:text-destructive"
+                                    >
+                                      Supprimer
+                                    </DropdownMenuItem>
+                                  </DropdownMenuContent>
+                                </DropdownMenu>
+                              )}
                             </div>
                           </div>
 
@@ -619,14 +653,14 @@ export default function ForumDetailPage({ isMainSidebarCollapsed = false }: Foru
 
         {/* Modal de confirmation de suppression de message */}
         <Dialog open={isDeleteMessageModalOpen} onOpenChange={setIsDeleteMessageModalOpen}>
-          <DialogContent>
+          <DialogContent className="max-w-[90vw] sm:max-w-lg mx-4 sm:mx-0">
             <DialogHeader>
-              <DialogTitle>Supprimer le message</DialogTitle>
-              <DialogDescription>
+              <DialogTitle className="text-base sm:text-lg">Supprimer le message</DialogTitle>
+              <DialogDescription className="text-sm sm:text-base">
                 Êtes-vous sûr de vouloir supprimer ce message ? Cette action est irréversible.
               </DialogDescription>
             </DialogHeader>
-            <DialogFooter>
+            <DialogFooter className="flex-col sm:flex-row gap-2 sm:gap-0">
               <Button
                 variant="outline"
                 onClick={() => {
@@ -634,10 +668,16 @@ export default function ForumDetailPage({ isMainSidebarCollapsed = false }: Foru
                   setSelectedMessage(null)
                 }}
                 disabled={loading}
+                className="w-full sm:w-auto"
               >
                 Annuler
               </Button>
-              <Button variant="destructive" onClick={confirmDeleteMessage} disabled={loading}>
+              <Button 
+                variant="destructive" 
+                onClick={confirmDeleteMessage} 
+                disabled={loading}
+                className="w-full sm:w-auto"
+              >
                 {loading ? "Suppression..." : "Supprimer"}
               </Button>
             </DialogFooter>
