@@ -37,6 +37,8 @@ export interface ForumMessage {
   author: number
   author_info: UserInfo
   content: string
+  image?: string | null
+  image_url?: string | null
   created_at: string
   updated_at: string
   is_edited: boolean
@@ -54,6 +56,7 @@ export interface ForumUpdateData {
 
 export interface ForumMessageCreateData {
   content: string
+  image?: File | null
 }
 
 export interface ForumFilters {

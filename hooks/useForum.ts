@@ -143,11 +143,11 @@ export function useForum() {
   }, [])
 
   // Créer un message
-  const createMessage = useCallback(async (forumId: number, content: string) => {
+  const createMessage = useCallback(async (forumId: number, content: string, image?: File | null) => {
     try {
       setLoading(true)
       setError(null)
-      const newMessage = await createForumMessage(forumId, { content })
+      const newMessage = await createForumMessage(forumId, { content, image })
       setMessages((prev) => [...prev, newMessage])
       
       // Récupérer le nom de l'auteur de manière sécurisée

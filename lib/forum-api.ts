@@ -137,14 +137,37 @@ export async function createForumMessage(
   forumId: number,
   data: ForumMessageCreateData
 ): Promise<ForumMessage> {
-  const response = await api.post(`${BASE_ENDPOINT}/${forumId}/messages/create/`, data)
-  
-  if (!response.ok) {
-    const error = await response.json().catch(() => ({ detail: response.statusText }))
-    throw new Error(error.detail || `Erreur lors de la création du message: ${response.statusText}`)
+  // Si une image est fournie, utiliser FormData
+  if (data.image) {
+    const formData = new FormData()
+    // Toujours envoyer le contenu, même s'il est vide
+    formData.append('content', data.content || '')
+    formData.append('image', data.image)
+    const response = await api.post(`${BASE_ENDPOINT}/${forumId}/messages/create/`, formData)
+    
+    if (!response.ok) {
+      const errorData = await response.json().catch(() => ({ detail: response.statusText }))
+      console.error("Erreur backend:", errorData)
+      // Gérer les erreurs de validation Django
+      const errorMessage = errorData.detail || errorData.content?.[0] || errorData.image?.[0] || response.statusText
+      throw new Error(errorMessage || `Erreur lors de la création du message: ${response.statusText}`)
+    }
+    
+    return await response.json()
+  } else {
+    // Sans image, utiliser JSON normal
+    const response = await api.post(`${BASE_ENDPOINT}/${forumId}/messages/create/`, data)
+    
+    if (!response.ok) {
+      const errorData = await response.json().catch(() => ({ detail: response.statusText }))
+      console.error("Erreur backend:", errorData)
+      // Gérer les erreurs de validation Django
+      const errorMessage = errorData.detail || errorData.content?.[0] || errorData.image?.[0] || response.statusText
+      throw new Error(errorMessage || `Erreur lors de la création du message: ${response.statusText}`)
+    }
+    
+    return await response.json()
   }
-  
-  return await response.json()
 }
 
 /**

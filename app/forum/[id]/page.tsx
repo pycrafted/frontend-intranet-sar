@@ -102,9 +102,9 @@ export default function ForumDetailPage({ isMainSidebarCollapsed = false }: Foru
     }
   }
 
-  const handleCreateMessage = async (content: string) => {
+  const handleCreateMessage = async (content: string, image?: File | null) => {
     try {
-      await createMessage(forumId, content)
+      await createMessage(forumId, content, image)
       await fetchMessages(forumId)
     } catch (err) {
       const errorMessage = err instanceof Error ? err.message : "Erreur lors de l'envoi du message"
@@ -486,8 +486,35 @@ export default function ForumDetailPage({ isMainSidebarCollapsed = false }: Foru
                             
                             <div className="text-gray-700 leading-relaxed text-xl xs:text-2xl">
                               <div className="publication-content whitespace-pre-wrap break-words">
-                                {message.content}
+                                {message.content.split(/(!\[.*?\]\(.*?\))/g).map((part, index) => {
+                                  // Détecter les images markdown ![alt](url)
+                                  const imageMatch = part.match(/!\[(.*?)\]\((.*?)\)/)
+                                  if (imageMatch) {
+                                    const [, alt, url] = imageMatch
+                                    return (
+                                      <img
+                                        key={index}
+                                        src={url}
+                                        alt={alt || "GIF"}
+                                        className="max-w-full h-auto rounded-lg my-2"
+                                        loading="lazy"
+                                      />
+                                    )
+                                  }
+                                  return <span key={index}>{part}</span>
+                                })}
                               </div>
+                              {/* Afficher l'image uploadée si elle existe */}
+                              {message.image_url && (
+                                <div className="mt-3">
+                                  <img
+                                    src={message.image_url}
+                                    alt="Image du message"
+                                    className="max-w-full h-auto rounded-lg"
+                                    loading="lazy"
+                                  />
+                                </div>
+                              )}
                             </div>
                           </div>
                         </CardContent>
