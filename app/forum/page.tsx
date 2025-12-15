@@ -189,12 +189,14 @@ export default function ForumPage({ isMainSidebarCollapsed = false }: ForumPageP
           forums,
           forumsLoading: loading,
           onCreateForumClick: () => setIsCreateModalOpen(true),
+          onEditForumClick: handleEditForum,
+          onDeleteForumClick: handleDeleteForum,
         }}
       >
         <div className="w-full">
           {/* Contenu principal - Design moderne et élégant */}
           <div className="px-4 sm:px-6 lg:px-8 py-6 lg:py-8">
-            <div className="max-w-4xl mx-auto space-y-6">
+            <div className="space-y-6">
               {loading ? (
                 <div className="flex items-center justify-center min-h-[50vh]">
                   <div className="text-center">
@@ -210,29 +212,25 @@ export default function ForumPage({ isMainSidebarCollapsed = false }: ForumPageP
                   </CardContent>
                 </Card>
               ) : forums.length === 0 ? (
-                <div className="flex flex-col items-center justify-center min-h-[60vh] text-center">
-                  <Card className="p-8 sm:p-12 max-w-md w-full shadow-sm">
-                    <CardContent className="flex flex-col items-center">
-                      <div className="w-20 h-20 rounded-full bg-muted flex items-center justify-center mb-6">
-                        <MessageCircle className="h-10 w-10 text-muted-foreground/50" />
-                      </div>
-                      <h2 className="text-2xl font-semibold mb-3 text-foreground">Aucun forum créé</h2>
-                      <p className="text-sm text-muted-foreground mb-8 text-center max-w-sm">
-                        Il n'y a aucun forum disponible pour le moment. Créez le premier forum pour commencer à discuter avec vos collègues.
-                      </p>
-                      <Button 
-                        onClick={() => setIsCreateModalOpen(true)} 
-                        size="lg"
-                        className="w-full sm:w-auto"
-                      >
-                        <Plus className="h-4 w-4 sm:h-5 sm:w-5 mr-2" />
-                        Créer le premier forum
-                      </Button>
-                    </CardContent>
-                  </Card>
-                </div>
+                <Card>
+                  <CardContent className="p-8 text-center">
+                    <MessageCircle className="h-12 w-12 text-gray-400 mx-auto mb-4" />
+                    <h3 className="text-lg font-semibold text-gray-700 mb-2">Aucun forum créé</h3>
+                    <p className="text-gray-500 mb-4">
+                      Il n'y a aucun forum disponible pour le moment. Créez le premier forum pour commencer à discuter avec vos collègues.
+                    </p>
+                    <Button 
+                      onClick={() => setIsCreateModalOpen(true)} 
+                      size="lg"
+                      className="w-full sm:w-auto"
+                    >
+                      <Plus className="h-4 w-4 sm:h-5 sm:w-5 mr-2" />
+                      Créer le premier forum
+                    </Button>
+                  </CardContent>
+                </Card>
               ) : (
-                <div className="space-y-6 w-full">
+                <div className="max-w-4xl mx-auto space-y-6 w-full">
                   {/* En-tête élégant avec gradient subtil */}
                   <div className="space-y-3 pb-4 border-b border-border w-full">
                     <div className="flex items-center justify-between flex-wrap gap-4">

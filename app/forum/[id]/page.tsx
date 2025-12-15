@@ -5,7 +5,7 @@ import { useParams, useRouter } from "next/navigation"
 import { AuthGuard } from "@/components/auth-guard"
 import { Button } from "@/components/ui/button"
 import { cn } from "@/lib/utils"
-import { ArrowLeft, MessageSquare, ImageIcon, X } from "lucide-react"
+import { MessageSquare, ImageIcon, X } from "lucide-react"
 import { LayoutWrapper } from "@/components/layout-wrapper"
 import { ForumMessageForm } from "@/components/forum/forum-message-form"
 import { ForumCreateModal } from "@/components/forum/forum-create-modal"
@@ -154,13 +154,14 @@ export default function ForumDetailPage({ isMainSidebarCollapsed = false }: Foru
     }
   }
 
-  const handleEditForum = () => {
-    if (currentForum) {
+  const handleEditForum = (forum?: typeof currentForum) => {
+    const forumToEdit = forum || currentForum
+    if (forumToEdit) {
       setEditForumFormData({
-        title: currentForum.title,
+        title: forumToEdit.title,
         image: null,
       })
-      setEditForumImagePreview(currentForum.image_url || null)
+      setEditForumImagePreview(forumToEdit.image_url || null)
       setIsEditForumModalOpen(true)
     }
   }
@@ -303,6 +304,8 @@ export default function ForumDetailPage({ isMainSidebarCollapsed = false }: Foru
           forums,
           forumsLoading: loading,
           onCreateForumClick: () => setIsCreateModalOpen(true),
+          onEditForumClick: (forum: any) => handleEditForum(forum),
+          onDeleteForumClick: handleDeleteForum,
         }}
       >
         <div className="w-full">
@@ -322,15 +325,7 @@ export default function ForumDetailPage({ isMainSidebarCollapsed = false }: Foru
                     <ImageIcon className="h-16 w-16 text-muted-foreground/50" />
                   </div>
                 )}
-                <div className="absolute inset-0 bg-gradient-to-t from-black/80 via-black/40 to-transparent" />
-
-                <button
-                  onClick={() => router.push("/forum")}
-                  className="absolute left-4 top-4 flex items-center gap-2 rounded-md bg-black/40 px-3 py-2 text-sm text-white backdrop-blur-sm transition-all hover:bg-black/60"
-                >
-                  <ArrowLeft className="h-4 w-4" />
-                  Retour
-                </button>
+                <div className="absolute inset-0 bg-black/30" />
 
                 <div className="absolute bottom-0 left-0 right-0 p-6 space-y-4">
                   <h1 className="text-3xl font-bold text-white text-balance">{currentForum.title}</h1>

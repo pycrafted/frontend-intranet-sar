@@ -3,8 +3,14 @@
 import { useState } from "react"
 import { useRouter, usePathname } from "next/navigation"
 import { cn } from "@/lib/utils"
-import { MessageCircle, Plus, ImageIcon, ChevronLeft, ChevronRight } from "lucide-react"
+import { MessageCircle, Plus, ImageIcon, ChevronLeft, ChevronRight, MoreVertical } from "lucide-react"
 import { Button } from "@/components/ui/button"
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuTrigger,
+} from "@/components/ui/dropdown-menu"
 import type { Forum } from "@/lib/types/forum"
 import Image from "next/image"
 
@@ -12,12 +18,14 @@ interface ForumSidebarProps {
   forums: Forum[]
   loading?: boolean
   onCreateClick?: () => void
+  onEditForum?: (forum: Forum) => void
+  onDeleteForum?: (forum: Forum) => void
   isMainSidebarCollapsed?: boolean
   isCollapsed?: boolean
   onCollapseChange?: (isCollapsed: boolean) => void
 }
 
-export function ForumSidebar({ forums, loading, onCreateClick, isMainSidebarCollapsed = false, isCollapsed: externalIsCollapsed, onCollapseChange }: ForumSidebarProps) {
+export function ForumSidebar({ forums, loading, onCreateClick, onEditForum, onDeleteForum, isMainSidebarCollapsed = false, isCollapsed: externalIsCollapsed, onCollapseChange }: ForumSidebarProps) {
   const router = useRouter()
   const pathname = usePathname()
   const currentForumId = pathname?.match(/\/forum\/(\d+)/)?.[1]
@@ -75,10 +83,6 @@ export function ForumSidebar({ forums, loading, onCreateClick, isMainSidebarColl
         )}>
           {!isCollapsed ? (
             <>
-              <div className="flex items-center justify-between mb-1">
-                <h3 className="text-lg font-semibold text-foreground">Forums</h3>
-              </div>
-              <p className="text-xs text-muted-foreground mb-3">Discussions et échanges</p>
               <Button
                 onClick={onCreateClick}
                 size="sm"
@@ -121,15 +125,6 @@ export function ForumSidebar({ forums, loading, onCreateClick, isMainSidebarColl
                   </div>
                   <p className="text-sm font-medium text-foreground mb-2">Aucun forum</p>
                   <p className="text-xs text-muted-foreground mb-4 text-center">Créez votre premier forum pour commencer</p>
-                  <Button
-                    onClick={onCreateClick}
-                    size="sm"
-                    variant="outline"
-                    className="w-full"
-                  >
-                    <Plus className="h-4 w-4 mr-2" />
-                    Créer un forum
-                  </Button>
                 </div>
               )
             ) : (
@@ -139,81 +134,126 @@ export function ForumSidebar({ forums, loading, onCreateClick, isMainSidebarColl
                   const isActive = currentForumId === forum.id.toString()
                   
                   return (
-                    <button
+                    <div
                       key={forum.id}
-                      onClick={() => handleForumClick(forum.id)}
                       className={cn(
-                        "w-full rounded-lg transition-all duration-200 group",
+                        "relative w-full rounded-lg transition-all duration-200 group",
                         isActive
                           ? "bg-primary text-primary-foreground shadow-md"
                           : "hover:bg-accent/50 hover:shadow-sm",
-                        isCollapsed ? "p-2 flex justify-center" : "p-3 text-left"
+                        isCollapsed ? "p-2" : "p-3"
                       )}
-                      title={isCollapsed ? forum.title : undefined}
                     >
-                      {isCollapsed ? (
-                        <div className="relative h-10 w-10 overflow-hidden rounded-lg">
-                          {forum.image_url ? (
-                            <Image
-                              src={forum.image_url}
-                              alt={forum.title}
-                              fill
-                              className="object-cover"
-                              sizes="40px"
-                              unoptimized
-                            />
-                          ) : (
-                            <div className={cn(
-                              "w-full h-full flex items-center justify-center",
-                              isActive ? "bg-primary-foreground/20" : "bg-primary/10"
-                            )}>
-                              <MessageCircle className={cn(
-                                "h-5 w-5",
-                                isActive ? "text-primary-foreground/70" : "text-primary/40"
-                              )} />
-                            </div>
-                          )}
-                        </div>
-                      ) : (
-                        <div className="flex gap-3 items-center">
-                          {/* Image miniature avec bordure élégante */}
-                          <div className={cn(
-                            "relative h-14 w-14 flex-shrink-0 overflow-hidden rounded-lg transition-all",
-                            isActive 
-                              ? "ring-2 ring-primary ring-offset-2 ring-offset-card" 
-                              : "ring-2 ring-transparent group-hover:ring-primary/20"
-                          )}>
+                      <button
+                        onClick={() => handleForumClick(forum.id)}
+                        className={cn(
+                          "w-full",
+                          isCollapsed ? "flex justify-center" : "text-left"
+                        )}
+                        title={isCollapsed ? forum.title : undefined}
+                      >
+                        {isCollapsed ? (
+                          <div className="relative h-10 w-10 overflow-hidden rounded-lg">
                             {forum.image_url ? (
                               <Image
                                 src={forum.image_url}
                                 alt={forum.title}
                                 fill
                                 className="object-cover"
-                                sizes="56px"
+                                sizes="40px"
                                 unoptimized
                               />
                             ) : (
-                              <div className="w-full h-full flex items-center justify-center bg-gradient-to-br from-primary/10 to-primary/5">
-                                <MessageCircle className="h-6 w-6 text-primary/40" />
+                              <div className={cn(
+                                "w-full h-full flex items-center justify-center",
+                                isActive ? "bg-primary-foreground/20" : "bg-primary/10"
+                              )}>
+                                <MessageCircle className={cn(
+                                  "h-5 w-5",
+                                  isActive ? "text-primary-foreground/70" : "text-primary/40"
+                                )} />
                               </div>
                             )}
                           </div>
-                          <div className="flex-1 min-w-0">
+                        ) : (
+                          <div className="flex gap-3 items-center pr-8">
+                            {/* Image miniature avec bordure élégante */}
                             <div className={cn(
-                              "font-medium text-sm line-clamp-2 mb-1",
-                              isActive ? "text-primary-foreground" : "text-foreground group-hover:text-primary transition-colors"
+                              "relative h-14 w-14 flex-shrink-0 overflow-hidden rounded-lg transition-all",
+                              isActive 
+                                ? "ring-2 ring-primary ring-offset-2 ring-offset-card" 
+                                : "ring-2 ring-transparent group-hover:ring-primary/20"
                             )}>
-                              {forum.title}
+                              {forum.image_url ? (
+                                <Image
+                                  src={forum.image_url}
+                                  alt={forum.title}
+                                  fill
+                                  className="object-cover"
+                                  sizes="56px"
+                                  unoptimized
+                                />
+                              ) : (
+                                <div className="w-full h-full flex items-center justify-center bg-gradient-to-br from-primary/10 to-primary/5">
+                                  <MessageCircle className="h-6 w-6 text-primary/40" />
+                                </div>
+                              )}
                             </div>
-                            <div className="flex items-center gap-2 text-xs text-muted-foreground">
-                              <span>{forum.message_count} messages</span>
-                              <span>•</span>
-                              <span>{forum.participant_count} participants</span>
+                            <div className="flex-1 min-w-0">
+                              <div className={cn(
+                                "font-medium text-sm line-clamp-2 mb-1",
+                                isActive ? "text-primary-foreground" : "text-foreground group-hover:text-primary transition-colors"
+                              )}>
+                                {forum.title}
+                              </div>
+                              <div className="flex items-center gap-2 text-xs text-muted-foreground">
+                                <span>{forum.message_count} messages</span>
+                                <span>•</span>
+                                <span>{forum.participant_count} participants</span>
+                              </div>
                             </div>
                           </div>
+                        )}
+                      </button>
+                      {!isCollapsed && (
+                        <div className="absolute top-3 right-3">
+                          <DropdownMenu>
+                            <DropdownMenuTrigger asChild onClick={(e) => e.stopPropagation()}>
+                              <Button
+                                variant="ghost"
+                                size="icon"
+                                className={cn(
+                                  "h-7 w-7 text-white",
+                                  isActive ? "hover:bg-primary-foreground/20" : "hover:bg-white/20"
+                                )}
+                                onClick={(e) => e.stopPropagation()}
+                              >
+                                <MoreVertical className="h-4 w-4" />
+                              </Button>
+                            </DropdownMenuTrigger>
+                            <DropdownMenuContent align="end" onClick={(e) => e.stopPropagation()}>
+                              <DropdownMenuItem
+                                onClick={(e) => {
+                                  e.stopPropagation()
+                                  onEditForum?.(forum)
+                                }}
+                              >
+                                Modifier
+                              </DropdownMenuItem>
+                              <DropdownMenuItem
+                                onClick={(e) => {
+                                  e.stopPropagation()
+                                  onDeleteForum?.(forum)
+                                }}
+                                className="text-destructive"
+                              >
+                                Supprimer
+                              </DropdownMenuItem>
+                            </DropdownMenuContent>
+                          </DropdownMenu>
                         </div>
                       )}
-                    </button>
+                    </div>
                   )
                 })
             )}

@@ -69,6 +69,8 @@ interface LayoutWrapperProps {
     forums?: any[]
     forumsLoading?: boolean
     onCreateForumClick?: () => void
+    onEditForumClick?: (forum: any) => void
+    onDeleteForumClick?: (forum: any) => void
   }
 }
 
@@ -189,6 +191,8 @@ export function LayoutWrapper({ children, secondaryNavbarProps, sidebarProps }: 
               forums={sidebarProps.forums || []}
               loading={sidebarProps.forumsLoading}
               onCreateClick={sidebarProps.onCreateForumClick}
+              onEditForum={sidebarProps.onEditForumClick}
+              onDeleteForum={sidebarProps.onDeleteForumClick}
               isMainSidebarCollapsed={isSidebarCollapsed}
               isCollapsed={isSecondarySidebarCollapsed}
               onCollapseChange={setIsSecondarySidebarCollapsed}

@@ -175,9 +175,9 @@ export function ForumCreateModal({
                     </Button>
                   </div>
                 ) : (
-                  <div
-                    onClick={() => fileInputRef.current?.click()}
-                    className="border-2 border-dashed border-muted-foreground/25 rounded-lg p-8 text-center cursor-pointer hover:border-primary/50 transition-colors"
+                  <Label
+                    htmlFor="image"
+                    className="border-2 border-dashed border-muted-foreground/25 rounded-lg p-8 text-center cursor-pointer hover:border-primary/50 transition-colors block"
                   >
                     <ImageIcon className="h-12 w-12 mx-auto mb-2 text-muted-foreground" />
                     <p className="text-sm text-muted-foreground">
@@ -186,7 +186,7 @@ export function ForumCreateModal({
                     <p className="text-xs text-muted-foreground mt-1">
                       PNG, JPG, GIF jusqu'à 5MB
                     </p>
-                  </div>
+                  </Label>
                 )}
                 <Input
                   ref={fileInputRef}
