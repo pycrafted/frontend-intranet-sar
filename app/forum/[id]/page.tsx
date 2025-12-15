@@ -465,7 +465,7 @@ export default function ForumDetailPage({ isMainSidebarCollapsed = false }: Foru
               <div className="space-y-3 xs:space-y-4 relative">
                 <div className="flex items-center gap-2 mb-3 xs:mb-4 px-1 max-w-4xl mx-auto">
                   <div className="w-1 h-4 xs:h-6 bg-gradient-to-b from-blue-400 to-indigo-400 rounded-full shadow-sm"></div>
-                  <h3 className="text-base xs:text-lg font-semibold text-gray-900">Réponses</h3>
+                  <h3 className="text-base xs:text-lg font-semibold text-gray-900">Avis</h3>
                   <Badge variant="secondary" className="ml-2 bg-blue-100 text-blue-800 text-xs xs:text-sm px-2 py-1">
                     {messages.length}
                   </Badge>
@@ -476,8 +476,8 @@ export default function ForumDetailPage({ isMainSidebarCollapsed = false }: Foru
                   <Button
                     onClick={scrollToBottom}
                     className="fixed right-4 sm:right-6 top-1/2 -translate-y-1/2 z-40 h-12 w-12 rounded-full shadow-lg bg-primary hover:bg-primary/90 text-white flex items-center justify-center transition-all hover:scale-110 hidden md:flex"
-                    aria-label="Aller au formulaire de réponse"
-                    title="Aller au formulaire de réponse"
+                    aria-label="Aller au formulaire d'avis"
+                    title="Aller au formulaire d'avis"
                   >
                     <ArrowDown className="h-5 w-5" />
                   </Button>
@@ -625,13 +625,13 @@ export default function ForumDetailPage({ isMainSidebarCollapsed = false }: Foru
                 )}
               </div>
 
-              {/* Formulaire de réponse - Style actualités */}
+              {/* Formulaire d'avis - Style actualités */}
               <Card id="forum-message-form" className="adaptive-publication-card rounded-xl overflow-visible fade-in w-full" style={{ backgroundColor: '#344256' }}>
                 <CardContent className="p-0 w-full overflow-visible">
                   <div className="px-3 xs:px-4 sm:px-6 pt-2 xs:pt-3 pb-1">
                     <div className="flex items-center gap-1 xs:gap-2 flex-wrap mb-3 xs:mb-4">
                       <Badge variant="outline" className="text-base px-3 py-1.5 bg-white/20 text-white border-white/30">
-                        {isEditingMessage ? "Modifier la réponse" : "Nouvelle réponse"}
+                        {isEditingMessage ? "Modifier l'avis" : "Nouvel avis"}
                       </Badge>
                     </div>
                   </div>

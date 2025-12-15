@@ -186,7 +186,7 @@ export function ForumMessageForm({
             className="flex items-center gap-2.5 rounded-xl bg-white text-[#344256] px-6 py-3 text-sm font-medium shadow-md transition-all hover:bg-white/90 hover:shadow-lg hover:scale-[1.02] active:scale-[0.98] disabled:opacity-50"
           >
             <Send className="h-4 w-4" />
-            {isEditing ? "Modifier la réponse" : "Publier ma réponse"}
+            {isEditing ? "Modifier l'avis" : "Publier mon avis"}
           </Button>
         </div>
       </div>
