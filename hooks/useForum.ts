@@ -198,11 +198,11 @@ export function useForum() {
   }, [currentForum])
 
   // Mettre à jour un message
-  const updateMessage = useCallback(async (messageId: number, content: string) => {
+  const updateMessage = useCallback(async (messageId: number, content: string, image?: File | null) => {
     try {
       setLoading(true)
       setError(null)
-      const updatedMessage = await updateForumMessage(messageId, { content })
+      const updatedMessage = await updateForumMessage(messageId, { content, image })
       setMessages((prev) =>
         prev.map((m) => (m.id === messageId ? updatedMessage : m))
       )

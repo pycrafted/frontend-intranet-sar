@@ -5,7 +5,7 @@ import { useParams, useRouter } from "next/navigation"
 import { AuthGuard } from "@/components/auth-guard"
 import { Button } from "@/components/ui/button"
 import { cn } from "@/lib/utils"
-import { MessageSquare, ImageIcon, X, Calendar, MoreVertical } from "lucide-react"
+import { MessageSquare, ImageIcon, X, Calendar, MoreVertical, ArrowDown } from "lucide-react"
 import { LayoutWrapper } from "@/components/layout-wrapper"
 import { ForumMessageForm } from "@/components/forum/forum-message-form"
 import { ForumCreateModal } from "@/components/forum/forum-create-modal"
@@ -68,6 +68,10 @@ export default function ForumDetailPage({ isMainSidebarCollapsed = false }: Foru
   const [isDeleteForumModalOpen, setIsDeleteForumModalOpen] = useState(false)
   const [selectedMessage, setSelectedMessage] = useState<ForumMessage | null>(null)
   const [editMessageContent, setEditMessageContent] = useState("")
+  const [isEditingMessage, setIsEditingMessage] = useState(false)
+  const [editingMessageId, setEditingMessageId] = useState<number | null>(null)
+  const [editingMessageContent, setEditingMessageContent] = useState("")
+  const [editingMessageImage, setEditingMessageImage] = useState<string | null>(null)
   const [editForumFormData, setEditForumFormData] = useState<ForumUpdateData>({
     title: "",
     image: null,
@@ -95,6 +99,13 @@ export default function ForumDetailPage({ isMainSidebarCollapsed = false }: Foru
     }
   }, [forumId, fetchForum, fetchMessages])
 
+  const scrollToBottom = () => {
+    const formElement = document.getElementById("forum-message-form")
+    if (formElement) {
+      formElement.scrollIntoView({ behavior: "smooth", block: "center" })
+    }
+  }
+
   const handleCreateForum = async (data: ForumCreateData) => {
     try {
       await createForumHandler(data)
@@ -110,8 +121,33 @@ export default function ForumDetailPage({ isMainSidebarCollapsed = false }: Foru
 
   const handleCreateMessage = async (content: string, image?: File | null) => {
     try {
-      await createMessage(forumId, content, image)
-      await fetchMessages(forumId)
+      if (isEditingMessage && editingMessageId) {
+        // Sauvegarder l'ID du message avant d'annuler l'édition
+        const messageIdToScroll = editingMessageId
+        
+        // Mode édition : mettre à jour le message
+        await updateMessageHandler(messageIdToScroll, content, image)
+        success("Message modifié", "Le message a été modifié avec succès")
+        handleCancelEdit()
+        await fetchMessages(forumId)
+        
+        // Faire défiler vers le message modifié après un court délai pour laisser le DOM se mettre à jour
+        setTimeout(() => {
+          const messageElement = document.getElementById(`forum-message-${messageIdToScroll}`)
+          if (messageElement) {
+            messageElement.scrollIntoView({ behavior: "smooth", block: "center" })
+            // Ajouter un effet visuel temporaire pour mettre en évidence le message modifié
+            messageElement.classList.add("ring-2", "ring-primary", "ring-offset-2")
+            setTimeout(() => {
+              messageElement.classList.remove("ring-2", "ring-primary", "ring-offset-2")
+            }, 2000)
+          }
+        }, 300)
+      } else {
+        // Mode création : créer un nouveau message
+        await createMessage(forumId, content, image)
+        await fetchMessages(forumId)
+      }
     } catch (err) {
       const errorMessage = err instanceof Error ? err.message : "Erreur lors de l'envoi du message"
       toastError("Erreur", errorMessage)
@@ -120,9 +156,24 @@ export default function ForumDetailPage({ isMainSidebarCollapsed = false }: Foru
   }
 
   const handleEditMessage = (message: ForumMessage) => {
-    setSelectedMessage(message)
-    setEditMessageContent(message.content)
-    setIsEditMessageModalOpen(true)
+    setEditingMessageId(message.id)
+    setEditingMessageContent(message.content || "")
+    setEditingMessageImage(message.image_url || null)
+    setIsEditingMessage(true)
+    // Scroll vers le formulaire en bas
+    setTimeout(() => {
+      const formElement = document.getElementById("forum-message-form")
+      if (formElement) {
+        formElement.scrollIntoView({ behavior: "smooth", block: "center" })
+      }
+    }, 100)
+  }
+
+  const handleCancelEdit = () => {
+    setIsEditingMessage(false)
+    setEditingMessageId(null)
+    setEditingMessageContent("")
+    setEditingMessageImage(null)
   }
 
   const handleUpdateMessage = async () => {
@@ -411,7 +462,7 @@ export default function ForumDetailPage({ isMainSidebarCollapsed = false }: Foru
               </Card>
 
               {/* Messages section - Style actualités */}
-              <div className="space-y-3 xs:space-y-4">
+              <div className="space-y-3 xs:space-y-4 relative">
                 <div className="flex items-center gap-2 mb-3 xs:mb-4 px-1 max-w-4xl mx-auto">
                   <div className="w-1 h-4 xs:h-6 bg-gradient-to-b from-blue-400 to-indigo-400 rounded-full shadow-sm"></div>
                   <h3 className="text-base xs:text-lg font-semibold text-gray-900">Réponses</h3>
@@ -419,6 +470,18 @@ export default function ForumDetailPage({ isMainSidebarCollapsed = false }: Foru
                     {messages.length}
                   </Badge>
                 </div>
+
+                {/* Bouton Scroll to Bottom - Positionné à droite des cartes */}
+                {messages.length > 0 && (
+                  <Button
+                    onClick={scrollToBottom}
+                    className="fixed right-4 sm:right-6 top-1/2 -translate-y-1/2 z-40 h-12 w-12 rounded-full shadow-lg bg-primary hover:bg-primary/90 text-white flex items-center justify-center transition-all hover:scale-110 hidden md:flex"
+                    aria-label="Aller au formulaire de réponse"
+                    title="Aller au formulaire de réponse"
+                  >
+                    <ArrowDown className="h-5 w-5" />
+                  </Button>
+                )}
 
                 {messages.length === 0 ? (
                   <Card className="adaptive-publication-card rounded-xl overflow-hidden fade-in w-full">
@@ -429,7 +492,11 @@ export default function ForumDetailPage({ isMainSidebarCollapsed = false }: Foru
                 ) : (
                   <div className="space-y-3 xs:space-y-4 max-w-4xl mx-auto">
                     {messages.map((message) => (
-                      <Card key={message.id} className="adaptive-publication-card rounded-xl overflow-hidden group fade-in w-full news-card">
+                      <Card 
+                        key={message.id} 
+                        id={`forum-message-${message.id}`}
+                        className="adaptive-publication-card rounded-xl overflow-hidden group fade-in w-full news-card transition-all duration-300"
+                      >
                         <CardContent className="p-0 w-full">
                           {/* Header avec date - Style actualités */}
                           <div className="px-3 xs:px-4 sm:px-6 pt-2 xs:pt-3 pb-1">
@@ -559,12 +626,12 @@ export default function ForumDetailPage({ isMainSidebarCollapsed = false }: Foru
               </div>
 
               {/* Formulaire de réponse - Style actualités */}
-              <Card className="adaptive-publication-card rounded-xl overflow-visible fade-in w-full" style={{ backgroundColor: '#344256' }}>
+              <Card id="forum-message-form" className="adaptive-publication-card rounded-xl overflow-visible fade-in w-full" style={{ backgroundColor: '#344256' }}>
                 <CardContent className="p-0 w-full overflow-visible">
                   <div className="px-3 xs:px-4 sm:px-6 pt-2 xs:pt-3 pb-1">
                     <div className="flex items-center gap-1 xs:gap-2 flex-wrap mb-3 xs:mb-4">
                       <Badge variant="outline" className="text-base px-3 py-1.5 bg-white/20 text-white border-white/30">
-                        Nouvelle réponse
+                        {isEditingMessage ? "Modifier la réponse" : "Nouvelle réponse"}
                       </Badge>
                     </div>
                   </div>
@@ -591,15 +658,21 @@ export default function ForumDetailPage({ isMainSidebarCollapsed = false }: Foru
                       </div>
                       <div className="flex-1">
                         <div className="font-semibold text-white text-base xs:text-lg mb-1">{user?.full_name || "Vous"}</div>
-                        <p className="text-sm xs:text-base text-white/80 mb-3 xs:mb-4">Partagez votre point de vue avec la communauté</p>
+                        <p className="text-sm xs:text-base text-white/80 mb-3 xs:mb-4">
+                          {isEditingMessage ? "Modifiez votre message ci-dessous" : "Partagez votre point de vue avec la communauté"}
+                        </p>
                       </div>
                     </div>
 
                     <div className="relative overflow-visible">
                       <ForumMessageForm
                         onSubmit={handleCreateMessage}
+                        onCancel={handleCancelEdit}
                         loading={loading}
                         placeholder="Partagez vos idées, posez vos questions..."
+                        initialContent={editingMessageContent}
+                        initialImageUrl={editingMessageImage}
+                        isEditing={isEditingMessage}
                       />
                     </div>
                   </div>

@@ -11,6 +11,7 @@ import {
   DropdownMenuItem,
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu"
+import { useAuth } from "@/hooks/useAuth"
 import type { Forum } from "@/lib/types/forum"
 import Image from "next/image"
 
@@ -28,6 +29,7 @@ interface ForumSidebarProps {
 export function ForumSidebar({ forums, loading, onCreateClick, onEditForum, onDeleteForum, isMainSidebarCollapsed = false, isCollapsed: externalIsCollapsed, onCollapseChange }: ForumSidebarProps) {
   const router = useRouter()
   const pathname = usePathname()
+  const { user } = useAuth()
   const currentForumId = pathname?.match(/\/forum\/(\d+)/)?.[1]
   const [internalIsCollapsed, setInternalIsCollapsed] = useState(false) // Développé par défaut
 
@@ -215,7 +217,8 @@ export function ForumSidebar({ forums, loading, onCreateClick, onEditForum, onDe
                           </div>
                         )}
                       </button>
-                      {!isCollapsed && (
+                      {/* Menu à trois points - visible uniquement pour le créateur du forum */}
+                      {!isCollapsed && user && forum.created_by === user.id && (
                         <div className="absolute top-3 right-3">
                           <DropdownMenu>
                             <DropdownMenuTrigger asChild onClick={(e) => e.stopPropagation()}>

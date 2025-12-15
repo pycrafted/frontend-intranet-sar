@@ -1,6 +1,6 @@
 "use client"
 
-import { useState, useRef } from "react"
+import { useState, useRef, useEffect } from "react"
 import { Button } from "@/components/ui/button"
 import { Textarea } from "@/components/ui/textarea"
 import { Send, Image as ImageIcon, X } from "lucide-react"
@@ -9,19 +9,33 @@ import { GifPicker } from "@/components/social/gif-picker"
 
 interface ForumMessageFormProps {
   onSubmit: (content: string, image?: File | null) => Promise<void>
+  onCancel?: () => void
   loading?: boolean
   placeholder?: string
+  initialContent?: string
+  initialImageUrl?: string | null
+  isEditing?: boolean
 }
 
 export function ForumMessageForm({
   onSubmit,
+  onCancel,
   loading = false,
   placeholder = "Écrivez votre message...",
+  initialContent = "",
+  initialImageUrl = null,
+  isEditing = false,
 }: ForumMessageFormProps) {
-  const [content, setContent] = useState("")
+  const [content, setContent] = useState(initialContent)
   const [selectedImage, setSelectedImage] = useState<File | null>(null)
-  const [imagePreview, setImagePreview] = useState<string | null>(null)
+  const [imagePreview, setImagePreview] = useState<string | null>(initialImageUrl)
   const fileInputRef = useRef<HTMLInputElement>(null)
+
+  // Mettre à jour le contenu quand initialContent change
+  useEffect(() => {
+    setContent(initialContent)
+    setImagePreview(initialImageUrl)
+  }, [initialContent, initialImageUrl])
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
@@ -30,11 +44,14 @@ export function ForumMessageForm({
 
     try {
       await onSubmit(content, selectedImage)
-      setContent("")
-      setSelectedImage(null)
-      setImagePreview(null)
-      if (fileInputRef.current) {
-        fileInputRef.current.value = ''
+      // Réinitialiser seulement si ce n'est pas en mode édition
+      if (!isEditing) {
+        setContent("")
+        setSelectedImage(null)
+        setImagePreview(null)
+        if (fileInputRef.current) {
+          fileInputRef.current.value = ''
+        }
       }
     } catch (error) {
       console.error("Erreur lors de l'envoi du message:", error)
@@ -149,16 +166,29 @@ export function ForumMessageForm({
         </div>
       )}
 
-      <div className="flex items-center justify-between">
+      <div className="flex items-center justify-between flex-wrap gap-2">
         <p className="text-xs text-white/70 italic">Soyez respectueux et constructif dans vos échanges</p>
-        <Button
-          type="submit"
-          disabled={((!content || content.length === 0) && !selectedImage) || loading}
-          className="flex items-center gap-2.5 rounded-xl bg-white text-[#344256] px-6 py-3 text-sm font-medium shadow-md transition-all hover:bg-white/90 hover:shadow-lg hover:scale-[1.02] active:scale-[0.98] disabled:opacity-50"
-        >
-          <Send className="h-4 w-4" />
-          Publier ma réponse
-        </Button>
+        <div className="flex items-center gap-2">
+          {isEditing && onCancel && (
+            <Button
+              type="button"
+              variant="outline"
+              onClick={onCancel}
+              disabled={loading}
+              className="flex items-center gap-2 rounded-xl border-white/30 bg-white/10 text-white px-4 py-3 text-sm font-medium hover:bg-white/20"
+            >
+              Annuler
+            </Button>
+          )}
+          <Button
+            type="submit"
+            disabled={((!content || content.length === 0) && !selectedImage) || loading}
+            className="flex items-center gap-2.5 rounded-xl bg-white text-[#344256] px-6 py-3 text-sm font-medium shadow-md transition-all hover:bg-white/90 hover:shadow-lg hover:scale-[1.02] active:scale-[0.98] disabled:opacity-50"
+          >
+            <Send className="h-4 w-4" />
+            {isEditing ? "Modifier la réponse" : "Publier ma réponse"}
+          </Button>
+        </div>
       </div>
     </form>
   )
