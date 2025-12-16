@@ -1,6 +1,6 @@
 "use client"
 
-import { useState, useEffect } from "react"
+import React, { useState, useEffect } from "react"
 import {
   DndContext,
   closestCenter,
@@ -134,15 +134,55 @@ const getGridSizes = (isTablet: boolean) => ({
 
 // Les hauteurs sont maintenant gérées directement dans les composants
 
+// Composant pour charger progressivement un widget
+function LazyWidget({ 
+  widget,
+  delay = 0,
+  children
+}: { 
+  widget: DashboardWidget
+  delay?: number
+  children: React.ReactNode
+}) {
+  const [isLoaded, setIsLoaded] = useState(false)
+
+  useEffect(() => {
+    // Charger le widget après un délai progressif
+    const timer = setTimeout(() => {
+      setIsLoaded(true)
+    }, delay)
+
+    return () => clearTimeout(timer)
+  }, [delay])
+
+  if (!isLoaded) {
+    // Skeleton loader pendant le chargement
+    return (
+      <div className="animate-pulse bg-white rounded-lg border border-gray-200 p-4 sm:p-6 h-full">
+        <div className="h-6 bg-gray-200 rounded w-3/4 mb-4"></div>
+        <div className="space-y-3">
+          <div className="h-4 bg-gray-200 rounded w-full"></div>
+          <div className="h-4 bg-gray-200 rounded w-5/6"></div>
+          <div className="h-4 bg-gray-200 rounded w-4/6"></div>
+        </div>
+      </div>
+    )
+  }
+
+  return <>{children}</>
+}
+
 // Composant pour une card draggable
 function DraggableWidget({ 
   widget,
   isTablet,
-  canEdit
+  canEdit,
+  loadDelay = 0
 }: { 
   widget: DashboardWidget
   isTablet: boolean
   canEdit: boolean
+  loadDelay?: number
 }) {
   const sortable = useSortable({ id: widget.id })
   const { attributes, listeners, setNodeRef, transform, transition, isDragging } = canEdit ? sortable : {
@@ -209,7 +249,9 @@ function DraggableWidget({
         hover:shadow-lg rounded-lg overflow-hidden
         w-full h-full
       `}>
-        <Component />
+        <LazyWidget widget={widget} delay={loadDelay}>
+          <Component />
+        </LazyWidget>
       </div>
     </div>
   )
@@ -273,7 +315,8 @@ export function DraggableDashboard() {
   const { browserInfo, compatibleClasses, useFallbacks } = useBrowserDetection()
   const { isTablet, isSpecificTablet, deviceType, screenSize, specificDevice } = useTabletDetection()
   const { user } = useAuth()
-  const canEdit = !!user?.is_communication_group
+  // Drag and drop activé pour tous, connectés ou non
+  const canEdit = true
 
   const sensors = useSensors(
     useSensor(PointerSensor, {
@@ -549,12 +592,13 @@ export function DraggableDashboard() {
             >
               {visibleWidgets
                 .sort((a, b) => a.order - b.order)
-                .map((widget) => (
+                .map((widget, index) => (
                   <DraggableWidget 
                     key={widget.id} 
                     widget={widget}
                     isTablet={isTablet}
                     canEdit={canEdit}
+                    loadDelay={index * 100} // Délai progressif de 100ms par widget
                   />
                 ))}
             </SortableContext>

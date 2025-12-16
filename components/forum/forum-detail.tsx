@@ -1,7 +1,6 @@
 "use client"
 
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card"
-import { Avatar, AvatarImage, AvatarFallback } from "@/components/ui/avatar"
 import { Button } from "@/components/ui/button"
 import { MessageSquare, Users, Edit, Trash2, ImageIcon } from "lucide-react"
 import {
@@ -74,17 +73,19 @@ export function ForumDetail({ forum, currentUserId, onEdit, onDelete }: ForumDet
         <div className="flex flex-wrap items-center gap-3 sm:gap-4 md:gap-6">
           {/* Créateur */}
           <div className="flex items-center gap-2">
-            <Avatar className="h-8 w-8 sm:h-10 sm:w-10">
-              <AvatarImage src={forum.created_by_info.avatar_url} alt={forum.created_by_info.full_name} />
-              <AvatarFallback>
-                {forum.created_by_info.full_name
-                  .split(" ")
-                  .map((n) => n[0])
-                  .join("")
-                  .toUpperCase()
-                  .slice(0, 2)}
-              </AvatarFallback>
-            </Avatar>
+            <div className="relative h-8 w-8 sm:h-10 sm:w-10 shrink-0 overflow-hidden rounded-full">
+              <img
+                src={forum.created_by_info.avatar_url || "/placeholder-user.jpg"}
+                alt={forum.created_by_info.full_name}
+                className="w-full h-full object-cover"
+                onError={(e) => {
+                  const target = e.target as HTMLImageElement
+                  if (target.src !== "/placeholder-user.jpg") {
+                    target.src = "/placeholder-user.jpg"
+                  }
+                }}
+              />
+            </div>
             <div>
               <p className="text-xs sm:text-sm font-medium">{forum.created_by_info.full_name}</p>
               {forum.created_by_info.position && (

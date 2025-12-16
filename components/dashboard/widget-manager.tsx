@@ -239,7 +239,7 @@ export function WidgetManager({ widgets, onWidgetsChange, onReset }: WidgetManag
       </DialogTrigger>
       
       <DialogContent className="w-[95vw] sm:w-[90vw] md:max-w-4xl max-h-[90vh] overflow-hidden p-0 flex flex-col">
-        <div className="flex flex-col h-full">
+        <div className="flex flex-col h-full" style={{ maxHeight: '90vh' }}>
           <DialogHeader className="pb-4 pt-4 px-4 sm:px-6 border-b bg-white sticky top-0 z-10 flex-shrink-0">
             <DialogTitle className="flex items-center gap-2 text-xl">
               <Settings className="h-5 w-5 text-blue-600" />
@@ -251,7 +251,7 @@ export function WidgetManager({ widgets, onWidgetsChange, onReset }: WidgetManag
             </p>
           </DialogHeader>
 
-          <div className="flex-1 overflow-y-auto px-4 sm:px-6 py-4 space-y-6 bg-gray-50 custom-scrollbar">
+          <div className="flex-1 overflow-y-auto overflow-x-hidden px-4 sm:px-6 py-4 space-y-6 bg-gray-50 custom-scrollbar" style={{ minHeight: 0 }}>
             {/* Liste des cartes */}
             <div className="space-y-4">
               <h3 className="text-lg font-semibold text-gray-900 flex items-center gap-2">

@@ -3672,6 +3672,20 @@ html {
   animation: marquee-right linear infinite;
 }
 
+/* Animation de clignotement pour les conversations non lues */
+@keyframes blink {
+  0%, 100% {
+    opacity: 1;
+    background-color: rgb(240 253 244); /* bg-green-50 */
+    border-color: rgb(187 247 208 / 0.5); /* border-green-200/50 */
+  }
+  50% {
+    opacity: 0.7;
+    background-color: rgb(220 252 231); /* bg-green-100 */
+    border-color: rgb(134 239 172 / 0.7); /* border-green-300 */
+  }
+}
+
 @layer utilities {
   /* Styles React Flow - couche utilities pour priorité maximale */
   .react-flow__node {

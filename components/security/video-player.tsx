@@ -42,6 +42,30 @@ export function VideoPlayer({ video, onPrevious, onNext, currentIndex, totalVide
 
   const currentVideoInfo = videos[currentIndex] || videos[0]
 
+  // Construire l'URL avec autoplay pour les vidéos Cloudflare Stream
+  const getVideoUrl = () => {
+    if (video.url.includes('cloudflarestream.com')) {
+      // Extraire l'ID de la vidéo et le domaine depuis l'URL
+      const urlMatch = video.url.match(/https:\/\/(customer-[a-z0-9]+\.cloudflarestream\.com)\/([a-f0-9]+)\/watch/)
+      if (urlMatch && urlMatch[1] && urlMatch[2]) {
+        const domain = urlMatch[1]
+        const videoId = urlMatch[2]
+        // Construire l'URL avec autoplay et autres paramètres
+        return `https://${domain}/${videoId}/iframe?autoplay=true&loop=true&muted=true&controls=true&preload=auto`
+      }
+      // Si l'URL est déjà au format iframe, ajouter les paramètres
+      if (video.url.includes('/iframe')) {
+        const separator = video.url.includes('?') ? '&' : '?'
+        return `${video.url}${separator}autoplay=true&loop=true&muted=true&controls=true&preload=auto`
+      }
+      // Fallback : retourner l'URL originale
+      return video.url
+    }
+    return video.url
+  }
+
+  const videoUrl = getVideoUrl()
+
   return (
     <Card className="overflow-hidden shadow-2xl border-0 bg-white backdrop-blur-xl sm:hover:shadow-xl transition-all duration-500 group w-full">
       {/* Header avec titre et bouton questionnaire - Responsive optimisé */}
@@ -91,11 +115,12 @@ export function VideoPlayer({ video, onPrevious, onNext, currentIndex, totalVide
         <div className="relative aspect-[16/9] bg-gradient-to-br from-slate-900 to-slate-800 flex items-center justify-center overflow-hidden">
           {video.url.includes('cloudflarestream.com') ? (
             <iframe
-              src={video.url}
+              src={videoUrl}
               title={video.title}
               className="w-full h-full border-0"
-              allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
+              allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share"
               allowFullScreen
+              loading="eager"
             />
           ) : (
             <>

@@ -145,22 +145,17 @@ export function ForumCard({ forum, currentUserId, onEdit, onDelete }: ForumCardP
           
           <div className="flex items-center gap-3 xs:gap-4">
             <div className="relative h-10 w-10 xs:h-12 xs:w-12 flex-shrink-0 overflow-hidden rounded-full ring-2 ring-gray-200">
-              {forum.created_by_info.avatar_url ? (
-                <img
-                  src={forum.created_by_info.avatar_url}
-                  alt={forum.created_by_info.full_name}
-                  className="w-full h-full object-cover"
-                />
-              ) : (
-                <div className="w-full h-full bg-gray-100 flex items-center justify-center text-gray-600 font-semibold text-xs xs:text-sm">
-                  {forum.created_by_info.full_name
-                    .split(" ")
-                    .map((n) => n[0])
-                    .join("")
-                    .toUpperCase()
-                    .slice(0, 2)}
-                </div>
-              )}
+              <img
+                src={forum.created_by_info.avatar_url || "/placeholder-user.jpg"}
+                alt={forum.created_by_info.full_name}
+                className="w-full h-full object-cover"
+                onError={(e) => {
+                  const target = e.target as HTMLImageElement
+                  if (target.src !== "/placeholder-user.jpg") {
+                    target.src = "/placeholder-user.jpg"
+                  }
+                }}
+              />
             </div>
             <div>
               <div className="font-semibold text-gray-900 text-base xs:text-lg">{forum.created_by_info.full_name}</div>

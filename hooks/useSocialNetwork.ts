@@ -30,6 +30,7 @@ export interface Message {
   created_at?: string
   is_read?: boolean
   is_deleted?: boolean
+  is_edited?: boolean
   attachment?: string | null
   attachment_url?: string | null
 }
@@ -65,6 +66,7 @@ interface UseSocialNetworkReturn {
   // Fonctions pour les messages
   fetchMessages: (conversationId: string) => Promise<void>
   sendMessage: (conversationId: string, content: string, replyToId?: string, attachment?: File) => Promise<Message | null>
+  updateMessage: (messageId: string, content: string) => Promise<Message | null>
   deleteMessage: (messageId: string) => Promise<void>
   markMessagesAsRead: (conversationId: string, messageIds?: string[]) => Promise<void>
   
@@ -75,6 +77,7 @@ interface UseSocialNetworkReturn {
   // Fonctions utilitaires
   refreshConversations: () => Promise<void>
   refreshMessages: (conversationId: string) => Promise<void>
+  checkNewMessages: (conversationId: string) => Promise<void>
 }
 
 export function useSocialNetwork(): UseSocialNetworkReturn {
@@ -97,6 +100,7 @@ export function useSocialNetwork(): UseSocialNetworkReturn {
   
   // Variable pour éviter les appels multiples simultanés
   const fetchingRef = useRef(false)
+  const isPollingRef = useRef(false)
   
   // Charger les conversations
   const fetchConversations = useCallback(async () => {
@@ -147,7 +151,63 @@ export function useSocialNetwork(): UseSocialNetworkReturn {
         is_pinned: conv.is_pinned ?? false,
       }))
       
-      setConversations(formattedConversations)
+      // Comparer avec les conversations existantes pour éviter les re-renders inutiles
+      setConversations(prev => {
+        // Si c'est la première fois, mettre à jour
+        if (prev.length === 0) {
+          return formattedConversations
+        }
+        
+        // Comparer les IDs et les données importantes de manière stricte
+        const prevMap = new Map(prev.map(c => [c.id, c]))
+        let hasRealChanges = false
+        
+        // Vérifier si le nombre de conversations a changé
+        if (prev.length !== formattedConversations.length) {
+          hasRealChanges = true
+        }
+        
+        // Comparer chaque conversation
+        for (const newConv of formattedConversations) {
+          const prevConv = prevMap.get(newConv.id)
+          
+          // Nouvelle conversation
+          if (!prevConv) {
+            hasRealChanges = true
+            break
+          }
+          
+          // Comparer uniquement les champs qui peuvent réellement changer et qui sont visibles
+          // Ignorer les participants car ils changent de référence même si identiques
+          if (
+            prevConv.lastMessage !== newConv.lastMessage ||
+            prevConv.time !== newConv.time ||
+            prevConv.unread !== newConv.unread ||
+            prevConv.online !== newConv.online ||
+            prevConv.is_pinned !== newConv.is_pinned ||
+            prevConv.name !== newConv.name ||
+            prevConv.avatar !== newConv.avatar
+          ) {
+            hasRealChanges = true
+            break
+          }
+        }
+        
+        // Vérifier aussi si une conversation a été supprimée
+        if (!hasRealChanges) {
+          const newIds = new Set(formattedConversations.map(c => c.id))
+          hasRealChanges = prev.some(c => !newIds.has(c.id))
+        }
+        
+        // Mettre à jour seulement s'il y a de vrais changements
+        if (hasRealChanges) {
+          return formattedConversations
+        }
+        
+        // Aucun changement visible, retourner l'ancien état pour éviter le re-render
+        return prev
+      })
+      
       console.log(`✅ [USE_SOCIAL_NETWORK] ${formattedConversations.length} conversations chargées`)
     } catch (err: any) {
       console.error('❌ [USE_SOCIAL_NETWORK] Erreur fetchConversations:', err)
@@ -306,6 +366,7 @@ export function useSocialNetwork(): UseSocialNetworkReturn {
         attachment: msg.attachment || null,
         attachment_url: msg.attachment_url || null,
         is_deleted: msg.is_deleted ?? false,
+        is_edited: msg.is_edited ?? false,
       }))
       
       setMessages(prev => ({
@@ -405,6 +466,7 @@ export function useSocialNetwork(): UseSocialNetworkReturn {
         attachment: data.attachment || null,
         attachment_url: data.attachment_url || null,
         is_deleted: data.is_deleted ?? false,
+        is_edited: data.is_edited ?? false,
       }
       
       // Ajouter le message à la liste
@@ -471,6 +533,62 @@ export function useSocialNetwork(): UseSocialNetworkReturn {
       throw err
     }
   }, [isAuthenticated, fetchConversations])
+
+  // Modifier un message
+  const updateMessage = useCallback(async (messageId: string, content: string): Promise<Message | null> => {
+    if (!isAuthenticated || !content.trim()) {
+      console.log('🔒 [USE_SOCIAL_NETWORK] Utilisateur non authentifié ou contenu vide')
+      return null
+    }
+    
+    try {
+      console.log('✏️ [USE_SOCIAL_NETWORK] Modification du message...', { messageId, content })
+      const response = await api.patch(`/reseau-social/messages/${messageId}/`, {
+        content: content.trim(),
+      })
+      
+      if (!response.ok) {
+        const errorData = await response.json().catch(() => ({}))
+        throw new Error(errorData.error || `Erreur HTTP: ${response.status}`)
+      }
+      
+      const data = await response.json()
+      console.log('✅ [USE_SOCIAL_NETWORK] Message modifié:', data)
+      
+      // Normaliser le message
+      const updatedMessage: Message = {
+        id: String(data.id),
+        text: data.text || data.content || content,
+        time: data.time || new Date(data.created_at).toLocaleTimeString('fr-FR', { hour: '2-digit', minute: '2-digit' }),
+        sent: data.sent ?? (data.sender?.id === user?.id),
+        conversation: data.conversation,
+        sender: data.sender || user,
+        message_type: data.message_type || 'text',
+        created_at: data.created_at,
+        is_read: data.is_read,
+        attachment: data.attachment || null,
+        attachment_url: data.attachment_url || null,
+        is_deleted: data.is_deleted ?? false,
+        is_edited: data.is_edited ?? true, // Un message modifié est toujours marqué comme édité
+      }
+      
+      // Mettre à jour le message dans le cache local
+      setMessages(prev => {
+        const updated = { ...prev }
+        Object.keys(updated).forEach(convId => {
+          updated[convId] = updated[convId].map(msg => 
+            msg.id === messageId ? updatedMessage : msg
+          )
+        })
+        return updated
+      })
+      
+      return updatedMessage
+    } catch (err: any) {
+      console.error('❌ [USE_SOCIAL_NETWORK] Erreur updateMessage:', err)
+      throw err
+    }
+  }, [isAuthenticated, user])
   
   // Marquer les messages comme lus
   const markMessagesAsRead = useCallback(async (conversationId: string, messageIds?: string[]): Promise<void> => {
@@ -510,14 +628,29 @@ export function useSocialNetwork(): UseSocialNetworkReturn {
         })
       }
       
-      // Ne pas rafraîchir automatiquement les conversations pour éviter les boucles infinies
-      // Le rafraîchissement se fera lors du prochain chargement naturel ou quand l'utilisateur change de conversation
-      // Si nécessaire, rafraîchir après un délai plus long pour éviter les conflits
-      // setTimeout(() => {
-      //   fetchConversations().catch(err => {
-      //     console.error('❌ [USE_SOCIAL_NETWORK] Erreur lors du rafraîchissement des conversations:', err)
-      //   })
-      // }, 2000)
+      // Mettre à jour localement le compteur de messages non lus dans la liste des conversations
+      setConversations(prev => {
+        return prev.map(conv => {
+          if (conv.id === conversationId) {
+            // Si on a marqué des messages spécifiques, décrémenter le compteur
+            if (messageIds && messageIds.length > 0) {
+              const unreadCount = Math.max(0, (conv.unread || 0) - messageIds.length)
+              return { ...conv, unread: unreadCount }
+            } else {
+              // Tous les messages sont marqués comme lus, mettre le compteur à 0
+              return { ...conv, unread: 0 }
+            }
+          }
+          return conv
+        })
+      })
+      
+      // Rafraîchir les conversations après un court délai pour synchroniser avec le backend
+      setTimeout(() => {
+        fetchConversations().catch(err => {
+          console.error('❌ [USE_SOCIAL_NETWORK] Erreur lors du rafraîchissement des conversations:', err)
+        })
+      }, 500)
       
       console.log('✅ [USE_SOCIAL_NETWORK] Messages marqués comme lus')
     } catch (err: any) {
@@ -571,6 +704,80 @@ export function useSocialNetwork(): UseSocialNetworkReturn {
   const refreshMessages = useCallback(async (conversationId: string) => {
     await fetchMessages(conversationId)
   }, [fetchMessages])
+
+  // Vérifier les nouveaux messages d'une conversation spécifique (pour le polling)
+  const checkNewMessages = useCallback(async (conversationId: string) => {
+    if (!isAuthenticated) {
+      return
+    }
+
+    try {
+      const response = await api.get(`/reseau-social/conversations/${conversationId}/messages/`)
+      
+      if (!response.ok) {
+        return
+      }
+
+      const data = await response.json()
+      const messagesArray: Message[] = Array.isArray(data.results)
+        ? data.results
+        : Array.isArray(data)
+          ? data
+          : []
+
+      const formattedMessages: Message[] = messagesArray.map((msg: any) => ({
+        id: String(msg.id),
+        text: msg.text || msg.content || '',
+        time: msg.time || new Date(msg.created_at).toLocaleTimeString('fr-FR', { hour: '2-digit', minute: '2-digit' }),
+        sent: msg.sent ?? (msg.sender?.id === user?.id),
+        conversation: msg.conversation,
+        sender: msg.sender,
+        message_type: msg.message_type || 'text',
+        created_at: msg.created_at,
+        is_read: msg.is_read,
+        attachment: msg.attachment || null,
+        attachment_url: msg.attachment_url || null,
+        is_deleted: msg.is_deleted ?? false,
+        is_edited: msg.is_edited ?? false,
+      }))
+
+      // Mettre à jour seulement si de nouveaux messages sont détectés
+      setMessages(prev => {
+        const currentMessages = prev[conversationId] || []
+        const currentIds = new Set(currentMessages.map(m => m.id))
+        const newMessages = formattedMessages.filter(m => !currentIds.has(m.id))
+
+        if (newMessages.length > 0) {
+          console.log(`🆕 [USE_SOCIAL_NETWORK] ${newMessages.length} nouveau(x) message(s) détecté(s) pour la conversation ${conversationId}`)
+          return {
+            ...prev,
+            [conversationId]: formattedMessages,
+          }
+        }
+
+        // Mettre à jour même s'il n'y a pas de nouveaux messages (pour les modifications)
+        return {
+          ...prev,
+          [conversationId]: formattedMessages,
+        }
+      })
+    } catch (err) {
+      // Ignorer les erreurs silencieusement pour ne pas polluer la console
+      console.debug('⚠️ [USE_SOCIAL_NETWORK] Erreur lors de la vérification des nouveaux messages:', err)
+    }
+  }, [isAuthenticated, user])
+  
+  // Marquer une conversation comme lue localement (pour arrêter le clignotement immédiatement)
+  const markConversationAsRead = useCallback((conversationId: string): void => {
+    setConversations(prev => {
+      return prev.map(conv => {
+        if (conv.id === conversationId) {
+          return { ...conv, unread: 0 }
+        }
+        return conv
+      })
+    })
+  }, [])
   
   // Basculer le statut favori d'une conversation
   const toggleFavorite = useCallback(async (conversationId: string): Promise<void> => {
@@ -652,6 +859,59 @@ export function useSocialNetwork(): UseSocialNetworkReturn {
     }
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [isAuthenticated]) // fetchConversations est déjà memoized
+
+  // Polling automatique pour les nouveaux messages (temps réel)
+  // NOTE: Polling des conversations désactivé pour éviter les re-renders constants
+  // Les conversations seront mises à jour uniquement lors des actions utilisateur :
+  // - Envoi de message (déjà géré dans sendMessage)
+  // - Suppression de message (déjà géré dans deleteMessage)
+  // - Ouverture d'une conversation (déjà géré dans fetchMessages)
+  // Le polling des messages de la conversation active reste actif toutes les 2 secondes
+  // 
+  // Si vous voulez réactiver le polling des conversations, décommentez le code ci-dessous
+  // et ajustez l'intervalle selon vos besoins (minimum 15-20 secondes recommandé)
+  /*
+  useEffect(() => {
+    if (!isAuthenticated) {
+      return
+    }
+
+    // Intervalle de polling : 20 secondes (très long pour éviter le clignotement)
+    const pollingInterval = 20000
+    let pollingTimeout: NodeJS.Timeout | null = null
+
+    const pollForUpdates = async () => {
+      if (isPollingRef.current) {
+        return
+      }
+
+      isPollingRef.current = true
+
+      try {
+        await fetchConversations()
+      } catch (err) {
+        console.error('❌ [USE_SOCIAL_NETWORK] Erreur lors du polling des conversations:', err)
+      } finally {
+        isPollingRef.current = false
+      }
+    }
+
+    const initialDelay = setTimeout(() => {
+      const startPolling = () => {
+        pollForUpdates()
+        pollingTimeout = setTimeout(startPolling, pollingInterval)
+      }
+      startPolling()
+    }, 10000) // Attendre 10 secondes avant le premier polling
+
+    return () => {
+      if (pollingTimeout) {
+        clearTimeout(pollingTimeout)
+      }
+      clearTimeout(initialDelay)
+    }
+  }, [isAuthenticated, fetchConversations])
+  */
   
   return {
     // État
@@ -676,6 +936,7 @@ export function useSocialNetwork(): UseSocialNetworkReturn {
     // Fonctions messages
     fetchMessages,
     sendMessage,
+    updateMessage,
     deleteMessage,
     markMessagesAsRead,
     
@@ -686,6 +947,8 @@ export function useSocialNetwork(): UseSocialNetworkReturn {
     // Fonctions utilitaires
     refreshConversations,
     refreshMessages,
+    checkNewMessages,
+    markConversationAsRead,
   }
 }
 

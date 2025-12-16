@@ -10,7 +10,7 @@ export function VideoWidget() {
   }, [])
 
   // ID de la vidéo institutionnelle SAR
-  const videoId = "3f0c7ea611f5f970f280df7cf5c8587b"
+  const videoId = "9f3bb8e2feb1fccc6ef636cb632a196d"
 
   if (!isClient) {
     return (
@@ -24,7 +24,7 @@ export function VideoWidget() {
   }
 
   // URL de la vidéo Cloudflare avec autoplay et boucle
-  const cloudflarePlayerUrl = `https://customer-eas3f2kom74sgnh6.cloudflarestream.com/${videoId}/iframe?autoplay=true&loop=true&muted=true&controls=true&preload=auto`
+  const cloudflarePlayerUrl = `https://customer-7vjhdwttxhzqh687.cloudflarestream.com/${videoId}/iframe?autoplay=true&loop=true&muted=true&controls=true&preload=auto`
 
   return (
     <div className="w-full h-[26rem] sm:h-[28rem] lg:h-[28rem] rounded-lg overflow-hidden">

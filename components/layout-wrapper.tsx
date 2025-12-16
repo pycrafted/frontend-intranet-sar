@@ -16,6 +16,8 @@ import { AnnouncementModal } from "./announcement-modal"
 import { Footer } from "./footer"
 import { AuthGuard } from "./auth-guard"
 import { MaiChatbot } from "./saria-chatbot"
+import { FloatingChatProvider } from "@/contexts/FloatingChatContext"
+import { FloatingChatManager } from "./social/floating-chat-manager"
 
 interface LayoutWrapperProps {
   children: React.ReactNode
@@ -119,8 +121,8 @@ export function LayoutWrapper({ children, secondaryNavbarProps, sidebarProps }: 
         // On ne force pas le développement, on laisse l'utilisateur contrôler
         // setIsSecondarySidebarCollapsed(false)
       }
-    } else if (pathname === "/forum" || pathname?.startsWith("/forum/")) {
-      // Pour les pages forum, la sidebar secondaire est toujours visible
+    } else if (pathname === "/forum") {
+      // Pour la page de liste des forums, la sidebar secondaire est toujours visible
       setIsSecondarySidebarCollapsed(false)
     }
   }, [isSidebarCollapsed, pathname])
@@ -129,8 +131,8 @@ export function LayoutWrapper({ children, secondaryNavbarProps, sidebarProps }: 
   useEffect(() => {
     // Sidebar principal ouvert par défaut, sidebar secondaire rétracté par défaut
     setIsSidebarCollapsed(false)
-    // Si on est sur une page forum, la sidebar secondaire est visible
-    if (pathname === "/forum" || pathname?.startsWith("/forum/")) {
+    // Si on est sur la page de liste des forums, la sidebar secondaire est visible
+    if (pathname === "/forum") {
       setIsSecondarySidebarCollapsed(false)
     } else {
       setIsSecondarySidebarCollapsed(true)
@@ -139,6 +141,7 @@ export function LayoutWrapper({ children, secondaryNavbarProps, sidebarProps }: 
 
   // Contenu du layout
   const layoutContent = (
+    <FloatingChatProvider>
     <div className="min-h-screen bg-background flex flex-col">
       <Navbar onMenuClick={() => setSidebarOpen(!sidebarOpen)} />
 
@@ -153,7 +156,7 @@ export function LayoutWrapper({ children, secondaryNavbarProps, sidebarProps }: 
           <div className={`flex-1 bg-gray-200 transition-all duration-300 ${
             pathname === "/centre_de_controle" ? (
               isSecondarySidebarCollapsed ? "lg:ml-16" : "lg:ml-80"
-            ) : pathname === "/forum" || pathname?.startsWith("/forum/") ? (
+            ) : pathname === "/forum" ? (
               isSecondarySidebarCollapsed ? "lg:ml-20" : "lg:ml-80"
             ) : ""}`}>
       {/* Secondary Navbar pour les pages actualités, organigramme, annuaire, documents - dans la zone de contenu */}
@@ -169,7 +172,7 @@ export function LayoutWrapper({ children, secondaryNavbarProps, sidebarProps }: 
             <div className={`mx-auto px-2 xs:px-3 sm:px-4 md:px-5 py-3 xs:py-4 sm:py-6 lg:px-8 max-w-full overflow-x-hidden ${pathname === "/" || pathname === "/securite" || pathname === "/recrutement" || pathname === "/reseau-social" ? (pathname === "/reseau-social" ? "max-w-none p-0" : "max-w-none px-1 xs:px-1.5 sm:px-2 md:px-3 lg:px-4") : pathname === "/organigramme" ? "max-w-none px-0" : "max-w-7xl"}`}>
               {(() => {
                 // Vérifier si l'enfant est un composant React (pas un élément DOM)
-                if ((pathname === "/reseau-social" || pathname === "/forum" || pathname?.startsWith("/forum/")) && React.isValidElement(children)) {
+                if ((pathname === "/reseau-social" || pathname === "/recrutement" || pathname === "/forum" || pathname?.startsWith("/forum/")) && React.isValidElement(children)) {
                   const child = children as React.ReactElement<any>
                   // Vérifier que ce n'est pas un élément DOM (type string = élément DOM)
                   if (typeof child.type !== 'string' && child.type) {
@@ -186,7 +189,7 @@ export function LayoutWrapper({ children, secondaryNavbarProps, sidebarProps }: 
             onCollapseChange={setIsSecondarySidebarCollapsed}
             isMainSidebarCollapsed={isSidebarCollapsed}
           />}
-          {(pathname === "/forum" || pathname?.startsWith("/forum/")) && sidebarProps?.forums !== undefined && (
+          {pathname === "/forum" && sidebarProps?.forums !== undefined && (
             <ForumSidebar
               forums={sidebarProps.forums || []}
               loading={sidebarProps.forumsLoading}
@@ -218,7 +221,11 @@ export function LayoutWrapper({ children, secondaryNavbarProps, sidebarProps }: 
       
       {/* Chatbot MAÏ - disponible sur toutes les pages sauf /reseau-social */}
       {pathname !== "/reseau-social" && <MaiChatbot />}
+      
+      {/* Gestionnaire de chats flottants - disponible sur toutes les pages */}
+      <FloatingChatManager />
     </div>
+    </FloatingChatProvider>
   )
 
   // Pages protégées nécessitant une authentification

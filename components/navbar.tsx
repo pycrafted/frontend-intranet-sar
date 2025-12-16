@@ -1,8 +1,9 @@
 "use client"
 
-import { useState, useEffect, FormEvent } from "react"
+import { useState, useEffect, FormEvent, useMemo } from "react"
 import Link from "next/link"
-import { User, ChevronDown, Menu, LogOut, Settings, Edit } from "lucide-react"
+import { useRouter } from "next/navigation"
+import { User, ChevronDown, Menu, LogOut, Settings, Edit, Bell, MessageCircle } from "lucide-react"
 import { Button } from "@/components/ui/button"
 import {
   DropdownMenu,
@@ -19,18 +20,23 @@ import { EditProfileDropdown } from "@/components/edit-profile-dropdown"
 import { useAuth, useLogout, useLogin } from "@/hooks/useAuth"
 import { authUtils } from "@/lib/auth-api"
 import { useToast } from "@/components/ui/toast"
+import { useSocialNetwork } from "@/hooks/useSocialNetwork"
 import { Mail, Phone, Building, Shield, Users as UsersIcon, Calendar } from "lucide-react"
+import { Badge } from "@/components/ui/badge"
 
 interface NavbarProps {
   onMenuClick?: () => void
 }
 
 export function Navbar({ onMenuClick }: NavbarProps) {
+  const router = useRouter()
   const { user, isAuthenticated, isLoading } = useAuth()
   const { logout } = useLogout()
   const { login, isLoading: isLoggingIn } = useLogin()
   const { success, error: toastError } = useToast()
+  const { conversations, fetchConversations } = useSocialNetwork()
   const [isMenuOpen, setIsMenuOpen] = useState(false)
+  const [isNotificationMenuOpen, setIsNotificationMenuOpen] = useState(false)
   const [isProfileSectionOpen, setIsProfileSectionOpen] = useState(false)
   const [isEditSectionOpen, setIsEditSectionOpen] = useState(false)
   const [loginEmail, setLoginEmail] = useState("")
@@ -42,6 +48,59 @@ export function Navbar({ onMenuClick }: NavbarProps) {
   useEffect(() => {
     setMounted(true)
   }, [])
+
+  // Récupérer les conversations si l'utilisateur est authentifié
+  useEffect(() => {
+    if (mounted && isAuthenticated) {
+      fetchConversations().catch(err => {
+        console.error('Erreur lors de la récupération des conversations:', err)
+      })
+    }
+  }, [mounted, isAuthenticated, fetchConversations])
+
+  // Rafraîchir les conversations quand le dropdown de notifications est ouvert
+  useEffect(() => {
+    if (isNotificationMenuOpen && isAuthenticated) {
+      // Rafraîchir immédiatement
+      fetchConversations().catch(err => {
+        console.error('Erreur lors du rafraîchissement des conversations:', err)
+      })
+      
+      // Puis rafraîchir toutes les 2 secondes tant que le dropdown est ouvert
+      const interval = setInterval(() => {
+        fetchConversations().catch(err => {
+          console.error('Erreur lors du rafraîchissement des conversations:', err)
+        })
+      }, 2000)
+      
+      return () => clearInterval(interval)
+    }
+  }, [isNotificationMenuOpen, isAuthenticated, fetchConversations])
+
+  // Filtrer les conversations avec des messages non lus
+  const unreadConversations = useMemo(() => {
+    return conversations
+      .filter(conv => (conv.unread || 0) > 0)
+      .sort((a, b) => {
+        // Trier par date du dernier message (plus récent en premier)
+        const dateA = a.last_message_at ? new Date(a.last_message_at).getTime() : 0
+        const dateB = b.last_message_at ? new Date(b.last_message_at).getTime() : 0
+        return dateB - dateA
+      })
+      .slice(0, 10) // Limiter à 10 conversations
+  }, [conversations])
+
+  // Calculer le nombre total de messages non lus
+  const totalUnreadCount = useMemo(() => {
+    return conversations.reduce((total, conv) => total + (conv.unread || 0), 0)
+  }, [conversations])
+
+  // Gérer le clic sur une notification
+  const handleNotificationClick = (conversationId: string) => {
+    setIsNotificationMenuOpen(false)
+    // Rediriger vers la page réseau social avec la conversation sélectionnée
+    router.push(`/reseau-social?conversation=${conversationId}`)
+  }
 
   const handleLogout = async () => {
     try {
@@ -120,6 +179,98 @@ export function Navbar({ onMenuClick }: NavbarProps) {
 
         {/* Right section - Responsive */}
         <div className="flex items-center gap-1 xs:gap-1.5 sm:gap-2 md:gap-3 flex-shrink-0">
+          {/* Notification button - Only show when authenticated */}
+          {mounted && isAuthenticated && user && (
+            <DropdownMenu open={isNotificationMenuOpen} onOpenChange={setIsNotificationMenuOpen}>
+              <DropdownMenuTrigger asChild>
+                <Button
+                  variant="ghost"
+                  size="sm"
+                  className="relative text-white hover:bg-[#2a323d] flex-shrink-0 h-7 xs:h-8 sm:h-10 w-7 xs:w-8 sm:w-10 p-0"
+                  style={{ backgroundColor: '#353E4B' }}
+                  title="Notifications"
+                >
+                  <Bell className="h-3.5 w-3.5 xs:h-4 xs:w-4 sm:h-5 sm:w-5" />
+                </Button>
+              </DropdownMenuTrigger>
+              <DropdownMenuContent align="end" className="w-80 xs:w-96 sm:w-[420px] max-h-[500px] overflow-y-auto">
+                <DropdownMenuLabel className="flex items-center justify-between">
+                  <span>Notifications</span>
+                  {totalUnreadCount > 0 && (
+                    <Badge variant="destructive" className="ml-2">
+                      {totalUnreadCount}
+                    </Badge>
+                  )}
+                </DropdownMenuLabel>
+                <DropdownMenuSeparator />
+                {unreadConversations.length === 0 ? (
+                  <div className="p-4 text-center text-sm text-muted-foreground">
+                    <MessageCircle className="h-8 w-8 mx-auto mb-2 text-muted-foreground/50" />
+                    <p>Aucun message non lu</p>
+                  </div>
+                ) : (
+                  <div className="space-y-1">
+                    {unreadConversations.map((conv) => (
+                      <DropdownMenuItem
+                        key={conv.id}
+                        onClick={() => handleNotificationClick(conv.id)}
+                        className="flex items-start gap-3 p-3 cursor-pointer hover:bg-muted/50"
+                        onSelect={(e) => e.preventDefault()}
+                      >
+                        <div className="relative flex-shrink-0">
+                          <img
+                            src={conv.avatar || "/placeholder-user.jpg"}
+                            alt={conv.name}
+                            className="h-10 w-10 rounded-full object-cover"
+                            onError={(e) => {
+                              const target = e.target as HTMLImageElement
+                              if (target.src !== "/placeholder-user.jpg") {
+                                target.src = "/placeholder-user.jpg"
+                              }
+                            }}
+                          />
+                          {conv.online && (
+                            <span className="absolute bottom-0 right-0 h-3 w-3 bg-green-500 rounded-full border-2 border-white" />
+                          )}
+                        </div>
+                        <div className="flex-1 min-w-0">
+                          <div className="flex items-center justify-between gap-2 mb-1">
+                            <p className="font-semibold text-sm truncate">{conv.name}</p>
+                            {conv.unread && conv.unread > 0 && (
+                              <Badge variant="destructive" className="text-xs h-5 min-w-[20px] flex items-center justify-center">
+                                {conv.unread > 99 ? '99+' : conv.unread}
+                              </Badge>
+                            )}
+                          </div>
+                          <p className="text-xs text-muted-foreground truncate mb-1">
+                            {conv.lastMessage || 'Aucun message'}
+                          </p>
+                          <p className="text-[10px] text-muted-foreground">
+                            {conv.time || ''}
+                          </p>
+                        </div>
+                      </DropdownMenuItem>
+                    ))}
+                  </div>
+                )}
+                {unreadConversations.length > 0 && (
+                  <>
+                    <DropdownMenuSeparator />
+                    <DropdownMenuItem
+                      onClick={() => {
+                        setIsNotificationMenuOpen(false)
+                        router.push('/reseau-social')
+                      }}
+                      className="text-center justify-center cursor-pointer"
+                    >
+                      Voir toutes les conversations
+                    </DropdownMenuItem>
+                  </>
+                )}
+              </DropdownMenuContent>
+            </DropdownMenu>
+          )}
+          
           {/* User menu - Responsive */}
             <DropdownMenu open={isMenuOpen} onOpenChange={setIsMenuOpen}>
               <DropdownMenuTrigger asChild>

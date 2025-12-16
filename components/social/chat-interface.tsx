@@ -1,15 +1,15 @@
 "use client"
 
 import { useEffect, useState, useMemo, useRef } from "react"
-import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar"
+import { useSearchParams } from "next/navigation"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 import { Badge } from "@/components/ui/badge"
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription } from "@/components/ui/dialog"
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from "@/components/ui/dropdown-menu"
 import { useSocialNetwork } from "@/hooks/useSocialNetwork"
-import { User } from "@/contexts/AuthContext"
 import { EmojiPicker } from "./emoji-picker"
+import { GifPicker } from "./gif-picker"
 import {
   Search,
   MoreVertical,
@@ -17,16 +17,17 @@ import {
   Paperclip,
   Plus,
   Star,
-  Mic,
   Image as ImageIcon,
   X,
   Menu,
   Loader2,
   UserPlus,
   Trash2,
+  Edit,
 } from "lucide-react"
 
 export function ChatInterface() {
+  const searchParams = useSearchParams()
   const {
     conversations,
     isLoadingConversations,
@@ -47,6 +48,9 @@ export function ChatInterface() {
     toggleFavorite,
     deleteConversation,
     deleteMessage,
+    updateMessage,
+    checkNewMessages,
+    markConversationAsRead,
   } = useSocialNetwork()
 
   // États initiaux - null pour éviter les problèmes d'hydratation
@@ -58,6 +62,8 @@ export function ChatInterface() {
   const [userSearchQuery, setUserSearchQuery] = useState("")
   const [isClient, setIsClient] = useState(false)
   const messagesEndRef = useRef<HTMLDivElement>(null)
+  const messagesContainerRef = useRef<HTMLDivElement>(null)
+  const shouldAutoScrollRef = useRef(true) // Flag pour forcer le scroll (après envoi de message)
   const [selectedFile, setSelectedFile] = useState<File | null>(null)
   const fileInputRef = useRef<HTMLInputElement>(null)
   const imageInputRef = useRef<HTMLInputElement>(null)
@@ -65,8 +71,11 @@ export function ChatInterface() {
   const [isDeleting, setIsDeleting] = useState(false)
   const [messageToDelete, setMessageToDelete] = useState<string | null>(null)
   const [isDeletingMessage, setIsDeletingMessage] = useState(false)
+  const [editingMessageId, setEditingMessageId] = useState<string | null>(null)
+  const [isEditingMessage, setIsEditingMessage] = useState(false)
   const [contextMenu, setContextMenu] = useState<{x: number, y: number, messageId: string} | null>(null)
   const [conversationContextMenu, setConversationContextMenu] = useState<{x: number, y: number, conversationId: string} | null>(null)
+  const isPollingMessagesRef = useRef(false)
 
   // S'assurer que le composant est monté côté client pour éviter les problèmes d'hydratation
   useEffect(() => {
@@ -122,12 +131,86 @@ export function ChatInterface() {
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [selectedChat]) // Ne dépendre que de selectedChat, pas de messages pour éviter la boucle
 
+  // Fonction pour vérifier si l'utilisateur est proche du bas du conteneur
+  const isNearBottom = (): boolean => {
+    const container = messagesContainerRef.current
+    if (!container) return true // Par défaut, considérer qu'on est en bas si le conteneur n'existe pas
+    
+    const threshold = 150 // Seuil en pixels (150px du bas)
+    const scrollTop = container.scrollTop
+    const scrollHeight = container.scrollHeight
+    const clientHeight = container.clientHeight
+    
+    // Vérifier si on est proche du bas (à moins de threshold pixels)
+    return scrollHeight - scrollTop - clientHeight < threshold
+  }
+
   // Auto-scroll vers le bas quand de nouveaux messages arrivent
+  // Mais seulement si l'utilisateur est déjà proche du bas ou s'il vient d'envoyer un message
   useEffect(() => {
     if (selectedChat && messages[selectedChat]) {
-      messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' })
+      // Toujours scroller si shouldAutoScrollRef est true (après envoi de message)
+      // Sinon, scroller seulement si l'utilisateur est proche du bas
+      if (shouldAutoScrollRef.current || isNearBottom()) {
+        // Utiliser setTimeout pour s'assurer que le DOM est mis à jour
+        setTimeout(() => {
+          messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' })
+          shouldAutoScrollRef.current = false // Réinitialiser le flag
+        }, 100)
+      }
     }
   }, [messages, selectedChat])
+
+  // Polling automatique pour vérifier les nouveaux messages de la conversation active
+  useEffect(() => {
+    if (!selectedChat) {
+      return
+    }
+
+    // Intervalle de polling : 2 secondes pour la conversation active (plus rapide)
+    const pollingInterval = 2000
+    let pollingTimeout: NodeJS.Timeout | null = null
+
+    const pollForNewMessages = async () => {
+      // Éviter les appels multiples simultanés
+      if (isPollingMessagesRef.current) {
+        return
+      }
+
+      isPollingMessagesRef.current = true
+
+      try {
+        await checkNewMessages(selectedChat)
+        // Marquer automatiquement comme lus si de nouveaux messages sont détectés
+        // (la fonction checkNewMessages met déjà à jour les messages)
+      } catch (err) {
+        // Ignorer les erreurs silencieusement pour ne pas polluer la console
+        console.debug('⚠️ [CHAT_INTERFACE] Erreur lors de la vérification des nouveaux messages:', err)
+      } finally {
+        isPollingMessagesRef.current = false
+      }
+    }
+
+    // Démarrer le polling
+    const startPolling = () => {
+      pollForNewMessages()
+      pollingTimeout = setTimeout(startPolling, pollingInterval)
+    }
+
+    // Attendre un peu avant de commencer le polling (éviter les appels immédiats)
+    const initialDelay = setTimeout(() => {
+      startPolling()
+    }, 1000)
+
+    // Nettoyer les timeouts au démontage ou changement de conversation
+    return () => {
+      if (pollingTimeout) {
+        clearTimeout(pollingTimeout)
+      }
+      clearTimeout(initialDelay)
+      isPollingMessagesRef.current = false
+    }
+  }, [selectedChat, checkNewMessages])
 
   const handleCloseContextMenu = () => {
     setContextMenu(null)
@@ -161,7 +244,7 @@ export function ChatInterface() {
   // État pour le filtre actif
   const [activeFilter, setActiveFilter] = useState<'all' | 'unread' | 'favorites'>('all')
   
-  // Recherche de conversations (filtrage local)
+  // Recherche de conversations (filtrage local) avec mémorisation stricte
   const filteredConversations = useMemo(() => {
     let filtered = conversations
     
@@ -173,7 +256,7 @@ export function ChatInterface() {
     }
     
     // Trier : favoris en premier, puis par date de dernier message
-    return filtered.sort((a, b) => {
+    const sorted = filtered.sort((a, b) => {
       // Favoris en premier
       if (a.is_pinned && !b.is_pinned) return -1
       if (!a.is_pinned && b.is_pinned) return 1
@@ -182,14 +265,30 @@ export function ChatInterface() {
       const dateB = new Date(b.last_message_at || b.created_at || 0).getTime()
       return dateB - dateA
     })
+    
+    // Retourner une nouvelle référence seulement si le contenu a vraiment changé
+    return sorted
   }, [conversations, activeFilter])
 
-  // Sélectionner la première conversation si aucune n'est sélectionnée
+  // Sélectionner une conversation depuis l'URL ou la première conversation disponible
   useEffect(() => {
+    // Vérifier si un paramètre de conversation est présent dans l'URL
+    const conversationParam = searchParams?.get('conversation')
+    
+    if (conversationParam && conversations.length > 0) {
+      // Vérifier si la conversation existe dans la liste
+      const conversationExists = conversations.some(conv => conv.id === conversationParam)
+      if (conversationExists) {
+        setSelectedChat(conversationParam)
+        return
+      }
+    }
+    
+    // Sinon, sélectionner la première conversation si aucune n'est sélectionnée
     if (!selectedChat && conversations.length > 0) {
       setSelectedChat(conversations[0].id)
     }
-  }, [conversations, selectedChat])
+  }, [conversations, selectedChat, searchParams])
 
   // Recherche d'utilisateurs avec debounce (déclenchée directement depuis le champ de recherche)
   useEffect(() => {
@@ -206,6 +305,10 @@ export function ChatInterface() {
 
   const handleSelectChat = (chatId: string) => {
     setSelectedChat(chatId)
+    // Forcer le scroll vers le bas quand on change de conversation
+    shouldAutoScrollRef.current = true
+    // Marquer la conversation comme lue localement pour arrêter immédiatement le clignotement
+    markConversationAsRead(chatId)
     // Si largeur < 1024px, rester sur le sidebar uniquement
     if (typeof window !== 'undefined' && window.innerWidth < 1024) {
       setIsSidebarOpen(true)
@@ -253,6 +356,17 @@ export function ChatInterface() {
     }
   }
 
+  const handleEditMessage = (message: Message) => {
+    setEditingMessageId(message.id)
+    setMessageInput(message.text || '')
+  }
+
+  const handleCancelEdit = () => {
+    setEditingMessageId(null)
+    setMessageInput('')
+    setIsEditingMessage(false)
+  }
+
   const handleContextMenu = (e: React.MouseEvent, messageId: string, isSent: boolean) => {
     // Ne montrer le menu contextuel que pour les messages envoyés par l'utilisateur et non supprimés
     const message = currentMessages.find(m => m.id === messageId)
@@ -290,6 +404,57 @@ export function ChatInterface() {
     return text.replace(urlRegex, '<a href="$1" target="_blank" rel="noopener noreferrer" class="underline text-blue-400 hover:text-blue-300">$1</a>')
   }
 
+  // Fonction pour rendre le contenu avec support des images markdown
+  const renderMessageContent = (text: string, isDeleted: boolean, isSent: boolean) => {
+    if (isDeleted) {
+      return <span className="italic">Message supprimé</span>
+    }
+
+    // Détecter les images markdown ![alt](url)
+    const parts = text.split(/(!\[.*?\]\(.*?\))/g)
+    
+    return (
+      <>
+        {parts.map((part, index) => {
+          const imageMatch = part.match(/!\[(.*?)\]\((.*?)\)/)
+          if (imageMatch) {
+            const [, alt, url] = imageMatch
+            return (
+              <img
+                key={index}
+                src={url}
+                alt={alt || "GIF"}
+                className="max-w-xs h-auto rounded-lg my-2"
+                loading="lazy"
+                style={{ maxHeight: '200px', objectFit: 'contain' }}
+              />
+            )
+          }
+          // Détecter les liens dans le texte restant
+          const urlRegex = /(https?:\/\/[^\s]+)/g
+          const textWithLinks = part.split(urlRegex).map((segment, segIndex) => {
+            // Vérifier si le segment est une URL
+            if (segment.match(/^https?:\/\/[^\s]+$/)) {
+              return (
+                <a
+                  key={segIndex}
+                  href={segment}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="underline text-blue-400 hover:text-blue-300"
+                >
+                  {segment}
+                </a>
+              )
+            }
+            return <span key={segIndex}>{segment}</span>
+          })
+          return <span key={index}>{textWithLinks}</span>
+        })}
+      </>
+    )
+  }
+
   // Gérer la sélection de fichiers
   const handleFileSelect = (event: React.ChangeEvent<HTMLInputElement>, type: 'image' | 'file') => {
     const file = event.target.files?.[0]
@@ -316,17 +481,35 @@ export function ChatInterface() {
     }
   }
 
-  // Gérer l'envoi du message
+  // Gérer l'envoi du message ou la modification
   const handleSendMessage = async () => {
     if (!selectedChat || (!messageInput.trim() && !selectedFile)) {
       return
     }
 
+    // Si on est en mode édition, modifier le message au lieu d'en envoyer un nouveau
+    if (editingMessageId) {
+      setIsEditingMessage(true)
+      try {
+        await updateMessage(editingMessageId, messageInput)
+        handleCancelEdit()
+      } catch (error) {
+        console.error('Erreur lors de la modification du message:', error)
+        alert('Erreur lors de la modification du message')
+      } finally {
+        setIsEditingMessage(false)
+      }
+      return
+    }
+
+    // Envoi normal d'un nouveau message
     const fileToSend = selectedFile
     setSelectedFile(null)
     if (fileInputRef.current) fileInputRef.current.value = ''
     if (imageInputRef.current) imageInputRef.current.value = ''
 
+    // Forcer le scroll après l'envoi du message
+    shouldAutoScrollRef.current = true
     await sendMessage(selectedChat, messageInput, undefined, fileToSend || undefined)
     setMessageInput("")
   }
@@ -398,13 +581,6 @@ export function ChatInterface() {
               Tous ({conversations.length})
             </Badge>
             <Badge 
-              variant={activeFilter === 'unread' ? "secondary" : "outline"} 
-              className={`rounded-full px-3 py-1 text-xs font-medium cursor-pointer whitespace-nowrap ${activeFilter === 'unread' ? "bg-blue-100 text-blue-800 border-blue-200" : "hover:bg-gray-100 border-gray-200"}`}
-              onClick={() => setActiveFilter('unread')}
-            >
-              Non lus ({conversations.filter(c => (c.unread || 0) > 0).length})
-            </Badge>
-            <Badge 
               variant={activeFilter === 'favorites' ? "secondary" : "outline"} 
               className={`rounded-full px-3 py-1 text-xs font-medium cursor-pointer whitespace-nowrap ${activeFilter === 'favorites' ? "bg-blue-100 text-blue-800 border-blue-200" : "hover:bg-gray-100 border-gray-200"}`}
               onClick={() => setActiveFilter('favorites')}
@@ -447,10 +623,19 @@ export function ChatInterface() {
                             }
                           }}
                         >
-                          <Avatar className="h-11 w-11 sm:h-12 sm:w-12 border-2 border-white shadow-sm">
-                            <AvatarImage src={user.avatar_url || "/placeholder.svg"} alt={user.full_name} />
-                            <AvatarFallback className="text-sm font-medium">{user.full_name?.slice(0, 2).toUpperCase() || user.username?.slice(0, 2).toUpperCase()}</AvatarFallback>
-                          </Avatar>
+                          <div className="relative flex-shrink-0">
+                            <img
+                              src={user.avatar_url || "/placeholder-user.jpg"}
+                              alt={user.full_name}
+                              className="h-11 w-11 sm:h-12 sm:w-12 rounded-full border-2 border-white shadow-sm object-cover"
+                              onError={(e) => {
+                                const target = e.target as HTMLImageElement
+                                if (target.src !== "/placeholder-user.jpg") {
+                                  target.src = "/placeholder-user.jpg"
+                                }
+                              }}
+                            />
+                          </div>
                           <div className="flex-1 min-w-0">
                             <p className="font-semibold text-sm text-gray-900 truncate">{user.full_name || user.username}</p>
                             {user.position && (
@@ -485,21 +670,35 @@ export function ChatInterface() {
                   ) : (
                     filteredConversations.map((conv) => {
                       const hasUnread = (conv.unread || 0) > 0
+                      // Ne pas clignoter si la conversation est sélectionnée
+                      const shouldBlink = hasUnread && selectedChat !== conv.id
                       return (
                       <div
                         key={conv.id}
                         className={`group relative w-full p-3 sm:p-3.5 rounded-xl flex items-start gap-3 transition-all duration-200 ${selectedChat === conv.id ? "bg-blue-50 shadow-sm border border-blue-200/50" : hasUnread ? "bg-green-50 border border-green-200/50 hover:bg-green-100" : "bg-white hover:bg-gray-50 border border-transparent hover:border-gray-200"}`}
                         onContextMenu={(e) => handleConversationContextMenu(e, conv.id)}
+                        style={shouldBlink ? {
+                          animation: 'blink 1.5s ease-in-out infinite'
+                        } : {}}
                       >
                         <button
                           onClick={() => handleSelectChat(conv.id)}
                           className="flex items-start gap-3 flex-1 min-w-0"
                         >
                           <div className="relative flex-shrink-0">
-                            <Avatar className="h-11 w-11 sm:h-12 sm:w-12 border-2 border-white shadow-sm">
-                              <AvatarImage src={conv.avatar || "/placeholder.svg"} alt={conv.name} onError={(e) => { (e.currentTarget as HTMLImageElement).src = '/placeholder.svg' }} />
-                              <AvatarFallback className="text-sm font-medium">{conv.name.slice(0, 2).toUpperCase()}</AvatarFallback>
-                            </Avatar>
+                            <div className="relative flex-shrink-0">
+                              <img
+                                src={conv.avatar || "/placeholder-user.jpg"}
+                                alt={conv.name}
+                                className="h-11 w-11 sm:h-12 sm:w-12 rounded-full border-2 border-white shadow-sm object-cover"
+                                onError={(e) => {
+                                  const target = e.target as HTMLImageElement
+                                  if (target.src !== "/placeholder-user.jpg") {
+                                    target.src = "/placeholder-user.jpg"
+                                  }
+                                }}
+                              />
+                            </div>
                             {conv.online && <span className="absolute bottom-0 right-0 h-3.5 w-3.5 bg-green-500 rounded-full border-[2.5px] border-white shadow-sm" />}
                           </div>
                           <div className="flex-1 text-left min-w-0">
@@ -511,26 +710,36 @@ export function ChatInterface() {
                             </div>
                             <div className="flex items-center justify-between gap-2">
                               <p className="text-sm text-gray-700 truncate leading-relaxed">{conv.lastMessage}</p>
-                              {conv.unread && conv.unread > 0 ? (
-                                <Badge className="flex-shrink-0 bg-primary text-primary-foreground text-xs rounded-full h-5 min-w-5 px-1.5 flex items-center justify-center font-semibold shadow-sm">
-                                  {conv.unread}
-                                </Badge>
-                              ) : null}
                             </div>
                           </div>
                         </button>
-                        <Button
-                          variant="ghost"
-                          size="icon"
-                          className={`h-6 w-6 opacity-0 group-hover:opacity-100 transition-opacity flex-shrink-0 ${conv.is_pinned ? 'text-yellow-500 fill-yellow-500 opacity-100' : ''}`}
-                          onClick={(e) => {
-                            e.stopPropagation()
-                            toggleFavorite(conv.id).catch(err => console.error('Erreur lors du basculement favori:', err))
-                          }}
-                          title={conv.is_pinned ? "Retirer des favoris" : "Mettre en favoris"}
-                        >
-                          <Star className={`h-4 w-4 ${conv.is_pinned ? 'fill-current' : ''}`} />
-                        </Button>
+                        <div className="flex items-center gap-1 opacity-100 transition-opacity">
+                          <Button
+                            variant="ghost"
+                            size="icon"
+                            className={`h-6 w-6 flex-shrink-0 ${conv.is_pinned ? 'text-yellow-500 fill-yellow-500' : ''}`}
+                            onClick={(e) => {
+                              e.stopPropagation()
+                              toggleFavorite(conv.id).catch(err => console.error('Erreur lors du basculement favori:', err))
+                            }}
+                            title={conv.is_pinned ? "Retirer des favoris" : "Mettre en favoris"}
+                          >
+                            <Star className={`h-4 w-4 ${conv.is_pinned ? 'fill-current' : ''}`} />
+                          </Button>
+                          <Button
+                            variant="ghost"
+                            size="icon"
+                            className="h-6 w-6 flex-shrink-0 text-destructive hover:text-destructive hover:bg-destructive/10"
+                            onClick={(e) => {
+                              e.stopPropagation()
+                              setSelectedChat(conv.id)
+                              setShowDeleteDialog(true)
+                            }}
+                            title="Supprimer la conversation"
+                          >
+                            <Trash2 className="h-4 w-4" />
+                          </Button>
+                        </div>
                       </div>
                       )
                     })
@@ -548,16 +757,25 @@ export function ChatInterface() {
         <div className={`${isSidebarOpen ? 'hidden' : 'flex'} lg:flex flex-1 flex-col w-full lg:w-auto min-h-0`}>
           {selectedConversation ? (
             <>
-              <div className="h-12 sm:h-14 md:h-16 border-b border-border px-2 sm:px-4 md:px-6 flex items-center justify-between" style={{ backgroundColor: '#fdfdfe' }}>
+              <div className="h-12 sm:h-14 md:h-16 border-b border-border px-2 sm:px-4 md:px-6 flex items-center justify-between bg-white">
                 <div className="flex items-center gap-2 sm:gap-4 min-w-0 flex-1">
                   <Button variant="ghost" size="icon" className="h-9 w-9 rounded-lg hover:bg-muted lg:hidden flex-shrink-0" onClick={() => setIsSidebarOpen(true)}>
                     <Menu className="h-5 w-5" />
                   </Button>
                   <div className="relative flex-shrink-0">
-                    <Avatar className="h-9 w-9 sm:h-10 sm:w-10 border-2 border-background shadow-sm">
-                      <AvatarImage src={selectedConversation.avatar || "/placeholder.svg"} alt={selectedConversation.name} onError={(e) => { (e.currentTarget as HTMLImageElement).src = '/placeholder.svg' }} />
-                      <AvatarFallback>{selectedConversation.name.slice(0, 2).toUpperCase()}</AvatarFallback>
-                    </Avatar>
+                    <div className="relative flex-shrink-0">
+                      <img
+                        src={selectedConversation.avatar || "/placeholder-user.jpg"}
+                        alt={selectedConversation.name}
+                        className="h-9 w-9 sm:h-10 sm:w-10 rounded-full border-2 border-background shadow-sm object-cover"
+                        onError={(e) => {
+                          const target = e.target as HTMLImageElement
+                          if (target.src !== "/placeholder-user.jpg") {
+                            target.src = "/placeholder-user.jpg"
+                          }
+                        }}
+                      />
+                    </div>
                     {selectedConversation.online && <span className="absolute bottom-0 right-0 h-3 w-3 bg-green-500 rounded-full border-[2.5px] border-card" />}
                   </div>
                   <div className="min-w-0 flex-1">
@@ -597,7 +815,11 @@ export function ChatInterface() {
               </div>
 
               {/* Messages */}
-              <div className="flex-1 overflow-y-auto min-h-0 bg-white" style={{ WebkitOverflowScrolling: 'touch', overscrollBehavior: 'contain' }}>
+              <div 
+                ref={messagesContainerRef}
+                className="flex-1 overflow-y-auto min-h-0 bg-white" 
+                style={{ WebkitOverflowScrolling: 'touch', overscrollBehavior: 'contain' }}
+              >
                 <div className="py-2 sm:py-4 md:py-5 px-2 sm:px-4 md:px-8 space-y-3 sm:space-y-4">
                   {isLoadingMessages ? (
                     <div className="flex items-center justify-center py-8">
@@ -625,7 +847,32 @@ export function ChatInterface() {
                           className={`flex ${message.sent ? "justify-start" : "justify-end"} group relative`}
                           onContextMenu={(e) => handleContextMenu(e, message.id, message.sent)}
                         >
-                          <div className="flex items-end gap-2 max-w-[85%] sm:max-w-[75%] lg:max-w-[65%]">
+                          <div className={`flex items-end gap-2 max-w-[85%] sm:max-w-[75%] lg:max-w-[65%] ${message.sent ? "flex-row" : "flex-row-reverse"}`}>
+                            {/* Boutons modifier/supprimer au survol (uniquement pour les messages envoyés) */}
+                            {message.sent && !message.is_deleted && (
+                              <div className="flex flex-col gap-1 opacity-0 group-hover:opacity-100 transition-opacity">
+                                <Button
+                                  variant="ghost"
+                                  size="icon"
+                                  className="h-7 w-7 bg-background/80 backdrop-blur-sm border border-border shadow-sm hover:bg-muted"
+                                  onClick={() => handleEditMessage(message)}
+                                  title="Modifier le message"
+                                >
+                                  <Edit className="h-3.5 w-3.5" />
+                                </Button>
+                                <Button
+                                  variant="ghost"
+                                  size="icon"
+                                  className="h-7 w-7 bg-background/80 backdrop-blur-sm border border-border shadow-sm hover:bg-destructive/10 hover:text-destructive"
+                                  onClick={() => {
+                                    setMessageToDelete(message.id)
+                                  }}
+                                  title="Supprimer le message"
+                                >
+                                  <Trash2 className="h-3.5 w-3.5" />
+                                </Button>
+                              </div>
+                            )}
                             <div className={`relative ${message.sent ? "bg-primary text-primary-foreground shadow-md" : "bg-white text-gray-900 shadow-sm border border-gray-200"} rounded-2xl px-3 sm:px-4 py-2.5 sm:py-3 transition-all duration-200 hover:shadow-lg ${message.is_deleted ? "opacity-60 italic" : ""}`}>
                               
                               {/* Afficher l'image si c'est un message image et non supprimé */}
@@ -658,12 +905,13 @@ export function ChatInterface() {
                                 </div>
                               )}
                               
-                              {/* Afficher le texte avec liens détectés */}
+                              {/* Afficher le texte avec liens détectés et images markdown */}
                               {message.text && (
-                                <p 
+                                <div 
                                   className={`leading-relaxed text-xl xs:text-2xl ${message.is_deleted ? "text-muted-foreground" : message.sent ? "text-primary-foreground" : "text-gray-700"}`}
-                                  dangerouslySetInnerHTML={{ __html: message.is_deleted ? "Message supprimé" : detectLinks(message.text) }}
-                                />
+                                >
+                                  {renderMessageContent(message.text, message.is_deleted || false, message.sent || false)}
+                                </div>
                               )}
                               
                               {/* Afficher uniquement l'heure si pas de texte mais un fichier */}
@@ -671,7 +919,12 @@ export function ChatInterface() {
                                 <div className="text-xs text-gray-500 italic">Pièce jointe</div>
                               )}
                               
-                              <span className={`text-[11px] mt-1 sm:mt-1.5 block font-medium ${message.sent ? "text-primary-foreground/70" : "text-gray-500"}`}>{message.time}</span>
+                              <div className="flex items-center gap-1.5 mt-1 sm:mt-1.5">
+                                <span className={`text-[11px] block font-medium ${message.sent ? "text-primary-foreground/70" : "text-gray-500"}`}>{message.time}</span>
+                                {message.is_edited && (
+                                  <span className={`text-[10px] italic ${message.sent ? "text-primary-foreground/60" : "text-gray-400"}`}>modifié</span>
+                                )}
+                              </div>
                             </div>
                           </div>
                         </div>
@@ -732,8 +985,11 @@ export function ChatInterface() {
                             e.preventDefault()
                             handleSendMessage()
                           }
+                          if (e.key === "Escape" && editingMessageId) {
+                            handleCancelEdit()
+                          }
                         }}
-                        placeholder="Écrivez votre message..."
+                        placeholder={editingMessageId ? "Modifiez votre message..." : "Écrivez votre message..."}
                         className="border-0 bg-transparent focus-visible:ring-0 focus-visible:ring-offset-0 p-0 text-sm md:text-[15px] placeholder:text-muted-foreground/60"
                         disabled={isLoadingMessages}
                       />
@@ -769,16 +1025,26 @@ export function ChatInterface() {
                           }}
                           className="flex-shrink-0"
                         />
-                        <Button variant="ghost" size="icon" className="h-7 w-7 md:h-8 md:w-8 rounded-lg hover:bg-muted/50 flex-shrink-0 hidden sm:flex"><Mic className="h-5 w-5" /></Button>
+                        <GifPicker
+                          onGifSelect={(gifUrl) => {
+                            setMessageInput((prev) => prev + ` ![GIF](${gifUrl})`)
+                          }}
+                          className="flex-shrink-0"
+                        />
                       </div>
                     </div>
                     <Button 
                       onClick={handleSendMessage} 
                       size="icon" 
                       className="h-9 w-9 md:h-11 md:w-11 rounded-xl bg-primary hover:bg-primary/90 shadow-md hover:shadow-lg transition-all flex-shrink-0"
-                      disabled={(!messageInput.trim() && !selectedFile) || isLoadingMessages}
+                      disabled={(!messageInput.trim() && !selectedFile) || isLoadingMessages || isEditingMessage}
+                      title={editingMessageId ? "Enregistrer les modifications" : "Envoyer le message"}
                     >
-                      <Send className="h-4 w-4 md:h-5 md:w-5" />
+                      {isEditingMessage ? (
+                        <Loader2 className="h-4 w-4 md:h-5 md:w-5 animate-spin" />
+                      ) : (
+                        <Send className="h-4 w-4 md:h-5 md:w-5" />
+                      )}
                     </Button>
                   </div>
                 </div>
@@ -850,10 +1116,19 @@ export function ChatInterface() {
                       }
                     }}
                   >
-                    <Avatar className="h-10 w-10">
-                      <AvatarImage src={user.avatar_url || "/placeholder.svg"} alt={user.full_name} />
-                      <AvatarFallback>{user.full_name?.slice(0, 2).toUpperCase() || user.username?.slice(0, 2).toUpperCase()}</AvatarFallback>
-                    </Avatar>
+                    <div className="relative flex-shrink-0">
+                      <img
+                        src={user.avatar_url || "/placeholder-user.jpg"}
+                        alt={user.full_name}
+                        className="h-10 w-10 rounded-full object-cover"
+                        onError={(e) => {
+                          const target = e.target as HTMLImageElement
+                          if (target.src !== "/placeholder-user.jpg") {
+                            target.src = "/placeholder-user.jpg"
+                          }
+                        }}
+                      />
+                    </div>
                     <div className="flex-1 min-w-0">
                       <p className="font-medium text-sm truncate">{user.full_name || user.username}</p>
                       {user.position && (
@@ -1006,9 +1281,17 @@ export function ChatInterface() {
             <button
               onClick={(e) => {
                 e.stopPropagation()
-                setSelectedChat(conversationContextMenu.conversationId)
-                setShowDeleteDialog(true)
+                // Supprimer directement depuis le sidebar sans ouvrir la conversation
+                const conversationId = conversationContextMenu.conversationId
                 handleCloseConversationContextMenu()
+                
+                // Confirmer la suppression
+                if (window.confirm('Êtes-vous sûr de vouloir supprimer cette conversation ? Cette action ne peut pas être annulée.\n\nLa conversation sera supprimée uniquement pour vous, votre interlocuteur pourra toujours la voir.')) {
+                  deleteConversation(conversationId).catch(err => {
+                    console.error('Erreur lors de la suppression:', err)
+                    alert('Erreur lors de la suppression de la conversation')
+                  })
+                }
               }}
               className="w-full flex items-center gap-2 px-3 py-2 text-sm hover:bg-accent transition-colors text-left text-destructive focus:text-destructive"
             >

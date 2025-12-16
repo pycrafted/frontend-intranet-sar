@@ -1,8 +1,10 @@
 "use client"
 
+import { Suspense } from "react"
 import { LayoutWrapper } from "@/components/layout-wrapper"
 import { ChatInterface } from "@/components/social/chat-interface"
 import { AuthGuard } from "@/components/auth-guard"
+import { Loader2 } from "lucide-react"
 
 interface ReseauSocialPageProps {
   isMainSidebarCollapsed?: boolean
@@ -28,7 +30,13 @@ function ReseauSocialPageContent({ isMainSidebarCollapsed = true }: ReseauSocial
           transition: 'left 0.3s ease-in-out'
         }}
       >
-        <ChatInterface />
+        <Suspense fallback={
+          <div className="flex items-center justify-center h-full">
+            <Loader2 className="h-6 w-6 animate-spin text-muted-foreground" />
+          </div>
+        }>
+          <ChatInterface />
+        </Suspense>
       </div>
     </>
   )

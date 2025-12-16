@@ -423,22 +423,17 @@ export default function ForumDetailPage({ isMainSidebarCollapsed = false }: Foru
                       {/* Auteur à droite */}
                       <div className="flex items-center gap-3 xs:gap-4">
                         <div className="relative h-10 w-10 xs:h-12 xs:w-12 flex-shrink-0 overflow-hidden rounded-full ring-2 ring-gray-200">
-                          {currentForum.created_by_info.avatar_url ? (
-                            <img
-                              src={currentForum.created_by_info.avatar_url}
-                              alt={currentForum.created_by_info.full_name}
-                              className="w-full h-full object-cover"
-                            />
-                          ) : (
-                            <div className="w-full h-full bg-gray-100 flex items-center justify-center text-gray-600 font-semibold text-xs xs:text-sm">
-                              {currentForum.created_by_info.full_name
-                                .split(" ")
-                                .map((n) => n[0])
-                                .join("")
-                                .toUpperCase()
-                                .slice(0, 2)}
-                            </div>
-                          )}
+                          <img
+                            src={currentForum.created_by_info.avatar_url || "/placeholder-user.jpg"}
+                            alt={currentForum.created_by_info.full_name}
+                            className="w-full h-full object-cover"
+                            onError={(e) => {
+                              const target = e.target as HTMLImageElement
+                              if (target.src !== "/placeholder-user.jpg") {
+                                target.src = "/placeholder-user.jpg"
+                              }
+                            }}
+                          />
                         </div>
                         <div className="text-right">
                           <div className="font-semibold text-gray-900 text-base xs:text-lg">{currentForum.created_by_info.full_name}</div>
@@ -561,22 +556,17 @@ export default function ForumDetailPage({ isMainSidebarCollapsed = false }: Foru
                           <div className="px-3 xs:px-4 sm:px-6 pb-4 xs:pb-6 w-full">
                             <div className="flex items-start gap-3 xs:gap-4 mb-3 xs:mb-4">
                               <div className="relative h-10 w-10 xs:h-12 xs:w-12 flex-shrink-0 overflow-hidden rounded-full ring-2 ring-gray-200">
-                                {message.author_info.avatar_url ? (
-                                  <img
-                                    src={message.author_info.avatar_url}
-                                    alt={message.author_info.full_name}
-                                    className="w-full h-full object-cover"
-                                  />
-                                ) : (
-                                  <div className="w-full h-full bg-gray-100 flex items-center justify-center text-gray-600 font-semibold text-xs xs:text-sm">
-                                    {message.author_info.full_name
-                                      .split(" ")
-                                      .map((n) => n[0])
-                                      .join("")
-                                      .toUpperCase()
-                                      .slice(0, 2)}
-                                  </div>
-                                )}
+                                <img
+                                  src={message.author_info.avatar_url || "/placeholder-user.jpg"}
+                                  alt={message.author_info.full_name}
+                                  className="w-full h-full object-cover"
+                                  onError={(e) => {
+                                    const target = e.target as HTMLImageElement
+                                    if (target.src !== "/placeholder-user.jpg") {
+                                      target.src = "/placeholder-user.jpg"
+                                    }
+                                  }}
+                                />
                               </div>
                               <div className="flex-1 min-w-0">
                                 <div className="mb-2 xs:mb-3">
@@ -639,22 +629,17 @@ export default function ForumDetailPage({ isMainSidebarCollapsed = false }: Foru
                   <div className="px-3 xs:px-4 sm:px-6 pb-4 xs:pb-6 w-full overflow-visible">
                     <div className="flex items-start gap-3 xs:gap-4 mb-3 xs:mb-4">
                       <div className="relative h-10 w-10 xs:h-12 xs:w-12 flex-shrink-0 overflow-hidden rounded-full ring-2 ring-white/20">
-                        {user?.avatar_url ? (
-                          <img
-                            src={user.avatar_url}
-                            alt={user.full_name || "Vous"}
-                            className="w-full h-full object-cover"
-                          />
-                        ) : (
-                          <div className="w-full h-full bg-white/20 flex items-center justify-center text-white font-semibold text-xs xs:text-sm">
-                            {user?.full_name
-                              ?.split(" ")
-                              .map((n) => n[0])
-                              .join("")
-                              .toUpperCase()
-                              .slice(0, 2) || "VO"}
-                          </div>
-                        )}
+                        <img
+                          src={user?.avatar_url || "/placeholder-user.jpg"}
+                          alt={user?.full_name || "Vous"}
+                          className="w-full h-full object-cover"
+                          onError={(e) => {
+                            const target = e.target as HTMLImageElement
+                            if (target.src !== "/placeholder-user.jpg") {
+                              target.src = "/placeholder-user.jpg"
+                            }
+                          }}
+                        />
                       </div>
                       <div className="flex-1">
                         <div className="font-semibold text-white text-base xs:text-lg mb-1">{user?.full_name || "Vous"}</div>

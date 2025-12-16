@@ -163,6 +163,54 @@ export function useDocuments() {
       setIsLoading(true)
       setError(null)
 
+      // Validation du type de fichier avant l'upload
+      const allowedExtensions = ['.pdf', '.doc', '.docx', '.xls', '.xlsx', '.ppt', '.pptx', '.txt', '.csv']
+      const fileExtension = '.' + documentData.file.name.split('.').pop()?.toLowerCase() || ''
+      
+      if (!allowedExtensions.includes(fileExtension)) {
+        const errorMessage = `Type de fichier non autorisé. Extensions acceptées: ${allowedExtensions.join(', ')}`
+        setError(errorMessage)
+        return { success: false, error: errorMessage }
+      }
+
+      // Validation de la taille (50MB max)
+      const maxSize = 50 * 1024 * 1024 // 50MB
+      if (documentData.file.size > maxSize) {
+        const errorMessage = `Le fichier est trop volumineux. Taille maximale: ${(maxSize / (1024 * 1024)).toFixed(1)}MB`
+        setError(errorMessage)
+        return { success: false, error: errorMessage }
+      }
+
+      // Tronquer le nom du fichier si trop long (max 100 caractères avec extension)
+      const originalFileName = documentData.file.name
+      const maxFileNameLength = 100
+      let fileName = originalFileName
+      
+      if (fileName.length > maxFileNameLength) {
+        const lastDotIndex = fileName.lastIndexOf('.')
+        const nameWithoutExt = lastDotIndex > 0 ? fileName.substring(0, lastDotIndex) : fileName
+        const ext = lastDotIndex > 0 ? fileName.substring(lastDotIndex) : ''
+        
+        // Tronquer le nom en gardant l'extension
+        const maxNameLength = maxFileNameLength - ext.length
+        const truncatedName = nameWithoutExt.substring(0, Math.max(1, maxNameLength))
+        fileName = truncatedName + ext
+        
+        console.log('🔍 [UPLOAD] Nom de fichier tronqué:', {
+          original: originalFileName,
+          truncated: fileName,
+          originalLength: originalFileName.length,
+          truncatedLength: fileName.length
+        })
+        
+        // Créer un nouveau File avec le nom tronqué
+        const truncatedFile = new File([documentData.file], fileName, {
+          type: documentData.file.type,
+          lastModified: documentData.file.lastModified
+        })
+        documentData.file = truncatedFile
+      }
+
       const formData = new FormData()
       formData.append('title', documentData.title)
       if (documentData.description) {
@@ -208,13 +256,47 @@ export function useDocuments() {
         try {
           errorData = await response.json()
           console.error('❌ [UPLOAD] Erreur API (JSON):', errorData)
+          
+          // Extraire le message d'erreur détaillé
+          let errorMessage = 'Erreur lors de l\'upload'
+          
+          if (errorData.detail) {
+            errorMessage = errorData.detail
+          } else if (errorData.error) {
+            errorMessage = errorData.error
+          } else if (errorData.file) {
+            // Si c'est une erreur de validation du fichier
+            if (Array.isArray(errorData.file)) {
+              errorMessage = errorData.file.join(', ')
+            } else if (typeof errorData.file === 'string') {
+              errorMessage = errorData.file
+            } else {
+              errorMessage = 'Erreur de validation du fichier'
+            }
+          } else if (errorData.title) {
+            if (Array.isArray(errorData.title)) {
+              errorMessage = `Titre: ${errorData.title.join(', ')}`
+            } else {
+              errorMessage = `Titre: ${errorData.title}`
+            }
+          } else if (errorData.description) {
+            if (Array.isArray(errorData.description)) {
+              errorMessage = `Description: ${errorData.description.join(', ')}`
+            } else {
+              errorMessage = `Description: ${errorData.description}`
+            }
+          }
+          
+          throw new Error(errorMessage)
         } catch (jsonError) {
           // Si la réponse n'est pas du JSON valide (erreur 500)
+          if (jsonError instanceof Error && jsonError.message !== 'Erreur lors de l\'upload') {
+            throw jsonError
+          }
           const textResponse = await response.text()
           console.error('❌ [UPLOAD] Erreur API (non-JSON):', textResponse)
           throw new Error(`Erreur serveur (${response.status}): ${textResponse.substring(0, 100)}...`)
         }
-        throw new Error(errorData.error || errorData.detail || 'Erreur lors de l\'upload')
       }
     } catch (err) {
       console.error('❌ [UPLOAD] Erreur complète:', err)

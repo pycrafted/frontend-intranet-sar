@@ -1,6 +1,5 @@
 "use client"
 
-import { Avatar, AvatarImage, AvatarFallback } from "@/components/ui/avatar"
 import { Badge } from "@/components/ui/badge"
 import { Button } from "@/components/ui/button"
 import {
@@ -40,17 +39,19 @@ export function ForumMessageItem({
   return (
     <div className="flex gap-2 sm:gap-4 group pb-4 sm:pb-6">
       {/* Avatar */}
-      <Avatar className="h-8 w-8 sm:h-10 sm:w-10 shrink-0">
-        <AvatarImage src={message.author_info.avatar_url} alt={message.author_info.full_name} />
-        <AvatarFallback>
-          {message.author_info.full_name
-            .split(" ")
-            .map((n) => n[0])
-            .join("")
-            .toUpperCase()
-            .slice(0, 2)}
-        </AvatarFallback>
-      </Avatar>
+      <div className="relative h-8 w-8 sm:h-10 sm:w-10 shrink-0 overflow-hidden rounded-full">
+        <img
+          src={message.author_info.avatar_url || "/placeholder-user.jpg"}
+          alt={message.author_info.full_name}
+          className="w-full h-full object-cover"
+          onError={(e) => {
+            const target = e.target as HTMLImageElement
+            if (target.src !== "/placeholder-user.jpg") {
+              target.src = "/placeholder-user.jpg"
+            }
+          }}
+        />
+      </div>
 
       {/* Contenu */}
       <div className="flex-1 min-w-0">

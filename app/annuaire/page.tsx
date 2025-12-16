@@ -10,6 +10,8 @@ import { Input } from "@/components/ui/input"
 import { Mail, Phone, Smartphone, MessageCircle, ChevronLeft, ChevronRight, Search } from "lucide-react"
 import { useEmployees, Employee, Department } from "@/hooks/useEmployees"
 import { StandardLoader } from "@/components/ui/standard-loader"
+import { ChatButton } from "@/components/social/chat-button"
+import { useSocialNetwork } from "@/hooks/useSocialNetwork"
 
 // Données statiques basées sur l'image
 const fallbackEmployees: Employee[] = [
@@ -339,10 +341,6 @@ export default function AnnuairePage() {
   }
 
 
-  const handleChatClick = (employee: Employee) => {
-    // TODO: Implémenter la fonctionnalité de chat
-    console.log(`Ouvrir le chat avec ${employee.full_name}`)
-  }
 
   // Utiliser les données de l'API ou les données filtrées
   const displayData = filteredEmployees.length > 0 ? filteredEmployees : employees
@@ -665,32 +663,30 @@ export default function AnnuairePage() {
                             <Mail className="w-3 h-3 xs:w-3.5 xs:h-3.5 sm:w-4 sm:h-4" />
                             <span className="hidden xs:inline">Email</span>
                           </Button>
-                          <Button 
-                            size="sm" 
-                            className="flex-1 gap-1 xs:gap-1.5 sm:gap-2 text-[10px] xs:text-xs sm:text-sm h-7 xs:h-8 sm:h-9 px-2 xs:px-2.5 sm:px-3"
-                            style={{
-                              backgroundColor: '#4a5568',
-                              color: 'white',
-                              borderColor: '#4a5568'
-                            }}
-                            onMouseEnter={(e) => {
-                              if (window.innerWidth >= 640) {
-                                e.currentTarget.style.backgroundColor = '#2d3748';
-                              }
-                            }}
-                            onMouseLeave={(e) => {
-                              if (window.innerWidth >= 640) {
-                                e.currentTarget.style.backgroundColor = '#4a5568';
-                              }
-                            }}
-                            onClick={(e) => {
-                              e.stopPropagation();
-                              handleChatClick(employee);
-                            }}
-                          >
-                            <MessageCircle className="w-3 h-3 xs:w-3.5 xs:h-3.5 sm:w-4 sm:h-4" />
-                            <span className="hidden xs:inline">Chat</span>
-                          </Button>
+                          <ChatButton employee={employee}>
+                            <Button 
+                              size="sm" 
+                              className="flex-1 gap-1 xs:gap-1.5 sm:gap-2 text-[10px] xs:text-xs sm:text-sm h-7 xs:h-8 sm:h-9 px-2 xs:px-2.5 sm:px-3"
+                              style={{
+                                backgroundColor: '#4a5568',
+                                color: 'white',
+                                borderColor: '#4a5568'
+                              }}
+                              onMouseEnter={(e) => {
+                                if (window.innerWidth >= 640) {
+                                  e.currentTarget.style.backgroundColor = '#2d3748';
+                                }
+                              }}
+                              onMouseLeave={(e) => {
+                                if (window.innerWidth >= 640) {
+                                  e.currentTarget.style.backgroundColor = '#4a5568';
+                                }
+                              }}
+                            >
+                              <MessageCircle className="w-3 h-3 xs:w-3.5 xs:h-3.5 sm:w-4 sm:h-4" />
+                              <span className="hidden xs:inline">Chat</span>
+                            </Button>
+                          </ChatButton>
                         </div>
                       </div>
                     </CardContent>
