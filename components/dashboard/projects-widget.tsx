@@ -1,105 +1,70 @@
 "use client"
 
 import { useState, useEffect, useMemo } from "react"
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
+import { Card } from "@/components/ui/card"
 import { Button } from "@/components/ui/button"
 import { Badge } from "@/components/ui/badge"
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog"
+import { motion } from "framer-motion"
+import Image from "next/image"
 import { 
   FolderKanban, 
   Target, 
   Users, 
   Calendar,
-  ChevronLeft,
-  ChevronRight,
   User,
   Clock,
   CheckCircle2,
   PlayCircle,
   FileText,
-  Loader2
+  Loader2,
+  ArrowRight,
+  Lightbulb,
+  ExternalLink
 } from "lucide-react"
 import { useProjects, Project } from "@/hooks/useProjects"
 
-// Fonction pour obtenir le badge de statut
-function getStatusBadge(status: Project['status']) {
-  switch (status) {
-    case 'en_cours':
-      return <Badge className="bg-blue-100 text-blue-800 border-blue-300">en cours</Badge>
-    case 'termine':
-      return <Badge className="bg-indigo-100 text-indigo-800 border-indigo-300">Terminé 2024</Badge>
-    case 'planifie':
-      return <Badge className="bg-sky-100 text-sky-800 border-sky-300">Planifié</Badge>
-    case 'en_projet':
-      return <Badge className="bg-blue-100 text-blue-800 border-blue-300">En projet</Badge>
-    default:
-      return null
+// Configuration des statuts selon le design markdown
+const statusConfig = {
+  termine: {
+    icon: CheckCircle2,
+    color: "bg-green-500/10 text-green-700 border-green-500/20",
+    dotColor: "bg-green-500",
+    label: "Terminé"
+  },
+  en_cours: {
+    icon: Clock,
+    color: "bg-blue-500/10 text-blue-700 border-blue-500/20",
+    dotColor: "bg-blue-500",
+    label: "Projet en cours"
+  },
+  planifie: {
+    icon: Lightbulb,
+    color: "bg-orange-500/10 text-orange-700 border-orange-500/20",
+    dotColor: "bg-orange-500",
+    label: "Planifié"
+  },
+  en_projet: {
+    icon: Clock,
+    color: "bg-blue-500/10 text-blue-700 border-blue-500/20",
+    dotColor: "bg-blue-500",
+    label: "En projet"
   }
 }
 
-
-// Composant pour afficher un projet en mode pagination
-function ProjectCardPagination({ project }: { project: Project | { id: string | number; name: string; status: Project['status']; objective: string; partners?: string; chefProjet?: string } }) {
+// Fonction pour obtenir le badge de statut avec le nouveau design
+function getStatusBadge(status: Project['status']) {
+  const config = statusConfig[status] || statusConfig.en_cours
+  const StatusIcon = config.icon
+  
   return (
-    <div 
-      className="rounded-lg border border-blue-300 hover:border-blue-400 hover:shadow-md transition-all duration-300 p-4 sm:p-6 h-full flex flex-col group relative overflow-hidden bg-white/90 backdrop-blur-sm"
-    >
-      {/* Contenu */}
-      <div className="relative z-10 flex-1 flex flex-col">
-        <div className="flex items-center justify-between mb-4">
-          <h3 className="text-lg sm:text-xl font-bold text-gray-900 transition-colors">
-            {project.name}
-          </h3>
-          {getStatusBadge(project.status)}
-        </div>
-        
-        <div className="space-y-3 flex-1">
-          <div>
-            <div className="flex items-start gap-2 mb-1">
-              <Target className="h-4 w-4 mt-0.5 flex-shrink-0 text-blue-600" />
-              <div>
-                <p className="text-xs font-medium text-gray-700">
-                  Objectif
-                </p>
-                <p className="text-sm text-gray-900 font-semibold">
-                  {project.objective}
-                </p>
-              </div>
-            </div>
-          </div>
-          
-          <div>
-            <div className="flex items-start gap-2 mb-1">
-              <Users className="h-4 w-4 mt-0.5 flex-shrink-0 text-blue-600" />
-              <div>
-                <p className="text-xs font-medium text-gray-700">
-                  Partenaires
-                </p>
-                <p className="text-sm text-gray-900 font-semibold">
-                  {project.partners}
-                </p>
-              </div>
-            </div>
-          </div>
-          
-          <div>
-            <div className="flex items-start gap-2 mb-1">
-              <User className="h-4 w-4 mt-0.5 flex-shrink-0 text-blue-600" />
-              <div>
-                <p className="text-xs font-medium text-gray-700">
-                  Chef de projet
-                </p>
-                <p className="text-sm font-semibold text-gray-900">
-                  {project.chefProjet || "À définir"}
-                </p>
-              </div>
-            </div>
-          </div>
-        </div>
-      </div>
-    </div>
+    <Badge className={`${config.color} border backdrop-blur-sm text-xs px-2 py-0.5 flex items-center gap-1`}>
+      <StatusIcon className="w-2.5 h-2.5" />
+      {config.label}
+    </Badge>
   )
 }
+
 
 // Modal de détails du projet
 function ProjectDetailsModal({ project, isOpen, onClose }: { project: Project | null, isOpen: boolean, onClose: () => void }) {
@@ -275,15 +240,15 @@ export function ProjectsWidget() {
     name: project.name || project.titre || '',
   }))
 
-  // Pagination automatique
+  // Carousel automatique (même vitesse que les actualités : 4000ms)
   useEffect(() => {
-    if (!isPaginationPaused && normalizedProjects.length > 0) {
-      const interval = setInterval(() => {
-        setCurrentProjectIndex((prev) => (prev + 1) % normalizedProjects.length)
-      }, 5000) // Change toutes les 5 secondes
+    if (normalizedProjects.length <= 1 || isPaginationPaused) return
 
-      return () => clearInterval(interval)
-    }
+    const interval = setInterval(() => {
+      setCurrentProjectIndex((prev) => (prev + 1) % normalizedProjects.length)
+    }, 4000) // Même vitesse que le carousel des actualités
+
+    return () => clearInterval(interval)
   }, [isPaginationPaused, normalizedProjects.length])
 
   const handleProjectClick = (project: Project | { id: string; [key: string]: any }) => {
@@ -301,137 +266,141 @@ export function ProjectsWidget() {
     setSelectedProject(null)
   }
 
-  const handlePrevious = () => {
-    if (normalizedProjects.length > 0) {
-      setCurrentProjectIndex((prev) => (prev - 1 + normalizedProjects.length) % normalizedProjects.length)
-    }
+
+  if (loading) {
+    return (
+      <Card className="h-[26rem] sm:h-[28rem] lg:h-[28rem] flex flex-col overflow-hidden relative border-0" style={{ backgroundColor: '#d6e4ff' }}>
+        <div className="flex-1 flex flex-col relative p-4 sm:p-5 md:p-6 h-full">
+          <div className="space-y-3 sm:space-y-4">
+            {/* Skeleton pour l'image */}
+            <div className="relative h-40 sm:h-48 md:h-56 overflow-hidden flex-shrink-0 rounded-xl mb-4 animate-pulse">
+              <div className="w-full h-full bg-gray-300/50 rounded-xl" />
+            </div>
+            {/* Skeleton pour le titre */}
+            <div className="animate-pulse">
+              <div className="h-6 sm:h-7 bg-gray-300/50 rounded w-3/4 mb-2" />
+            </div>
+            {/* Skeleton pour la description */}
+            <div className="animate-pulse space-y-2">
+              <div className="h-4 bg-gray-300/50 rounded w-1/4 mb-2" />
+              <div className="h-3 bg-gray-300/50 rounded w-full" />
+              <div className="h-3 bg-gray-300/50 rounded w-5/6" />
+              <div className="h-3 bg-gray-300/50 rounded w-4/6" />
+            </div>
+          </div>
+        </div>
+      </Card>
+    )
   }
 
-  const handleNext = () => {
-    if (normalizedProjects.length > 0) {
-      setCurrentProjectIndex((prev) => (prev + 1) % normalizedProjects.length)
-    }
+  if (error) {
+    return (
+      <Card className="h-[26rem] sm:h-[28rem] lg:h-[28rem] flex flex-col overflow-hidden relative border-0" style={{ backgroundColor: '#d6e4ff' }}>
+        <div className="flex-1 flex items-center justify-center">
+          <div className="text-center">
+            <p className="text-sm text-red-600 mb-2 font-semibold">Erreur lors du chargement des projets</p>
+            <p className="text-xs text-gray-700">{error}</p>
+          </div>
+        </div>
+      </Card>
+    )
   }
-
 
   return (
     <>
       <Card className="h-[26rem] sm:h-[28rem] lg:h-[28rem] flex flex-col overflow-hidden relative border-0 hover:shadow-2xl transition-all duration-500 group" style={{ backgroundColor: '#d6e4ff' }}>
-        {/* Motifs décoratifs élégants */}
-        <div className="absolute inset-0">
-          <div className="absolute inset-0 bg-gradient-to-br from-blue-100/30 via-indigo-100/20 to-sky-100/30" />
-          {/* Motifs décoratifs - Couleurs claires attrayantes */}
-          <div className="absolute top-0 right-0 w-32 h-32 bg-blue-300/30 rounded-full -translate-y-16 translate-x-16 group-hover:bg-blue-200/40 transition-colors duration-500" />
-          <div className="absolute bottom-0 left-0 w-24 h-24 bg-indigo-300/30 rounded-full translate-y-12 -translate-x-12 group-hover:bg-indigo-200/40 transition-colors duration-500" />
-          <div className="absolute top-1/2 left-1/2 w-16 h-16 bg-sky-300/20 rounded-full -translate-x-8 -translate-y-8 group-hover:bg-sky-200/30 transition-colors duration-500" />
-        </div>
+        {/* Mode carousel : contenu directement dans le conteneur bleu */}
+        <div 
+          className="flex-1 flex flex-col relative p-4 sm:p-5 md:p-6 h-full"
+          onMouseEnter={() => setIsPaginationPaused(true)}
+          onMouseLeave={() => setIsPaginationPaused(false)}
+        >
+          {normalizedProjects.length > 0 && (() => {
+              const project = normalizedProjects[currentProjectIndex]
+              const projectName = project.name || (project as Project).titre || 'Projet'
+              const projectImage = project.image || (project as Project).image || '/placeholder.jpg'
+              const projectDescription = project.description || (project as Project).description || project.objective
+              const DecorationIcon = FolderKanban
 
-        <CardHeader className="relative flex-shrink-0 z-20 pb-2 sm:pb-3 md:pb-4 p-2 sm:p-3 md:p-4">
-          <div className="flex items-center justify-between">
-            <div className="flex items-center gap-2 sm:gap-3">
-              <div className="p-2 sm:p-2.5 md:p-3 bg-gradient-to-br from-blue-500 to-indigo-600 rounded-lg sm:rounded-xl shadow-lg group-hover:shadow-blue-300/50 group-hover:scale-105 transition-all duration-300">
-                <FolderKanban className="h-4 w-4 sm:h-5 sm:w-5 md:h-6 md:w-6 text-white" />
-              </div>
-              <div>
-                <CardTitle className="text-sm sm:text-base md:text-lg lg:text-xl font-bold text-slate-800 group-hover:text-blue-700 transition-colors duration-300">
-                  Projets
-                </CardTitle>
-                <p className="text-[10px] sm:text-xs md:text-sm text-slate-700 font-medium">
-                  Projets stratégiques
-                </p>
-              </div>
-            </div>
-            {/* Bouton Détails */}
-            {!loading && !error && normalizedProjects.length > 0 && (
-              <div className="flex items-center gap-2">
-                <Button
-                  onClick={() => handleProjectClick(normalizedProjects[currentProjectIndex])}
-                  className="bg-blue-100 text-blue-700 border-blue-300 hover:bg-blue-200 hover:border-blue-400 text-xs sm:text-sm font-semibold px-3 sm:px-4 py-1.5 sm:py-2 shadow-sm hover:shadow-md transition-all duration-300"
-                  size="sm"
+
+              return (
+                <motion.div
+                  className="group relative h-full flex flex-col"
                 >
-                  Détails
-                </Button>
-              </div>
-            )}
-          </div>
-        </CardHeader>
-        
-        <CardContent className="relative flex-1 flex flex-col z-20 overflow-hidden p-2 sm:p-3 md:p-6 pt-2">
-          {loading ? (
-            <div className="flex-1 flex items-center justify-center">
-              <div className="flex flex-col items-center gap-3">
-                <Loader2 className="h-8 w-8 animate-spin text-blue-600" />
-                <p className="text-sm text-gray-800 font-medium">Chargement des projets...</p>
-              </div>
-            </div>
-          ) : error ? (
-            <div className="flex-1 flex items-center justify-center">
-              <div className="text-center">
-                <p className="text-sm text-red-600 mb-2 font-semibold">Erreur lors du chargement des projets</p>
-                <p className="text-xs text-gray-700">{error}</p>
-              </div>
-            </div>
-          ) : normalizedProjects.length === 0 ? (
-            <div className="flex-1 flex items-center justify-center">
-              <p className="text-sm text-gray-800 font-medium">Aucun projet disponible</p>
-            </div>
-          ) : (
-            // Mode pagination : un projet à la fois avec navigation
-            <div className="flex-1 flex flex-col relative">
-              {normalizedProjects.length > 0 && (
-                <>
-                  <div 
-                    className="flex-1 mb-4"
-                    onMouseEnter={() => setIsPaginationPaused(true)}
-                    onMouseLeave={() => setIsPaginationPaused(false)}
-                  >
-                    <ProjectCardPagination 
-                      project={normalizedProjects[currentProjectIndex]} 
-                    />
-                  </div>
-                  
-                  {/* Indicateurs de pagination */}
-                  <div className="flex items-center justify-between">
-                    <Button
-                      variant="outline"
-                      size="sm"
-                      onClick={handlePrevious}
-                      className="text-blue-700 border-blue-300 bg-blue-50 hover:bg-blue-100"
-                      disabled={normalizedProjects.length === 0}
-                    >
-                      <ChevronLeft className="h-4 w-4" />
-                    </Button>
+                  {/* Section Image */}
+                  <div className="relative h-40 sm:h-48 md:h-56 overflow-hidden flex-shrink-0 rounded-xl mb-4">
+                    {projectImage && projectImage !== '/placeholder.jpg' ? (
+                      <Image
+                        src={projectImage}
+                        alt={projectName}
+                        fill
+                        className="object-cover group-hover:scale-110 transition-transform duration-500"
+                        sizes="(max-width: 640px) 100vw, (max-width: 1024px) 50vw, 33vw"
+                      />
+                    ) : (
+                      <div className="w-full h-full bg-gradient-to-br from-blue-500 to-indigo-600 flex items-center justify-center">
+                        <FolderKanban className="h-16 w-16 text-white/50" />
+                      </div>
+                    )}
                     
-                    <div className="flex items-center gap-1">
-                      {normalizedProjects.map((_, index) => (
-                        <button
-                          key={index}
-                          onClick={() => setCurrentProjectIndex(index)}
-                          className={`h-2 rounded-full transition-all ${
-                            index === currentProjectIndex
-                              ? 'w-6 bg-blue-600'
-                              : 'w-2 bg-blue-300'
-                          }`}
-                          aria-label={`Projet ${index + 1}`}
-                        />
-                      ))}
+                    {/* Overlay Gradient */}
+                    <div className="absolute inset-0 bg-gradient-to-t from-black/60 via-black/20 to-transparent" />
+                    
+                    {/* Badge Statut - En haut à gauche */}
+                    <div className="absolute top-3 left-3 z-10">
+                      {getStatusBadge(project.status)}
                     </div>
                     
-                    <Button
-                      variant="outline"
-                      size="sm"
-                      onClick={handleNext}
-                      className="text-blue-700 border-blue-300 bg-blue-50 hover:bg-blue-100"
-                      disabled={normalizedProjects.length === 0}
-                    >
-                      <ChevronRight className="h-4 w-4" />
-                    </Button>
+                    {/* Icône Décoration - En bas à gauche */}
+                    <div className="absolute bottom-3 left-3 z-10">
+                      <div className="bg-white/20 backdrop-blur-sm rounded-lg p-2">
+                        <DecorationIcon className="w-6 h-6 sm:w-7 sm:h-7 text-white" />
+                      </div>
+                    </div>
+
+                    {/* Bouton Détails - En bas à droite, style "Lire la suite" avec fond grisé */}
+                    <div className="absolute bottom-3 right-3 z-10">
+                      <Button
+                        variant="ghost"
+                        size="sm"
+                        onClick={(e) => {
+                          e.stopPropagation()
+                          handleProjectClick(normalizedProjects[currentProjectIndex])
+                        }}
+                        className="h-6 sm:h-8 px-2 sm:px-3 text-xs sm:text-sm text-white hover:bg-white/30 bg-white/20 backdrop-blur-sm border border-white/30 flex-shrink-0 flex items-center gap-1 rounded-lg"
+                      >
+                        Détails
+                        <ExternalLink className="h-3 w-3 sm:h-4 sm:w-4" />
+                      </Button>
+                    </div>
+
                   </div>
-                </>
-              )}
-            </div>
-          )}
-        </CardContent>
+                  
+                  {/* Section Contenu */}
+                  <div className="flex-1 flex flex-col">
+                    {/* Titre - Style du modal DialogTitle */}
+                    <h3 className="text-lg sm:text-xl md:text-2xl font-bold text-gray-900 mb-2 sm:mb-3 line-clamp-2">
+                      {projectName}
+                    </h3>
+                    
+                    {/* Description - Style du modal */}
+                    {projectDescription && (
+                      <div className="mb-4 flex-1">
+                        <h4 className="font-bold text-gray-900 mb-2 sm:mb-3 text-base sm:text-lg flex items-center gap-2">
+                          <div className="w-1 h-5 sm:h-6 bg-blue-600 rounded-full"></div>
+                          Description
+                        </h4>
+                        <p className="text-gray-900 text-sm sm:text-base leading-relaxed bg-white/90 p-3 sm:p-4 rounded-lg border-l-4 border-blue-500 shadow-sm font-medium line-clamp-3">
+                          {projectDescription}
+                        </p>
+                      </div>
+                    )}
+                    
+                  </div>
+                </motion.div>
+              )
+            })()}
+        </div>
       </Card>
 
       {/* Modal de détails */}

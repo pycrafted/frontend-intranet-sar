@@ -2,17 +2,19 @@
 
 import React from 'react'
 import { Button } from "@/components/ui/button"
-import { X, Sparkles } from "lucide-react"
+import { X, Sparkles, Minimize2 } from "lucide-react"
 import { cn } from "@/lib/utils"
 import { useScreenSize } from "@/hooks/useScreenSize"
 
 interface ResponsiveChatHeaderProps {
   onClose: () => void
+  onMinimize?: () => void
   className?: string
 }
 
 export function ResponsiveChatHeader({ 
-  onClose, 
+  onClose,
+  onMinimize,
   className 
 }: ResponsiveChatHeaderProps) {
   const { isMobile, isTablet, isSmallMobile } = useScreenSize()
@@ -77,8 +79,25 @@ export function ResponsiveChatHeader({
         </div>
       </div>
       
-      {/* Bouton fermer */}
-      <div className="relative flex items-center">
+      {/* Boutons d'action */}
+      <div className="relative flex items-center gap-1">
+        {onMinimize && (
+          <Button
+            variant="ghost"
+            size="icon"
+            onClick={onMinimize}
+            className={cn(
+              "hover:bg-white/20 text-white hover:text-white transition-all duration-200",
+              // Tailles de bouton responsives
+              isSmallMobile ? "h-8 w-8" : isMobile ? "h-9 w-9" : "h-9 w-9"
+            )}
+            aria-label="Réduire le chat"
+          >
+            <Minimize2 className={cn(
+              isSmallMobile ? "h-3 w-3" : isMobile ? "h-4 w-4" : "h-4 w-4"
+            )} />
+          </Button>
+        )}
         <Button
           variant="ghost"
           size="icon"

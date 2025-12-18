@@ -249,7 +249,14 @@ export function useDocuments() {
           folder: newDocument.folder,
           folder_info: newDocument.folder_info
         })
-        setDocuments(prev => [newDocument, ...prev])
+        
+        // Vérifier que le document a un ID valide avant de l'ajouter à la liste
+        if (newDocument.id && typeof newDocument.id === 'number') {
+          setDocuments(prev => [newDocument, ...prev])
+        } else {
+          console.warn('⚠️ [UPLOAD] Document sans ID valide, rafraîchissement de la liste nécessaire')
+        }
+        
         return { success: true, document: newDocument }
       } else {
         let errorData

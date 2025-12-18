@@ -17,40 +17,40 @@ type DocumentCardProps = {
 export function DocumentCard({ item, onDelete, onFolderClick, onView, onRename, onDownload }: DocumentCardProps) {
   const getFileIcon = () => {
     if (item.type === "folder") {
-      return <Folder className="h-12 w-12 text-primary" />
+      return <Folder className="h-12 w-12 text-white" />
     }
 
     const iconClass = "h-12 w-12"
     switch (item.fileType) {
       case "pdf":
         return (
-          <div className="flex h-12 w-12 items-center justify-center rounded bg-red-100 text-red-600">
+          <div className="flex h-12 w-12 items-center justify-center rounded bg-white/20 text-white">
             <FileText className="h-7 w-7" />
           </div>
         )
       case "pptx":
       case "ppt":
         return (
-          <div className="flex h-12 w-12 items-center justify-center rounded bg-orange-100 text-orange-600">
+          <div className="flex h-12 w-12 items-center justify-center rounded bg-white/20 text-white">
             <FileText className="h-7 w-7" />
           </div>
         )
       case "docx":
       case "doc":
         return (
-          <div className="flex h-12 w-12 items-center justify-center rounded bg-blue-100 text-blue-600">
+          <div className="flex h-12 w-12 items-center justify-center rounded bg-white/20 text-white">
             <FileText className="h-7 w-7" />
           </div>
         )
       case "xlsx":
       case "xls":
         return (
-          <div className="flex h-12 w-12 items-center justify-center rounded bg-green-100 text-green-600">
+          <div className="flex h-12 w-12 items-center justify-center rounded bg-white/20 text-white">
             <FileText className="h-7 w-7" />
           </div>
         )
       default:
-        return <FileText className={`${iconClass} text-muted-foreground`} />
+        return <FileText className={`${iconClass} text-white`} />
     }
   }
 
@@ -67,7 +67,8 @@ export function DocumentCard({ item, onDelete, onFolderClick, onView, onRename, 
 
   return (
     <div 
-      className="group relative rounded-lg border border-border bg-card p-4 transition-all hover:border-primary hover:shadow-md cursor-pointer"
+      className="group relative rounded-lg border border-border p-4 transition-all hover:border-primary hover:shadow-md cursor-pointer"
+      style={{ backgroundColor: "#344256" }}
       onClick={handleClick}
     >
       <div className="absolute right-2 top-2 opacity-0 transition-opacity group-hover:opacity-100">
@@ -76,32 +77,32 @@ export function DocumentCard({ item, onDelete, onFolderClick, onView, onRename, 
             <Button 
               variant="ghost" 
               size="icon" 
-              className="h-8 w-8 text-foreground"
+              className="h-8 w-8 text-white hover:bg-white/20"
               onClick={(e) => e.stopPropagation()}
             >
               <MoreVertical className="h-4 w-4" />
             </Button>
           </DropdownMenuTrigger>
-          <DropdownMenuContent align="end">
+          <DropdownMenuContent align="end" onClick={(e) => e.stopPropagation()}>
             {item.type !== "folder" && onView && (
-              <DropdownMenuItem onClick={() => onView(item.id)}>
+              <DropdownMenuItem onClick={(e) => { e.stopPropagation(); onView(item.id); }}>
                 <Eye className="mr-2 h-4 w-4" />
                 Visualiser
               </DropdownMenuItem>
             )}
             {item.type !== "folder" && onDownload && (
-              <DropdownMenuItem onClick={() => onDownload(item.id)}>
+              <DropdownMenuItem onClick={(e) => { e.stopPropagation(); onDownload(item.id); }}>
                 <Download className="mr-2 h-4 w-4" />
                 Télécharger
               </DropdownMenuItem>
             )}
             {onRename && (
-              <DropdownMenuItem onClick={() => onRename(item.id, item.name)}>
+              <DropdownMenuItem onClick={(e) => { e.stopPropagation(); onRename(item.id, item.name); }}>
                 <Edit3 className="mr-2 h-4 w-4" />
                 Renommer
               </DropdownMenuItem>
             )}
-            <DropdownMenuItem className="text-destructive focus:text-destructive" onClick={() => onDelete(item.id)}>
+            <DropdownMenuItem className="text-destructive focus:text-destructive" onClick={(e) => { e.stopPropagation(); onDelete(item.id); }}>
               <Trash2 className="mr-2 h-4 w-4" />
               Supprimer
             </DropdownMenuItem>
@@ -112,8 +113,8 @@ export function DocumentCard({ item, onDelete, onFolderClick, onView, onRename, 
       <div className="flex flex-col items-center gap-3">
         {getFileIcon()}
         <div className="w-full text-center">
-          <p className="truncate text-sm font-medium text-foreground">{item.name}</p>
-          <p className="mt-1 text-xs text-muted-foreground">{item.type === "folder" ? "Dossier" : item.size}</p>
+          <p className="truncate text-sm font-medium text-white">{item.name}</p>
+          <p className="mt-1 text-xs text-white/80">{item.type === "folder" ? "Dossier" : item.size}</p>
         </div>
       </div>
     </div>

@@ -42,12 +42,14 @@ export function DocumentsToolbar({ viewMode, onViewModeChange, onCreateFolder, o
         </DropdownMenu>
       </div>
 
-      <div className="flex items-center gap-1 rounded-lg p-1" style={{ backgroundColor: '#f1f2f5' }}>
+      <div className="flex items-center gap-1 rounded-lg p-1" style={{ backgroundColor: '#344256' }}>
         <Button
           variant={viewMode === "grid" ? "default" : "ghost"}
           size="icon"
           className={
-            viewMode === "grid" ? "bg-card text-foreground shadow-sm" : "text-muted-foreground hover:text-foreground"
+            viewMode === "grid" 
+              ? "bg-white/20 text-white shadow-sm hover:bg-white/30" 
+              : "text-white/60 hover:text-white hover:bg-white/10"
           }
           onClick={() => onViewModeChange("grid")}
         >
@@ -57,7 +59,9 @@ export function DocumentsToolbar({ viewMode, onViewModeChange, onCreateFolder, o
           variant={viewMode === "list" ? "default" : "ghost"}
           size="icon"
           className={
-            viewMode === "list" ? "bg-card text-foreground shadow-sm" : "text-muted-foreground hover:text-foreground"
+            viewMode === "list" 
+              ? "bg-white/20 text-white shadow-sm hover:bg-white/30" 
+              : "text-white/60 hover:text-white hover:bg-white/10"
           }
           onClick={() => onViewModeChange("list")}
         >

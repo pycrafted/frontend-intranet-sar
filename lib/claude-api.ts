@@ -238,7 +238,7 @@ export class ClaudeAPI {
       // Pas de contexte: ne pas autoriser l'usage de connaissances générales
       return `Question de l'utilisateur: ${message}
 
-RÈGLE: Si l'information n'est pas strictement présente dans le dataset SAR, réponds exactement: "Je n'ai pas cette information".`
+RÈGLE: Si l'information n'est pas strictement présente dans le dataset SAR, réponds : "Veuillez reformuler votre question pour m'aider à mieux comprendre votre besoin et vous apporter une réponse pertinente."`
     }
 
     return `Contexte de l'entreprise:
@@ -246,7 +246,7 @@ ${maiContext.context}
 
 Question de l'utilisateur: ${message}
 
-RÈGLES STRICTES : Réponds de manière directe et affirmative en utilisant UNIQUEMENT le contexte fourni. N'UTILISE JAMAIS ces expressions : "selon les informations", "d'après ce que je vois", "il semble que", "d'après le contexte", "selon le contexte", "le contexte indique que", "d'après les informations fournies". COMMENCE DIRECTEMENT par la réponse factuelle. Sois confiant et autoritaire dans tes réponses. Si le contexte ne contient pas l'information demandée, réponds exactement: "Je n'ai pas cette information".`
+RÈGLES STRICTES : Réponds de manière directe et affirmative en utilisant UNIQUEMENT le contexte fourni. N'UTILISE JAMAIS ces expressions : "selon les informations", "d'après ce que je vois", "il semble que", "d'après le contexte", "selon le contexte", "le contexte indique que", "d'après les informations fournies". COMMENCE DIRECTEMENT par la réponse factuelle. Sois confiant et autoritaire dans tes réponses. Si le contexte ne contient pas l'information demandée, réponds : "Veuillez reformuler votre question pour m'aider à mieux comprendre votre besoin et vous apporter une réponse pertinente."`
   }
 
   /**

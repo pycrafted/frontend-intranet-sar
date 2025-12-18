@@ -5,7 +5,7 @@ import { useParams, useRouter } from "next/navigation"
 import { AuthGuard } from "@/components/auth-guard"
 import { Button } from "@/components/ui/button"
 import { cn } from "@/lib/utils"
-import { MessageSquare, ImageIcon, X, Calendar, MoreVertical, ArrowDown } from "lucide-react"
+import { MessageSquare, ImageIcon, X, Calendar, MoreVertical, ArrowDown, ArrowUp } from "lucide-react"
 import { LayoutWrapper } from "@/components/layout-wrapper"
 import { ForumMessageForm } from "@/components/forum/forum-message-form"
 import { ForumCreateModal } from "@/components/forum/forum-create-modal"
@@ -104,6 +104,11 @@ export default function ForumDetailPage({ isMainSidebarCollapsed = false }: Foru
     if (formElement) {
       formElement.scrollIntoView({ behavior: "smooth", block: "center" })
     }
+  }
+
+  const scrollToTop = () => {
+    // Scroller vers le haut de la page
+    window.scrollTo({ behavior: "smooth", top: 0 })
   }
 
   const handleCreateForum = async (data: ForumCreateData) => {
@@ -466,17 +471,29 @@ export default function ForumDetailPage({ isMainSidebarCollapsed = false }: Foru
                   </Badge>
                 </div>
 
-                {/* Bouton Scroll to Bottom - Positionné à droite des cartes */}
-                {messages.length > 0 && (
+                {/* Boutons Scroll - Toujours visibles */}
+                <div className="fixed right-4 sm:right-6 top-1/2 -translate-y-1/2 z-40 flex flex-col gap-3 hidden md:flex">
+                  {/* Bouton Scroll to Top */}
                   <Button
-                    onClick={scrollToBottom}
-                    className="fixed right-4 sm:right-6 top-1/2 -translate-y-1/2 z-40 h-12 w-12 rounded-full shadow-lg bg-primary hover:bg-primary/90 text-white flex items-center justify-center transition-all hover:scale-110 hidden md:flex"
-                    aria-label="Aller au formulaire d'avis"
-                    title="Aller au formulaire d'avis"
+                    onClick={scrollToTop}
+                    className="h-12 w-12 rounded-full shadow-lg bg-primary hover:bg-primary/90 text-white flex items-center justify-center transition-all hover:scale-110"
+                    aria-label="Aller en haut de la page"
+                    title="Aller en haut de la page"
                   >
-                    <ArrowDown className="h-5 w-5" />
+                    <ArrowUp className="h-5 w-5" />
                   </Button>
-                )}
+                  {/* Bouton Scroll to Bottom */}
+                  {messages.length > 0 && (
+                    <Button
+                      onClick={scrollToBottom}
+                      className="h-12 w-12 rounded-full shadow-lg bg-primary hover:bg-primary/90 text-white flex items-center justify-center transition-all hover:scale-110"
+                      aria-label="Aller au formulaire d'avis"
+                      title="Aller au formulaire d'avis"
+                    >
+                      <ArrowDown className="h-5 w-5" />
+                    </Button>
+                  )}
+                </div>
 
                 {messages.length === 0 ? (
                   <Card className="adaptive-publication-card rounded-xl overflow-hidden fade-in w-full">

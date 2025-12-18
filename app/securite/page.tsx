@@ -22,8 +22,14 @@ const videos = [
   {
     id: 2,
     title: "Formation Sécurité",
-    url: "https://customer-eas3f2kom74sgnh6.cloudflarestream.com/8acc2118f34340bfcfa5a667d3a0d95c/watch",
+    url: "https://customer-7vjhdwttxhzqh687.cloudflarestream.com/ae5c76fc1c8aee7a4dd1d723bc5af8a1/watch",
     description: "Formation complète sur les équipements de protection et les procédures de sécurité",
+  },
+  {
+    id: 3,
+    title: "Simulations",
+    url: "https://customer-7vjhdwttxhzqh687.cloudflarestream.com/7a1013c538628239bbd5cf22c58738bf/watch",
+    description: "Vidéo de simulations de sécurité",
   },
 ]
 

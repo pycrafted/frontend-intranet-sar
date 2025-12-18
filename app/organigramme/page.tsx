@@ -5,13 +5,20 @@ import ReactFlowOrganigramme, { ReactFlowOrganigrammeRef } from "@/components/re
 import { useState, useEffect, useCallback, useRef } from "react"
 import { useOrgChart, Employee } from "@/hooks/useOrgChart"
 
-export default function OrganigrammePage() {
+interface OrganigrammePageProps {
+  isMainSidebarCollapsed?: boolean
+}
+
+function OrganigrammePageContent({ isMainSidebarCollapsed = false }: OrganigrammePageProps) {
   const [selectedDepartment, setSelectedDepartment] = useState("Direction Générale")
   const [selectedEmployee, setSelectedEmployee] = useState<Employee | null>(null)
   
   const { employees, departments, loading, error, searchEmployees } = useOrgChart()
   const [filteredEmployees, setFilteredEmployees] = useState<Employee[]>([])
   const reactFlowRef = useRef<ReactFlowOrganigrammeRef>(null)
+
+  // Calculer la largeur du sidebar : 64px (rétracté) ou 256px (développé)
+  const sidebarWidth = isMainSidebarCollapsed ? 64 : 256
 
   // Effectuer le filtrage par département
   useEffect(() => {
@@ -70,14 +77,18 @@ export default function OrganigrammePage() {
   const departmentOptions = departments.map(dept => dept.name)
 
   return (
-    <LayoutWrapper
-      secondaryNavbarProps={{
-        selectedDepartment,
-        onDepartmentChange: setSelectedDepartment,
-        departmentOptions
-      }}
-    >
-      <div className="h-[calc(100vh-12rem)] xs:h-[calc(100vh-14rem)] sm:h-[calc(100vh-16rem)] bg-gray-100 overflow-auto">
+    <>
+      {/* Conteneur qui prend tout l'espace disponible, collé à tous les bords */}
+      <div 
+        className="fixed m-0 p-0 flex flex-col bg-gray-100"
+        style={{
+          top: '64px', // h-16 du navbar (4rem = 64px)
+          bottom: '37px', // Hauteur du footer
+          left: typeof window !== 'undefined' && window.innerWidth >= 1024 ? `${sidebarWidth}px` : '0px',
+          right: '0px',
+          transition: 'left 0.3s ease-in-out'
+        }}
+      >
         {/* Organigramme React Flow */}
         <ReactFlowOrganigramme 
           ref={reactFlowRef}
@@ -87,6 +98,25 @@ export default function OrganigrammePage() {
           onEmployeeSelect={handleEmployeeSelect}
         />
       </div>
+    </>
+  )
+}
+
+export default function OrganigrammePage() {
+  const [selectedDepartment, setSelectedDepartment] = useState("Direction Générale")
+  
+  const { departments } = useOrgChart()
+  const departmentOptions = departments.map(dept => dept.name)
+
+  return (
+    <LayoutWrapper
+      secondaryNavbarProps={{
+        selectedDepartment,
+        onDepartmentChange: setSelectedDepartment,
+        departmentOptions
+      }}
+    >
+      <OrganigrammePageContent />
     </LayoutWrapper>
   )
 }

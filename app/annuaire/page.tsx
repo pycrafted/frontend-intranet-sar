@@ -337,7 +337,9 @@ export default function AnnuairePage() {
   }
 
   const handleEmailClick = (email: string) => {
-    window.location.href = `mailto:${email}`
+    // Ouvrir Outlook Web App dans un nouvel onglet avec le destinataire prérempli
+    const outlookUrl = `https://outlook.office.com/mail/deeplink/compose?to=${encodeURIComponent(email)}`;
+    window.open(outlookUrl, '_blank', 'noopener,noreferrer');
   }
 
 
@@ -601,8 +603,15 @@ export default function AnnuairePage() {
                           <div className="flex items-start gap-1.5 xs:gap-2 sm:gap-2.5 text-[10px] xs:text-xs sm:text-sm sm:group-hover:scale-105 transition-transform duration-300 ease-out">
                             <Mail className="w-3 h-3 xs:w-3.5 xs:h-3.5 sm:w-4 sm:h-4 text-white flex-shrink-0 mt-0.5 sm:group-hover:text-blue-300 sm:group-hover:scale-125 transition-all duration-300 ease-out" />
                             <a
-                              href={`mailto:${employee.email}`}
-                              className="text-gray-200 hover:text-blue-300 active:text-blue-400 transition-colors break-all text-[10px] xs:text-xs sm:text-sm sm:group-hover:text-blue-200 leading-tight"
+                              href="#"
+                              onClick={(e) => {
+                                e.preventDefault();
+                                e.stopPropagation();
+                                // Ouvrir Outlook Web App dans un nouvel onglet avec le destinataire prérempli
+                                const outlookUrl = `https://outlook.office.com/mail/deeplink/compose?to=${encodeURIComponent(employee.email)}`;
+                                window.open(outlookUrl, '_blank', 'noopener,noreferrer');
+                              }}
+                              className="text-gray-200 hover:text-blue-300 active:text-blue-400 transition-colors break-all text-[10px] xs:text-xs sm:text-sm sm:group-hover:text-blue-200 leading-tight cursor-pointer"
                             >
                               {employee.email}
                             </a>
@@ -634,43 +643,43 @@ export default function AnnuairePage() {
                         {/* Boutons - Responsive optimisé */}
                         <div className="flex gap-1.5 xs:gap-2 sm:gap-2.5 w-full mt-1.5 xs:mt-2 sm:mt-2.5 sm:group-hover:scale-105 sm:group-hover:-translate-y-0.5 transition-all duration-300 ease-out">
                           <Button
-                            variant="outline"
                             size="sm"
-                            className="flex-1 gap-1 xs:gap-1.5 sm:gap-2 text-[10px] xs:text-xs sm:text-sm h-7 xs:h-8 sm:h-9 px-2 xs:px-2.5 sm:px-3"
+                            className="flex-1 gap-1 xs:gap-1.5 sm:gap-2 text-[10px] xs:text-xs sm:text-sm h-7 xs:h-8 sm:h-9 px-2 xs:px-2.5 sm:px-3 min-w-0"
                             style={{
-                              backgroundColor: 'white',
-                              color: '#344256',
-                              borderColor: 'white',
+                              backgroundColor: '#e2e8f0',
+                              color: '#4a5568',
+                              borderColor: '#e2e8f0',
                               borderWidth: '1px'
                             }}
                             onMouseEnter={(e) => {
                               if (window.innerWidth >= 640) {
-                                e.currentTarget.style.backgroundColor = '#4a5568';
-                                e.currentTarget.style.color = 'white';
+                                e.currentTarget.style.backgroundColor = '#cbd5e0';
                               }
                             }}
                             onMouseLeave={(e) => {
                               if (window.innerWidth >= 640) {
-                                e.currentTarget.style.backgroundColor = 'white';
-                                e.currentTarget.style.color = '#344256';
+                                e.currentTarget.style.backgroundColor = '#e2e8f0';
                               }
                             }}
                             onClick={(e) => {
                               e.stopPropagation();
-                              window.location.href = `mailto:${employee.email}`;
+                              // Ouvrir Outlook Web App dans un nouvel onglet avec le destinataire prérempli
+                              const outlookUrl = `https://outlook.office.com/mail/deeplink/compose?to=${encodeURIComponent(employee.email)}`;
+                              window.open(outlookUrl, '_blank', 'noopener,noreferrer');
                             }}
                           >
-                            <Mail className="w-3 h-3 xs:w-3.5 xs:h-3.5 sm:w-4 sm:h-4" />
-                            <span className="hidden xs:inline">Email</span>
+                            <Mail className="w-3 h-3 xs:w-3.5 xs:h-3.5 sm:w-4 sm:h-4 flex-shrink-0" />
+                            <span className="hidden xs:inline truncate">Email</span>
                           </Button>
-                          <ChatButton employee={employee}>
+                          <ChatButton employee={employee} className="flex-1 min-w-0">
                             <Button 
                               size="sm" 
-                              className="flex-1 gap-1 xs:gap-1.5 sm:gap-2 text-[10px] xs:text-xs sm:text-sm h-7 xs:h-8 sm:h-9 px-2 xs:px-2.5 sm:px-3"
+                              className="w-full gap-1 xs:gap-1.5 sm:gap-2 text-[10px] xs:text-xs sm:text-sm h-7 xs:h-8 sm:h-9 px-2 xs:px-2.5 sm:px-3 min-w-0"
                               style={{
                                 backgroundColor: '#4a5568',
                                 color: 'white',
-                                borderColor: '#4a5568'
+                                borderColor: '#4a5568',
+                                borderWidth: '1px'
                               }}
                               onMouseEnter={(e) => {
                                 if (window.innerWidth >= 640) {
@@ -683,8 +692,8 @@ export default function AnnuairePage() {
                                 }
                               }}
                             >
-                              <MessageCircle className="w-3 h-3 xs:w-3.5 xs:h-3.5 sm:w-4 sm:h-4" />
-                              <span className="hidden xs:inline">Chat</span>
+                              <MessageCircle className="w-3 h-3 xs:w-3.5 xs:h-3.5 sm:w-4 sm:h-4 flex-shrink-0" />
+                              <span className="hidden xs:inline truncate">Chat</span>
                             </Button>
                           </ChatButton>
                         </div>

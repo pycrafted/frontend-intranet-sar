@@ -28,6 +28,7 @@ interface Question {
 }
 
 const allQuestions: Question[] = [
+  // --- Questions existantes (Interdictions Générales & Vidéos) ---
   {
     "source": "Affiche des interdictions",
     "question": "Quel est l'objectif principal de l'ensemble des interdictions affichées sur le site de la SAR ?",
@@ -231,6 +232,106 @@ const allQuestions: Question[] = [
     ],
     "answer": "Visionner des vidéos de sécurité et réussir le quiz de validation.",
     "explanation": "Cette procédure garantit que chaque personne accédant au site a bien compris et intégré les règles de sécurité fondamentales et les risques associés."
+  },
+  // --- NOUVELLES QUESTIONS ENRICHIES ---
+  // --- Source: Note d'information Cigarettes/Stupéfiants 2025 ---
+  {
+    "source": "Note d'Info (Addictions)",
+    "question": "Quelle est la règle concernant l'utilisation des cigarettes électroniques sur le site de la SAR ?",
+    "options": [
+      "Autorisée partout car il n'y a pas de combustion.",
+      "Autorisée uniquement dans les bureaux individuels.",
+      "Autorisée uniquement dans les zones dédiées (coins fumeurs).",
+      "Strictement interdite sur l'ensemble du site."
+    ],
+    "answer": "Autorisée uniquement dans les zones dédiées (coins fumeurs).",
+    "explanation": "L'utilisation de cigarettes électroniques est soumise aux mêmes restrictions que le tabac classique et n'est permise que dans les coins fumeurs."
+  },
+  {
+    "source": "Note d'Info (Addictions)",
+    "question": "Quelles sont les conséquences prévues en cas de consommation de stupéfiants (ex: chanvre indien) ou d'alcool à la SAR ?",
+    "options": [
+      "Un simple rappel à l'ordre.",
+      "Une amende forfaitaire.",
+      "Des sanctions disciplinaires pouvant aller jusqu'à l'exclusion définitive et des poursuites.",
+      "Une mise à pied de 24 heures."
+    ],
+    "answer": "Des sanctions disciplinaires pouvant aller jusqu'à l'exclusion définitive et des poursuites.",
+    "explanation": "La note d'information stipule que tout contrevenant s'expose à l'exclusion définitive et à d'éventuelles poursuites judiciaires."
+  },
+  // --- Source: Flash Info Risques Électriques ---
+  {
+    "source": "Flash Info (Électricité)",
+    "question": "Selon le flash info sécurité, quelle est la différence entre électrisation et électrocution ?",
+    "options": [
+      "L'électrocution désigne uniquement les accidents à haute tension.",
+      "L'électrisation est plus grave que l'électrocution.",
+      "L'électrocution entraîne la mort, tandis que l'électrisation est une blessure.",
+      "Ces deux termes sont synonymes."
+    ],
+    "answer": "L'électrocution entraîne la mort, tandis que l'électrisation est une blessure.",
+    "explanation": "Une électrisation peut être plus ou moins grave (brûlure, troubles cardiaques), alors que le terme électrocution signifie la mort par courant électrique."
+  },
+  {
+    "source": "Flash Info (Électricité)",
+    "question": "À partir de quelle intensité le courant électrique présente-t-il un danger pour l'homme selon le Flash Info ?",
+    "options": [
+      "1 Ampère",
+      "5 mA (milliampères)",
+      "50 mA (milliampères)",
+      "220 Volts"
+    ],
+    "answer": "5 mA (milliampères)",
+    "explanation": "Le danger commence dès 5 mA, et la gravité dépend ensuite de la durée, du trajet du courant et de l'état de la peau."
+  },
+  {
+    "source": "Flash Info (Électricité)",
+    "question": "Est-il obligatoire pour un travailleur d'avoir une habilitation pour opérer à proximité d'une installation électrique ?",
+    "options": [
+      "Non, seule la présence d'un électricien est requise.",
+      "Oui, l'habilitation est obligatoire pour réaliser des opérations sur ou à proximité d'installations.",
+      "Non, si le travailleur porte des gants isolants.",
+      "Seulement pour les travaux sous tension."
+    ],
+    "answer": "Oui, l'habilitation est obligatoire pour réaliser des opérations sur ou à proximité d'installations.",
+    "explanation": "Former le personnel est une mesure de prévention clé : l'habilitation est obligatoire pour toute opération proche de l'électricité."
+  },
+  // --- Source: Fiche Sensibilisation FVR (Fièvre Vallée du Rift) ---
+  {
+    "source": "Sensibilisation FVR",
+    "question": "Comment la Fièvre de la Vallée du Rift (FVR) se transmet-elle principalement de l'animal à l'homme ?",
+    "options": [
+      "Par l'inhalation de poussières.",
+      "Par contact direct avec des animaux infectés, leurs liquides ou par piqûres de moustiques.",
+      "Par la consommation d'eau potable.",
+      "Par simple proximité sans contact."
+    ],
+    "answer": "Par contact direct avec des animaux infectés, leurs liquides ou par piqûres de moustiques.",
+    "explanation": "La transmission se fait lors de la manipulation de viande, de sang, de liquides biologiques d'animaux malades, ou par vecteurs (moustiques)."
+  },
+  {
+    "source": "Sensibilisation FVR",
+    "question": "Quelle mesure de prévention alimentaire est cruciale pour se protéger de la FVR ?",
+    "options": [
+      "Congeler la viande avant consommation.",
+      "Laver la viande à l'eau de Javel.",
+      "Bien cuire la viande et faire bouillir le lait cru.",
+      "Ne manger que des légumes."
+    ],
+    "answer": "Bien cuire la viande et faire bouillir le lait cru.",
+    "explanation": "Il faut éviter tout contact avec le lait ou la viande crue provenant d'animaux malades, et impérativement les cuire/bouillir pour tuer le virus."
+  },
+  {
+    "source": "Sensibilisation FVR",
+    "question": "Quel symptôme chez l'animal doit alerter sur un cas potentiel de FVR ?",
+    "options": [
+      "Une prise de poids rapide.",
+      "Une perte de poils localisée.",
+      "Des avortements spontanés, faiblesse et écoulement nasal sanglant.",
+      "Une agressivité anormale."
+    ],
+    "answer": "Des avortements spontanés, faiblesse et écoulement nasal sanglant.",
+    "explanation": "Les avortements, les décès inattendus, le refus de s'alimenter et les écoulements nasaux sont des signes cliniques majeurs chez le bétail."
   }
 ]
 

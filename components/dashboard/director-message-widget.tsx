@@ -29,7 +29,7 @@ Le Directeur Général`
   return (
     <>
       <Card 
-        className="h-[26rem] sm:h-[28rem] lg:h-[28rem] border-0 hover:shadow-2xl transition-all duration-700 group flex flex-col overflow-hidden relative"
+        className="h-[26rem] sm:h-[28rem] lg:h-[28rem] border-0 shadow-2xl transition-all duration-700 group flex flex-col overflow-hidden relative"
         style={{ 
           backgroundImage: 'url(/directeur.jpg)',
           backgroundSize: 'cover',
@@ -56,7 +56,7 @@ Le Directeur Général`
         
         {/* Effet de brillance en arrière-plan subtil */}
         <div 
-          className="absolute inset-0 opacity-0 group-hover:opacity-100 transition-opacity duration-500"
+          className="absolute inset-0 opacity-100 transition-opacity duration-500"
           style={{ 
             background: 'linear-gradient(135deg, rgba(59, 130, 246, 0.1) 0%, transparent 50%, rgba(59, 130, 246, 0.1) 100%)'
           }}
@@ -64,7 +64,7 @@ Le Directeur Général`
         
         {/* Icônes décoratives avec couleur diluée - Responsive */}
         <div 
-          className="absolute top-2 right-2 sm:top-4 sm:right-4 w-12 h-12 sm:w-16 sm:h-16 rounded-full flex items-center justify-center opacity-40 group-hover:opacity-70 transition-all duration-500 group-hover:scale-110"
+          className="absolute top-2 right-2 sm:top-4 sm:right-4 w-12 h-12 sm:w-16 sm:h-16 rounded-full flex items-center justify-center opacity-70 transition-all duration-500 scale-110"
           style={{ background: 'rgba(238, 0, 9, 0.7)' }}
         >
           <Crown className="h-6 w-6 sm:h-8 sm:w-8 text-white drop-shadow-lg" />
@@ -72,7 +72,7 @@ Le Directeur Général`
         
         {/* Icône de citation en bas à gauche - Responsive */}
         <div 
-          className="absolute bottom-2 left-2 sm:bottom-4 sm:left-4 w-8 h-8 sm:w-12 sm:h-12 rounded-full flex items-center justify-center opacity-30 group-hover:opacity-60 transition-all duration-500 group-hover:scale-110"
+          className="absolute bottom-2 left-2 sm:bottom-4 sm:left-4 w-8 h-8 sm:w-12 sm:h-12 rounded-full flex items-center justify-center opacity-60 transition-all duration-500 scale-110"
           style={{ background: 'rgba(238, 0, 9, 0.6)' }}
         >
           <Quote className="h-4 w-4 sm:h-6 sm:w-6 text-white" />
@@ -83,7 +83,7 @@ Le Directeur Général`
           <div className="flex items-center justify-between">
             <CardTitle className="text-lg sm:text-xl font-bold text-gray-900 group-hover:transition-colors duration-500 flex items-center gap-2 sm:gap-3">
               <div 
-                className="p-2 sm:p-3 rounded-xl shadow-2xl group-hover:scale-110 transition-all duration-500"
+                className="p-2 sm:p-3 rounded-xl shadow-2xl scale-110 transition-all duration-500"
                 style={{ 
                   background: 'rgba(238, 0, 9, 0.9)',
                   boxShadow: '0 8px 20px rgba(238, 0, 9, 0.3)'
@@ -110,7 +110,7 @@ Le Directeur Général`
           <div className="space-y-2 sm:space-y-3 md:space-y-6 w-full">
             {/* Citation professionnelle avec design corporate - Responsive */}
             <div 
-              className="relative overflow-hidden transition-all duration-700 group-hover:scale-[1.02] group-hover:shadow-2xl mx-2 sm:mx-4"
+              className="relative overflow-hidden transition-all duration-700 scale-[1.02] shadow-2xl mx-2 sm:mx-4"
               style={{ 
                 background: 'linear-gradient(135deg, rgba(255, 255, 255, 0.95) 0%, rgba(248, 250, 252, 0.95) 100%)',
                 boxShadow: '0 20px 60px rgba(0, 0, 0, 0.15), 0 0 0 1px rgba(238, 0, 9, 0.1)',
@@ -144,7 +144,7 @@ Le Directeur Général`
               
               {/* Effet de brillance subtil */}
               <div 
-                className="absolute top-0 left-0 right-0 h-1 opacity-0 group-hover:opacity-100 transition-opacity duration-500"
+                className="absolute top-0 left-0 right-0 h-1 opacity-100 transition-opacity duration-500"
                 style={{ 
                   background: 'linear-gradient(90deg, transparent 0%, rgba(255, 255, 255, 0.8) 50%, transparent 100%)'
                 }}
@@ -185,7 +185,7 @@ Le Directeur Général`
         </CardContent>
 
         {/* Effet de lueur au survol */}
-        <div className="absolute inset-0 bg-gradient-to-r from-transparent via-blue-500/5 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-700"></div>
+        <div className="absolute inset-0 bg-gradient-to-r from-transparent via-blue-500/5 to-transparent opacity-100 transition-opacity duration-700"></div>
       </Card>
 
       {/* Modal avec le message complet - Design élégant */}

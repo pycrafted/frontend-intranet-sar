@@ -6,10 +6,14 @@ import { cn } from "@/lib/utils"
 import { useSariaChatbot } from "@/hooks/useSariaChatbot"
 import { useAuth } from "@/contexts/AuthContext"
 import { useScreenSize } from "@/hooks/useScreenSize"
+import { useAIChatbot } from "@/contexts/AIChatbotContext"
 import { ResponsiveFloatingButton } from "./chatbot/responsive-floating-button"
 import { ResponsiveChatHeader } from "./chatbot/responsive-chat-header"
 import { ResponsiveMessagesArea } from "./chatbot/responsive-messages-area"
 import { ResponsiveInputArea } from "./chatbot/responsive-input-area"
+import { Maximize2, Sparkles, X } from "lucide-react"
+import { Avatar, AvatarImage, AvatarFallback } from "@/components/ui/avatar"
+import { Button } from "@/components/ui/button"
 
 interface MaiChatbotProps {
   className?: string
@@ -17,17 +21,32 @@ interface MaiChatbotProps {
 
 export function MaiChatbot({ className }: MaiChatbotProps) {
   const {
-    isOpen,
+    isOpen: hookIsOpen,
     messages,
     isTyping,
     loadingMessage,
     loadingPhase,
-    toggleChat,
+    toggleChat: hookToggleChat,
     sendMessage
   } = useSariaChatbot()
   
+  const { isOpen: contextIsOpen, setIsOpen: setContextIsOpen, toggleChat: contextToggleChat, isMinimized, toggleMinimize } = useAIChatbot()
   const { user } = useAuth()
   const { isMobile, isTablet, isSmallMobile } = useScreenSize()
+  
+  // Utiliser l'état du contexte comme source de vérité, mais synchroniser avec le hook
+  const isOpen = contextIsOpen
+  const toggleChat = () => {
+    hookToggleChat() // Mettre à jour le hook
+    contextToggleChat() // Mettre à jour le contexte
+  }
+  
+  // Synchroniser l'état du hook avec le contexte au montage
+  useEffect(() => {
+    if (hookIsOpen !== contextIsOpen) {
+      setContextIsOpen(hookIsOpen)
+    }
+  }, [hookIsOpen, contextIsOpen, setContextIsOpen])
   
   const [inputValue, setInputValue] = useState('')
   const messagesEndRef = useRef<HTMLDivElement>(null)
@@ -112,7 +131,7 @@ export function MaiChatbot({ className }: MaiChatbotProps) {
 
   return (
     <>
-      {/* Bouton flottant - Tous les écrans, positionné indépendamment */}
+      {/* Bouton flottant - Tous les écrans, positionné indépendamment - seulement si complètement fermé */}
       {!isOpen && (
         <div className={getFloatingButtonClasses()}>
           <ResponsiveFloatingButton
@@ -122,13 +141,75 @@ export function MaiChatbot({ className }: MaiChatbotProps) {
         </div>
       )}
 
-      {/* Fenêtre de chat */}
-      {isOpen && (
+      {/* Modal minimisé - visible sur toutes les pages tant qu'il n'est pas complètement fermé */}
+      {isOpen && isMinimized && !isMobile && (
+        <div className={getChatbotClasses()}>
+          <Card className="shadow-2xl border-0 rounded-t-lg overflow-hidden w-80">
+            <div 
+              className="p-3 flex items-center justify-between text-white cursor-pointer hover:opacity-90 transition-opacity" 
+              style={{ background: "linear-gradient(to right, #dc2626, #ec4899, #f97316)" }}
+              onClick={toggleMinimize}
+            >
+              <div className="flex items-center gap-2 min-w-0 flex-1">
+                <div className="h-8 w-8 rounded-full ring-2 ring-white/30 overflow-hidden flex-shrink-0" style={{backgroundColor: '#ccd0d1'}}>
+                  <img 
+                    src="/saria-avatar.png" 
+                    alt="MAÏ Assistant" 
+                    className="h-full w-full object-cover"
+                    onError={(e) => {
+                      const target = e.target as HTMLImageElement;
+                      target.style.display = 'none';
+                    }}
+                  />
+                </div>
+                <div className="min-w-0 flex-1">
+                  <div className="flex items-center gap-1">
+                    <span className="font-semibold text-sm truncate">MAÏ</span>
+                    <Sparkles className="h-3 w-3 text-yellow-300 flex-shrink-0" />
+                  </div>
+                  <div className="text-red-100 text-xs flex items-center gap-1">
+                    <div className="h-1.5 w-1.5 bg-green-400 rounded-full"></div>
+                    <span>En ligne</span>
+                  </div>
+                </div>
+              </div>
+              <div className="flex items-center gap-1 flex-shrink-0">
+                <Button 
+                  variant="ghost" 
+                  size="icon" 
+                  className="h-6 w-6 text-white hover:bg-white/20" 
+                  onClick={(e) => { 
+                    e.stopPropagation(); 
+                    toggleChat(); 
+                  }}
+                >
+                  <X className="h-4 w-4" />
+                </Button>
+                <Button 
+                  variant="ghost" 
+                  size="icon" 
+                  className="h-6 w-6 text-white hover:bg-white/20" 
+                  onClick={(e) => { 
+                    e.stopPropagation(); 
+                    toggleMinimize(); 
+                  }}
+                >
+                  <Maximize2 className="h-4 w-4" />
+                </Button>
+              </div>
+            </div>
+          </Card>
+        </div>
+      )}
+
+      {/* Fenêtre de chat complète */}
+      {isOpen && !isMinimized && (
         <div className={getChatbotClasses()}>
           <Card className={getChatWindowClasses()}>
           {/* Header avec gradient */}
             <ResponsiveChatHeader
               onClose={toggleChat}
+              onMinimize={toggleMinimize}
               className="bg-gradient-to-r from-red-600 via-pink-600 to-orange-500"
             />
 

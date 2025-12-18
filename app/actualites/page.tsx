@@ -7,7 +7,7 @@ import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 import { Badge } from "@/components/ui/badge"
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
-import { Search, Calendar, User, Eye, Filter, Heart, MessageCircle, Share, MoreHorizontal, Plus, Bell, BarChart3, CheckSquare, Clock, CheckCircle, Circle } from "lucide-react"
+import { Search, Calendar, User, Eye, Filter, Heart, MessageCircle, Share, MoreHorizontal, Plus, Bell, BarChart3, CheckSquare, Clock, CheckCircle, Circle, ArrowDown, ArrowUp } from "lucide-react"
 import { useArticles, useArticleStats } from "@/hooks/useArticles"
 import { Article } from "@/lib/api"
 import { AdaptivePublicationCard } from "@/components/adaptive-publication-card"
@@ -109,6 +109,16 @@ export default function ActualitesPage() {
     window.location.reload()
   }
 
+  const scrollToBottom = () => {
+    // Scroller vers le bas de la page (vers le dernier article)
+    window.scrollTo({ behavior: "smooth", top: document.documentElement.scrollHeight })
+  }
+
+  const scrollToTop = () => {
+    // Scroller vers le haut de la page
+    window.scrollTo({ behavior: "smooth", top: 0 })
+  }
+
   // Tous les articles dans une seule liste, en filtrant les articles supprimés et triés par date de publication (plus récents en premier)
   const allArticles = articles
     .filter(article => !deletedArticles.includes(article.id))
@@ -163,12 +173,34 @@ export default function ActualitesPage() {
           />
         )}
 
+        {/* Boutons Scroll - Toujours visibles */}
+        <div className="fixed right-4 sm:right-6 top-1/2 -translate-y-1/2 z-40 flex flex-col gap-3 hidden md:flex">
+          {/* Bouton Scroll to Top */}
+          <Button
+            onClick={scrollToTop}
+            className="h-12 w-12 rounded-full shadow-lg bg-primary hover:bg-primary/90 text-white flex items-center justify-center transition-all hover:scale-110"
+            aria-label="Aller en haut de la page"
+            title="Aller en haut de la page"
+          >
+            <ArrowUp className="h-5 w-5" />
+          </Button>
+          {/* Bouton Scroll to Bottom */}
+          <Button
+            onClick={scrollToBottom}
+            className="h-12 w-12 rounded-full shadow-lg bg-primary hover:bg-primary/90 text-white flex items-center justify-center transition-all hover:scale-110"
+            aria-label="Aller en bas de la page"
+            title="Aller en bas de la page"
+          >
+            <ArrowDown className="h-5 w-5" />
+          </Button>
+        </div>
+
         {/* Feed principal - Style Talkspirit - Responsive */}
         {!loading && !error && (
           <div className="space-y-4 xs:space-y-6 stagger-animation">
             {/* Toutes les publications - Responsive */}
             {allArticles.length > 0 && (
-              <div className="space-y-3 xs:space-y-4">
+              <div className="space-y-3 xs:space-y-4 relative">
                 <div className="flex items-center gap-2 mb-3 xs:mb-4 px-1 max-w-4xl mx-auto">
                   <div className="w-1 h-4 xs:h-6 bg-gradient-to-b from-blue-400 to-indigo-400 rounded-full shadow-sm"></div>
                   <h3 className="text-base xs:text-lg font-semibold text-gray-900">Toutes les publications</h3>

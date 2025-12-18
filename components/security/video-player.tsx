@@ -37,6 +37,14 @@ export function VideoPlayer({ video, onPrevious, onNext, currentIndex, totalVide
       duration: "12 min",
       type: "Sécurité",
       color: "from-amber-600 to-orange-600"
+    },
+    {
+      id: 3,
+      title: "Simulations",
+      description: "Vidéo de simulations de sécurité",
+      duration: "10 min",
+      type: "Simulations",
+      color: "from-blue-600 to-indigo-600"
     }
   ]
 

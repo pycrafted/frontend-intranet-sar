@@ -21,6 +21,7 @@ import { UploadDialog } from "@/components/upload-dialog"
 import { RenameDialog } from "@/components/rename-dialog"
 import { InfoModal } from "@/components/info-modal"
 import { useDocuments, Document } from "@/hooks/useDocuments"
+import { useToast } from "@/components/ui/toast"
 import {
   Search,
   Upload,
@@ -67,6 +68,7 @@ const sortOptions = [
 ]
 
 export default function DocumentsPage() {
+  const { success, error: toastError } = useToast()
   const [searchTerm, setSearchTerm] = useState("")
   const [debouncedSearchTerm, setDebouncedSearchTerm] = useState("")
   const [isTyping, setIsTyping] = useState(false)
@@ -74,7 +76,7 @@ export default function DocumentsPage() {
   const [selectedDocuments, setSelectedDocuments] = useState<number[]>([])
   const [selectedFolder, setSelectedFolder] = useState<number | null>(null)
   const [currentFolderPath, setCurrentFolderPath] = useState<Array<{id: number, name: string}>>([])
-  const [viewMode, setViewMode] = useState<"grid" | "list">("grid")
+  const [viewMode, setViewMode] = useState<"grid" | "list">("list")
   const [contextMenu, setContextMenu] = useState<{
     isOpen: boolean
     position: { x: number; y: number }
@@ -518,12 +520,18 @@ export default function DocumentsPage() {
           successCount++
         } else {
           console.error('❌ Erreur lors de l\'upload:', result.error)
-          alert(`Erreur lors de l'upload de ${file.name}: ${result.error}`)
+          toastError(
+            "Erreur d'upload",
+            result.error || `Impossible d'uploader le fichier ${file.name}`
+          )
           errorCount++
         }
       } catch (error) {
         console.error('Erreur lors de l\'upload:', error)
-        alert(`Erreur lors de l'upload de ${file.name}`)
+        toastError(
+          "Erreur d'upload",
+          `Une erreur est survenue lors de l'upload de ${file.name}`
+        )
         errorCount++
       }
     }
@@ -531,13 +539,28 @@ export default function DocumentsPage() {
     // Fermer le modal d'upload
     setIsUploadModalOpen(false)
     
-    // Afficher un message de résumé
+    // Rafraîchir la liste des documents pour avoir les IDs corrects
     if (successCount > 0) {
-      alert(`${successCount} fichier(s) uploadé(s) avec succès !`)
+      await fetchDocuments()
+    }
+    
+    // Afficher un message de résumé avec toast
+    if (successCount > 0) {
+      if (successCount === 1) {
+        success("Fichier importé", "Le fichier a été importé avec succès")
+      } else {
+        success(
+          "Fichiers importés",
+          `${successCount} fichier${successCount > 1 ? 's' : ''} importé${successCount > 1 ? 's' : ''} avec succès`
+        )
+      }
     }
     
     if (errorCount > 0) {
-      alert(`${errorCount} fichier(s) n'ont pas pu être uploadés.`)
+      toastError(
+        "Erreur d'importation",
+        `${errorCount} fichier${errorCount > 1 ? 's' : ''} n'${errorCount > 1 ? 'ont' : 'a'} pas pu être importé${errorCount > 1 ? 's' : ''}`
+      )
     }
   }
 
@@ -566,6 +589,13 @@ export default function DocumentsPage() {
   const handleViewDocument = async (id: string) => {
     if (id.startsWith('doc-')) {
       const docId = parseInt(id.replace('doc-', ''))
+      
+      // Vérifier que l'ID est valide
+      if (isNaN(docId)) {
+        console.error('❌ [VIEW_DOCUMENT] ID invalide:', id, docId)
+        toastError("Erreur", "Impossible d'ouvrir le document. Veuillez rafraîchir la page.")
+        return
+      }
       
       try {
         const result = await viewDocument(docId)

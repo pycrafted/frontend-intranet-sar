@@ -1,4 +1,4 @@
-import { useState, useCallback } from 'react'
+import { useState, useCallback, useEffect } from 'react'
 import { claudeAPI } from '@/lib/claude-api'
 import { config } from '@/lib/config'
 import { findFallbackResponse } from '@/lib/fallback-responses'

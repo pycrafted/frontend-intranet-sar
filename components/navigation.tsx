@@ -51,7 +51,7 @@ const getBaseNavigationSections = () => [
   {
     title: "Ressources",
     items: [
-      { name: "Médiathèque", href: "/documents", icon: FileText },
+      { name: "Bibliothèque", href: "/documents", icon: FileText },
       { name: "Sensibilisation", href: "/securite", icon: Shield },
       { name: "Recrutement Interne", href: "/recrutement", icon: UserPlus },
     ],

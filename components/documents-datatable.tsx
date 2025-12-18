@@ -27,24 +27,24 @@ export function DocumentsDataTable({
 
   const getFileIcon = (item: FileItem) => {
     if (item.type === "folder") {
-      return <Folder className="h-5 w-5 text-primary" />
+      return <Folder className="h-5 w-5 text-white" />
     }
 
     const iconClass = "h-5 w-5"
     switch (item.fileType) {
       case "pdf":
-        return <FileText className={`${iconClass} text-red-600`} />
+        return <FileText className={`${iconClass} text-white`} />
       case "pptx":
       case "ppt":
-        return <FileText className={`${iconClass} text-orange-600`} />
+        return <FileText className={`${iconClass} text-white`} />
       case "docx":
       case "doc":
-        return <FileText className={`${iconClass} text-blue-600`} />
+        return <FileText className={`${iconClass} text-white`} />
       case "xlsx":
       case "xls":
-        return <FileText className={`${iconClass} text-green-600`} />
+        return <FileText className={`${iconClass} text-white`} />
       default:
-        return <FileText className={`${iconClass} text-muted-foreground`} />
+        return <FileText className={`${iconClass} text-white`} />
     }
   }
 
@@ -126,8 +126,8 @@ export function DocumentsDataTable({
 
   if (items.length === 0) {
     return (
-      <div className="flex min-h-[400px] flex-col items-center justify-center gap-4 rounded-lg border-2 border-dashed border-border bg-card p-12">
-        <svg className="h-16 w-16 text-muted-foreground" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+      <div className="flex min-h-[400px] flex-col items-center justify-center gap-4 rounded-lg border-2 border-dashed border-white/20 p-12" style={{ backgroundColor: "#344256" }}>
+        <svg className="h-16 w-16 text-white/60" fill="none" viewBox="0 0 24 24" stroke="currentColor">
           <path
             strokeLinecap="round"
             strokeLinejoin="round"
@@ -136,8 +136,8 @@ export function DocumentsDataTable({
           />
         </svg>
         <div className="text-center">
-          <h3 className="text-lg font-semibold text-foreground">Aucun document</h3>
-          <p className="text-sm text-muted-foreground">Commencez par créer un dossier ou importer des fichiers</p>
+          <h3 className="text-lg font-semibold text-white">Aucun document</h3>
+          <p className="text-sm text-white/80">Commencez par créer un dossier ou importer des fichiers</p>
         </div>
       </div>
     )
@@ -146,12 +146,12 @@ export function DocumentsDataTable({
   return (
     <div className="space-y-4">
       {/* Tableau avec tri */}
-      <div className="rounded-lg border border-border bg-card">
+      <div className="rounded-lg border border-white/20" style={{ backgroundColor: "#344256" }}>
         <table className="w-full">
           <thead>
-            <tr className="border-b border-border">
+            <tr className="border-b border-white/20">
               <th 
-                className="px-6 py-3 text-left text-sm font-medium text-muted-foreground cursor-pointer hover:bg-muted/50"
+                className="px-6 py-3 text-left text-sm font-medium text-white cursor-pointer hover:bg-white/10 transition-colors"
                 onClick={() => handleSort('name')}
               >
                 <div className="flex items-center gap-2">
@@ -160,7 +160,7 @@ export function DocumentsDataTable({
                 </div>
               </th>
               <th 
-                className="px-6 py-3 text-left text-sm font-medium text-muted-foreground cursor-pointer hover:bg-muted/50"
+                className="px-6 py-3 text-left text-sm font-medium text-white cursor-pointer hover:bg-white/10 transition-colors"
                 onClick={() => handleSort('owner')}
               >
                 <div className="flex items-center gap-2">
@@ -169,7 +169,7 @@ export function DocumentsDataTable({
                 </div>
               </th>
               <th 
-                className="px-6 py-3 text-left text-sm font-medium text-muted-foreground cursor-pointer hover:bg-muted/50"
+                className="px-6 py-3 text-left text-sm font-medium text-white cursor-pointer hover:bg-white/10 transition-colors"
                 onClick={() => handleSort('modified')}
               >
                 <div className="flex items-center gap-2">
@@ -178,7 +178,7 @@ export function DocumentsDataTable({
                 </div>
               </th>
               <th 
-                className="px-6 py-3 text-left text-sm font-medium text-muted-foreground cursor-pointer hover:bg-muted/50"
+                className="px-6 py-3 text-left text-sm font-medium text-white cursor-pointer hover:bg-white/10 transition-colors"
                 onClick={() => handleSort('size')}
               >
                 <div className="flex items-center gap-2">
@@ -186,25 +186,25 @@ export function DocumentsDataTable({
                   <ArrowUpDown className="h-4 w-4" />
                 </div>
               </th>
-              <th className="px-6 py-3 text-left text-sm font-medium text-muted-foreground">Actions</th>
+              <th className="px-6 py-3 text-left text-sm font-medium text-white">Actions</th>
             </tr>
           </thead>
           <tbody>
             {sortedItems.map((item) => (
               <tr 
                 key={item.id} 
-                className="border-b border-border hover:bg-secondary cursor-pointer"
+                className="border-b border-white/20 hover:bg-white/10 cursor-pointer transition-colors"
                 onClick={() => handleClick(item)}
               >
                 <td className="px-6 py-3">
                   <div className="flex items-center gap-3">
                     {getFileIcon(item)}
-                    <span className="text-sm font-medium text-foreground">{item.name}</span>
+                    <span className="text-sm font-medium text-white">{item.name}</span>
                   </div>
                 </td>
-                <td className="px-6 py-3 text-sm text-muted-foreground">{item.owner}</td>
-                <td className="px-6 py-3 text-sm text-muted-foreground">{item.modifiedDate}</td>
-                <td className="px-6 py-3 text-sm text-muted-foreground">
+                <td className="px-6 py-3 text-sm text-white/80">{item.owner}</td>
+                <td className="px-6 py-3 text-sm text-white/80">{item.modifiedDate}</td>
+                <td className="px-6 py-3 text-sm text-white/80">
                   {item.type === "folder" ? "—" : item.size}
                 </td>
                 <td className="px-6 py-3">
@@ -213,32 +213,32 @@ export function DocumentsDataTable({
                       <Button 
                         variant="ghost" 
                         size="icon" 
-                        className="h-8 w-8 text-foreground"
+                        className="h-8 w-8 text-white hover:bg-white/20"
                         onClick={(e) => e.stopPropagation()}
                       >
                         <MoreVertical className="h-4 w-4" />
                       </Button>
                     </DropdownMenuTrigger>
-                    <DropdownMenuContent align="end">
+                    <DropdownMenuContent align="end" onClick={(e) => e.stopPropagation()}>
                       {item.type !== "folder" && onView && (
-                        <DropdownMenuItem onClick={() => onView(item.id)}>
+                        <DropdownMenuItem onClick={(e) => { e.stopPropagation(); onView(item.id); }}>
                           <Eye className="mr-2 h-4 w-4" />
                           Visualiser
                         </DropdownMenuItem>
                       )}
                       {item.type !== "folder" && onDownload && (
-                        <DropdownMenuItem onClick={() => onDownload(item.id)}>
+                        <DropdownMenuItem onClick={(e) => { e.stopPropagation(); onDownload(item.id); }}>
                           <Download className="mr-2 h-4 w-4" />
                           Télécharger
                         </DropdownMenuItem>
                       )}
                       {onRename && (
-                        <DropdownMenuItem onClick={() => onRename(item.id, item.name)}>
+                        <DropdownMenuItem onClick={(e) => { e.stopPropagation(); onRename(item.id, item.name); }}>
                           <Edit3 className="mr-2 h-4 w-4" />
                           Renommer
                         </DropdownMenuItem>
                       )}
-                      <DropdownMenuItem className="text-destructive focus:text-destructive" onClick={() => onDelete(item.id)}>
+                      <DropdownMenuItem className="text-destructive focus:text-destructive" onClick={(e) => { e.stopPropagation(); onDelete(item.id); }}>
                         <Trash2 className="mr-2 h-4 w-4" />
                         Supprimer
                       </DropdownMenuItem>
