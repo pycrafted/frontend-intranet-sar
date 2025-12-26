@@ -115,17 +115,17 @@ export function MaiChatbot({ className }: MaiChatbotProps) {
   const getChatWindowClasses = () => {
     if (isMobile) {
       return cn(
-        "flex-1 flex flex-col shadow-2xl border-0 bg-gradient-to-br from-white/95 via-red-50/95 to-pink-50/95 backdrop-blur-xl",
+        "flex-1 flex flex-col shadow-2xl border-0 bg-gradient-to-br from-white/95 via-[#344256]/5 to-[#344256]/10 backdrop-blur-xl",
         "rounded-none overflow-hidden"
       )
     }
     
-    return cn(
-      "flex flex-col shadow-2xl border-0 bg-gradient-to-br from-white/95 via-red-50/95 to-pink-50/95 backdrop-blur-xl transition-all duration-500 saria-chat-window",
-      "rounded-2xl overflow-hidden",
-      // Tailles responsives
-      isSmallMobile ? "w-[95vw] h-[90vh]" : isMobile ? "w-[95vw] h-[90vh]" : isTablet ? "w-[450px] h-[650px]" : "w-[500px] h-[700px]"
-    )
+      return cn(
+        "flex flex-col shadow-2xl border-0 bg-gradient-to-br from-white/95 via-[#344256]/5 to-[#344256]/10 backdrop-blur-xl transition-all duration-500 saria-chat-window",
+        "rounded-2xl overflow-hidden",
+        // Tailles responsives
+        isSmallMobile ? "w-[95vw] h-[90vh]" : isMobile ? "w-[95vw] h-[90vh]" : isTablet ? "w-[450px] h-[650px]" : "w-[500px] h-[700px]"
+      )
   }
 
 
@@ -147,7 +147,7 @@ export function MaiChatbot({ className }: MaiChatbotProps) {
           <Card className="shadow-2xl border-0 rounded-t-lg overflow-hidden w-80">
             <div 
               className="p-3 flex items-center justify-between text-white cursor-pointer hover:opacity-90 transition-opacity" 
-              style={{ background: "linear-gradient(to right, #dc2626, #ec4899, #f97316)" }}
+              style={{ backgroundColor: "#344256" }}
               onClick={toggleMinimize}
             >
               <div className="flex items-center gap-2 min-w-0 flex-1">
@@ -167,7 +167,7 @@ export function MaiChatbot({ className }: MaiChatbotProps) {
                     <span className="font-semibold text-sm truncate">MAÏ</span>
                     <Sparkles className="h-3 w-3 text-yellow-300 flex-shrink-0" />
                   </div>
-                  <div className="text-red-100 text-xs flex items-center gap-1">
+                  <div className="text-white/80 text-xs flex items-center gap-1">
                     <div className="h-1.5 w-1.5 bg-green-400 rounded-full"></div>
                     <span>En ligne</span>
                   </div>
@@ -210,7 +210,8 @@ export function MaiChatbot({ className }: MaiChatbotProps) {
             <ResponsiveChatHeader
               onClose={toggleChat}
               onMinimize={toggleMinimize}
-              className="bg-gradient-to-r from-red-600 via-pink-600 to-orange-500"
+              className=""
+              style={{ backgroundColor: "#344256" }}
             />
 
           {/* Zone des messages */}

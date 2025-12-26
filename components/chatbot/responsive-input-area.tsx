@@ -29,11 +29,13 @@ export function ResponsiveInputArea({
 
   return (
     <div className={cn(
-      "bg-gradient-to-r from-gray-50/80 to-red-50/80 backdrop-blur-sm border-t border-gray-200/50",
+      "bg-gradient-to-r from-gray-50/80 backdrop-blur-sm border-t border-gray-200/50",
       // Padding responsif
       isSmallMobile ? "p-3" : isMobile ? "p-4" : "p-6",
       className
-    )}>
+    )}
+    style={{ background: "linear-gradient(to right, rgba(249, 250, 251, 0.8), rgba(52, 66, 86, 0.05))" }}
+    >
       <div className="flex gap-3">
         <div className="flex-1 relative">
           <input
@@ -42,12 +44,23 @@ export function ResponsiveInputArea({
             value={inputValue}
             onChange={(e) => setInputValue(e.target.value)}
             onKeyPress={onKeyPress}
-            placeholder="Tapez votre message..."
+            placeholder="Posez une question sur la SAR, QualiPro ou SAP..."
             className={cn(
-              "w-full bg-white/90 backdrop-blur-sm border border-gray-200/50 rounded-2xl focus:outline-none focus:ring-2 focus:ring-red-500/50 focus:border-red-500/50 transition-all duration-200 shadow-lg placeholder-gray-500",
+              "w-full bg-white/90 backdrop-blur-sm border border-gray-200/50 rounded-2xl focus:outline-none transition-all duration-200 shadow-lg placeholder-gray-500",
               // Tailles d'input responsives
               isSmallMobile ? "px-3 py-2 text-sm" : isMobile ? "px-4 py-2.5 text-sm" : "px-4 py-3 text-sm"
             )}
+            style={{
+              borderColor: "rgba(229, 231, 235, 0.5)"
+            }}
+            onFocus={(e) => {
+              e.target.style.borderColor = "rgba(52, 66, 86, 0.5)";
+              e.target.style.boxShadow = "0 0 0 2px rgba(52, 66, 86, 0.2)";
+            }}
+            onBlur={(e) => {
+              e.target.style.borderColor = "rgba(229, 231, 235, 0.5)";
+              e.target.style.boxShadow = "none";
+            }}
             disabled={isTyping}
           />
         </div>
@@ -56,10 +69,23 @@ export function ResponsiveInputArea({
           disabled={!inputValue.trim() || isTyping}
           size="icon"
           className={cn(
-            "bg-gradient-to-br from-red-500 to-pink-600 hover:from-red-600 hover:to-pink-700 text-white shadow-lg hover:shadow-xl transition-all duration-200 hover:scale-105 rounded-2xl",
+            "text-white shadow-lg hover:shadow-xl transition-all duration-200 hover:scale-105 rounded-2xl",
             // Tailles de bouton responsives
             isSmallMobile ? "h-10 w-10" : isMobile ? "h-11 w-11" : "h-12 w-12"
           )}
+          style={{ 
+            backgroundColor: "#344256",
+          }}
+          onMouseEnter={(e) => {
+            if (typeof window !== 'undefined' && window.innerWidth >= 640) {
+              e.currentTarget.style.backgroundColor = "#2a3441";
+            }
+          }}
+          onMouseLeave={(e) => {
+            if (typeof window !== 'undefined' && window.innerWidth >= 640) {
+              e.currentTarget.style.backgroundColor = "#344256";
+            }
+          }}
           aria-label="Envoyer le message"
         >
           <Send className={cn(
@@ -67,6 +93,13 @@ export function ResponsiveInputArea({
             isSmallMobile ? "h-4 w-4" : isMobile ? "h-4 w-4" : "h-5 w-5"
           )} />
         </Button>
+      </div>
+      {/* Texte d'aide sur les domaines couverts */}
+      <div className="mt-2 flex items-center gap-1.5 text-xs text-gray-500">
+        <svg className="h-3 w-3 flex-shrink-0" fill="currentColor" viewBox="0 0 20 20">
+          <path fillRule="evenodd" d="M18 10a8 8 0 11-16 0 8 8 0 0116 0zm-7-4a1 1 0 11-2 0 1 1 0 012 0zM9 9a1 1 0 000 2v3a1 1 0 001 1h1a1 1 0 100-2v-3a1 1 0 00-1-1H9z" clipRule="evenodd" />
+        </svg>
+        <span>Je peux répondre sur : <strong>SAR</strong>, <strong>QualiPro</strong> et <strong>SAP</strong></span>
       </div>
     </div>
   )

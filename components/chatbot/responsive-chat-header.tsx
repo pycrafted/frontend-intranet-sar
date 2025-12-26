@@ -10,12 +10,14 @@ interface ResponsiveChatHeaderProps {
   onClose: () => void
   onMinimize?: () => void
   className?: string
+  style?: React.CSSProperties
 }
 
 export function ResponsiveChatHeader({ 
   onClose,
   onMinimize,
-  className 
+  className,
+  style
 }: ResponsiveChatHeaderProps) {
   const { isMobile, isTablet, isSmallMobile } = useScreenSize()
 
@@ -25,7 +27,9 @@ export function ResponsiveChatHeader({
       // Padding responsif
       isSmallMobile ? "p-3" : isMobile ? "p-4" : "p-5",
       className
-    )}>
+    )}
+    style={style || { backgroundColor: "#344256" }}
+    >
       {/* Effet de brillance */}
       <div className="absolute inset-0 bg-gradient-to-r from-transparent via-white/20 to-transparent animate-pulse"></div>
       
@@ -67,7 +71,7 @@ export function ResponsiveChatHeader({
             )} />
           </h3>
           <div className={cn(
-            "text-red-100 flex items-center gap-1 truncate",
+            "text-white/80 flex items-center gap-1 truncate",
             isSmallMobile ? "text-xs" : "text-sm"
           )}>
             <div className={cn(
@@ -103,7 +107,7 @@ export function ResponsiveChatHeader({
           size="icon"
           onClick={onClose}
           className={cn(
-            "hover:bg-red-500/20 text-white hover:text-red-200 transition-all duration-200",
+            "hover:bg-white/20 text-white hover:text-white/90 transition-all duration-200",
             // Tailles de bouton responsives
             isSmallMobile ? "h-8 w-8" : isMobile ? "h-9 w-9" : "h-9 w-9"
           )}

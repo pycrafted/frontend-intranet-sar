@@ -75,28 +75,59 @@ export function VideoPlayer({ video, onPrevious, onNext, currentIndex, totalVide
   const videoUrl = getVideoUrl()
 
   return (
-    <Card className="overflow-hidden shadow-2xl border-0 bg-white backdrop-blur-xl sm:hover:shadow-xl transition-all duration-500 group w-full">
-      {/* Header avec titre et bouton questionnaire - Responsive optimisé */}
-      <CardHeader className="bg-gradient-to-r from-slate-50 to-slate-100 border-b border-slate-200/50 pb-2 xs:pb-2.5 sm:pb-3 md:pb-4 px-2 xs:px-3 sm:px-4 md:px-6">
-        <div className="flex flex-col xs:flex-row xs:items-center xs:justify-between gap-2.5 xs:gap-3 sm:gap-4">
-          <div className="flex items-center gap-2 xs:gap-2.5 sm:gap-3 md:gap-4 min-w-0 flex-1">
-            <div className={`p-1.5 xs:p-2 sm:p-2.5 md:p-3 rounded-lg xs:rounded-xl bg-gradient-to-r ${currentVideoInfo.color} shadow-lg flex-shrink-0`}>
-              <Play className="h-3.5 w-3.5 xs:h-4 xs:w-4 sm:h-5 sm:w-5 md:h-6 md:w-6 text-white" />
+    <Card className="overflow-hidden shadow-2xl border-0 bg-white backdrop-blur-xl sm:hover:shadow-xl transition-all duration-500 group w-full flex flex-col">
+      {/* Header avec icône, titre et bouton questionnaire - En haut */}
+      <CardHeader className="bg-white border-b border-gray-200" style={{ 
+        padding: 'clamp(0.75rem, 2vw, 1.5rem) clamp(0.75rem, 2.5vw, 3rem)'
+      }}>
+        <div className="flex flex-col xs:flex-row xs:items-center xs:justify-between" style={{ gap: 'clamp(0.625rem, 1.5vw, 1.5rem)' }}>
+          <div className="flex items-center min-w-0 flex-1" style={{ gap: 'clamp(0.75rem, 2vw, 2rem)' }}>
+            {/* Icône vidéo améliorée */}
+            <div className="relative flex-shrink-0">
+              <div 
+                className="rounded-lg flex items-center justify-center transition-all duration-300 group-hover:scale-105"
+                style={{ 
+                  backgroundColor: "#344256",
+                  padding: 'clamp(0.375rem, 1vw, 1rem)'
+                }}
+              >
+                <Play className="text-white fill-white" style={{ 
+                  width: 'clamp(0.75rem, 2vw, 1.75rem)', 
+                  height: 'clamp(0.75rem, 2vw, 1.75rem)' 
+                }} />
+              </div>
             </div>
+            
+            {/* Titre et description */}
             <div className="min-w-0 flex-1">
-              <CardTitle className="text-sm xs:text-base sm:text-lg md:text-xl lg:text-2xl font-bold text-slate-800 sm:group-hover:text-slate-900 transition-colors leading-tight break-words">
+              <CardTitle className="font-bold text-slate-800 sm:group-hover:text-slate-900 transition-colors leading-tight break-words" style={{ 
+                fontSize: 'clamp(0.75rem, 1.5vw, 1.5rem)',
+                marginBottom: 'clamp(0.25rem, 0.8vw, 0.5rem)',
+                lineHeight: '1.2'
+              }}>
                 {currentVideoInfo.title}
               </CardTitle>
+              {currentVideoInfo.description && (
+                <p className="text-gray-600 leading-relaxed line-clamp-2" style={{ 
+                  fontSize: 'clamp(0.625rem, 1.2vw, 1rem)',
+                  lineHeight: '1.5'
+                }}>
+                  {currentVideoInfo.description}
+                </p>
+              )}
             </div>
           </div>
           
           {onQuizClick && (
             <Button
               onClick={onQuizClick}
-              className="text-white font-semibold px-3 py-1.5 xs:px-4 xs:py-2 sm:px-5 sm:py-2.5 md:px-6 md:py-2 rounded-md xs:rounded-lg shadow-lg sm:hover:shadow-xl transition-all duration-300 sm:hover:scale-105 active:scale-95 flex items-center justify-center gap-1.5 xs:gap-2 w-full xs:w-auto text-xs xs:text-sm sm:text-base touch-manipulation"
+              className="text-white font-semibold rounded-md xs:rounded-lg shadow-lg sm:hover:shadow-xl transition-all duration-300 sm:hover:scale-105 active:scale-95 flex items-center justify-center w-full xs:w-auto touch-manipulation"
               style={{
                 backgroundColor: "#344256",
-                borderColor: "#344256"
+                borderColor: "#344256",
+                padding: 'clamp(0.375rem, 1vw, 1rem) clamp(0.75rem, 2vw, 2.5rem)',
+                fontSize: 'clamp(0.625rem, 1.2vw, 1rem)',
+                gap: 'clamp(0.375rem, 1vw, 0.75rem)'
               }}
               onMouseEnter={(e) => {
                 if (typeof window !== 'undefined' && window.innerWidth >= 640) {
@@ -111,14 +142,17 @@ export function VideoPlayer({ video, onPrevious, onNext, currentIndex, totalVide
                 }
               }}
             >
-              <ClipboardCheck className="h-3 w-3 xs:h-3.5 xs:w-3.5 sm:h-4 sm:w-4" />
+              <ClipboardCheck style={{ 
+                width: 'clamp(0.75rem, 1.5vw, 1.75rem)', 
+                height: 'clamp(0.75rem, 1.5vw, 1.75rem)' 
+              }} />
               <span>Quiz</span>
             </Button>
           )}
         </div>
       </CardHeader>
 
-      <CardContent className="p-0">
+      <CardContent className="p-0 flex-1">
         {/* Zone vidéo */}
         <div className="relative aspect-[16/9] bg-gradient-to-br from-slate-900 to-slate-800 flex items-center justify-center overflow-hidden">
           {video.url.includes('cloudflarestream.com') ? (
@@ -148,21 +182,42 @@ export function VideoPlayer({ video, onPrevious, onNext, currentIndex, totalVide
             </>
           )}
           
-          {/* Boutons de navigation - Responsive optimisé */}
-          <div className="absolute bottom-1.5 xs:bottom-2 sm:bottom-3 md:bottom-4 left-1.5 xs:left-2 sm:left-3 md:left-4 right-1.5 xs:right-2 sm:right-3 md:right-4 flex items-center justify-between z-50 gap-1 xs:gap-2">
+          {/* Boutons de navigation - Responsive fluide */}
+          <div className="absolute flex items-center justify-between z-50" style={{ 
+            bottom: 'clamp(0.375rem, 1.5vw, 2rem)',
+            left: 'clamp(0.375rem, 1.5vw, 2rem)',
+            right: 'clamp(0.375rem, 1.5vw, 2rem)',
+            gap: 'clamp(0.25rem, 1.5vw, 1.25rem)'
+          }}>
             <Button
               onClick={onPrevious}
               variant="ghost"
               size="sm"
-              className="gap-1 xs:gap-1.5 sm:gap-2 sm:hover:bg-white/30 text-white font-semibold sm:hover:text-white transition-all duration-200 sm:hover:scale-105 active:scale-95 backdrop-blur-md border border-white/30 bg-black/30 sm:bg-black/20 sm:hover:bg-black/40 px-1.5 py-1 xs:px-2 xs:py-1.5 sm:px-3 sm:py-2 text-xs xs:text-sm touch-manipulation"
+              className="sm:hover:bg-white/30 text-white font-semibold sm:hover:text-white transition-all duration-200 sm:hover:scale-105 active:scale-95 backdrop-blur-md border border-white/30 bg-black/30 sm:bg-black/20 sm:hover:bg-black/40 touch-manipulation"
+              style={{
+                padding: 'clamp(0.375rem, 1vw, 1rem) clamp(0.5rem, 1.5vw, 1.5rem)',
+                fontSize: 'clamp(0.625rem, 1.2vw, 1.25rem)',
+                gap: 'clamp(0.25rem, 0.8vw, 0.75rem)'
+              }}
             >
-              <ChevronLeft className="h-3 w-3 xs:h-3.5 xs:w-3.5 sm:h-4 sm:w-4" />
+              <ChevronLeft style={{ 
+                width: 'clamp(0.75rem, 1.5vw, 1.75rem)', 
+                height: 'clamp(0.75rem, 1.5vw, 1.75rem)' 
+              }} />
               <span className="hidden sm:inline">Précédent</span>
             </Button>
 
-            <div className="flex items-center gap-1 xs:gap-1.5 sm:gap-2 bg-black/60 backdrop-blur-sm rounded-full px-1.5 py-0.5 xs:px-2 xs:py-1 sm:px-3 sm:py-1.5 md:px-4 md:py-2">
-              <div className="w-1 h-1 xs:w-1.5 xs:h-1.5 sm:w-2 sm:h-2 bg-white rounded-full"></div>
-              <span className="text-white text-[10px] xs:text-xs sm:text-sm font-medium whitespace-nowrap">
+            <div className="flex items-center bg-black/60 backdrop-blur-sm rounded-full" style={{ 
+              gap: 'clamp(0.25rem, 0.8vw, 0.75rem)',
+              padding: 'clamp(0.125rem, 0.8vw, 1rem) clamp(0.375rem, 1.5vw, 2rem)'
+            }}>
+              <div className="bg-white rounded-full" style={{ 
+                width: 'clamp(0.25rem, 0.8vw, 1rem)', 
+                height: 'clamp(0.25rem, 0.8vw, 1rem)' 
+              }}></div>
+              <span className="text-white font-medium whitespace-nowrap" style={{ 
+                fontSize: 'clamp(0.625rem, 1.2vw, 1.125rem)'
+              }}>
                 {currentIndex + 1} / {totalVideos}
               </span>
             </div>
@@ -171,16 +226,21 @@ export function VideoPlayer({ video, onPrevious, onNext, currentIndex, totalVide
               onClick={onNext}
               variant="ghost"
               size="sm"
-              className="gap-1 xs:gap-1.5 sm:gap-2 sm:hover:bg-white/30 text-white font-semibold sm:hover:text-white transition-all duration-200 sm:hover:scale-105 active:scale-95 backdrop-blur-md border border-white/30 bg-black/30 sm:bg-black/20 sm:hover:bg-black/40 px-1.5 py-1 xs:px-2 xs:py-1.5 sm:px-3 sm:py-2 text-xs xs:text-sm touch-manipulation"
+              className="sm:hover:bg-white/30 text-white font-semibold sm:hover:text-white transition-all duration-200 sm:hover:scale-105 active:scale-95 backdrop-blur-md border border-white/30 bg-black/30 sm:bg-black/20 sm:hover:bg-black/40 touch-manipulation"
+              style={{
+                padding: 'clamp(0.375rem, 1vw, 1rem) clamp(0.5rem, 1.5vw, 1.5rem)',
+                fontSize: 'clamp(0.625rem, 1.2vw, 1.25rem)',
+                gap: 'clamp(0.25rem, 0.8vw, 0.75rem)'
+              }}
             >
               <span className="hidden sm:inline">Suivant</span>
-              <ChevronRight className="h-3 w-3 xs:h-3.5 xs:w-3.5 sm:h-4 sm:w-4" />
+              <ChevronRight style={{ 
+                width: 'clamp(0.75rem, 1.5vw, 1.75rem)', 
+                height: 'clamp(0.75rem, 1.5vw, 1.75rem)' 
+              }} />
             </Button>
           </div>
           
-          {/* Effets visuels */}
-          <div className="absolute top-0 right-0 w-32 h-32 bg-gradient-to-br from-blue-500/20 to-transparent blur-2xl" />
-          <div className="absolute bottom-0 left-0 w-32 h-32 bg-gradient-to-tr from-indigo-500/20 to-transparent blur-2xl" />
         </div>
 
       </CardContent>

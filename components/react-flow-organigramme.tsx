@@ -6,7 +6,6 @@ import {
   ReactFlow,
   ReactFlowProvider,
   Background,
-  MiniMap,
   addEdge,
   useNodesState,
   useEdgesState,
@@ -18,7 +17,7 @@ import {
 } from "@xyflow/react"
 import "@xyflow/react/dist/style.css"
 import "@/styles/organigramme.css"
-import { X, Mail, Phone, Award as IdCard, User } from "lucide-react"
+import { User } from "lucide-react"
 import CustomEdge from "./custom-edge"
 import { EmployeeNode } from "./nodes/employee-node"
 import type { Employee } from "@/hooks/useOrgChart"
@@ -35,7 +34,6 @@ interface ReactFlowOrganigrammeProps {
   employees: Employee[]
   loading?: boolean
   error?: string | null
-  onEmployeeSelect?: (employee: Employee) => void
 }
 
 export interface ReactFlowOrganigrammeRef {
@@ -43,9 +41,8 @@ export interface ReactFlowOrganigrammeRef {
   selectEmployeeById: (id: number) => void
 }
 
-const ReactFlowOrganigramme = forwardRef<ReactFlowOrganigrammeRef, ReactFlowOrganigrammeProps>(({ employees, loading = false, error = null, onEmployeeSelect }, ref) => {
+const ReactFlowOrganigramme = forwardRef<ReactFlowOrganigrammeRef, ReactFlowOrganigrammeProps>(({ employees, loading = false, error = null }, ref) => {
   const reactFlowWrapper = useRef<HTMLDivElement>(null)
-  const [selectedNode, setSelectedNode] = useState<Node | null>(null)
   const [reactFlowInstance, setReactFlowInstance] = useState<any>(null)
   const [hoveredNodeId, setHoveredNodeId] = useState<string | null>(null)
   const [viewportCenter, setViewportCenter] = useState<{ x: number; y: number } | null>(null)
@@ -69,7 +66,7 @@ const ReactFlowOrganigramme = forwardRef<ReactFlowOrganigrammeRef, ReactFlowOrga
       return {
         nodeWidth: 240, // Taille fixe - ne varie pas selon le nombre de cartes
         nodeHeight: 300,
-        horizontalSpacing: 280, // Gap adaptatif
+        horizontalSpacing: 270, // Gap adaptatif (réduit de 10px)
         verticalSpacing: 500, // Augmenté pour une ligne verticale plus longue
         zoom: 0.6,
         padding: 50,
@@ -87,7 +84,7 @@ const ReactFlowOrganigramme = forwardRef<ReactFlowOrganigrammeRef, ReactFlowOrga
       config = {
         nodeWidth: 240, // Même taille que desktop
         nodeHeight: 300,
-        horizontalSpacing: 280, // Même espacement que desktop
+        horizontalSpacing: 270, // Même espacement que desktop (réduit de 10px)
         verticalSpacing: 500, // Augmenté pour une ligne verticale plus longue
         zoom: 0.6, // Même zoom que desktop pour voir tout l'organigramme
         padding: 50,
@@ -98,7 +95,7 @@ const ReactFlowOrganigramme = forwardRef<ReactFlowOrganigrammeRef, ReactFlowOrga
       config = {
         nodeWidth: 220, // Taille fixe
         nodeHeight: 260,
-        horizontalSpacing: 280, // gap-4 sm:gap-6 équivalent
+        horizontalSpacing: 270, // gap-4 sm:gap-6 équivalent (réduit de 10px)
         verticalSpacing: 450, // Augmenté pour une ligne verticale plus longue
         zoom: 0.9,
         padding: 30,
@@ -109,7 +106,7 @@ const ReactFlowOrganigramme = forwardRef<ReactFlowOrganigrammeRef, ReactFlowOrga
       config = {
         nodeWidth: 240, // Taille fixe - w-56 md:w-64 équivalent
         nodeHeight: 300,
-        horizontalSpacing: 300, // gap-6 md:gap-8 équivalent
+        horizontalSpacing: 290, // gap-6 md:gap-8 équivalent (réduit de 10px)
         verticalSpacing: 500, // Augmenté pour une ligne verticale plus longue
         zoom: 0.8,
         padding: 40,
@@ -120,7 +117,7 @@ const ReactFlowOrganigramme = forwardRef<ReactFlowOrganigrammeRef, ReactFlowOrga
       config = {
         nodeWidth: 240, // w-56 md:w-64 - taille fixe
         nodeHeight: 300,
-        horizontalSpacing: 320, // gap-8
+        horizontalSpacing: 310, // gap-8 (réduit de 10px)
         verticalSpacing: 550, // Augmenté pour une ligne verticale plus longue
         zoom: 0.7,
         padding: 50,
@@ -131,7 +128,7 @@ const ReactFlowOrganigramme = forwardRef<ReactFlowOrganigrammeRef, ReactFlowOrga
       config = {
         nodeWidth: 256, // w-64 - taille fixe
         nodeHeight: 320,
-        horizontalSpacing: 340,
+        horizontalSpacing: 330, // (réduit de 10px)
         verticalSpacing: 580, // Augmenté pour une ligne verticale plus longue
         zoom: 0.65,
         padding: 60,
@@ -142,7 +139,7 @@ const ReactFlowOrganigramme = forwardRef<ReactFlowOrganigrammeRef, ReactFlowOrga
       config = {
         nodeWidth: 256, // w-64 - taille fixe
         nodeHeight: 320,
-        horizontalSpacing: 360,
+        horizontalSpacing: 350, // (réduit de 10px)
         verticalSpacing: 600, // Augmenté pour une ligne verticale plus longue
         zoom: 0.6,
         padding: 80,
@@ -240,7 +237,23 @@ const ReactFlowOrganigramme = forwardRef<ReactFlowOrganigrammeRef, ReactFlowOrga
       const edges: Edge[] = []
 
       // Trouver les subordonnés
-    const subordinates = employees?.filter(emp => emp.manager === employee.id) || []
+    let subordinates = employees?.filter(emp => emp.manager === employee.id) || []
+      
+      // Trier les subordonnés par nom de direction (main_direction_name), puis par nom complet en cas d'égalité
+      subordinates = subordinates.sort((a, b) => {
+        const directionA = a.main_direction_name || ''
+        const directionB = b.main_direction_name || ''
+        
+        // Comparer d'abord par direction
+        if (directionA !== directionB) {
+          return directionA.localeCompare(directionB, 'fr', { sensitivity: 'base' })
+        }
+        
+        // Si même direction, trier par nom complet
+        const nameA = a.full_name || ''
+        const nameB = b.full_name || ''
+        return nameA.localeCompare(nameB, 'fr', { sensitivity: 'base' })
+      })
       
       // Toujours afficher tous les subordonnés
       if (subordinates.length > 0) {
@@ -657,10 +670,9 @@ const ReactFlowOrganigramme = forwardRef<ReactFlowOrganigrammeRef, ReactFlowOrga
     [setEdges],
   )
 
-  const onNodeClick = useCallback((_: React.MouseEvent, node: Node) => {
-    setSelectedNode(node)
-    onEmployeeSelect?.(node.data.employee as Employee)
-  }, [onEmployeeSelect])
+  const onNodeClick = useCallback(() => {
+    // Désactivé - ne fait rien
+  }, [])
 
   // Méthodes exposées via ref
   useImperativeHandle(ref, () => ({
@@ -714,11 +726,6 @@ const ReactFlowOrganigramme = forwardRef<ReactFlowOrganigrammeRef, ReactFlowOrga
       
       if (employee) {
         console.log('✅ [REACT_FLOW] Employé trouvé:', employee.full_name)
-        const node = nodes.find(n => (n.data.employee as Employee).id === employee.id)
-        if (node) {
-          setSelectedNode(node)
-          onEmployeeSelect?.(employee)
-        }
       } else {
         console.log('❌ [REACT_FLOW] Aucun employé trouvé pour:', searchTerm)
       }
@@ -726,17 +733,13 @@ const ReactFlowOrganigramme = forwardRef<ReactFlowOrganigrammeRef, ReactFlowOrga
     selectEmployeeById: (id: number) => {
       const employee = employees.find(emp => emp.id === id)
       if (employee) {
-        const node = nodes.find(n => (n.data.employee as Employee).id === employee.id)
-        if (node) {
-          setSelectedNode(node)
-          onEmployeeSelect?.(employee)
-        }
+        console.log('✅ [REACT_FLOW] Employé trouvé par ID:', employee.full_name)
       }
     }
-  }), [employees, nodes, onEmployeeSelect])
+  }), [employees, nodes])
 
   const onPaneClick = useCallback(() => {
-    setSelectedNode(null)
+    // Désactivé - ne fait rien
   }, [])
 
   const findPathToCEO = useCallback((nodeId: string, edges: Edge[]): { edgeIds: string[]; nodeIds: string[] } => {
@@ -831,7 +834,6 @@ const ReactFlowOrganigramme = forwardRef<ReactFlowOrganigrammeRef, ReactFlowOrga
             <User className="w-8 h-8" />
           </div>
           <p className="text-lg mb-2">Aucun employé trouvé</p>
-          <p className="text-sm text-gray-600">Ajoutez des employés dans l'administration Django</p>
         </div>
       </div>
     )
@@ -1033,194 +1035,10 @@ const ReactFlowOrganigramme = forwardRef<ReactFlowOrganigrammeRef, ReactFlowOrga
               selectNodesOnDrag={false}
             >
               <Background />
-              <MiniMap
-                nodeColor={(node: Node) => {
-                  const employee = node.data?.employee as Employee
-                  return employee && !employee.manager ? '#f59e0b' : '#94a3b8'
-                }}
-                position="bottom-left"
-                className="!bottom-4 !left-4 !bg-white/90 !backdrop-blur-sm !border !border-gray-200 !rounded-lg !shadow-lg hidden sm:block"
-                pannable
-                zoomable
-              />
             </ReactFlow>
           </ReactFlowProvider>
         </div>
       </div>
-
-      {selectedNode && (
-        <div
-          className="fixed inset-0 bg-black/60 backdrop-blur-sm flex items-center justify-center z-50 p-2 sm:p-4"
-          onClick={() => setSelectedNode(null)}
-        >
-          {(() => {
-            const employee = selectedNode.data.employee as Employee
-            const isCEO = !employee.manager
-            return (
-              <div
-                className={`rounded-xl sm:rounded-2xl shadow-2xl w-full max-w-xs sm:max-w-lg lg:max-w-2xl max-h-[90vh] sm:max-h-[85vh] overflow-hidden ${
-                  isCEO 
-                    ? "bg-gradient-to-br from-amber-50 to-yellow-50 border-2 border-amber-200" 
-                    : "bg-white"
-                }`}
-            onClick={(e) => e.stopPropagation()}
-          >
-                {/* Header Section with Photo - Responsive */}
-                <div className={`relative px-4 sm:px-6 lg:px-8 pt-8 sm:pt-10 lg:pt-12 pb-6 sm:pb-8 ${
-                  isCEO 
-                    ? "bg-gradient-to-br from-amber-100 to-yellow-100" 
-                    : "bg-gradient-to-br from-slate-50 to-slate-100"
-                }`}>
-              <button
-                onClick={() => setSelectedNode(null)}
-                    className="absolute top-3 right-3 sm:top-4 sm:right-4 lg:top-6 lg:right-6 p-1.5 sm:p-2 hover:bg-white/80 rounded-full transition-all duration-200 group"
-              >
-                    <X className="h-4 w-4 sm:h-5 sm:w-5 text-slate-600 group-hover:text-slate-900" />
-              </button>
-
-                  {/* Photo and Basic Info - Responsive */}
-              <div className="flex flex-col items-center text-center">
-                    <div className="relative mb-4 sm:mb-6">
-                      {/* Couronne pour le DG - Responsive */}
-                      {isCEO && (
-                        <div className="absolute -top-2 sm:-top-3 lg:-top-4 left-1/2 transform -translate-x-1/2 z-10">
-                          <div className="w-8 h-8 sm:w-10 sm:h-10 lg:w-12 lg:h-12 bg-gradient-to-br from-yellow-400 to-amber-500 rounded-full flex items-center justify-center shadow-lg">
-                            <svg 
-                              className="w-4 h-4 sm:w-5 sm:h-5 lg:w-7 lg:h-7 text-white" 
-                              fill="currentColor" 
-                              viewBox="0 0 24 24"
-                            >
-                              <path d="M12 2L13.09 8.26L20 9L13.09 9.74L12 16L10.91 9.74L4 9L10.91 8.26L12 2Z"/>
-                            </svg>
-                          </div>
-                        </div>
-                      )}
-                      <div className={`w-20 h-20 sm:w-24 sm:h-24 lg:w-32 lg:h-32 rounded-full overflow-hidden ring-2 sm:ring-4 shadow-lg sm:shadow-xl ${
-                        isCEO ? "ring-amber-300" : "ring-white"
-                      }`}>
-                        <img
-                          src={employee.avatar || "/placeholder-user.jpg"}
-                          alt={employee.full_name}
-                      className="w-full h-full object-cover"
-                      onError={(e) => {
-                        // Fallback vers l'avatar par défaut si l'image ne charge pas
-                        const target = e.target as HTMLImageElement;
-                        console.log('❌ [REACT_FLOW] Erreur chargement avatar:', {
-                          employee: employee.full_name,
-                          avatarUrl: employee.avatar,
-                          errorSrc: target.src
-                        });
-                        if (target.src !== "/placeholder-user.jpg") {
-                          target.src = "/placeholder-user.jpg";
-                        }
-                      }}
-                      onLoad={() => {
-                        console.log('✅ [REACT_FLOW] Avatar chargé:', {
-                          employee: employee.full_name,
-                          avatarUrl: employee.avatar
-                        });
-                      }}
-                    />
-                  </div>
-                </div>
-
-                    <h2 className={`text-xl sm:text-2xl lg:text-3xl font-bold mb-1 sm:mb-2 tracking-tight ${
-                      isCEO ? "text-amber-900" : "text-slate-900"
-                    }`}>
-                      {employee.full_name}
-                </h2>
-                    <p className={`text-sm sm:text-base lg:text-lg mb-2 sm:mb-3 font-medium ${
-                      isCEO ? "text-amber-800" : "text-slate-600"
-                    }`}>
-                      {employee.job_title}
-                    </p>
-                    <span className={`inline-flex items-center px-3 py-1 sm:px-4 sm:py-1.5 text-xs sm:text-sm font-medium rounded-full shadow-sm ${
-                      isCEO 
-                        ? "bg-amber-200 text-amber-800 border border-amber-300" 
-                        : "bg-white text-slate-700 border border-slate-200"
-                    }`}>
-                      {employee.main_direction_name}
-                </span>
-              </div>
-            </div>
-
-            {/* Content Section - Responsive */}
-            <div className="px-4 sm:px-6 lg:px-8 py-4 sm:py-6 lg:py-8 overflow-y-auto max-h-[calc(90vh-200px)] sm:max-h-[calc(85vh-280px)]">
-              {/* Contact Information - Responsive */}
-              <div className="mb-6 sm:mb-8">
-                <h3 className="text-xs font-semibold text-slate-500 uppercase tracking-wider mb-3 sm:mb-4 flex items-center gap-2">
-                  <div className="h-px flex-1 bg-slate-200"></div>
-                  <span>Contact</span>
-                  <div className="h-px flex-1 bg-slate-200"></div>
-                </h3>
-                <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 sm:gap-4">
-                  <a
-                    href={`mailto:${employee.email}`}
-                    className="flex items-start gap-3 sm:gap-4 p-3 sm:p-4 rounded-lg sm:rounded-xl hover:bg-slate-50 transition-colors group"
-                  >
-                    <div className="flex-shrink-0 w-8 h-8 sm:w-10 sm:h-10 rounded-lg bg-blue-50 flex items-center justify-center group-hover:bg-blue-100 transition-colors">
-                      <Mail className="h-4 w-4 sm:h-5 sm:w-5 text-blue-600" />
-                    </div>
-                    <div className="flex-1 min-w-0">
-                      <p className="text-xs text-slate-500 mb-0.5">Email</p>
-                      <p className="text-xs sm:text-sm font-medium text-slate-900 truncate">{employee.email}</p>
-                    </div>
-                  </a>
-
-                  <a
-                    href={`tel:${employee.phone_fixed || employee.phone_mobile}`}
-                    className="flex items-start gap-3 sm:gap-4 p-3 sm:p-4 rounded-lg sm:rounded-xl hover:bg-slate-50 transition-colors group"
-                  >
-                    <div className="flex-shrink-0 w-8 h-8 sm:w-10 sm:h-10 rounded-lg bg-green-50 flex items-center justify-center group-hover:bg-green-100 transition-colors">
-                      <Phone className="h-4 w-4 sm:h-5 sm:w-5 text-green-600" />
-                    </div>
-                    <div className="flex-1 min-w-0">
-                      <p className="text-xs text-slate-500 mb-0.5">Téléphone</p>
-                      <p className="text-xs sm:text-sm font-medium text-slate-900">
-                        {employee.phone_fixed || employee.phone_mobile}
-                      </p>
-                    </div>
-                  </a>
-                </div>
-              </div>
-
-              {/* Employment Details - Responsive */}
-              <div>
-                <h3 className="text-xs font-semibold text-slate-500 uppercase tracking-wider mb-3 sm:mb-4 flex items-center gap-2">
-                  <div className="h-px flex-1 bg-slate-200"></div>
-                  <span className="text-xs sm:text-xs">Informations Professionnelles</span>
-                  <div className="h-px flex-1 bg-slate-200"></div>
-                </h3>
-                <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 sm:gap-4">
-                  <div className="flex items-start gap-3 sm:gap-4 p-3 sm:p-4 rounded-lg sm:rounded-xl hover:bg-slate-50 transition-colors group">
-                    <div className="flex-shrink-0 w-8 h-8 sm:w-10 sm:h-10 rounded-lg bg-indigo-50 flex items-center justify-center group-hover:bg-indigo-100 transition-colors">
-                      <IdCard className="h-4 w-4 sm:h-5 sm:w-5 text-indigo-600" />
-                    </div>
-                    <div className="flex-1 min-w-0">
-                      <p className="text-xs text-slate-500 mb-0.5">Matricule</p>
-                      <p className="text-xs sm:text-sm font-medium text-slate-900">{employee.matricule}</p>
-                    </div>
-                  </div>
-
-                  <div className="flex items-start gap-3 sm:gap-4 p-3 sm:p-4 rounded-lg sm:rounded-xl hover:bg-slate-50 transition-colors group">
-                    <div className="flex-shrink-0 w-8 h-8 sm:w-10 sm:h-10 rounded-lg bg-amber-50 flex items-center justify-center group-hover:bg-amber-100 transition-colors">
-                      <User className="h-4 w-4 sm:h-5 sm:w-5 text-amber-600" />
-                    </div>
-                    <div className="flex-1 min-w-0">
-                      <p className="text-xs text-slate-500 mb-0.5">Manager</p>
-                      <p className="text-xs sm:text-sm font-medium text-slate-900">
-                        {employee.manager_name || "Aucun"}
-                      </p>
-                    </div>
-                  </div>
-                </div>
-              </div>
-            </div>
-          </div>
-            )
-          })()}
-        </div>
-      )}
     </div>
   )
 })

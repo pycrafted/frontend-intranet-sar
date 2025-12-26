@@ -242,14 +242,11 @@ export default function AnnuairePage() {
   const [selectedDepartment, setSelectedDepartment] = useState("Tous")
   const [filteredEmployees, setFilteredEmployees] = useState<Employee[]>([])
   const [currentPage, setCurrentPage] = useState(1)
-  // Items par page responsive : moins sur mobile, plus sur desktop
+  // Items par page : 8 cartes par page pour toutes les tailles d'écran
   const getItemsPerPage = () => {
-    if (typeof window === 'undefined') return 12;
-    if (window.innerWidth < 640) return 6; // Mobile : 1 colonne x 6
-    if (window.innerWidth < 1024) return 9; // Tablette : 2-3 colonnes x 3
-    return 12; // Desktop : 3-4 colonnes x 3-4
+    return 8; // 8 cartes par page pour toutes les tailles d'écran
   }
-  const [itemsPerPage, setItemsPerPage] = useState(12)
+  const [itemsPerPage, setItemsPerPage] = useState(8)
   
   // Mettre à jour itemsPerPage lors du redimensionnement
   useEffect(() => {
@@ -372,165 +369,8 @@ export default function AnnuairePage() {
     }
   }
 
-  // Afficher un loader si les données sont en cours de chargement
-  if (loading) {
-    return (
-      <LayoutWrapper>
-        <div className="min-h-screen flex items-center justify-center" style={{backgroundColor: "#e5e7eb"}}>
-          <StandardLoader />
-        </div>
-      </LayoutWrapper>
-    )
-  }
-
-  // Afficher une erreur si il y en a une
-  if (error) {
-    return (
-      <LayoutWrapper>
-        <div className="min-h-screen flex items-center justify-center" style={{backgroundColor: "#e5e7eb"}}>
-          <div className="text-center">
-            <h2 className="text-2xl font-bold text-red-600 mb-4">Erreur de chargement</h2>
-            <p className="text-gray-600">{error}</p>
-          </div>
-        </div>
-      </LayoutWrapper>
-    )
-  }
-
   return (
-    <>
-      <style jsx global>{`
-        @keyframes fadeInUp {
-          from {
-            opacity: 0;
-            transform: translateY(30px);
-          }
-          to {
-            opacity: 1;
-            transform: translateY(0);
-          }
-        }
-        
-        @keyframes float {
-          0%, 100% {
-            transform: translateY(0px);
-          }
-          50% {
-            transform: translateY(-10px);
-          }
-        }
-        
-        .float-animation {
-          animation: float 6s ease-in-out infinite;
-        }
-        
-        .gradient-text {
-          background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-          -webkit-background-clip: text;
-          -webkit-text-fill-color: transparent;
-          background-clip: text;
-        }
-        
-        .line-clamp-2 {
-          display: -webkit-box;
-          -webkit-line-clamp: 2;
-          -webkit-box-orient: vertical;
-          overflow: hidden;
-        }
-        
-        /* Optimisations responsive globales */
-        .touch-manipulation {
-          touch-action: manipulation;
-        }
-        
-        /* Désactiver les effets hover sur mobile */
-        @media (hover: none) and (pointer: coarse) {
-          .group:hover {
-            transform: none !important;
-          }
-          .group:hover * {
-            transform: none !important;
-          }
-        }
-        
-        /* Amélioration de l'affichage mobile */
-        @media (max-width: 640px) {
-          .container {
-            padding-left: 0.5rem;
-            padding-right: 0.5rem;
-          }
-        }
-        
-        /* Breakpoint pour très petits écrans */
-        @media (max-width: 375px) {
-          .container {
-            padding-left: 0.375rem;
-            padding-right: 0.375rem;
-          }
-        }
-        
-        /* Assurer que les cartes ne se chevauchent jamais */
-        .grid > * {
-          min-width: 0;
-          flex-shrink: 1;
-        }
-        
-        /* Améliorer le rendu des textes sur petits écrans */
-        @media (max-width: 640px) {
-          .line-clamp-2 {
-            display: -webkit-box;
-            -webkit-line-clamp: 2;
-            -webkit-box-orient: vertical;
-            overflow: hidden;
-            text-overflow: ellipsis;
-          }
-        }
-        
-        /* Animations personnalisées pour plus de dynamisme */
-        @keyframes bounce-subtle {
-          0%, 100% {
-            transform: translateY(0);
-          }
-          50% {
-            transform: translateY(-2px);
-          }
-        }
-        
-        @keyframes pulse-glow {
-          0%, 100% {
-            box-shadow: 0 0 5px rgba(255, 255, 255, 0.1);
-          }
-          50% {
-            box-shadow: 0 0 20px rgba(255, 255, 255, 0.3), 0 0 30px rgba(255, 255, 255, 0.1);
-          }
-        }
-        
-        @keyframes wiggle {
-          0%, 100% {
-            transform: rotate(0deg);
-          }
-          25% {
-            transform: rotate(1deg);
-          }
-          75% {
-            transform: rotate(-1deg);
-          }
-        }
-        
-        /* Effets de survol améliorés */
-        .group:hover .avatar-mobile {
-          animation: bounce-subtle 0.6s ease-in-out;
-        }
-        
-        .group:hover {
-          animation: pulse-glow 2s ease-in-out infinite;
-        }
-        
-        .group:hover .group-hover\\:scale-110 {
-          animation: wiggle 0.8s ease-in-out;
-        }
-      `}</style>
-      <LayoutWrapper 
+    <LayoutWrapper 
         secondaryNavbarProps={{
           searchTerm,
           onSearchChange: handleSearch,
@@ -542,186 +382,274 @@ export default function AnnuairePage() {
           departmentOptions
         }}
       >
-        <div className="min-h-screen" style={{backgroundColor: "#e5e7eb"}}>
-          <main className="container mx-auto px-2 xs:px-3 sm:px-4 md:px-6 lg:px-8 py-4 xs:py-6 sm:py-8 max-w-7xl">
+        <div className="w-full space-y-4 xs:space-y-6">
+          {/* État de chargement et d'erreur - Style actualités */}
+          {(loading || error) && (
+            <StandardLoader 
+              title={loading ? "Chargement de l'annuaire..." : undefined}
+              message={loading ? "Veuillez patienter pendant que nous récupérons les données." : undefined}
+              error={error}
+              showRetry={!!error}
+              onRetry={() => window.location.reload()}
+            />
+          )}
 
-            {/* Compteur de résultats - Affiché seulement s'il y a des employés */}
-            {displayData.length > 0 && (
-              <div className="mb-4 xs:mb-5 sm:mb-6">
-                <div className="flex items-center gap-2 xs:gap-3">
-                  <div className="w-1.5 h-1.5 xs:w-2 xs:h-2 rounded-full bg-primary animate-pulse"></div>
-                  <span className="text-sm xs:text-base sm:text-lg font-semibold text-foreground">
-                    {displayData.length} employé{displayData.length > 1 ? 's' : ''} trouvé{displayData.length > 1 ? 's' : ''}
-                  </span>
+          {/* Contenu principal - Style actualités */}
+          {!loading && !error && (
+            <div className="space-y-4 xs:space-y-6 stagger-animation">
+              {/* Header - Style actualités */}
+              {displayData.length > 0 && (
+                <div className="space-y-3 xs:space-y-4 relative">
+                  <div className="flex items-center gap-2 mb-3 xs:mb-4 px-1 max-w-7xl mx-auto">
+                    <div className="w-1 h-4 xs:h-6 bg-gradient-to-b from-blue-400 to-indigo-400 rounded-full shadow-sm"></div>
+                    <h3 className="text-base xs:text-lg font-semibold text-gray-900">Annuaire des employés</h3>
+                    <Badge variant="secondary" className="ml-2 bg-blue-100 text-blue-800 text-xs xs:text-sm px-2 py-1">
+                      {displayData.length}
+                    </Badge>
+                  </div>
+
+                  {/* Grille des employés - Style actualités moderne */}
+                  <div className="grid grid-cols-1 xs:grid-cols-2 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4 xs:gap-4 sm:gap-5 md:gap-6 max-w-7xl mx-auto">
+                    {displayEmployees.map((employee) => (
+                      employee ? (
+                        <Card
+                          key={employee.id}
+                          className="rounded-xl overflow-hidden group fade-in w-full bg-white border-2 border-gray-200 hover:shadow-2xl transition-all duration-500 hover:-translate-y-1 cursor-pointer"
+                          style={{ borderColor: '#e5e7eb' }}
+                          onMouseEnter={(e) => {
+                            if (typeof window !== 'undefined' && window.innerWidth >= 640) {
+                              e.currentTarget.style.borderColor = "#344256";
+                            }
+                          }}
+                          onMouseLeave={(e) => {
+                            if (typeof window !== 'undefined' && window.innerWidth >= 640) {
+                              e.currentTarget.style.borderColor = "#e5e7eb";
+                            }
+                          }}
+                        >
+                          <CardContent className="p-0 w-full flex flex-col">
+                            {/* Header avec avatar centré - Style actualités */}
+                            <div className="px-4 sm:px-5 pt-4 sm:pt-5 pb-3 sm:pb-4">
+                              <div className="flex flex-col items-center text-center">
+                                {/* Avatar centré */}
+                                <Avatar className="w-20 h-20 sm:w-24 sm:h-24 border-2 border-gray-200 shadow-md group-hover:shadow-lg group-hover:scale-105 transition-all duration-300 mb-3 sm:mb-4">
+                                  <AvatarImage
+                                    src={employee.avatar || "/placeholder-user.jpg"}
+                                    alt={employee.full_name}
+                                    onError={(e) => {
+                                      const target = e.target as HTMLImageElement;
+                                      target.style.display = 'none';
+                                    }}
+                                  />
+                                  <AvatarFallback className="bg-gradient-to-br from-blue-500 to-indigo-600 text-white font-semibold text-lg sm:text-xl">
+                                    {employee.initials}
+                                  </AvatarFallback>
+                                </Avatar>
+                                
+                                {/* Nom centré */}
+                                <h3 
+                                  className="text-base sm:text-lg font-bold text-gray-900 transition-colors line-clamp-2 mb-2 sm:mb-3"
+                                  onMouseEnter={(e) => {
+                                    if (typeof window !== 'undefined' && window.innerWidth >= 640) {
+                                      e.currentTarget.style.color = "#344256";
+                                    }
+                                  }}
+                                  onMouseLeave={(e) => {
+                                    if (typeof window !== 'undefined' && window.innerWidth >= 640) {
+                                      e.currentTarget.style.color = "#111827";
+                                    }
+                                  }}
+                                >
+                                  {employee.full_name}
+                                </h3>
+                                
+                                {/* Poste avec style spécial */}
+                                {employee.position_title && (
+                                  <div className="mb-3 sm:mb-4 w-full">
+                                    <div className="inline-block px-3 sm:px-4 py-1.5 sm:py-2 rounded-lg" style={{ backgroundColor: '#f3f4f6' }}>
+                                      <p className="text-xs sm:text-sm text-gray-700 font-semibold line-clamp-2">
+                                        {employee.position_title}
+                                      </p>
+                                    </div>
+                                  </div>
+                                )}
+                                
+                                {/* Direction */}
+                                {employee.main_direction_name && (
+                                  <Badge variant="outline" className="text-xs bg-blue-50 text-blue-700 border-blue-200 mb-3 sm:mb-4">
+                                    {employee.main_direction_name}
+                                  </Badge>
+                                )}
+                              </div>
+                            </div>
+
+                            {/* Contenu principal - Style actualités */}
+                            <div className="px-4 sm:px-5 pb-4 sm:pb-5 flex-1 flex flex-col">
+
+                              {/* Informations de contact - Toujours affichées */}
+                              <div className="space-y-2 sm:space-y-2.5 mb-4 sm:mb-5 flex-1">
+                                {/* Email - Toujours affiché */}
+                                <div className="flex items-center gap-2 text-sm text-gray-600">
+                                  <Mail className="w-4 h-4 text-gray-400 flex-shrink-0" />
+                                  {employee.email ? (
+                                    <a
+                                      href="#"
+                                      onClick={(e) => {
+                                        e.preventDefault();
+                                        e.stopPropagation();
+                                        const outlookUrl = `https://outlook.office.com/mail/deeplink/compose?to=${encodeURIComponent(employee.email)}`;
+                                        window.open(outlookUrl, '_blank', 'noopener,noreferrer');
+                                      }}
+                                      className="transition-colors truncate"
+                                      style={{ color: '#4b5563' }}
+                                      onMouseEnter={(e) => {
+                                        if (typeof window !== 'undefined' && window.innerWidth >= 640) {
+                                          e.currentTarget.style.color = "#344256";
+                                        }
+                                      }}
+                                      onMouseLeave={(e) => {
+                                        if (typeof window !== 'undefined' && window.innerWidth >= 640) {
+                                          e.currentTarget.style.color = "#4b5563";
+                                        }
+                                      }}
+                                    >
+                                      {employee.email}
+                                    </a>
+                                  ) : (
+                                    <span className="text-gray-600">Non Disponible</span>
+                                  )}
+                                </div>
+                                
+                                {/* Téléphone fixe - Toujours affiché */}
+                                <div className="flex items-center gap-2 text-sm text-gray-600">
+                                  <Phone className="w-4 h-4 text-gray-400 flex-shrink-0" />
+                                  {employee.phone_fixed ? (
+                                    <a 
+                                      href={`tel:${employee.phone_fixed}`} 
+                                      className="transition-colors"
+                                      style={{ color: '#4b5563' }}
+                                      onMouseEnter={(e) => {
+                                        if (typeof window !== 'undefined' && window.innerWidth >= 640) {
+                                          e.currentTarget.style.color = "#344256";
+                                        }
+                                      }}
+                                      onMouseLeave={(e) => {
+                                        if (typeof window !== 'undefined' && window.innerWidth >= 640) {
+                                          e.currentTarget.style.color = "#4b5563";
+                                        }
+                                      }}
+                                    >
+                                      {employee.phone_fixed}
+                                    </a>
+                                  ) : (
+                                    <span className="text-gray-600">Non Disponible</span>
+                                  )}
+                                </div>
+                                
+                                {/* Téléphone mobile - Toujours affiché */}
+                                <div className="flex items-center gap-2 text-sm text-gray-600">
+                                  <Smartphone className="w-4 h-4 text-gray-400 flex-shrink-0" />
+                                  {employee.phone_mobile ? (
+                                    <a 
+                                      href={`tel:${employee.phone_mobile}`} 
+                                      className="transition-colors"
+                                      style={{ color: '#4b5563' }}
+                                      onMouseEnter={(e) => {
+                                        if (typeof window !== 'undefined' && window.innerWidth >= 640) {
+                                          e.currentTarget.style.color = "#344256";
+                                        }
+                                      }}
+                                      onMouseLeave={(e) => {
+                                        if (typeof window !== 'undefined' && window.innerWidth >= 640) {
+                                          e.currentTarget.style.color = "#4b5563";
+                                        }
+                                      }}
+                                    >
+                                      {employee.phone_mobile}
+                                    </a>
+                                  ) : (
+                                    <span className="text-gray-600">Non Disponible</span>
+                                  )}
+                                </div>
+                              </div>
+
+                              {/* Footer avec actions - Style actualités */}
+                              <div className="mt-auto pt-3 border-t border-gray-100">
+                                <div className="flex gap-2">
+                                  <Button
+                                    size="sm"
+                                    variant="outline"
+                                    className="flex-1 text-xs sm:text-sm"
+                                    style={{
+                                      borderColor: "#344256"
+                                    }}
+                                    onClick={(e) => {
+                                      e.stopPropagation();
+                                      const outlookUrl = `https://outlook.office.com/mail/deeplink/compose?to=${encodeURIComponent(employee.email)}`;
+                                      window.open(outlookUrl, '_blank', 'noopener,noreferrer');
+                                    }}
+                                  >
+                                    <Mail className="w-3 h-3 sm:w-4 sm:h-4 mr-1" />
+                                    Email
+                                  </Button>
+                                  <ChatButton employee={employee} className="flex-1">
+                                    <Button 
+                                      size="sm"
+                                      className="w-full text-xs sm:text-sm text-white"
+                                      style={{
+                                        backgroundColor: "#344256",
+                                        borderColor: "#344256"
+                                      }}
+                                      onMouseEnter={(e) => {
+                                        if (typeof window !== 'undefined' && window.innerWidth >= 640) {
+                                          e.currentTarget.style.backgroundColor = "#2a3441";
+                                          e.currentTarget.style.borderColor = "#2a3441";
+                                        }
+                                      }}
+                                      onMouseLeave={(e) => {
+                                        if (typeof window !== 'undefined' && window.innerWidth >= 640) {
+                                          e.currentTarget.style.backgroundColor = "#344256";
+                                          e.currentTarget.style.borderColor = "#344256";
+                                        }
+                                      }}
+                                    >
+                                      <MessageCircle className="w-3 h-3 sm:w-4 sm:h-4 mr-1" />
+                                      Chat
+                                    </Button>
+                                  </ChatButton>
+                                </div>
+                              </div>
+                            </div>
+                          </CardContent>
+                        </Card>
+                      ) : null
+                    ))}
+                  </div>
                 </div>
-              </div>
-            )}
+              )}
 
-            {/* Grille des employés - Responsive optimisée pour tous les écrans */}
-            <div className="grid grid-cols-1 xs:grid-cols-2 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-3 xl:grid-cols-4 gap-3 xs:gap-3 sm:gap-4 md:gap-5 lg:gap-6 mb-6 xs:mb-8">
-              {displayEmployees.map((employee, index) => (
-                employee ? (
-                  <Card 
-                    key={employee.id} 
-                    className="overflow-hidden sm:hover:shadow-2xl sm:hover:-translate-y-2 sm:hover:scale-105 transition-all duration-300 ease-out border-border transform group touch-manipulation"
-                    style={{backgroundColor: "#344256"}}
-                  >
-                    <div className="h-10 xs:h-12 sm:h-14 md:h-16" style={{backgroundColor: "#344256"}} />
-                    <CardContent className="pt-0 px-3 xs:px-4 sm:px-5 md:px-6 pb-3 xs:pb-4 sm:pb-5 md:pb-6">
-                      <div className="flex flex-col items-center -mt-8 xs:-mt-10 sm:-mt-12 md:-mt-14">
-                        <Avatar className="w-14 h-14 xs:w-16 xs:h-16 sm:w-18 sm:h-18 md:w-20 md:h-20 border-2 xs:border-3 sm:border-4 border-white shadow-lg sm:group-hover:scale-110 sm:group-hover:shadow-2xl transition-all duration-300 ease-out">
-                          <AvatarImage
-                            src={employee.avatar || "/placeholder-user.jpg"}
-                            alt={`${employee.full_name}`}
-                            onLoad={() => {
-                              console.log('🖼️ [ANNUAIRE] Image chargée avec succès:', employee.full_name, employee.avatar)
-                            }}
-                            onError={(e) => {
-                              console.error('❌ [ANNUAIRE] Erreur de chargement d\'image:', employee.full_name, employee.avatar)
-                              const target = e.target as HTMLImageElement;
-                              target.style.display = 'none';
-                            }}
-                          />
-                          <AvatarFallback className="bg-primary text-primary-foreground text-xs xs:text-sm sm:text-base md:text-lg lg:text-xl font-semibold">
-                            {employee.initials}
-                          </AvatarFallback>
-                        </Avatar>
-
-                        <div className="text-center mt-2 xs:mt-2.5 sm:mt-3 md:mt-4 mb-2 xs:mb-2.5 sm:mb-3 md:mb-4 sm:group-hover:scale-105 transition-all duration-300 ease-out">
-                          <h3 className="text-xs xs:text-sm sm:text-base md:text-lg lg:text-xl font-bold text-white text-balance leading-tight sm:group-hover:text-yellow-200 transition-colors duration-300 px-1">
-                            {employee.full_name}
-                          </h3>
-                          <div className="mt-1 xs:mt-1.5 sm:mt-2 sm:group-hover:scale-110 transition-transform duration-300 ease-out">
-                            <span className="inline-block bg-white/10 text-white text-[10px] xs:text-xs sm:text-sm font-medium px-2 xs:px-2.5 sm:px-3 py-0.5 xs:py-1 rounded-full border border-white/20 sm:group-hover:bg-yellow-400/20 sm:group-hover:text-yellow-200 sm:group-hover:border-yellow-300/40 sm:group-hover:shadow-lg transition-all duration-300 line-clamp-2">
-                              {employee.position_title}
-                            </span>
-                          </div>
-                        </div>
-
-                        {/* Informations compactes - Responsive */}
-                        <div className="w-full space-y-1 xs:space-y-1.5 sm:space-y-2 md:space-y-2.5 mb-2 xs:mb-2.5 sm:mb-3 md:mb-4 sm:group-hover:translate-x-1 transition-transform duration-300 ease-out">
-                          <div className="flex items-start gap-1.5 xs:gap-2 sm:gap-2.5 text-[10px] xs:text-xs sm:text-sm sm:group-hover:scale-105 transition-transform duration-300 ease-out">
-                            <Mail className="w-3 h-3 xs:w-3.5 xs:h-3.5 sm:w-4 sm:h-4 text-white flex-shrink-0 mt-0.5 sm:group-hover:text-blue-300 sm:group-hover:scale-125 transition-all duration-300 ease-out" />
-                            <a
-                              href="#"
-                              onClick={(e) => {
-                                e.preventDefault();
-                                e.stopPropagation();
-                                // Ouvrir Outlook Web App dans un nouvel onglet avec le destinataire prérempli
-                                const outlookUrl = `https://outlook.office.com/mail/deeplink/compose?to=${encodeURIComponent(employee.email)}`;
-                                window.open(outlookUrl, '_blank', 'noopener,noreferrer');
-                              }}
-                              className="text-gray-200 hover:text-blue-300 active:text-blue-400 transition-colors break-all text-[10px] xs:text-xs sm:text-sm sm:group-hover:text-blue-200 leading-tight cursor-pointer"
-                            >
-                              {employee.email}
-                            </a>
-                          </div>
-
-                          <div className="flex items-center gap-1.5 xs:gap-2 sm:gap-2.5 text-[10px] xs:text-xs sm:text-sm sm:group-hover:scale-105 transition-transform duration-300 ease-out">
-                            <Phone className="w-3 h-3 xs:w-3.5 xs:h-3.5 sm:w-4 sm:h-4 text-white flex-shrink-0 sm:group-hover:text-green-300 sm:group-hover:scale-125 transition-all duration-300 ease-out" />
-                            {employee.phone_fixed ? (
-                              <a href={`tel:${employee.phone_fixed}`} className="text-gray-200 hover:text-blue-300 active:text-blue-400 transition-colors text-[10px] xs:text-xs sm:text-sm sm:group-hover:text-green-200">
-                                {employee.phone_fixed}
-                              </a>
-                            ) : (
-                              <span className="text-gray-400 text-[10px] xs:text-xs sm:text-sm sm:group-hover:text-gray-300">Non renseigné</span>
-                            )}
-                          </div>
-
-                          <div className="flex items-center gap-1.5 xs:gap-2 sm:gap-2.5 text-[10px] xs:text-xs sm:text-sm sm:group-hover:scale-105 transition-transform duration-300 ease-out">
-                            <Smartphone className="w-3 h-3 xs:w-3.5 xs:h-3.5 sm:w-4 sm:h-4 text-white flex-shrink-0 sm:group-hover:text-purple-300 sm:group-hover:scale-125 transition-all duration-300 ease-out" />
-                            {employee.phone_mobile ? (
-                              <a href={`tel:${employee.phone_mobile}`} className="text-gray-200 hover:text-blue-300 active:text-blue-400 transition-colors text-[10px] xs:text-xs sm:text-sm sm:group-hover:text-purple-200">
-                                {employee.phone_mobile}
-                              </a>
-                            ) : (
-                              <span className="text-gray-400 text-[10px] xs:text-xs sm:text-sm sm:group-hover:text-gray-300">Non renseigné</span>
-                            )}
-                          </div>
-                        </div>
-
-                        {/* Boutons - Responsive optimisé */}
-                        <div className="flex gap-1.5 xs:gap-2 sm:gap-2.5 w-full mt-1.5 xs:mt-2 sm:mt-2.5 sm:group-hover:scale-105 sm:group-hover:-translate-y-0.5 transition-all duration-300 ease-out">
-                          <Button
-                            size="sm"
-                            className="flex-1 gap-1 xs:gap-1.5 sm:gap-2 text-[10px] xs:text-xs sm:text-sm h-7 xs:h-8 sm:h-9 px-2 xs:px-2.5 sm:px-3 min-w-0"
-                            style={{
-                              backgroundColor: '#e2e8f0',
-                              color: '#4a5568',
-                              borderColor: '#e2e8f0',
-                              borderWidth: '1px'
-                            }}
-                            onMouseEnter={(e) => {
-                              if (window.innerWidth >= 640) {
-                                e.currentTarget.style.backgroundColor = '#cbd5e0';
-                              }
-                            }}
-                            onMouseLeave={(e) => {
-                              if (window.innerWidth >= 640) {
-                                e.currentTarget.style.backgroundColor = '#e2e8f0';
-                              }
-                            }}
-                            onClick={(e) => {
-                              e.stopPropagation();
-                              // Ouvrir Outlook Web App dans un nouvel onglet avec le destinataire prérempli
-                              const outlookUrl = `https://outlook.office.com/mail/deeplink/compose?to=${encodeURIComponent(employee.email)}`;
-                              window.open(outlookUrl, '_blank', 'noopener,noreferrer');
-                            }}
-                          >
-                            <Mail className="w-3 h-3 xs:w-3.5 xs:h-3.5 sm:w-4 sm:h-4 flex-shrink-0" />
-                            <span className="hidden xs:inline truncate">Email</span>
-                          </Button>
-                          <ChatButton employee={employee} className="flex-1 min-w-0">
-                            <Button 
-                              size="sm" 
-                              className="w-full gap-1 xs:gap-1.5 sm:gap-2 text-[10px] xs:text-xs sm:text-sm h-7 xs:h-8 sm:h-9 px-2 xs:px-2.5 sm:px-3 min-w-0"
-                              style={{
-                                backgroundColor: '#4a5568',
-                                color: 'white',
-                                borderColor: '#4a5568',
-                                borderWidth: '1px'
-                              }}
-                              onMouseEnter={(e) => {
-                                if (window.innerWidth >= 640) {
-                                  e.currentTarget.style.backgroundColor = '#2d3748';
-                                }
-                              }}
-                              onMouseLeave={(e) => {
-                                if (window.innerWidth >= 640) {
-                                  e.currentTarget.style.backgroundColor = '#4a5568';
-                                }
-                              }}
-                            >
-                              <MessageCircle className="w-3 h-3 xs:w-3.5 xs:h-3.5 sm:w-4 sm:h-4 flex-shrink-0" />
-                              <span className="hidden xs:inline truncate">Chat</span>
-                            </Button>
-                          </ChatButton>
-                        </div>
+              {/* Empty State - Style actualités */}
+              {displayData.length === 0 && (
+                <div className="max-w-7xl mx-auto">
+                  <Card className="p-8 xs:p-12 text-center rounded-lg">
+                    <div className="space-y-3 xs:space-y-4">
+                      <div className="w-12 h-12 xs:w-16 xs:h-16 bg-muted rounded-full flex items-center justify-center mx-auto">
+                        <Search className="h-6 w-6 xs:h-8 xs:w-8 text-muted-foreground" />
                       </div>
-                    </CardContent>
+                      <div>
+                        <h3 className="text-base xs:text-lg font-semibold">Aucun employé trouvé</h3>
+                        <p className="text-sm text-gray-500 mt-1">Essayez de modifier vos critères de recherche</p>
+                      </div>
+                    </div>
                   </Card>
-                ) : null
-              ))}
-            </div>
-
-            {/* Empty State - Responsive */}
-            {displayData.length === 0 && (
-              <Card className="p-6 xs:p-8 sm:p-10 md:p-12 text-center rounded-lg">
-                <div className="space-y-3 xs:space-y-4">
-                  <div className="w-12 h-12 xs:w-14 xs:h-14 sm:w-16 sm:h-16 bg-muted rounded-full flex items-center justify-center mx-auto">
-                    <Search className="h-6 w-6 xs:h-7 xs:w-7 sm:h-8 sm:w-8 text-muted-foreground" />
-                  </div>
-                  <div>
-                    <h3 className="text-base xs:text-lg sm:text-xl font-semibold">Aucun employé trouvé</h3>
-                    <p className="text-sm xs:text-base text-muted-foreground mt-2">Essayez de modifier vos critères de recherche</p>
-                  </div>
                 </div>
-              </Card>
-            )}
+              )}
+            </div>
+          )}
 
-            {/* Pagination - Responsive optimisée */}
-            {totalPages > 1 && (
-              <div className="flex items-center justify-center gap-1.5 xs:gap-2 sm:gap-2.5 flex-wrap">
+          {/* Pagination - Style actualités */}
+          {!loading && !error && totalPages > 1 && (
+            <div className="flex items-center justify-center gap-2 sm:gap-3 flex-wrap max-w-7xl mx-auto">
                 <Button
                   onClick={goToPreviousPage}
                   disabled={currentPage === 1}
@@ -811,10 +739,7 @@ export default function AnnuairePage() {
                 </Button>
               </div>
             )}
-          </main>
         </div>
-
       </LayoutWrapper>
-    </>
   )
 }

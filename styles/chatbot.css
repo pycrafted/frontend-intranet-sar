@@ -147,12 +147,12 @@
 }
 
 .saria-messages-container::-webkit-scrollbar-thumb {
-  background: rgba(var(--muted-foreground), 0.2);
+  background: rgba(107, 114, 128, 0.2); /* Couleur fixe - ne change pas en mode sombre */
   border-radius: 2px;
 }
 
 .saria-messages-container::-webkit-scrollbar-thumb:hover {
-  background: rgba(var(--muted-foreground), 0.3);
+  background: rgba(107, 114, 128, 0.3); /* Couleur fixe - ne change pas en mode sombre */
 }
 
 /* Effet de glassmorphism pour la fenêtre de chat */

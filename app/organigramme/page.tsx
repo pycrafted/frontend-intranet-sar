@@ -7,10 +7,15 @@ import { useOrgChart, Employee } from "@/hooks/useOrgChart"
 
 interface OrganigrammePageProps {
   isMainSidebarCollapsed?: boolean
+  selectedDepartment: string
+  setSelectedDepartment: (department: string) => void
 }
 
-function OrganigrammePageContent({ isMainSidebarCollapsed = false }: OrganigrammePageProps) {
-  const [selectedDepartment, setSelectedDepartment] = useState("Direction Générale")
+function OrganigrammePageContent({ 
+  isMainSidebarCollapsed = false,
+  selectedDepartment,
+  setSelectedDepartment
+}: OrganigrammePageProps) {
   const [selectedEmployee, setSelectedEmployee] = useState<Employee | null>(null)
   
   const { employees, departments, loading, error, searchEmployees } = useOrgChart()
@@ -116,7 +121,10 @@ export default function OrganigrammePage() {
         departmentOptions
       }}
     >
-      <OrganigrammePageContent />
+      <OrganigrammePageContent 
+        selectedDepartment={selectedDepartment}
+        setSelectedDepartment={setSelectedDepartment}
+      />
     </LayoutWrapper>
   )
 }

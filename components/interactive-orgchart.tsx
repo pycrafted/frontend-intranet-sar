@@ -509,7 +509,6 @@ const InteractiveOrgChart: React.FC<OrgChartProps> = ({ employees, loading = fal
             <Users className="w-8 h-8" />
           </div>
           <p className="text-lg mb-2">Aucun employé trouvé</p>
-          <p className="text-sm opacity-80">Ajoutez des employés dans l'administration Django</p>
           <p className="text-xs opacity-60 mt-2">
             Debug: {employees?.length || 0} employés reçus
           </p>

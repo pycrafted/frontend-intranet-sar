@@ -819,11 +819,11 @@ body {
 
 /* Gradients avec fallbacks pour Edge */
 .gradient-fallback {
-  background: #ef4444; /* Fallback pour Edge */
-  background: -webkit-linear-gradient(to right, #ef4444, #dc2626);
-  background: -moz-linear-gradient(to right, #ef4444, #dc2626);
-  background: -ms-linear-gradient(to right, #ef4444, #dc2626);
-  background: linear-gradient(to right, #ef4444, #dc2626);
+  background: #344256; /* Fallback pour Edge */
+  background: -webkit-linear-gradient(to right, #344256, #344256);
+  background: -moz-linear-gradient(to right, #344256, #344256);
+  background: -ms-linear-gradient(to right, #344256, #344256);
+  background: linear-gradient(to right, #344256, #344256);
 }
 
 /* Backdrop-filter fallback pour Edge */
@@ -2593,41 +2593,42 @@ body {
 }
 
 .dark {
-  --background: 222 84% 5%; /* Dark slate background */
-  --foreground: 210 40% 98%; /* Light text */
-  --card: 222 84% 5%; /* Dark card background */
-  --card-foreground: 210 40% 98%; /* Light text on cards */
-  --popover: 222 84% 5%; /* Dark popover background */
-  --popover-foreground: 210 40% 98%; /* Light text in popovers */
-  --primary: 210 40% 98%; /* Light primary in dark mode */
-  --primary-foreground: 222 84% 5%; /* Dark text on light primary */
-  --secondary: 215 20% 65%; /* Medium gray secondary */
-  --secondary-foreground: 210 40% 98%; /* Light text for secondary */
-  --muted: 222 84% 5%; /* Dark muted background */
-  --muted-foreground: 215 20% 65%; /* Medium light muted text */
-  --accent: 262 83% 70%; /* Brighter purple accent for dark mode */
-  --accent-foreground: 210 40% 98%; /* Light text on accent */
-  --destructive: 0 84% 60%; /* Bright red for dark mode */
-  --destructive-foreground: 210 40% 98%; /* Light text on destructive */
-  --border: 215 25% 27%; /* Medium dark borders */
-  --input: 222 84% 5%; /* Dark input backgrounds */
-  --ring: 262 83% 70% / 0.5; /* Brighter purple focus ring */
+  /* Mode sombre désactivé - utilise les mêmes couleurs que le mode clair */
+  --background: 0 0% 100%; /* Pure white main content background */
+  --foreground: 215 25% 27%; /* Primary text color (gray-800) */
+  --card: 210 40% 98%; /* Light gray card background */
+  --card-foreground: 215 25% 27%; /* Text color on cards */
+  --popover: 0 0% 100%; /* Popover background */
+  --popover-foreground: 215 25% 27%; /* Text color in popovers */
+  --primary: 215 25% 27%; /* Navbar and footer background (gray-800) */
+  --primary-foreground: 0 0% 100%; /* White text on primary elements */
+  --secondary: 215 16% 47%; /* Secondary text color (gray-500) */
+  --secondary-foreground: 215 25% 27%; /* Text color for secondary elements */
+  --muted: 210 40% 98%; /* Muted backgrounds */
+  --muted-foreground: 215 16% 47%; /* Muted text */
+  --accent: 262 83% 58%; /* Professional purple accent */
+  --accent-foreground: 0 0% 100%; /* White text on accent elements */
+  --destructive: 0 84% 60%; /* Red for destructive actions */
+  --destructive-foreground: 0 0% 100%; /* White text on destructive elements */
+  --border: 214 32% 91%; /* Light gray borders */
+  --input: 210 40% 98%; /* Input backgrounds */
+  --ring: 262 83% 58% / 0.5; /* Purple focus ring */
   --chart-1: 238 100% 67%;
   --chart-2: 213 93% 68%;
   --chart-3: 142 76% 36%;
   --chart-4: 45 93% 47%;
   --chart-5: 0 84% 60%;
-  --sidebar: 222 84% 5%; /* Dark sidebar background */
-  --sidebar-foreground: 210 40% 98%; /* Light sidebar text */
-  --sidebar-primary: 210 40% 98%; /* Light sidebar primary */
-  --sidebar-primary-foreground: 222 84% 5%; /* Dark text on light sidebar primary */
-  --sidebar-accent: 262 83% 70%; /* Bright purple sidebar accent */
-  --sidebar-accent-foreground: 210 40% 98%; /* Light text on sidebar accent */
-  --sidebar-border: 215 25% 27%; /* Dark sidebar borders */
-  --sidebar-ring: 262 83% 70% / 0.5; /* Bright purple sidebar focus ring */
-  --navbar: 222 84% 5%; /* Very dark navbar */
-  --navbar-foreground: 210 40% 98%; /* Light navbar text */
-  --navbar-border: 215 25% 27%; /* Dark navbar border */
+  --sidebar: 210 40% 98%; /* Light gray sidebar background */
+  --sidebar-foreground: 215 25% 27%; /* Dark text in sidebar */
+  --sidebar-primary: 215 25% 27%; /* Dark primary elements in sidebar */
+  --sidebar-primary-foreground: 0 0% 100%; /* White text on sidebar primary */
+  --sidebar-accent: 262 83% 58%; /* Purple accent in sidebar */
+  --sidebar-accent-foreground: 0 0% 100%; /* White text on sidebar accent */
+  --sidebar-border: 214 32% 91%; /* Light gray sidebar borders */
+  --sidebar-ring: 262 83% 58% / 0.5; /* Purple focus ring in sidebar */
+  --navbar: 215 25% 27%; /* Dark navbar background */
+  --navbar-foreground: 0 0% 100%; /* White text in navbar */
+  --navbar-border: 215 20% 35%; /* Slightly lighter border for navbar */
 }
 
 @theme inline {
@@ -2970,6 +2971,74 @@ body {
   .custom-scrollbar::-webkit-scrollbar-thumb:hover {
     background: #94a3b8;
   }
+
+  /* Scrollbars globaux - même apparence en mode sombre */
+  *::-webkit-scrollbar {
+    width: 8px;
+    height: 8px;
+  }
+
+  *::-webkit-scrollbar-track {
+    background: #f1f5f9;
+    border-radius: 4px;
+  }
+
+  *::-webkit-scrollbar-thumb {
+    background: #cbd5e1;
+    border-radius: 4px;
+  }
+
+  *::-webkit-scrollbar-thumb:hover {
+    background: #94a3b8;
+  }
+
+  /* Scrollbars pour Firefox - même apparence en mode sombre */
+  * {
+    scrollbar-width: thin;
+    scrollbar-color: #cbd5e1 #f1f5f9;
+  }
+}
+
+/* Scrollbars globaux - même apparence en mode clair et sombre */
+*::-webkit-scrollbar {
+  width: 8px;
+  height: 8px;
+}
+
+*::-webkit-scrollbar-track {
+  background: #f1f5f9 !important;
+  border-radius: 4px;
+}
+
+*::-webkit-scrollbar-thumb {
+  background: #cbd5e1 !important;
+  border-radius: 4px;
+}
+
+*::-webkit-scrollbar-thumb:hover {
+  background: #94a3b8 !important;
+}
+
+* {
+  scrollbar-width: thin !important;
+  scrollbar-color: #cbd5e1 #f1f5f9 !important;
+}
+
+/* Forcer les scrollbars à garder la même apparence en mode sombre */
+.dark *::-webkit-scrollbar-track {
+  background: #f1f5f9 !important;
+}
+
+.dark *::-webkit-scrollbar-thumb {
+  background: #cbd5e1 !important;
+}
+
+.dark *::-webkit-scrollbar-thumb:hover {
+  background: #94a3b8 !important;
+}
+
+.dark * {
+  scrollbar-color: #cbd5e1 #f1f5f9 !important;
 }
 
 /* Styles pour l'affichage des textes longs - Responsive */

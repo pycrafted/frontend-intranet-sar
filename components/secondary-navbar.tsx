@@ -4,6 +4,7 @@ import { Search, X, Building, Calendar } from "lucide-react"
 import { useState } from "react"
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
 import { useAuth } from "@/hooks/useAuth"
+import { usePathname } from "next/navigation"
 
 interface SecondaryNavbarProps {
   searchTerm?: string
@@ -47,10 +48,43 @@ export function SecondaryNavbar({
 }: SecondaryNavbarProps) {
   const [searchFocused, setSearchFocused] = useState(false)
   const { isAuthenticated } = useAuth()
+  const pathname = usePathname()
   
   // Masquer le champ de recherche si les props ne sont pas fournies
   // Utiliser une vérification stricte pour éviter les problèmes d'hydratation
   const showSearch = Boolean(searchTerm !== undefined && onSearchChange !== undefined && searchPlaceholder)
+  
+  // Déterminer la couleur de fond selon la page
+  const backgroundColor = pathname === "/securite" ? "#344257" : "white"
+  const textColor = pathname === "/securite" ? "white" : "inherit"
+  const borderColor = pathname === "/securite" ? "rgba(255, 255, 255, 0.1)" : "#e5e7eb"
+  
+  // Construire le message pour la page sécurité
+  const buildSecurityMessage = () => {
+    const steps: string[] = []
+    let stepNumber = 1
+    
+    // Étape 1: Vidéos (combinaison des points 1 et 2)
+    steps.push(`${stepNumber}) Visionnez les différentes vidéos de la page concernant la sécurité`)
+    stepNumber++
+    
+    // Étape 2: PDF
+    steps.push(`${stepNumber}) Lisez les PDF sur la sécurité et le règlement intérieur de la SAR`)
+    stepNumber++
+    
+    // Étape 3: Quiz
+    steps.push(`${stepNumber}) Répondez aux quiz`)
+    stepNumber++
+    
+    // Étape 4: Recommandation
+    steps.push(`${stepNumber}) Si vous n'avez pas un score parfait, veuillez recommencer pour vous améliorer`)
+    
+    return steps.join(" • ")
+  }
+  
+  const securityMessage = pathname === "/securite" ? buildSecurityMessage() : ""
+  // Dupliquer le message plusieurs fois pour un défilement fluide sans saccade
+  const duplicatedSecurityMessage = pathname === "/securite" ? Array(5).fill(securityMessage).join(" • ") : ""
 
   // Gestion du changement de département avec vérification de connexion
   const handleDepartmentChange = (value: string) => {
@@ -62,15 +96,43 @@ export function SecondaryNavbar({
   }
 
   return (
-    <header className="w-full border-b border-gray-200 bg-white shadow-sm sticky top-12 xs:top-14 sm:top-16 z-30">
-      <div className="flex h-12 xs:h-14 sm:h-16 items-center justify-center px-2 xs:px-3 sm:px-4 lg:px-6">
+    <header 
+      className={`w-full border-b shadow-sm sticky top-12 xs:top-14 sm:top-16 z-30 ${
+        pathname === "/securite" ? "border-t-2 border-t-white" : ""
+      }`}
+      style={{ 
+        backgroundColor: backgroundColor,
+        borderColor: borderColor,
+        color: textColor
+      }}
+    >
+      <div className="flex h-12 xs:h-14 sm:h-16 items-center justify-center px-2 xs:px-3 sm:px-4 lg:px-6 relative overflow-hidden">
+        {/* Message défilant pour la page sécurité */}
+        {pathname === "/securite" && (
+          <div className="absolute inset-0 flex items-center overflow-hidden">
+            <div
+              className="whitespace-nowrap flex items-center h-full security-marquee-left"
+              style={{
+                animationDuration: "90s",
+                willChange: 'transform'
+              }}
+            >
+              <span className="text-xs xs:text-sm sm:text-base font-semibold px-2 text-white">
+                {duplicatedSecurityMessage}
+              </span>
+            </div>
+          </div>
+        )}
+        
         {/* Conteneur responsive avec recherche et filtre */}
-        <div className="flex flex-col xs:flex-row items-stretch xs:items-center justify-center gap-2 xs:gap-3 sm:gap-4 w-full max-w-7xl">
+        <div className={`flex flex-col xs:flex-row items-stretch xs:items-center justify-center gap-2 xs:gap-3 sm:gap-4 w-full max-w-7xl ${pathname === "/securite" ? "opacity-0 pointer-events-none" : ""}`}>
           {/* Champ de recherche - responsive - masqué si showSearch est false */}
           {showSearch && (
           <div className="relative w-full xs:max-w-xs sm:max-w-md lg:max-w-xl">
             <Search className={`absolute left-2 xs:left-3 top-1/2 transform -translate-y-1/2 h-3 w-3 xs:h-4 xs:w-4 transition-colors ${
-              searchFocused ? 'text-blue-500' : 'text-gray-400'
+              searchFocused 
+                ? pathname === "/securite" ? 'text-blue-300' : 'text-blue-500'
+                : pathname === "/securite" ? 'text-gray-300' : 'text-gray-400'
             }`} />
             <input
               type="text"
@@ -82,8 +144,12 @@ export function SecondaryNavbar({
               onBlur={() => setSearchFocused(false)}
               className={`w-full pl-7 xs:pl-8 sm:pl-10 pr-7 xs:pr-8 sm:pr-10 py-2 xs:py-2.5 sm:py-3 text-xs xs:text-sm border-2 rounded-lg transition-all duration-200 ${
                 searchFocused 
-                  ? 'border-blue-500 ring-2 ring-blue-100 bg-white shadow-md' 
-                  : 'border-gray-300 hover:border-gray-400 bg-white'
+                  ? pathname === "/securite"
+                    ? 'border-blue-400 ring-2 ring-blue-900/30 bg-gray-700/50 shadow-md text-white placeholder-gray-400'
+                    : 'border-blue-500 ring-2 ring-blue-100 bg-white shadow-md'
+                  : pathname === "/securite"
+                    ? 'border-gray-500 hover:border-gray-400 bg-gray-700/30 text-white placeholder-gray-400'
+                    : 'border-gray-300 hover:border-gray-400 bg-white'
               }`}
             />
             {searchTerm && (
@@ -118,7 +184,11 @@ export function SecondaryNavbar({
               {/* Filtre par département - responsive - seulement si showDepartmentFilter est true */}
               {showDepartmentFilter && (
                 <div className={`flex items-center gap-1 xs:gap-2 ${showSearch ? 'flex-1 xs:flex-none' : 'w-full'}`}>
-                  <Building className={`h-3 w-3 xs:h-4 xs:w-4 sm:h-5 sm:w-5 flex-shrink-0 ${isAuthenticated ? 'text-slate-500' : 'text-gray-300'}`} />
+                  <Building className={`h-3 w-3 xs:h-4 xs:w-4 sm:h-5 sm:w-5 flex-shrink-0 ${
+                    pathname === "/securite"
+                      ? isAuthenticated ? 'text-gray-300' : 'text-gray-600'
+                      : isAuthenticated ? 'text-slate-500' : 'text-gray-300'
+                  }`} />
                   <Select 
                     value={selectedDepartment} 
                     onValueChange={handleDepartmentChange}
@@ -126,9 +196,13 @@ export function SecondaryNavbar({
                   >
                     <SelectTrigger 
                       className={`w-full ${showSearch ? 'xs:w-32 sm:w-40 lg:w-48' : 'xs:w-64 sm:w-80 lg:w-96'} h-8 xs:h-9 sm:h-10 lg:h-12 border-2 text-xs xs:text-sm rounded-lg ${
-                        isAuthenticated 
-                          ? 'border-slate-300 focus:border-blue-500 focus:ring-blue-500 cursor-pointer' 
-                          : 'border-gray-200 bg-gray-50 cursor-not-allowed opacity-60'
+                        pathname === "/securite"
+                          ? isAuthenticated
+                            ? 'border-gray-500 focus:border-blue-400 focus:ring-blue-400 cursor-pointer bg-gray-700/30 text-white'
+                            : 'border-gray-600 bg-gray-800/30 cursor-not-allowed opacity-60 text-gray-400'
+                          : isAuthenticated 
+                            ? 'border-slate-300 focus:border-blue-500 focus:ring-blue-500 cursor-pointer' 
+                            : 'border-gray-200 bg-gray-50 cursor-not-allowed opacity-60'
                       }`}
                     >
                       <SelectValue placeholder="Département" />
@@ -147,9 +221,15 @@ export function SecondaryNavbar({
               {/* Filtre par période - responsive - seulement si showTimeFilter est true */}
               {showTimeFilter && (
                 <div className="flex items-center gap-1 xs:gap-2 flex-1 xs:flex-none">
-                  <Calendar className="h-3 w-3 xs:h-4 xs:w-4 sm:h-5 sm:w-5 text-slate-500 flex-shrink-0" />
+                  <Calendar className={`h-3 w-3 xs:h-4 xs:w-4 sm:h-5 sm:w-5 flex-shrink-0 ${
+                    pathname === "/securite" ? 'text-gray-300' : 'text-slate-500'
+                  }`} />
                   <Select value={selectedTimeFilter} onValueChange={onTimeFilterChange}>
-                    <SelectTrigger className="w-full xs:w-32 sm:w-36 lg:w-40 h-8 xs:h-9 sm:h-10 lg:h-12 border-slate-300 focus:border-blue-500 focus:ring-blue-500 text-xs xs:text-sm">
+                    <SelectTrigger className={`w-full xs:w-32 sm:w-36 lg:w-40 h-8 xs:h-9 sm:h-10 lg:h-12 text-xs xs:text-sm ${
+                      pathname === "/securite"
+                        ? 'border-gray-500 focus:border-blue-400 focus:ring-blue-400 bg-gray-700/30 text-white'
+                        : 'border-slate-300 focus:border-blue-500 focus:ring-blue-500'
+                    }`}>
                       <SelectValue placeholder="Période" />
                     </SelectTrigger>
                     <SelectContent>

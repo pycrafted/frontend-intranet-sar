@@ -8,6 +8,7 @@ import { Label } from '@/components/ui/label'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 import { Upload, FileText, X, AlertCircle } from 'lucide-react'
 import { useDocuments, type DocumentUpload } from '@/hooks/useDocuments'
+import { useAuth } from '@/hooks/useAuth'
 
 interface DocumentUploadProps {
   onUploadSuccess?: () => void
@@ -39,6 +40,7 @@ export function DocumentUpload({
   const fileInputRef = useRef<HTMLInputElement>(null)
 
   const { uploadDocument } = useDocuments()
+  const { user, isAuthenticated } = useAuth()
 
   const handleFileSelect = (event: React.ChangeEvent<HTMLInputElement>) => {
     const file = event.target.files?.[0]
@@ -70,6 +72,12 @@ export function DocumentUpload({
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
+    
+    // Vérifier l'authentification avant d'autoriser l'upload
+    if (!isAuthenticated || !user) {
+      setError('Vous devez être connecté pour uploader un document')
+      return
+    }
     
     if (!selectedFile) {
       setError('Veuillez sélectionner un fichier PDF')
@@ -144,10 +152,17 @@ export function DocumentUpload({
   if (showAsButton && !isOpen && !isModal) {
     return (
       <Button
-        onClick={() => setIsOpen(true)}
+        onClick={() => {
+          if (!isAuthenticated || !user) {
+            setError('Vous devez être connecté pour uploader un document')
+            return
+          }
+          setIsOpen(true)
+        }}
         className="gap-2"
         variant="outline"
         data-upload-trigger={dataUploadTrigger}
+        disabled={!isAuthenticated || !user}
       >
         <Upload className="h-4 w-4" />
         {buttonText}

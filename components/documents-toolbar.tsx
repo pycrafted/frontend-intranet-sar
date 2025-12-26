@@ -3,6 +3,7 @@
 import { Plus, Upload, LayoutGrid, List } from "lucide-react"
 import { Button } from "@/components/ui/button"
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from "@/components/ui/dropdown-menu"
+import { useAuth } from "@/hooks/useAuth"
 
 type DocumentsToolbarProps = {
   viewMode: "grid" | "list"
@@ -12,34 +13,38 @@ type DocumentsToolbarProps = {
 }
 
 export function DocumentsToolbar({ viewMode, onViewModeChange, onCreateFolder, onUpload }: DocumentsToolbarProps) {
+  const { isAuthenticated } = useAuth()
+  
   return (
     <div className="mb-6 flex items-center justify-between">
       <div className="flex items-center gap-2">
-        <DropdownMenu>
-          <DropdownMenuTrigger asChild>
-            <Button className="gap-2 bg-primary text-primary-foreground hover:bg-primary/90">
-              <Plus className="h-5 w-5" />
-              Nouveau
-            </Button>
-          </DropdownMenuTrigger>
-          <DropdownMenuContent align="start" className="w-56">
-            <DropdownMenuItem onClick={onCreateFolder}>
-              <svg className="mr-2 h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                <path
-                  strokeLinecap="round"
-                  strokeLinejoin="round"
-                  strokeWidth={2}
-                  d="M3 7v10a2 2 0 002 2h14a2 2 0 002-2V9a2 2 0 00-2-2h-6l-2-2H5a2 2 0 00-2 2z"
-                />
-              </svg>
-              Nouveau dossier
-            </DropdownMenuItem>
-            <DropdownMenuItem onClick={onUpload}>
-              <Upload className="mr-2 h-5 w-5" />
-              Importer des fichiers
-            </DropdownMenuItem>
-          </DropdownMenuContent>
-        </DropdownMenu>
+        {isAuthenticated && (
+          <DropdownMenu>
+            <DropdownMenuTrigger asChild>
+              <Button className="gap-2 bg-primary text-primary-foreground hover:bg-primary/90">
+                <Plus className="h-5 w-5" />
+                Nouveau
+              </Button>
+            </DropdownMenuTrigger>
+            <DropdownMenuContent align="start" className="w-56">
+              <DropdownMenuItem onClick={onCreateFolder}>
+                <svg className="mr-2 h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                  <path
+                    strokeLinecap="round"
+                    strokeLinejoin="round"
+                    strokeWidth={2}
+                    d="M3 7v10a2 2 0 002 2h14a2 2 0 002-2V9a2 2 0 00-2-2h-6l-2-2H5a2 2 0 00-2 2z"
+                  />
+                </svg>
+                Nouveau dossier
+              </DropdownMenuItem>
+              <DropdownMenuItem onClick={onUpload}>
+                <Upload className="mr-2 h-5 w-5" />
+                Importer des fichiers
+              </DropdownMenuItem>
+            </DropdownMenuContent>
+          </DropdownMenu>
+        )}
       </div>
 
       <div className="flex items-center gap-1 rounded-lg p-1" style={{ backgroundColor: '#344256' }}>

@@ -25,7 +25,7 @@ export default function HomePage() {
       <LayoutWrapper>
         <div className="flex items-center justify-center min-h-[400px]">
           <div className="flex items-center gap-2">
-            <div className="w-6 h-6 border-2 border-red-600 border-t-transparent rounded-full animate-spin" />
+            <div className="w-6 h-6 border-2 border-t-transparent rounded-full animate-spin" style={{ borderColor: "#344256" }} />
           </div>
         </div>
       </LayoutWrapper>
@@ -37,7 +37,7 @@ export default function HomePage() {
       <div className="space-y-4 sm:space-y-6 lg:space-y-8">
         {/* Hero Section Optimisée pour Edge - Design principal - Visible uniquement si connecté */}
         {isAuthenticated && user && (
-          <div className="gradient-fallback bg-gradient-to-r from-red-600 to-red-700 rounded-lg p-3 sm:p-4 md:p-6 lg:p-8 text-white edge-optimized-hero">
+          <div className="gradient-fallback rounded-lg p-3 sm:p-4 md:p-6 lg:p-8 text-white edge-optimized-hero" style={{ backgroundColor: "#344256" }}>
             <div className="w-full">
               {/* Sur petits écrans : afficher uniquement la date */}
               <div className="flex items-center justify-center gap-3 bg-white/10 rounded-md p-3 sm:hidden">

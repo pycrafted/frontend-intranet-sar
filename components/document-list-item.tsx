@@ -4,6 +4,7 @@ import type { FileItem } from "./documents-page"
 import { MoreVertical, Folder, FileText, Trash2, Eye, Edit3, Download } from "lucide-react"
 import { Button } from "@/components/ui/button"
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from "@/components/ui/dropdown-menu"
+import { useAuth } from "@/hooks/useAuth"
 
 type DocumentListItemProps = {
   item: FileItem
@@ -15,6 +16,7 @@ type DocumentListItemProps = {
 }
 
 export function DocumentListItem({ item, onDelete, onFolderClick, onView, onRename, onDownload }: DocumentListItemProps) {
+  const { isAuthenticated } = useAuth()
   const getFileIcon = () => {
     if (item.type === "folder") {
       return <Folder className="h-5 w-5 text-primary" />
@@ -83,16 +85,18 @@ export function DocumentListItem({ item, onDelete, onFolderClick, onView, onRena
                 Télécharger
               </DropdownMenuItem>
             )}
-            {onRename && (
+            {isAuthenticated && onRename && (
               <DropdownMenuItem onClick={() => onRename(item.id, item.name)}>
                 <Edit3 className="mr-2 h-4 w-4" />
                 Renommer
               </DropdownMenuItem>
             )}
-            <DropdownMenuItem className="text-destructive focus:text-destructive" onClick={() => onDelete(item.id)}>
-              <Trash2 className="mr-2 h-4 w-4" />
-              Supprimer
-            </DropdownMenuItem>
+            {isAuthenticated && (
+              <DropdownMenuItem className="text-destructive focus:text-destructive" onClick={() => onDelete(item.id)}>
+                <Trash2 className="mr-2 h-4 w-4" />
+                Supprimer
+              </DropdownMenuItem>
+            )}
           </DropdownMenuContent>
         </DropdownMenu>
       </div>

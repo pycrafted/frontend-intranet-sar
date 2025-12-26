@@ -161,8 +161,8 @@ export function LayoutWrapper({ children, secondaryNavbarProps, sidebarProps }: 
             ) : (pathname === "/forum" || pathname?.startsWith("/forum/")) ? (
               isSecondarySidebarCollapsed ? "lg:ml-20" : "lg:ml-80"
             ) : ""}`}>
-      {/* Secondary Navbar pour les pages actualités, organigramme, annuaire, documents - dans la zone de contenu */}
-      {(pathname === "/actualites" || pathname === "/organigramme" || pathname === "/annuaire" || pathname === "/documents") && (
+      {/* Secondary Navbar pour les pages actualités, organigramme, annuaire, documents, sécurité - dans la zone de contenu */}
+      {(pathname === "/actualites" || pathname === "/organigramme" || pathname === "/annuaire" || pathname === "/documents" || pathname === "/securite") && (
         <SecondaryNavbar 
           {...secondaryNavbarProps} 
           showFilter={pathname === "/organigramme" || pathname === "/actualites"}

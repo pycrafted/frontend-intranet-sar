@@ -24,17 +24,18 @@ export function ResponsiveFloatingButton({
   return (
     <div className={cn("relative", className)}>
       {/* Effet de pulsation */}
-      <div className="absolute inset-0 rounded-full bg-gradient-to-r from-red-500 to-pink-600 animate-ping opacity-20"></div>
-      <div className="absolute inset-0 rounded-full bg-gradient-to-r from-red-500 to-pink-600 animate-pulse opacity-30"></div>
+      <div className="absolute inset-0 rounded-full animate-ping opacity-20" style={{ backgroundColor: "#344256" }}></div>
+      <div className="absolute inset-0 rounded-full animate-pulse opacity-30" style={{ backgroundColor: "#344256" }}></div>
       
       <Button
         onClick={onClick}
         size="icon"
         className={cn(
-          "relative rounded-full bg-gradient-to-br from-red-500 via-pink-600 to-orange-500 text-white shadow-2xl hover:shadow-3xl transition-all duration-500 hover:scale-110 hover:rotate-3 saria-floating-button",
+          "relative rounded-full text-white shadow-2xl hover:shadow-3xl transition-all duration-500 hover:scale-110 hover:rotate-3 saria-floating-button",
           // Tailles responsives
           isSmallMobile ? "h-12 w-12" : isMobile ? "h-14 w-14" : isTablet ? "h-16 w-16" : "h-16 w-16"
         )}
+        style={{ backgroundColor: "#344256" }}
         aria-label="Ouvrir le chat MAÏ"
       >
         <div className="relative">

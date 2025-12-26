@@ -20,7 +20,9 @@ import {
   Loader2,
   ArrowRight,
   Lightbulb,
-  ExternalLink
+  ExternalLink,
+  ChevronLeft,
+  ChevronRight
 } from "lucide-react"
 import { useProjects, Project } from "@/hooks/useProjects"
 
@@ -328,7 +330,7 @@ export function ProjectsWidget() {
                   className="group relative h-full flex flex-col"
                 >
                   {/* Section Image */}
-                  <div className="relative h-40 sm:h-48 md:h-56 overflow-hidden flex-shrink-0 rounded-xl mb-4">
+                  <div className="relative h-40 sm:h-48 md:h-56 overflow-hidden flex-shrink-0 rounded-xl mb-4 border-l-4 border-blue-500">
                     {projectImage && projectImage !== '/placeholder.jpg' ? (
                       <Image
                         src={projectImage}
@@ -345,6 +347,43 @@ export function ProjectsWidget() {
                     
                     {/* Overlay Gradient */}
                     <div className="absolute inset-0 bg-gradient-to-t from-black/60 via-black/20 to-transparent" />
+                    
+                    {/* Flèches de pagination - Sur l'image */}
+                    {normalizedProjects.length > 1 && (
+                      <>
+                        {/* Flèche gauche */}
+                        <Button
+                          variant="ghost"
+                          size="icon"
+                          onClick={(e) => {
+                            e.stopPropagation()
+                            setCurrentProjectIndex((prev) => 
+                              prev === 0 ? normalizedProjects.length - 1 : prev - 1
+                            )
+                          }}
+                          className="absolute left-2 top-1/2 -translate-y-1/2 z-20 h-8 w-8 sm:h-10 sm:w-10 text-white hover:bg-white/30 bg-white/20 backdrop-blur-sm border border-white/30 rounded-full shadow-lg hover:scale-110 transition-all duration-200"
+                          aria-label="Projet précédent"
+                        >
+                          <ChevronLeft className="h-5 w-5 sm:h-6 sm:w-6" />
+                        </Button>
+                        
+                        {/* Flèche droite */}
+                        <Button
+                          variant="ghost"
+                          size="icon"
+                          onClick={(e) => {
+                            e.stopPropagation()
+                            setCurrentProjectIndex((prev) => 
+                              (prev + 1) % normalizedProjects.length
+                            )
+                          }}
+                          className="absolute right-2 top-1/2 -translate-y-1/2 z-20 h-8 w-8 sm:h-10 sm:w-10 text-white hover:bg-white/30 bg-white/20 backdrop-blur-sm border border-white/30 rounded-full shadow-lg hover:scale-110 transition-all duration-200"
+                          aria-label="Projet suivant"
+                        >
+                          <ChevronRight className="h-5 w-5 sm:h-6 sm:w-6" />
+                        </Button>
+                      </>
+                    )}
                     
                     {/* Badge Statut - En haut à gauche */}
                     <div className="absolute top-3 left-3 z-10">

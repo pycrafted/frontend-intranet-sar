@@ -3,7 +3,7 @@
 import { useState, useEffect, FormEvent, useMemo } from "react"
 import Link from "next/link"
 import { useRouter } from "next/navigation"
-import { User, ChevronDown, Menu, LogOut, Settings, Edit, Bell, MessageCircle } from "lucide-react"
+import { User, ChevronDown, Menu, LogOut, Settings, Edit, Bell, MessageCircle, Moon, Sun } from "lucide-react"
 import { Button } from "@/components/ui/button"
 import {
   DropdownMenu,
@@ -16,6 +16,7 @@ import {
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar"
 import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
+import { Checkbox } from "@/components/ui/checkbox"
 import { EditProfileDropdown } from "@/components/edit-profile-dropdown"
 import { useAuth, useLogout, useLogin } from "@/hooks/useAuth"
 import { authUtils } from "@/lib/auth-api"
@@ -23,6 +24,7 @@ import { useToast } from "@/components/ui/toast"
 import { useSocialNetwork } from "@/hooks/useSocialNetwork"
 import { Mail, Phone, Building, Shield, Users as UsersIcon, Calendar } from "lucide-react"
 import { Badge } from "@/components/ui/badge"
+import { useTheme } from "next-themes"
 
 interface NavbarProps {
   onMenuClick?: () => void
@@ -35,6 +37,7 @@ export function Navbar({ onMenuClick }: NavbarProps) {
   const { login, isLoading: isLoggingIn } = useLogin()
   const { success, error: toastError } = useToast()
   const { conversations, fetchConversations } = useSocialNetwork()
+  const { theme, setTheme } = useTheme()
   const [isMenuOpen, setIsMenuOpen] = useState(false)
   const [isNotificationMenuOpen, setIsNotificationMenuOpen] = useState(false)
   const [isProfileSectionOpen, setIsProfileSectionOpen] = useState(false)
@@ -42,11 +45,20 @@ export function Navbar({ onMenuClick }: NavbarProps) {
   const [loginEmail, setLoginEmail] = useState("")
   const [loginPassword, setLoginPassword] = useState("")
   const [loginError, setLoginError] = useState("")
+  const [rememberMe, setRememberMe] = useState(false)
   const [mounted, setMounted] = useState(false)
 
   // S'assurer que le rendu conditionnel ne s'applique qu'après l'hydratation
   useEffect(() => {
     setMounted(true)
+    // Charger l'email sauvegardé si "Se souvenir de moi" était coché
+    if (typeof window !== 'undefined') {
+      const savedEmail = localStorage.getItem('remembered_email')
+      if (savedEmail) {
+        setLoginEmail(savedEmail)
+        setRememberMe(true)
+      }
+    }
   }, [])
 
   // Récupérer les conversations si l'utilisateur est authentifié
@@ -129,8 +141,17 @@ export function Navbar({ onMenuClick }: NavbarProps) {
         // Afficher l'alerte de succès
         success("Connexion réussie", "Vous êtes maintenant connecté")
         
-        // Réinitialiser le formulaire
-        setLoginEmail("")
+        // Sauvegarder l'email si "Se souvenir de moi" est coché
+        if (rememberMe && typeof window !== 'undefined') {
+          localStorage.setItem('remembered_email', loginEmail)
+        } else if (typeof window !== 'undefined') {
+          localStorage.removeItem('remembered_email')
+        }
+        
+        // Réinitialiser le formulaire (garder l'email si "Se souvenir de moi" est coché)
+        if (!rememberMe) {
+          setLoginEmail("")
+        }
         setLoginPassword("")
         // Fermer le menu après connexion
         setIsMenuOpen(false)
@@ -269,6 +290,24 @@ export function Navbar({ onMenuClick }: NavbarProps) {
                 )}
               </DropdownMenuContent>
             </DropdownMenu>
+          )}
+
+          {/* Dark mode toggle button */}
+          {mounted && (
+            <Button
+              variant="ghost"
+              size="sm"
+              onClick={() => setTheme(theme === 'dark' ? 'light' : 'dark')}
+              className="relative text-white hover:bg-[#2a323d] flex-shrink-0 h-7 xs:h-8 sm:h-10 w-7 xs:w-8 sm:w-10 p-0"
+              style={{ backgroundColor: '#353E4B' }}
+              title={theme === 'dark' ? 'Mode clair' : 'Mode sombre'}
+            >
+              {theme === 'dark' ? (
+                <Sun className="h-3.5 w-3.5 xs:h-4 xs:w-4 sm:h-5 sm:w-5" />
+              ) : (
+                <Moon className="h-3.5 w-3.5 xs:h-4 xs:w-4 sm:h-5 sm:w-5" />
+              )}
+            </Button>
           )}
           
           {/* User menu - Responsive */}
@@ -800,6 +839,22 @@ export function Navbar({ onMenuClick }: NavbarProps) {
                           }}
                           required
                         />
+                      </div>
+                      {/* Case "Se souvenir de moi" */}
+                      <div className="flex items-center space-x-2">
+                        <Checkbox
+                          id="remember-me"
+                          checked={rememberMe}
+                          onCheckedChange={(checked) => setRememberMe(checked === true)}
+                          className="border-2"
+                          style={{ borderColor: '#344256' }}
+                        />
+                        <Label
+                          htmlFor="remember-me"
+                          className="text-xs font-normal cursor-pointer"
+                        >
+                          Se souvenir de moi
+                        </Label>
                       </div>
                       {/* Message d'erreur inline retiré: l'information d'erreur est gérée via toast */}
             <Button

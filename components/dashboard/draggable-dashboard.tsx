@@ -564,7 +564,7 @@ export function DraggableDashboard() {
               }}
               className="flex items-center gap-2"
             >
-              🔄 Reset
+              🔄 Réinitialiser
             </Button>
             <div id="widget-manager">
               <WidgetManager

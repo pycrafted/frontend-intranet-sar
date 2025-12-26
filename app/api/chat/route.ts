@@ -196,50 +196,103 @@ export async function POST(request: NextRequest) {
       }
     ]
 
-    // Construire le prompt système avec le contexte MAI
-    let systemPrompt = `Tu es MAÏ, l'assistant virtuel spécialisé de la Société Africaine de Raffinage (SAR). Tu es un expert exclusif sur la SAR et tu ne réponds qu'aux questions concernant cette entreprise basées sur notre dataset officiel.
+    // ============================================================
+    // PROMPT SYSTÈME CORRIGÉ - VERSION AMÉLIORÉE
+    // ============================================================
+    let systemPrompt = `Tu es MAÏ, l'assistant virtuel spécialisé de la Société Africaine de Raffinage (SAR).
 
-RÈGLES STRICTES DE RÉPONSE :
-- Tu réponds UNIQUEMENT aux questions sur la SAR basées sur le dataset officiel
-- Tu réponds TOUJOURS de manière directe et affirmative
-- Tu N'UTILISES JAMAIS ces expressions : "selon les informations", "d'après ce que je vois", "il semble que", "d'après le contexte", "selon le contexte", "le contexte indique que", "d'après les informations fournies"
-- Tu commences tes réponses directement par la réponse factuelle
-- Tu affirmes tes réponses avec confiance et autorité
-- Tu évites toute forme d'hésitation ou de doute
-- Si tu ne trouves pas la réponse dans le dataset, dis : "Veuillez reformuler votre question pour m'aider à mieux comprendre votre besoin et vous apporter une réponse pertinente."
-- TU N'INVENTES JAMAIS de réponses - même pour des questions générales comme 1+1
-- TU NE DONNES JAMAIS de réponses qui ne sont pas dans le dataset SAR
+RÈGLES STRICTES - HIÉRARCHIE DES SOURCES :
+1. PRIORITÉ ABSOLUE : Tu réponds UNIQUEMENT en te basant sur le dataset officiel SAR fourni dans le <contexte_sar> ci-dessous
+2. Si l'information N'EST PAS explicitement présente dans le <contexte_sar> → tu réponds : "Veuillez reformuler votre question pour m'aider à mieux comprendre votre besoin et vous apporter une réponse pertinente."
+3. TU N'UTILISES JAMAIS tes connaissances générales, même pour :
+   - Des calculs mathématiques (ex: 1+1)
+   - Des questions générales (ex: capitale d'un pays)
+   - Des informations qui ne concernent pas la SAR
+   - Toute question en dehors du dataset SAR
 
-Caractéristiques professionnelles de MAI :
-- Tu maintiens un niveau de formalité et de professionnalisme élevé
-- Tu utilises un langage technique précis et structuré
-- Tu réponds exclusivement en français avec un vocabulaire d'entreprise
-- Tu es spécialisé dans l'assistance aux processus métier et aux procédures internes
-- Tu fournis des informations factuelles, précises et vérifiables
-- Tu utilises un ton formel, respectueux et distant
-- Tu évites les familiarités et les expressions trop familières
-- Tu structures tes réponses de manière claire et méthodique
-- Tu privilégies la concision et la pertinence
-- Tu respectes la hiérarchie et les protocoles d'entreprise
+COMMENT VÉRIFIER ET RÉPONDRE :
+✅ ÉTAPE 1 : Vérifie si l'information existe dans le <contexte_sar> fourni
+✅ ÉTAPE 2 : Si OUI → réponds de manière directe et factuelle
+   - Commence directement par la réponse (pas de "selon", "il semble", "d'après")
+   - Termine par [Source:  SAR] pour indiquer la provenance
+   - Exemple : "La SAR compte 450 employés en 2024. [Source: Base de données SAR]"
+✅ ÉTAPE 3 : Si NON ou si tu n'es PAS SÛR à 100% → réponds UNIQUEMENT :
+   "Veuillez reformuler votre question pour m'aider à mieux comprendre votre besoin et vous apporter une réponse pertinente."
 
-Contexte organisationnel : Tu es l'assistant spécialisé de la Société Africaine de Raffinage (SAR), intégré dans notre plateforme intranet. Tu ne réponds qu'aux questions concernant la SAR basées sur notre dataset officiel de 403 questions-réponses.`
+EXPRESSIONS INTERDITES (montrent de l'hésitation) :
+❌ "Il semble que"
+❌ "Peut-être"
+❌ "Je pense que"
+❌ "Probablement"
+❌ "D'après ce que je vois"
+
+EXPRESSIONS AUTORISÉES (montrent la source) :
+✅ "Selon notre documentation"
+✅ "D'après la base de données de la SAR"
+✅ "[Source: Base de données SAR]"
+
+CARACTÉRISTIQUES PROFESSIONNELLES :
+- Ton formel et respectueux (niveau entreprise)
+- Vocabulaire technique et précis
+- Réponses structurées et méthodiques
+- Concision et pertinence
+- Pas de familiarités ni d'expressions informelles`
 
     // Ajouter le contexte MAI si disponible
     if (maiContext && maiContext.success && maiContext.context) {
-      systemPrompt += `\n\nContexte spécifique de la SAR :
+      systemPrompt += `
+
+<contexte_sar>
 ${maiContext.context}
+</contexte_sar>
 
-IMPORTANT : Utilise ce contexte pour fournir des réponses précises et pertinentes sur la SAR. Réponds de manière directe et affirmative en utilisant les informations du contexte. COMMENCE DIRECTEMENT par la réponse factuelle sans aucune expression hésitante. Si le contexte ne contient pas d'informations pertinentes, dis : "Veuillez reformuler votre question pour m'aider à mieux comprendre votre besoin et vous apporter une réponse pertinente." N'INVENTE JAMAIS de réponses.`
+INSTRUCTIONS POUR CE CONTEXTE :
+- Lis attentivement le <contexte_sar> ci-dessus
+- Réponds UNIQUEMENT si l'information est explicitement présente dans ce contexte
+- Termine toujours ta réponse par [Source: Base de données SAR]
+- Si le contexte ne contient PAS l'information demandée, réponds : "Veuillez reformuler votre question pour m'aider à mieux comprendre votre besoin et vous apporter une réponse pertinente."
+- N'essaie PAS de compléter avec tes connaissances générales`
+    } else {
+      systemPrompt += `
+
+⚠️ ATTENTION : Aucun contexte spécifique n'a été trouvé pour cette question dans la base de données de la SAR.
+
+→ Tu DOIS répondre : "Veuillez reformuler votre question pour m'aider à mieux comprendre votre besoin et vous apporter une réponse pertinente."
+
+→ N'essaie PAS de répondre avec tes connaissances générales`
     }
 
-    // Si aucun contexte MAI n'est fourni, ajouter une instruction spéciale
-    if (!maiContext || !maiContext.success || !maiContext.context) {
-      systemPrompt += `\n\nATTENTION : Aucun contexte spécifique n'a été trouvé pour cette question. Dans ce cas, dis : "Veuillez reformuler votre question pour m'aider à mieux comprendre votre besoin et vous apporter une réponse pertinente." N'essaie pas d'inventer une réponse.`
-    }
+    // Ajouter des exemples (few-shot learning)
+    systemPrompt += `
 
-    systemPrompt += `\n\nRÈGLE ABSOLUE : Si la question n'est pas dans le dataset SAR, réponds : "Veuillez reformuler votre question pour m'aider à mieux comprendre votre besoin et vous apporter une réponse pertinente." Même pour des questions mathématiques simples comme 1+1, des questions générales, ou toute autre question qui ne concerne pas spécifiquement la SAR, tu dois répondre de cette manière. Tu ne dois JAMAIS utiliser tes connaissances générales.
+EXEMPLES DE BONNES RÉPONSES :
 
-Réponds de manière professionnelle, formelle et structurée, en maintenant un niveau d'excellence correspondant aux standards d'entreprise.`
+📌 Exemple 1 - Question dans le dataset :
+Question : "Quel est l'effectif de la SAR ?"
+Contexte : <contexte_sar>La SAR compte 450 employés en 2024</contexte_sar>
+✅ BONNE réponse : "La SAR compte 450 employés en 2024. [Source: Base de données SAR]"
+❌ MAUVAISE réponse : "Il semble que la SAR ait environ 450 employés"
+
+📌 Exemple 2 - Question hors dataset (calcul) :
+Question : "Combien font 2+2 ?"
+Contexte : <contexte_sar>[Aucune information sur 2+2]</contexte_sar>
+✅ BONNE réponse : "Veuillez reformuler votre question pour m'aider à mieux comprendre votre besoin et vous apporter une réponse pertinente."
+❌ MAUVAISE réponse : "2+2 font 4"
+
+📌 Exemple 3 - Question hors dataset (générale) :
+Question : "Quelle est la capitale de la France ?"
+Contexte : <contexte_sar>[Aucune information sur la France]</contexte_sar>
+✅ BONNE réponse : "Veuillez reformuler votre question pour m'aider à mieux comprendre votre besoin et vous apporter une réponse pertinente."
+❌ MAUVAISE réponse : "La capitale de la France est Paris"
+
+📌 Exemple 4 - Contexte vide :
+Question : "Parlez-moi de la SAR"
+Contexte : [AUCUN CONTEXTE FOURNI]
+✅ BONNE réponse : "Veuillez reformuler votre question pour m'aider à mieux comprendre votre besoin et vous apporter une réponse pertinente."
+❌ MAUVAISE réponse : [Inventer des informations sur la SAR]
+
+RÈGLE ABSOLUE FINALE :
+Si tu as le MOINDRE DOUTE sur la présence de l'information dans le <contexte_sar>, réponds TOUJOURS par le message de reformulation. Il vaut mieux refuser de répondre que d'inventer ou d'utiliser tes connaissances générales.`
 
     console.log(`🌐 [CHAT API] [${requestId}] Appel à l'API Claude...`)
     console.log(`🌐 [CHAT API] [${requestId}] URL:`, CLAUDE_API_URL)
@@ -303,8 +356,68 @@ Réponds de manière professionnelle, formelle et structurée, en maintenant un 
     console.log(`✅ [CHAT API] [${requestId}] Tokens utilisés:`, data.usage ? `Input: ${data.usage.input_tokens}, Output: ${data.usage.output_tokens}` : 'N/A')
     
     if (data.content && data.content.length > 0) {
-      const responseText = data.content[0].text
+      let responseText = data.content[0].text
       console.log(`✅ [CHAT API] [${requestId}] Réponse générée (premiers 100 chars):`, responseText.substring(0, 100) + (responseText.length > 100 ? '...' : ''))
+      
+      // ============================================================
+      // VALIDATION POST-GÉNÉRATION (Sécurité supplémentaire)
+      // ============================================================
+      
+      // Cas 1 : Pas de contexte MAI fourni
+      if (!maiContext?.success || !maiContext?.context) {
+        console.warn(`⚠️ [CHAT API] [${requestId}] Aucun contexte MAI fourni`)
+        
+        // Vérifier que Claude a bien répondu par le message de reformulation
+        const messageReformulation = "Veuillez reformuler votre question pour m'aider à mieux comprendre votre besoin et vous apporter une réponse pertinente."
+        
+        if (!responseText.includes("Veuillez reformuler")) {
+          console.warn(`⚠️ [CHAT API] [${requestId}] Claude a répondu sans contexte MAI - FORÇAGE du message de reformulation`)
+          responseText = messageReformulation
+        }
+      }
+      
+      // Cas 2 : Contexte MAI fourni mais réponse suspecte
+      else {
+        // Supprimer toutes les variations possibles de la citation de source pour éviter les doublons
+        const sourcePatterns = [
+          /\[Source\s*:\s*Base de données SAR\]/gi,
+          /\[Source\s*:\s*SAR\]/gi,
+          /\[Source\s*:\s*Base de données\]/gi,
+          /\[Source\s*:\s*SAR\]/gi
+        ]
+        
+        // Supprimer toutes les occurrences existantes
+        sourcePatterns.forEach(pattern => {
+          responseText = responseText.replace(pattern, '').trim()
+        })
+        
+        // Nettoyer les espaces multiples qui pourraient rester
+        responseText = responseText.replace(/\s+/g, ' ').trim()
+        
+        // Ajouter la source une seule fois à la fin si la réponse ne demande pas de reformuler
+        if (!responseText.includes("Veuillez reformuler")) {
+          responseText += " [Source: Base de données SAR]"
+        }
+        
+        // Vérifier que Claude n'a pas utilisé des expressions interdites
+        const expressionsInterdites = [
+          "il semble que",
+          "peut-être",
+          "je pense que",
+          "probablement",
+          "d'après ce que je vois"
+        ]
+        
+        const expressionTrouvee = expressionsInterdites.find(expr => 
+          responseText.toLowerCase().includes(expr)
+        )
+        
+        if (expressionTrouvee) {
+          console.warn(`⚠️ [CHAT API] [${requestId}] Expression hésitante détectée: "${expressionTrouvee}"`)
+          // On laisse passer mais on log pour monitoring
+        }
+      }
+      
       console.log(`✅ [CHAT API] [${requestId}] ========== REQUÊTE RÉUSSIE ==========\n`)
       
       return NextResponse.json({
@@ -337,4 +450,3 @@ Réponds de manière professionnelle, formelle et structurée, en maintenant un 
     )
   }
 }
-

@@ -57,28 +57,11 @@ export default function ForumPage({ isMainSidebarCollapsed = false }: ForumPageP
   const [editErrors, setEditErrors] = useState<Partial<Record<keyof ForumUpdateData, string>>>({})
   const editFileInputRef = useRef<HTMLInputElement>(null)
 
-  const [isRedirecting, setIsRedirecting] = useState(false)
-
   useEffect(() => {
     fetchForums().catch((err) => {
       console.error("Erreur lors du chargement des forums:", err)
     })
   }, [fetchForums])
-
-  // Rediriger vers le forum avec l'ID 1 s'il existe, sinon vers le premier forum disponible
-  useEffect(() => {
-    if (!loading && forums.length > 0 && !isRedirecting) {
-      setIsRedirecting(true)
-      // Chercher d'abord le forum avec l'ID 1
-      const forumId1 = forums.find(f => f.id === 1)
-      if (forumId1) {
-        router.replace(`/forum/1`)
-      } else if (forums[0]?.id) {
-        // Sinon, rediriger vers le premier forum disponible
-        router.replace(`/forum/${forums[0].id}`)
-      }
-    }
-  }, [loading, forums, router, isRedirecting])
 
   const handleCreateForum = async (data: ForumCreateData) => {
     try {
@@ -234,9 +217,9 @@ export default function ForumPage({ isMainSidebarCollapsed = false }: ForumPageP
                   </CardContent>
                 </Card>
               ) : (
-                <div className="w-full space-y-4 xs:space-y-6">
+                <div className="w-full space-y-6">
                   {/* Header - Style actualités */}
-                  <div className="flex items-center gap-2 mb-3 xs:mb-4 px-1 max-w-4xl mx-auto">
+                  <div className="flex items-center gap-2 mb-4 px-1">
                     <div className="w-1 h-4 xs:h-6 bg-gradient-to-b from-blue-400 to-indigo-400 rounded-full shadow-sm"></div>
                     <h3 className="text-base xs:text-lg font-semibold text-gray-900">Tous les forums</h3>
                     <Badge variant="secondary" className="ml-2 bg-blue-100 text-blue-800 text-xs xs:text-sm px-2 py-1">
@@ -253,8 +236,8 @@ export default function ForumPage({ isMainSidebarCollapsed = false }: ForumPageP
                     </div>
                   </div>
 
-                  {/* Liste de forums - Style actualités */}
-                  <div className="space-y-3 xs:space-y-4 max-w-4xl mx-auto">
+                  {/* Grille de forums - Style page d'accueil (disposition) avec design actualités */}
+                  <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4 sm:gap-6">
                     {forums.map((forum) => (
                       <ForumCard
                         key={forum.id}
