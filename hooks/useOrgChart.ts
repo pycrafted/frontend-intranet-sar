@@ -290,6 +290,49 @@ import { API_CONFIG } from "@/lib/config"
 // Fonction lazy pour obtenir l'URL de base
 const getApiBaseUrl = () => API_CONFIG.ORGANIGRAMME
 
+/**
+ * Normalise une URL de pagination pour utiliser la configuration depuis .env
+ * Convertit les URLs absolues (avec IP) en URLs relatives basées sur NEXT_PUBLIC_API_URL
+ */
+const normalizePaginationUrl = (url: string | null): string | null => {
+  if (!url) return null
+  
+  try {
+    const baseUrl = getApiBaseUrl() // Ex: https://sar-intranet.sar.sn/api/organigramme
+    
+    // Si c'est déjà une URL relative (commence par /)
+    if (url.startsWith('/')) {
+      // Extraire le chemin après /api/organigramme si présent
+      const apiOrganigrammePath = '/api/organigramme'
+      if (url.startsWith(apiOrganigrammePath)) {
+        // Extraire seulement la partie après /api/organigramme
+        const pathAfterBase = url.substring(apiOrganigrammePath.length)
+        return `${baseUrl}${pathAfterBase}`
+      }
+      // Sinon, ajouter directement
+      return `${baseUrl}${url}`
+    }
+    
+    // Si c'est une URL absolue, extraire le chemin et les paramètres
+    const urlObj = new URL(url)
+    const pathAndQuery = urlObj.pathname + urlObj.search
+    
+    // Extraire la partie après /api/organigramme si présente
+    const apiOrganigrammePath = '/api/organigramme'
+    if (pathAndQuery.startsWith(apiOrganigrammePath)) {
+      const pathAfterBase = pathAndQuery.substring(apiOrganigrammePath.length)
+      return `${baseUrl}${pathAfterBase}`
+    }
+    
+    // Si le chemin ne contient pas /api/organigramme, l'ajouter tel quel
+    return `${baseUrl}${pathAndQuery}`
+  } catch (err) {
+    // Si l'URL est invalide, essayer de l'utiliser telle quelle
+    console.warn('⚠️ [ORGCHART_HOOK] Impossible de normaliser l\'URL:', url, err)
+    return url
+  }
+}
+
 export const useOrgChart = () => {
   const [employees, setEmployees] = useState<Employee[]>([])
   const [departments, setDepartments] = useState<Department[]>([])
@@ -366,7 +409,8 @@ export const useOrgChart = () => {
         // Si pagination, récupérer les résultats et l'URL suivante
         if (data.results && Array.isArray(data.results)) {
           allDepartments = [...allDepartments, ...data.results]
-          nextUrl = data.next || null
+          // Normaliser l'URL de pagination pour utiliser la configuration depuis .env
+          nextUrl = normalizePaginationUrl(data.next)
         } else if (Array.isArray(data)) {
           // Pas de pagination, toutes les données sont dans le tableau
           allDepartments = data

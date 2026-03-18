@@ -268,7 +268,7 @@ const APPS: App[] = [
     id: 'qualipro',
     icon: <QualiproIcon />,
     color: 'from-green-500 to-green-600',
-    url: 'http://srv-qualipro/Qualipro',
+    url: 'https://srv-qualipro/Qualipro',
     category: 'sar',
     name: 'Qualipro'
   },

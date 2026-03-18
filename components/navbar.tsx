@@ -3,7 +3,7 @@
 import { useState, useEffect, FormEvent, useMemo } from "react"
 import Link from "next/link"
 import { useRouter } from "next/navigation"
-import { User, ChevronDown, Menu, LogOut, Settings, Edit, Bell, MessageCircle, Moon, Sun } from "lucide-react"
+import { User, ChevronDown, Menu, LogOut, Settings, Edit, Bell, MessageCircle } from "lucide-react"
 import { Button } from "@/components/ui/button"
 import {
   DropdownMenu,
@@ -24,7 +24,6 @@ import { useToast } from "@/components/ui/toast"
 import { useSocialNetwork } from "@/hooks/useSocialNetwork"
 import { Mail, Phone, Building, Shield, Users as UsersIcon, Calendar } from "lucide-react"
 import { Badge } from "@/components/ui/badge"
-import { useTheme } from "next-themes"
 
 interface NavbarProps {
   onMenuClick?: () => void
@@ -37,7 +36,6 @@ export function Navbar({ onMenuClick }: NavbarProps) {
   const { login, isLoading: isLoggingIn } = useLogin()
   const { success, error: toastError } = useToast()
   const { conversations, fetchConversations } = useSocialNetwork()
-  const { theme, setTheme } = useTheme()
   const [isMenuOpen, setIsMenuOpen] = useState(false)
   const [isNotificationMenuOpen, setIsNotificationMenuOpen] = useState(false)
   const [isProfileSectionOpen, setIsProfileSectionOpen] = useState(false)
@@ -292,24 +290,6 @@ export function Navbar({ onMenuClick }: NavbarProps) {
             </DropdownMenu>
           )}
 
-          {/* Dark mode toggle button */}
-          {mounted && (
-            <Button
-              variant="ghost"
-              size="sm"
-              onClick={() => setTheme(theme === 'dark' ? 'light' : 'dark')}
-              className="relative text-white hover:bg-[#2a323d] flex-shrink-0 h-7 xs:h-8 sm:h-10 w-7 xs:w-8 sm:w-10 p-0"
-              style={{ backgroundColor: '#353E4B' }}
-              title={theme === 'dark' ? 'Mode clair' : 'Mode sombre'}
-            >
-              {theme === 'dark' ? (
-                <Sun className="h-3.5 w-3.5 xs:h-4 xs:w-4 sm:h-5 sm:w-5" />
-              ) : (
-                <Moon className="h-3.5 w-3.5 xs:h-4 xs:w-4 sm:h-5 sm:w-5" />
-              )}
-            </Button>
-          )}
-          
           {/* User menu - Responsive */}
             <DropdownMenu open={isMenuOpen} onOpenChange={setIsMenuOpen}>
               <DropdownMenuTrigger asChild>

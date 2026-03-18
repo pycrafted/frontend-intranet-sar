@@ -1,6 +1,5 @@
 import { useState, useCallback } from 'react';
-import axios from 'axios';
-import { API_CONFIG } from "@/lib/config"
+import { APIClient } from '@/lib/api-client';
 
 interface Idea {
   id: number;
@@ -30,47 +29,49 @@ export const useIdeas = () => {
   const [loading, setLoading] = useState<boolean>(false);
   const [error, setError] = useState<string | null>(null);
 
-  const API_URL = `${API_CONFIG.ACCUEIL}/ideas/`;
-  const SUBMIT_URL = `${API_CONFIG.ACCUEIL}/ideas/submit/`;
-  const DEPARTMENTS_URL = `${API_CONFIG.ACCUEIL}/ideas/departments/`;
+  // Les URLs sont maintenant gérées par APIClient qui utilise les endpoints relatifs
 
   const fetchIdeas = useCallback(async () => {
     setLoading(true);
     setError(null);
     try {
-      const response = await axios.get<Idea[]>(API_URL);
-      setIdeas(response.data);
-    } catch (err) {
+      const response = await APIClient.get('/accueil/ideas/');
+      const data = await response.json();
+      setIdeas(data);
+    } catch (err: any) {
       console.error("Failed to fetch ideas:", err);
       setError("Impossible de charger les idées.");
     } finally {
       setLoading(false);
     }
-  }, [API_URL]);
+  }, []);
 
   const fetchDepartments = useCallback(async () => {
     try {
-      const response = await axios.get<Department[]>(DEPARTMENTS_URL);
-      setDepartments(response.data);
-    } catch (err) {
+      const response = await APIClient.get('/accueil/ideas/departments/');
+      const data = await response.json();
+      setDepartments(data);
+    } catch (err: any) {
       console.error("Failed to fetch departments:", err);
       setError("Impossible de charger les départements.");
     }
-  }, [DEPARTMENTS_URL]);
+  }, []);
 
   const submitIdea = async (data: IdeaFormData) => {
     setLoading(true);
     setError(null);
     
     try {
-      const response = await axios.post<Idea>(SUBMIT_URL, data, {
-        headers: {
-          'Content-Type': 'application/json',
-        }
-      });
+      const response = await APIClient.post('/accueil/ideas/submit/', data);
       
-      setIdeas(prev => [response.data, ...prev]);
-      return { success: true, data: response.data };
+      if (!response.ok) {
+        const errorData = await response.json().catch(() => ({}));
+        throw { response: { status: response.status, data: errorData } };
+      }
+      
+      const responseData = await response.json();
+      setIdeas(prev => [responseData, ...prev]);
+      return { success: true, data: responseData };
     } catch (err: any) {
       console.error("Failed to submit idea:", err.response?.data || err.message);
       
@@ -84,6 +85,8 @@ export const useIdeas = () => {
         } else {
           setError("Erreur de validation des données.");
         }
+      } else if (err.response?.status === 403) {
+        setError("Erreur d'authentification. Veuillez rafraîchir la page et réessayer.");
       } else {
         setError(err.response?.data?.error || "Erreur lors de la soumission de l'idée.");
       }

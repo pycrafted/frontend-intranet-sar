@@ -43,7 +43,7 @@ function RecrutementPageContent({ isMainSidebarCollapsed = false }: RecrutementP
         {/* intégration iframe pour sar.sn */}
         <iframe
           id="sar-iframe"
-          src="https://www.sar.sn/Recrutement/"
+          src="https://sar-sirh-feature-sar-recipe-28977020.dev.odoo.com/fr/jobs"
           className="w-full h-full border-0"
           onLoad={handleIframeLoad}
           title="Site de Recrutement SAR"

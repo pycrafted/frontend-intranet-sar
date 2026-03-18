@@ -101,6 +101,7 @@ function OrganigrammePageContent({
           loading={loading} 
           error={error}
           onEmployeeSelect={handleEmployeeSelect}
+          sidebarWidth={typeof window !== 'undefined' && window.innerWidth >= 1024 ? sidebarWidth : 0}
         />
       </div>
     </>

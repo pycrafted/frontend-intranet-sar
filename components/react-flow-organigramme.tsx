@@ -34,6 +34,7 @@ interface ReactFlowOrganigrammeProps {
   employees: Employee[]
   loading?: boolean
   error?: string | null
+  sidebarWidth?: number
 }
 
 export interface ReactFlowOrganigrammeRef {
@@ -41,7 +42,7 @@ export interface ReactFlowOrganigrammeRef {
   selectEmployeeById: (id: number) => void
 }
 
-const ReactFlowOrganigramme = forwardRef<ReactFlowOrganigrammeRef, ReactFlowOrganigrammeProps>(({ employees, loading = false, error = null }, ref) => {
+const ReactFlowOrganigramme = forwardRef<ReactFlowOrganigrammeRef, ReactFlowOrganigrammeProps>(({ employees, loading = false, error = null, sidebarWidth = 0 }, ref) => {
   const reactFlowWrapper = useRef<HTMLDivElement>(null)
   const [reactFlowInstance, setReactFlowInstance] = useState<any>(null)
   const [hoveredNodeId, setHoveredNodeId] = useState<string | null>(null)
@@ -66,7 +67,7 @@ const ReactFlowOrganigramme = forwardRef<ReactFlowOrganigrammeRef, ReactFlowOrga
       return {
         nodeWidth: 240, // Taille fixe - ne varie pas selon le nombre de cartes
         nodeHeight: 300,
-        horizontalSpacing: 270, // Gap adaptatif (réduit de 10px)
+        horizontalSpacing: 60, // Espacement minimal pour rapprocher au maximum les cartes
         verticalSpacing: 500, // Augmenté pour une ligne verticale plus longue
         zoom: 0.6,
         padding: 50,
@@ -84,7 +85,7 @@ const ReactFlowOrganigramme = forwardRef<ReactFlowOrganigrammeRef, ReactFlowOrga
       config = {
         nodeWidth: 240, // Même taille que desktop
         nodeHeight: 300,
-        horizontalSpacing: 270, // Même espacement que desktop (réduit de 10px)
+        horizontalSpacing: 60, // Espacement minimal pour rapprocher au maximum les cartes
         verticalSpacing: 500, // Augmenté pour une ligne verticale plus longue
         zoom: 0.6, // Même zoom que desktop pour voir tout l'organigramme
         padding: 50,
@@ -95,7 +96,7 @@ const ReactFlowOrganigramme = forwardRef<ReactFlowOrganigrammeRef, ReactFlowOrga
       config = {
         nodeWidth: 220, // Taille fixe
         nodeHeight: 260,
-        horizontalSpacing: 270, // gap-4 sm:gap-6 équivalent (réduit de 10px)
+        horizontalSpacing: 60, // Espacement minimal pour rapprocher au maximum les cartes
         verticalSpacing: 450, // Augmenté pour une ligne verticale plus longue
         zoom: 0.9,
         padding: 30,
@@ -106,7 +107,7 @@ const ReactFlowOrganigramme = forwardRef<ReactFlowOrganigrammeRef, ReactFlowOrga
       config = {
         nodeWidth: 240, // Taille fixe - w-56 md:w-64 équivalent
         nodeHeight: 300,
-        horizontalSpacing: 290, // gap-6 md:gap-8 équivalent (réduit de 10px)
+        horizontalSpacing: 70, // Espacement minimal pour rapprocher au maximum les cartes
         verticalSpacing: 500, // Augmenté pour une ligne verticale plus longue
         zoom: 0.8,
         padding: 40,
@@ -117,7 +118,7 @@ const ReactFlowOrganigramme = forwardRef<ReactFlowOrganigrammeRef, ReactFlowOrga
       config = {
         nodeWidth: 240, // w-56 md:w-64 - taille fixe
         nodeHeight: 300,
-        horizontalSpacing: 310, // gap-8 (réduit de 10px)
+        horizontalSpacing: 80, // Espacement minimal pour rapprocher au maximum les cartes
         verticalSpacing: 550, // Augmenté pour une ligne verticale plus longue
         zoom: 0.7,
         padding: 50,
@@ -128,7 +129,7 @@ const ReactFlowOrganigramme = forwardRef<ReactFlowOrganigrammeRef, ReactFlowOrga
       config = {
         nodeWidth: 256, // w-64 - taille fixe
         nodeHeight: 320,
-        horizontalSpacing: 330, // (réduit de 10px)
+        horizontalSpacing: 90, // Espacement minimal pour rapprocher au maximum les cartes
         verticalSpacing: 580, // Augmenté pour une ligne verticale plus longue
         zoom: 0.65,
         padding: 60,
@@ -139,7 +140,7 @@ const ReactFlowOrganigramme = forwardRef<ReactFlowOrganigrammeRef, ReactFlowOrga
       config = {
         nodeWidth: 256, // w-64 - taille fixe
         nodeHeight: 320,
-        horizontalSpacing: 350, // (réduit de 10px)
+        horizontalSpacing: 100, // Espacement minimal pour rapprocher au maximum les cartes
         verticalSpacing: 600, // Augmenté pour une ligne verticale plus longue
         zoom: 0.6,
         padding: 80,
@@ -574,10 +575,10 @@ const ReactFlowOrganigramme = forwardRef<ReactFlowOrganigrammeRef, ReactFlowOrga
     setEdges(edges)
   }, [nodes, edges, setNodes, setEdges])
 
-  // Forcer le centrage parfait après l'initialisation
+  // Forcer l'alignement à gauche après l'initialisation
   useEffect(() => {
     if (reactFlowInstance && nodes && nodes.length > 0) {
-      console.log('🎯 [REACT_FLOW] Forçage du centrage parfait...')
+      console.log('🎯 [REACT_FLOW] Alignement à gauche de l\'organigramme...')
       
       // Délai pour s'assurer que React Flow est complètement initialisé
       setTimeout(() => {
@@ -591,13 +592,24 @@ const ReactFlowOrganigramme = forwardRef<ReactFlowOrganigrammeRef, ReactFlowOrga
         else if (screenWidth < 1536) fixedZoom = 0.6 // Large desktop
         else fixedZoom = 0.55                        // Ultra wide
         
-        // Positionner le DG près du bord haut du Background
-        // Le DG est à y=0, on veut qu'il soit visible en haut de l'écran
-        const screenCenterX = window.innerWidth / 2
+        // Calculer le nœud le plus à gauche de l'organigramme
+        let minX = Infinity
+        nodes.forEach(node => {
+          const x = node.position.x
+          const width = (node.style?.width as number) || config.nodeWidth
+          const leftEdge = x - width / 2
+          minX = Math.min(minX, leftEdge)
+        })
+        
+        // Positionner le nœud le plus à gauche à 5px du bord gauche, en tenant compte du sidebar
+        // Le padding doit inclure la largeur du sidebar pour éviter que la carte soit cachée
+        const basePadding = 5
+        const paddingLeft = basePadding + sidebarWidth
         const screenTop = 100 // Offset du haut pour laisser de l'espace (navbar, etc.)
         
-        // Calculer la position du viewport pour placer le DG (0, 0) en haut de l'écran
-        const viewportX = screenCenterX - (0 * fixedZoom)  // DG à x=0, centré horizontalement
+        // Calculer la position du viewport pour placer le nœud le plus à gauche avec le padding
+        // viewportX = paddingLeft - (minX * zoom)
+        const viewportX = paddingLeft - (minX * fixedZoom)
         const viewportY = screenTop - (0 * fixedZoom)   // DG à y=0, positionné en haut
         
         reactFlowInstance.setViewport({
@@ -610,26 +622,27 @@ const ReactFlowOrganigramme = forwardRef<ReactFlowOrganigrammeRef, ReactFlowOrga
         const center = { x: 0, y: 0 }  // Le DG est toujours à (0, 0)
         setViewportCenter(center)
         
-        console.log('✅ [REACT_FLOW] Viewport fixe appliqué:', {
+        console.log('✅ [REACT_FLOW] Viewport aligné à gauche appliqué:', {
           viewportX,
           viewportY,
           zoom: fixedZoom,
+          minX,
           center,
           nodesCount: nodes.length,
-          message: 'Zoom fixe - scroll horizontal pour voir les autres cartes'
+          message: 'Organigramme aligné à gauche avec padding de 5px'
         })
       }, 200)
     }
-  }, [reactFlowInstance, nodes])
+  }, [reactFlowInstance, nodes, config.nodeWidth, sidebarWidth])
 
 
-  // Hook pour détecter les changements de taille d'écran et recentrer
+  // Hook pour détecter les changements de taille d'écran et réaligner à gauche
   useEffect(() => {
     const handleResize = () => {
-      if (reactFlowInstance && employees && employees.length > 0) {
-        console.log('📱 [REACT_FLOW] Redimensionnement détecté, recentrage...')
+      if (reactFlowInstance && nodes && nodes.length > 0) {
+        console.log('📱 [REACT_FLOW] Redimensionnement détecté, réalignement à gauche...')
         
-        // Recentrer avec zoom fixe après redimensionnement
+        // Réaligner à gauche avec zoom fixe après redimensionnement
         setTimeout(() => {
           // Zoom fixe - ne varie pas selon le nombre de cartes
           const screenWidth = window.innerWidth
@@ -641,11 +654,22 @@ const ReactFlowOrganigramme = forwardRef<ReactFlowOrganigrammeRef, ReactFlowOrga
           else if (screenWidth < 1536) fixedZoom = 0.6 // Large desktop
           else fixedZoom = 0.55                        // Ultra wide
           
-          // Positionner le DG près du bord haut du Background
-          const screenCenterX = window.innerWidth / 2
+          // Calculer le nœud le plus à gauche de l'organigramme
+          let minX = Infinity
+          nodes.forEach(node => {
+            const x = node.position.x
+            const width = (node.style?.width as number) || config.nodeWidth
+            const leftEdge = x - width / 2
+            minX = Math.min(minX, leftEdge)
+          })
+          
+          // Positionner le nœud le plus à gauche à 5px du bord gauche, en tenant compte du sidebar
+          // Le padding doit inclure la largeur du sidebar pour éviter que la carte soit cachée
+          const basePadding = 5
+          const paddingLeft = basePadding + sidebarWidth
           const screenTop = 100 // Offset du haut pour laisser de l'espace
           
-          const viewportX = screenCenterX - (0 * fixedZoom)  // DG à x=0, centré horizontalement
+          const viewportX = paddingLeft - (minX * fixedZoom)
           const viewportY = screenTop - (0 * fixedZoom)   // DG à y=0, positionné en haut
           
           reactFlowInstance.setViewport({
@@ -663,7 +687,7 @@ const ReactFlowOrganigramme = forwardRef<ReactFlowOrganigrammeRef, ReactFlowOrga
 
     window.addEventListener('resize', handleResize)
     return () => window.removeEventListener('resize', handleResize)
-  }, [reactFlowInstance, employees?.length])
+  }, [reactFlowInstance, nodes, config.nodeWidth, sidebarWidth])
 
   const onConnect = useCallback(
     (params: Edge | Connection) => setEdges((eds) => addEdge({ ...params, type: "custom" }, eds)),

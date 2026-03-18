@@ -24,6 +24,8 @@ import {
   UserPlus,
   Trash2,
   Edit,
+  MessageCircle,
+  Upload,
 } from "lucide-react"
 
 export function ChatInterface() {
@@ -60,6 +62,10 @@ export function ChatInterface() {
   const [isSidebarOpen, setIsSidebarOpen] = useState(false)
   const [showUserSearchDialog, setShowUserSearchDialog] = useState(false)
   const [userSearchQuery, setUserSearchQuery] = useState("")
+  const [showSendDocumentDialog, setShowSendDocumentDialog] = useState(false)
+  const [selectedDocumentFile, setSelectedDocumentFile] = useState<File | null>(null)
+  const [documentRecipientSearchQuery, setDocumentRecipientSearchQuery] = useState("")
+  const documentFileInputRef = useRef<HTMLInputElement>(null)
   const [isClient, setIsClient] = useState(false)
   const messagesEndRef = useRef<HTMLDivElement>(null)
   const messagesContainerRef = useRef<HTMLDivElement>(null)
@@ -284,10 +290,8 @@ export function ChatInterface() {
       }
     }
     
-    // Sinon, sélectionner la première conversation si aucune n'est sélectionnée
-    if (!selectedChat && conversations.length > 0) {
-      setSelectedChat(conversations[0].id)
-    }
+    // Ne plus sélectionner automatiquement la première conversation
+    // L'utilisateur doit choisir manuellement une conversation
   }, [conversations, selectedChat, searchParams])
 
   // Recherche d'utilisateurs avec debounce (déclenchée directement depuis le champ de recherche)
@@ -303,16 +307,28 @@ export function ChatInterface() {
     return () => clearTimeout(timeoutId)
   }, [userSearchQuery, searchUsers, clearSearch])
 
+  // Recherche d'utilisateurs pour l'envoi de document
+  useEffect(() => {
+    const timeoutId = setTimeout(() => {
+      if (documentRecipientSearchQuery.length >= 2) {
+        searchUsers(documentRecipientSearchQuery)
+      } else {
+        clearSearch()
+      }
+    }, 300)
+
+    return () => clearTimeout(timeoutId)
+  }, [documentRecipientSearchQuery, searchUsers, clearSearch])
+
   const handleSelectChat = (chatId: string) => {
     setSelectedChat(chatId)
     // Forcer le scroll vers le bas quand on change de conversation
     shouldAutoScrollRef.current = true
     // Marquer la conversation comme lue localement pour arrêter immédiatement le clignotement
     markConversationAsRead(chatId)
-    // Si largeur < 1024px, rester sur le sidebar uniquement
+    // Sur mobile, masquer le sidebar après sélection
+    // Sur desktop, le sidebar reste toujours visible
     if (typeof window !== 'undefined' && window.innerWidth < 1024) {
-      setIsSidebarOpen(true)
-    } else {
       setIsSidebarOpen(false)
     }
   }
@@ -323,6 +339,38 @@ export function ChatInterface() {
       setSelectedChat(conversation.id)
       setUserSearchQuery("")
       clearSearch()
+      setShowUserSearchDialog(false)
+    }
+  }
+
+  const handleDocumentFileSelect = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0]
+    if (file) {
+      setSelectedDocumentFile(file)
+      setShowSendDocumentDialog(true)
+      setDocumentRecipientSearchQuery("")
+    }
+  }
+
+  const handleSendDocumentToUser = async (userId: number) => {
+    if (!selectedDocumentFile) return
+    
+    try {
+      const conversation = await createConversationWithUser(userId)
+      if (conversation) {
+        // Envoyer le document dans la conversation
+        await sendMessage(conversation.id, "", undefined, selectedDocumentFile)
+        setSelectedChat(conversation.id)
+        setSelectedDocumentFile(null)
+        setDocumentRecipientSearchQuery("")
+        clearSearch()
+        setShowSendDocumentDialog(false)
+        if (documentFileInputRef.current) {
+          documentFileInputRef.current.value = ''
+        }
+      }
+    } catch (error) {
+      console.error('Erreur lors de l\'envoi du document:', error)
     }
   }
 
@@ -1051,13 +1099,39 @@ export function ChatInterface() {
               </div>
             </>
           ) : (
-            <div className="flex-1 flex items-center justify-center text-center p-8">
-              <div>
-                <p className="text-muted-foreground mb-4">Sélectionnez une conversation pour commencer</p>
-                <Button onClick={() => setShowUserSearchDialog(true)}>
-                  <UserPlus className="h-4 w-4 mr-2" />
-                  Nouvelle conversation
-                </Button>
+            <div className="flex-1 flex items-center justify-center text-center p-8 bg-gray-50">
+              <div className="flex flex-col items-center gap-8">
+                <div className="flex flex-col sm:flex-row items-center gap-6 sm:gap-12">
+                  {/* Icône Discussions */}
+                  <button
+                    onClick={() => setShowUserSearchDialog(true)}
+                    className="flex flex-col items-center gap-4 p-8 rounded-2xl bg-white hover:bg-gray-50 shadow-lg hover:shadow-xl transition-all duration-300 hover:scale-105 border-2 border-gray-200 hover:border-blue-300 group"
+                  >
+                    <div className="p-4 bg-blue-100 rounded-full group-hover:bg-blue-200 transition-colors">
+                      <MessageCircle className="h-12 w-12 text-blue-600" />
+                    </div>
+                    <div>
+                      <h3 className="text-lg font-semibold text-gray-900 mb-1">Discussions</h3>
+                      <p className="text-sm text-gray-600">Chercher une personne avec qui discuter</p>
+                    </div>
+                  </button>
+
+                  {/* Icône Envoyer un document */}
+                  <button
+                    onClick={() => {
+                      documentFileInputRef.current?.click()
+                    }}
+                    className="flex flex-col items-center gap-4 p-8 rounded-2xl bg-white hover:bg-gray-50 shadow-lg hover:shadow-xl transition-all duration-300 hover:scale-105 border-2 border-gray-200 hover:border-green-300 group"
+                  >
+                    <div className="p-4 bg-green-100 rounded-full group-hover:bg-green-200 transition-colors">
+                      <Upload className="h-12 w-12 text-green-600" />
+                    </div>
+                    <div>
+                      <h3 className="text-lg font-semibold text-gray-900 mb-1">Envoyer un document</h3>
+                      <p className="text-sm text-gray-600">Sélectionner un document et une personne</p>
+                    </div>
+                  </button>
+                </div>
               </div>
             </div>
           )}
@@ -1145,6 +1219,147 @@ export function ChatInterface() {
                 ))
               )}
             </div>
+          </div>
+        </DialogContent>
+      </Dialog>
+
+      {/* Dialog d'envoi de document */}
+      <Dialog open={showSendDocumentDialog} onOpenChange={setShowSendDocumentDialog}>
+        <DialogContent className="sm:max-w-[500px]">
+          <DialogHeader>
+            <DialogTitle>Envoyer un document</DialogTitle>
+            <DialogDescription>
+              {selectedDocumentFile 
+                ? `Sélectionnez une personne à qui envoyer "${selectedDocumentFile.name}"`
+                : "Sélectionnez d'abord un document sur votre ordinateur"}
+            </DialogDescription>
+          </DialogHeader>
+          
+          <div className="space-y-4 mt-4">
+            {/* Input fichier caché */}
+            <input
+              type="file"
+              ref={documentFileInputRef}
+              onChange={handleDocumentFileSelect}
+              className="hidden"
+              accept=".pdf,.doc,.docx,.txt,.xls,.xlsx,.ppt,.pptx,.zip,.rar,.jpg,.jpeg,.png,.gif"
+            />
+
+            {/* Afficher le fichier sélectionné */}
+            {selectedDocumentFile && (
+              <div className="p-4 bg-gray-50 rounded-lg border border-gray-200 flex items-center justify-between">
+                <div className="flex items-center gap-3 flex-1 min-w-0">
+                  <Paperclip className="h-5 w-5 text-gray-600 flex-shrink-0" />
+                  <div className="min-w-0 flex-1">
+                    <p className="text-sm font-medium text-gray-900 truncate">{selectedDocumentFile.name}</p>
+                    <p className="text-xs text-gray-500">
+                      {(selectedDocumentFile.size / 1024 / 1024).toFixed(2)} MB
+                    </p>
+                  </div>
+                </div>
+                <Button
+                  variant="ghost"
+                  size="icon"
+                  className="h-8 w-8 flex-shrink-0"
+                  onClick={() => {
+                    setSelectedDocumentFile(null)
+                    if (documentFileInputRef.current) {
+                      documentFileInputRef.current.value = ''
+                    }
+                  }}
+                >
+                  <X className="h-4 w-4" />
+                </Button>
+              </div>
+            )}
+
+            {/* Si aucun fichier sélectionné, permettre de le sélectionner */}
+            {!selectedDocumentFile && (
+              <Button
+                onClick={() => documentFileInputRef.current?.click()}
+                className="w-full"
+                variant="outline"
+              >
+                <Upload className="h-4 w-4 mr-2" />
+                Sélectionner un document
+              </Button>
+            )}
+
+            {/* Recherche de destinataire si fichier sélectionné */}
+            {selectedDocumentFile && (
+              <>
+                <div className="relative">
+                  <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
+                  <Input
+                    placeholder="Rechercher une personne..."
+                    value={documentRecipientSearchQuery}
+                    onChange={(e) => setDocumentRecipientSearchQuery(e.target.value)}
+                    className="pl-10"
+                  />
+                  {isSearching && (
+                    <div className="absolute right-3 top-1/2 -translate-y-1/2">
+                      <Loader2 className="h-4 w-4 animate-spin text-muted-foreground" />
+                    </div>
+                  )}
+                </div>
+
+                {searchError && (
+                  <div className="text-sm text-destructive">
+                    {searchError}
+                  </div>
+                )}
+
+                <div className="max-h-[400px] overflow-y-auto space-y-2">
+                  {searchResults.length === 0 && documentRecipientSearchQuery.length >= 2 && !isSearching ? (
+                    <div className="text-center py-8 text-sm text-muted-foreground">
+                      <p>Aucun utilisateur trouvé</p>
+                    </div>
+                  ) : (
+                    searchResults.map((user) => (
+                      <div
+                        key={user.id}
+                        onClick={() => handleSendDocumentToUser(user.id)}
+                        className="w-full p-3 rounded-lg hover:bg-muted/50 flex items-center gap-3 transition-colors cursor-pointer"
+                        role="button"
+                        tabIndex={0}
+                        onKeyDown={(e) => {
+                          if (e.key === 'Enter' || e.key === ' ') {
+                            e.preventDefault()
+                            handleSendDocumentToUser(user.id)
+                          }
+                        }}
+                      >
+                        <div className="relative flex-shrink-0">
+                          <img
+                            src={user.avatar_url || "/placeholder-user.jpg"}
+                            alt={user.full_name}
+                            className="h-10 w-10 rounded-full object-cover"
+                            onError={(e) => {
+                              const target = e.target as HTMLImageElement
+                              if (target.src !== "/placeholder-user.jpg") {
+                                target.src = "/placeholder-user.jpg"
+                              }
+                            }}
+                          />
+                        </div>
+                        <div className="flex-1 min-w-0">
+                          <p className="font-medium text-sm truncate">{user.full_name || user.username}</p>
+                          {user.position && (
+                            <p className="text-xs text-muted-foreground truncate">{user.position}</p>
+                          )}
+                          {user.matricule && (
+                            <p className="text-xs text-muted-foreground">Matricule: {user.matricule}</p>
+                          )}
+                        </div>
+                        <div className="flex-shrink-0 p-1 rounded-full hover:bg-muted">
+                          <Send className="h-4 w-4 text-muted-foreground" />
+                        </div>
+                      </div>
+                    ))
+                  )}
+                </div>
+              </>
+            )}
           </div>
         </DialogContent>
       </Dialog>
