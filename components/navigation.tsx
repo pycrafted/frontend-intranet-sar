@@ -2,30 +2,27 @@
 import Link from "next/link"
 import { usePathname, useRouter } from "next/navigation"
 import { useLogout } from "@/hooks/useAuth"
-import { useArticleStats } from "@/hooks/useArticles"
 import { useState, useEffect } from "react"
 import { cn } from "@/lib/utils"
 import { Button } from "@/components/ui/button"
 import { Sheet, SheetContent } from "@/components/ui/sheet"
-import { Badge } from "@/components/ui/badge"
-import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar"
+
+
 import { PageLoader } from "@/components/ui/loader"
 import {
   Home,
   Newspaper,
   Users,
   FileText,
-  MessageSquare,
   MessageCircle,
-  Building2,
-  ChevronRight,
-  ChevronLeft,
   X,
   LogOut,
   UserPlus,
   BarChart3,
   Shield,
   Phone,
+  ClipboardList,
+  UserCog,
 } from "lucide-react"
 import { useAuth } from "@/hooks/useAuth"
 
@@ -34,25 +31,25 @@ const getBaseNavigationSections = () => [
   {
     title: "Tableau de Bord",
     items: [
-      { name: "Accueil", href: "/", icon: Home },
-      { name: "Actualités", href: "/actualites", icon: Newspaper },
+      { name: "Accueil",    shortName: "Accueil",  href: "/",          icon: Home      },
+      { name: "Actualités", shortName: "Actus",    href: "/actualites", icon: Newspaper },
     ],
   },
   {
     title: "Collaboration",
     items: [
-      { name: "Organigramme", href: "/organigramme", icon: Users },
-      { name: "Annuaire", href: "/annuaire", icon: Phone },
-      { name: "Forum", href: "/forum", icon: MessageCircle },
-      { name: "Chat", href: "/reseau-social", icon: MessageSquare },
+      { name: "Organigramme", shortName: "Équipes",  href: "/organigramme",  icon: Users         },
+      { name: "Annuaire",     shortName: "Annuaire", href: "/annuaire",       icon: Phone         },
+      { name: "Forum",        shortName: "Forum",    href: "/forum",          icon: MessageCircle, authOnly: true },
     ],
   },
   {
     title: "Ressources",
     items: [
-      { name: "Bibliothèque", href: "/documents", icon: FileText },
-      { name: "Sensibilisation", href: "/securite", icon: Shield },
-      { name: "Recrutement Interne", href: "/recrutement", icon: UserPlus },
+      { name: "Bibliothèque",        shortName: "Docs",       href: "/documents",  icon: FileText  },
+      { name: "Sensibilisation",     shortName: "Prévention", href: "/securite",   icon: Shield    },
+      { name: "Recrutement Interne", shortName: "Emplois",    href: "/recrutement", icon: UserPlus },
+      { name: "Interface SIRH",      shortName: "SIRH",       href: "/sirh",        icon: ClipboardList, authOnly: true },
     ],
   },
 ]
@@ -67,10 +64,10 @@ export function Navigation({ isOpen, onClose, onCollapseChange }: NavigationProp
   const pathname = usePathname()
   const router = useRouter()
   const [isLoading, setIsLoading] = useState(false)
-  const [isCollapsed, setIsCollapsed] = useState(false) // Ouvert par défaut
+  const isCollapsed = true // Toujours rétracté — définitivement
   const [mounted, setMounted] = useState(false) // Pour éviter les erreurs d'hydratation
   const { logout } = useLogout()
-  const { stats } = useArticleStats()
+
   const { user } = useAuth()
 
   // Marquer comme monté après le premier rendu côté client
@@ -104,34 +101,21 @@ export function Navigation({ isOpen, onClose, onCollapseChange }: NavigationProp
   useEffect(() => {
     const sections = getBaseNavigationSections()
     const isAuthenticated = !!user
-    const isAdmin = !!user && (user.is_superuser || (user as any).is_admin_group)
-    const isCom = !!user && ((user as any).is_communication_group === true)
-    
+    const isSuperuser = !!user && user.is_superuser
+
     // Filtrer les liens "Chat" et "Forum" si l'utilisateur n'est pas authentifié
     sections.forEach(section => {
-      if (section.title === "Collaboration") {
-        section.items = section.items.filter(item => {
-          // Masquer "Chat" et "Forum" si non authentifié
-          if ((item.name === "Chat" || item.name === "Forum") && !isAuthenticated) {
-            return false
-          }
-          return true
-        })
-      }
-    })
-    if (isAdmin) {
-      sections.push({
-        title: "Administration",
-        items: [
-          { name: "Métriques", href: "/metriques", icon: BarChart3 },
-          { name: "Centre de Contrôle", href: "/centre_de_controle", icon: Shield },
-        ],
+      section.items = section.items.filter(item => {
+        if ((item as any).authOnly && !isAuthenticated) return false
+        return true
       })
-    } else if (isCom) {
+    })
+    if (isSuperuser) {
       sections.push({
         title: "Administration",
         items: [
-          { name: "Centre de Contrôle", href: "/centre_de_controle", icon: Shield },
+          { name: "Métriques", shortName: "Métriques", href: "/metriques", icon: BarChart3 },
+          { name: "Utilisateurs", shortName: "Users", href: "/administration/utilisateurs", icon: UserCog },
         ],
       })
     }
@@ -260,136 +244,89 @@ export function Navigation({ isOpen, onClose, onCollapseChange }: NavigationProp
     </div>
   )
 
+
+  const NavItem = ({ item, onItemClose }: { item: any; onItemClose?: () => void }) => {
+    const Icon = item.icon
+    const isActive = pathname === item.href || (item.name === "Forum" && pathname?.startsWith("/forum"))
+    const handleClick = async (e: React.MouseEvent) => {
+      if (item.name === "Forum") {
+        e.preventDefault()
+        router.push("/forum")
+        if (onClose) onClose()
+        if (onItemClose) onItemClose()
+      } else {
+        if (item.href !== pathname && !item.href.startsWith('#')) {
+          setIsLoading(true)
+        }
+        if (onClose) onClose()
+        if (onItemClose) onItemClose()
+      }
+    }
+    return (
+      <Link
+        href={item.href}
+        onClick={handleClick}
+        className={cn(
+          "group flex flex-col items-center justify-center gap-1 px-1 py-2 rounded-xl transition-all duration-200 relative overflow-hidden w-full",
+          isActive
+            ? "bg-gradient-to-b from-blue-50 to-indigo-50 text-blue-700 shadow-sm border border-blue-200/50"
+            : "text-slate-600 hover:bg-slate-100/80 hover:text-slate-900"
+        )}
+      >
+        <div className={cn(
+          "p-1.5 rounded-lg transition-all duration-200",
+          isActive ? "bg-blue-100 text-blue-600 shadow-sm" : "text-slate-500 group-hover:bg-blue-50 group-hover:text-blue-600"
+        )}>
+          <Icon className="h-4 w-4" />
+        </div>
+        <span className={cn(
+          "text-[9px] font-medium text-center leading-tight w-full truncate px-0.5",
+          isActive ? "text-blue-700" : "text-slate-500 group-hover:text-slate-700"
+        )}>
+          {item.shortName ?? item.name}
+        </span>
+        {isActive && (
+          <div className="absolute left-0 top-1/2 -translate-y-1/2 w-0.5 h-5 bg-blue-500 rounded-r-full" />
+        )}
+      </Link>
+    )
+  }
+
   const NavigationContent = () => (
     <div className="relative flex flex-col h-full bg-gradient-to-b from-slate-50 to-white border-r border-slate-200/60 shadow-sm">
-      {/* Bouton de rétractement - Responsive */}
-      <div className="flex justify-end p-1.5 sm:p-2 border-b border-slate-200/60">
-        <Button
-          variant="ghost"
-          size="sm"
-          onClick={() => setIsCollapsed(!isCollapsed)}
-          className="h-7 w-7 sm:h-8 sm:w-8 p-0 text-slate-500 hover:text-slate-700 hover:bg-slate-100 rounded-lg"
-          aria-label={isCollapsed ? "Développer le menu" : "Rétracter le menu"}
-        >
-          {isCollapsed ? <ChevronRight className="h-3 w-3 sm:h-4 sm:w-4" /> : <ChevronLeft className="h-3 w-3 sm:h-4 sm:w-4" />}
-        </Button>
-      </div>
-
-      <nav className={cn(
-        "flex-1 pt-3 sm:pt-4 space-y-6 sm:space-y-8 overflow-y-auto",
-        isCollapsed ? "px-1 sm:px-1" : "px-2 sm:px-3 lg:px-4"
-      )}>
-        {navigationSections.map((section) => (
-          <div key={section.title} className="space-y-2 sm:space-y-3">
-            {!isCollapsed && (
-              <div className="px-2 sm:px-3">
-                <h3 className="text-xs font-semibold text-slate-500 uppercase tracking-wider flex items-center gap-1.5 sm:gap-2">
-                  <div className="w-1 h-1 rounded-full bg-slate-400"></div>
-                  {section.title}
-                </h3>
-              </div>
+      <nav className="flex-1 pt-2 overflow-y-auto px-1.5 space-y-0">
+        {navigationSections.map((section, sectionIdx) => (
+          <div key={section.title}>
+            {sectionIdx > 0 && (
+              <div className="my-1.5 mx-2 border-t border-slate-200/70" />
             )}
-            <div className="space-y-1">
-              {section.items.map((item) => {
-                const Icon = item.icon
-                const isActive = pathname === item.href || (item.name === "Forum" && pathname?.startsWith("/forum"))
-                const handleForumClick = async (e: React.MouseEvent) => {
-                  if (item.name === "Forum") {
-                    e.preventDefault()
-                    router.push("/forum")
-                    if (onClose) onClose()
-                  } else {
-                    if (item.href !== pathname && !item.href.startsWith('#')) {
-                      setIsLoading(true)
-                    }
-                    if (onClose) onClose()
-                  }
-                }
-                return (
-                  <Link
-                    key={item.name}
-                    href={item.href}
-                    onClick={handleForumClick}
-                    className={cn(
-                      "group flex items-center transition-all duration-300 relative overflow-hidden",
-                      isCollapsed 
-                        ? "justify-center px-1 py-2 sm:py-2.5" 
-                        : "justify-between px-2 sm:px-3 py-2 sm:py-3",
-                      "text-xs sm:text-sm font-medium rounded-lg sm:rounded-xl",
-                      isActive
-                        ? "bg-gradient-to-r from-blue-50 to-indigo-50 text-blue-700 shadow-sm border border-blue-200/50"
-                        : "text-slate-700 hover:bg-slate-50 hover:text-slate-900 hover:shadow-sm"
-                    )}
-                    title={isCollapsed ? item.name : undefined}
-                  >
-                    {/* Effet de survol avec gradient */}
-                    <div className={cn(
-                      "absolute inset-0 bg-gradient-to-r from-blue-500/5 to-indigo-500/5 opacity-0 transition-opacity duration-300",
-                      "group-hover:opacity-100"
-                    )} />
-                    
-                    <div className={cn(
-                      "flex items-center relative z-10",
-                      isCollapsed ? "justify-center w-full" : ""
-                    )}>
-                      <div className={cn(
-                        "rounded-md sm:rounded-lg transition-all duration-300",
-                        isCollapsed ? "p-1.5 sm:p-2" : "p-1.5 sm:p-2",
-                        isActive 
-                          ? "bg-blue-100 text-blue-600 shadow-sm" 
-                          : "bg-slate-100 text-slate-500 group-hover:bg-blue-100 group-hover:text-blue-600"
-                      )}>
-                        <Icon className={cn(
-                          isCollapsed ? "h-4 w-4 sm:h-5 sm:w-5" : "h-3.5 w-3.5 sm:h-4 sm:w-4"
-                        )} />
-                      </div>
-                      {!isCollapsed && (
-                        <span className="ml-2 sm:ml-3 font-medium text-xs sm:text-sm">{item.name}</span>
-                      )}
-                    </div>
-                    
-                    {!isCollapsed && (
-                      <div className="flex items-center space-x-1.5 sm:space-x-2 relative z-10">
-                        {isActive && (
-                          <div className="w-1.5 h-1.5 sm:w-2 sm:h-2 rounded-full bg-blue-500 animate-pulse" />
-                        )}
-                      </div>
-                    )}
-                  </Link>
-                )
-              })}
+            <div className="space-y-0.5 py-1">
+              {section.items.map((item) => (
+                <NavItem key={item.name} item={item} />
+              ))}
             </div>
           </div>
         ))}
       </nav>
 
-      {/* Bouton de déconnexion fixé en bas - Responsive - Affiché uniquement si connecté */}
-      {user && (
-        <div className="border-t border-slate-200/60 bg-slate-50/50 p-2 sm:p-3 lg:p-4 mt-auto">
-          <Button 
-            variant="outline" 
-            className={cn(
-              "w-full text-slate-700 hover:text-red-600 hover:border-red-200 hover:bg-red-50 transition-all duration-300 border-slate-200 hover:shadow-sm text-xs sm:text-sm",
-              isCollapsed ? "justify-center" : "justify-start"
-            )}
+      {/* Bas de sidebar : déconnexion */}
+      <div className="border-t border-slate-200/60 bg-slate-50/50 p-1.5 mt-auto flex flex-col gap-0.5">
+
+        {/* Bouton déconnexion */}
+        {user && (
+          <button
             onClick={handleLogout}
             disabled={isLoading}
-            title={isCollapsed ? "Se déconnecter" : undefined}
+            className="w-full flex items-center justify-center py-2 px-1 rounded-xl hover:bg-red-50 transition-all duration-200 group"
           >
             {isLoading ? (
-              <>
-                <div className="h-3 w-3 sm:h-4 sm:w-4 border-2 border-slate-400 border-t-transparent rounded-full animate-spin" />
-                {!isCollapsed && <span className="ml-2 sm:ml-3">Déconnexion...</span>}
-              </>
+              <div className="h-4 w-4 border-2 border-t-transparent rounded-full animate-spin" style={{ borderColor: '#344256', borderTopColor: 'transparent' }} />
             ) : (
-              <>
-                <LogOut className="h-3.5 w-3.5 sm:h-4 sm:w-4" />
-                {!isCollapsed && <span className="ml-2 sm:ml-3">Se déconnecter</span>}
-              </>
+              <LogOut className="h-4 w-4 group-hover:text-red-500 transition-colors" style={{ color: '#344256' }} />
             )}
-          </Button>
-        </div>
-      )}
+          </button>
+        )}
+      </div>
     </div>
   )
 
@@ -398,7 +335,7 @@ export function Navigation({ isOpen, onClose, onCollapseChange }: NavigationProp
       {/* Sidebar Desktop - Responsive */}
       <aside className={cn(
         "hidden tablet:flex tablet:flex-col tablet:fixed tablet:top-16 tablet:bottom-0 tablet:z-40 border-r border-gray-200 shadow-sm transition-all duration-300",
-        isCollapsed ? "tablet:w-12 md:w-14 lg:w-16" : "tablet:w-56 md:w-60 lg:w-64"
+        isCollapsed ? "tablet:w-[4.5rem] md:w-[4.5rem] lg:w-[4.5rem]" : "tablet:w-56 md:w-60 lg:w-64"
       )}>
         {mounted ? <NavigationContent /> : (
           <div className="relative flex flex-col h-full bg-gradient-to-b from-slate-50 to-white border-r border-slate-200/60 shadow-sm">

@@ -2,7 +2,7 @@
 
 import { useState, useMemo } from "react"
 import type { FileItem } from "./documents-page"
-import { MoreVertical, Folder, FileText, Trash2, Eye, Edit3, Download, ArrowUpDown } from "lucide-react"
+import { MoreVertical, Folder, FileText, FileImage, Film, Trash2, Eye, Edit3, Download, ArrowUpDown } from "lucide-react"
 import { Button } from "@/components/ui/button"
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from "@/components/ui/dropdown-menu"
 import { useAuth } from "@/hooks/useAuth"
@@ -33,28 +33,20 @@ export function DocumentsDataTable({
     }
 
     const iconClass = "h-5 w-5"
-    switch (item.fileType) {
-      case "pdf":
-        return <FileText className={`${iconClass} text-white`} />
-      case "pptx":
-      case "ppt":
-        return <FileText className={`${iconClass} text-white`} />
-      case "docx":
-      case "doc":
-        return <FileText className={`${iconClass} text-white`} />
-      case "xlsx":
-      case "xls":
-        return <FileText className={`${iconClass} text-white`} />
-      default:
-        return <FileText className={`${iconClass} text-white`} />
+    if (item.is_image || item.media_type === 'image') {
+      return <FileImage className={`${iconClass} text-purple-300`} />
     }
+    if (item.is_video || item.media_type === 'video') {
+      return <Film className={`${iconClass} text-blue-300`} />
+    }
+    return <FileText className={`${iconClass} text-white`} />
   }
 
   const handleClick = (item: FileItem) => {
     if (item.type === "folder" && onFolderClick) {
       const folderId = parseInt(item.id.replace('folder-', ''))
       onFolderClick(folderId)
-    } else if (item.type === "document" && onView) {
+    } else if (item.type === "file" && onView) {
       // Visualiser directement le document au clic
       onView(item.id)
     }
@@ -147,13 +139,13 @@ export function DocumentsDataTable({
 
   return (
     <div className="space-y-4">
-      {/* Tableau avec tri */}
-      <div className="rounded-lg border border-white/20" style={{ backgroundColor: "#344256" }}>
+      <div className="rounded-lg border border-white/20 overflow-hidden" style={{ backgroundColor: "#344256" }}>
+        <div className="overflow-x-auto">
         <table className="w-full">
           <thead>
             <tr className="border-b border-white/20">
-              <th 
-                className="px-6 py-3 text-left text-sm font-medium text-white cursor-pointer hover:bg-white/10 transition-colors"
+              <th
+                className="px-3 sm:px-6 py-3 text-left text-sm font-medium text-white cursor-pointer hover:bg-white/10 transition-colors"
                 onClick={() => handleSort('name')}
               >
                 <div className="flex items-center gap-2">
@@ -161,8 +153,8 @@ export function DocumentsDataTable({
                   <ArrowUpDown className="h-4 w-4" />
                 </div>
               </th>
-              <th 
-                className="px-6 py-3 text-left text-sm font-medium text-white cursor-pointer hover:bg-white/10 transition-colors"
+              <th
+                className="hidden sm:table-cell px-6 py-3 text-left text-sm font-medium text-white cursor-pointer hover:bg-white/10 transition-colors"
                 onClick={() => handleSort('owner')}
               >
                 <div className="flex items-center gap-2">
@@ -170,8 +162,8 @@ export function DocumentsDataTable({
                   <ArrowUpDown className="h-4 w-4" />
                 </div>
               </th>
-              <th 
-                className="px-6 py-3 text-left text-sm font-medium text-white cursor-pointer hover:bg-white/10 transition-colors"
+              <th
+                className="hidden md:table-cell px-6 py-3 text-left text-sm font-medium text-white cursor-pointer hover:bg-white/10 transition-colors"
                 onClick={() => handleSort('modified')}
               >
                 <div className="flex items-center gap-2">
@@ -179,8 +171,8 @@ export function DocumentsDataTable({
                   <ArrowUpDown className="h-4 w-4" />
                 </div>
               </th>
-              <th 
-                className="px-6 py-3 text-left text-sm font-medium text-white cursor-pointer hover:bg-white/10 transition-colors"
+              <th
+                className="hidden md:table-cell px-6 py-3 text-left text-sm font-medium text-white cursor-pointer hover:bg-white/10 transition-colors"
                 onClick={() => handleSort('size')}
               >
                 <div className="flex items-center gap-2">
@@ -188,33 +180,33 @@ export function DocumentsDataTable({
                   <ArrowUpDown className="h-4 w-4" />
                 </div>
               </th>
-              <th className="px-6 py-3 text-left text-sm font-medium text-white">Actions</th>
+              <th className="px-3 sm:px-6 py-3 text-left text-sm font-medium text-white">Actions</th>
             </tr>
           </thead>
           <tbody>
             {sortedItems.map((item) => (
-              <tr 
-                key={item.id} 
+              <tr
+                key={item.id}
                 className="border-b border-white/20 hover:bg-white/10 cursor-pointer transition-colors"
                 onClick={() => handleClick(item)}
               >
-                <td className="px-6 py-3">
-                  <div className="flex items-center gap-3">
-                    {getFileIcon(item)}
-                    <span className="text-sm font-medium text-white">{item.name}</span>
+                <td className="px-3 sm:px-6 py-3">
+                  <div className="flex items-center gap-2 sm:gap-3 min-w-0">
+                    <div className="flex-shrink-0">{getFileIcon(item)}</div>
+                    <span className="text-sm font-medium text-white truncate max-w-[140px] sm:max-w-xs md:max-w-none">{item.name}</span>
                   </div>
                 </td>
-                <td className="px-6 py-3 text-sm text-white/80">{item.owner}</td>
-                <td className="px-6 py-3 text-sm text-white/80">{item.modifiedDate}</td>
-                <td className="px-6 py-3 text-sm text-white/80">
+                <td className="hidden sm:table-cell px-6 py-3 text-sm text-white/80">{item.owner}</td>
+                <td className="hidden md:table-cell px-6 py-3 text-sm text-white/80">{item.modifiedDate}</td>
+                <td className="hidden md:table-cell px-6 py-3 text-sm text-white/80">
                   {item.type === "folder" ? "—" : item.size}
                 </td>
-                <td className="px-6 py-3">
+                <td className="px-3 sm:px-6 py-3">
                   <DropdownMenu>
                     <DropdownMenuTrigger asChild>
-                      <Button 
-                        variant="ghost" 
-                        size="icon" 
+                      <Button
+                        variant="ghost"
+                        size="icon"
                         className="h-8 w-8 text-white hover:bg-white/20"
                         onClick={(e) => e.stopPropagation()}
                       >
@@ -253,8 +245,8 @@ export function DocumentsDataTable({
             ))}
           </tbody>
         </table>
+        </div>
       </div>
-
     </div>
   )
 }

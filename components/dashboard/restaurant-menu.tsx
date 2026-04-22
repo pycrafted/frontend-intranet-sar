@@ -1,18 +1,14 @@
 "use client"
 
-
-
 import { useState, useEffect } from "react"
-
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
-
 import { Badge } from "@/components/ui/badge"
-
 import { Button } from "@/components/ui/button"
-
-import { Utensils, MapPin, Clock, ChefHat, Star, Calendar, Users, Sparkles, ArrowRight, ChevronLeft, ChevronRight } from "lucide-react"
-
+import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog"
+import { Utensils, MapPin, Clock, ChefHat, Star, Calendar, Users, Sparkles, ArrowRight, ChevronLeft, ChevronRight, Pencil, Loader2 } from "lucide-react"
 import { useMenu } from "@/hooks/useMenu"
+import { useAuth } from "@/hooks/useAuth"
+import { API_CONFIG } from "@/lib/config"
 
 
 
@@ -64,6 +60,203 @@ interface DayMenu {
 
 
 
+// ── Utilitaire : lundi de la semaine courante ─────────────────────────────────
+function getCurrentMonday(): string {
+  const d = new Date()
+  const day = d.getDay()
+  const diff = day === 0 ? -6 : 1 - day
+  d.setDate(d.getDate() + diff)
+  return d.toISOString().split('T')[0]
+}
+
+function addDays(dateStr: string, n: number): string {
+  const d = new Date(dateStr)
+  d.setDate(d.getDate() + n)
+  return d.toISOString().split('T')[0]
+}
+
+const WEEK_DAYS = [
+  { key: 'monday',    label: 'Lundi',    offset: 0 },
+  { key: 'tuesday',   label: 'Mardi',    offset: 1 },
+  { key: 'wednesday', label: 'Mercredi', offset: 2 },
+  { key: 'thursday',  label: 'Jeudi',    offset: 3 },
+]
+
+// ── Modal création / édition de menu semaine ─────────────────────────────────
+
+type DayForm = { senegalese: string; european: string; dessert: string }
+
+interface WeekMenuData {
+  week_start: string
+  week_end: string
+  days: DayMenu[]
+}
+
+function MenuCreateModal({ open, onClose, onSaved, initialData }: {
+  open: boolean
+  onClose: () => void
+  onSaved: () => void
+  initialData?: WeekMenuData | null
+}) {
+  const [weekStart, setWeekStart] = useState(getCurrentMonday)
+  const [days, setDays] = useState<Record<string, DayForm>>(() =>
+    Object.fromEntries(WEEK_DAYS.map(d => [d.key, { senegalese: '', european: '', dessert: '' }]))
+  )
+  const [saving, setSaving] = useState(false)
+  const [error, setError] = useState<string | null>(null)
+
+  useEffect(() => {
+    if (!open) return
+    setError(null)
+    if (initialData?.days?.length) {
+      // Pré-remplir avec le menu existant
+      setWeekStart(initialData.week_start)
+      const prefilled = Object.fromEntries(
+        WEEK_DAYS.map(d => {
+          const existing = initialData.days.find(m => m.day === d.key)
+          return [d.key, {
+            senegalese: existing?.senegalese ?? '',
+            european:   existing?.european   ?? '',
+            dessert:    existing?.dessert     ?? '',
+          }]
+        })
+      )
+      setDays(prefilled)
+    } else {
+      setWeekStart(getCurrentMonday())
+      setDays(Object.fromEntries(WEEK_DAYS.map(d => [d.key, { senegalese: '', european: '', dessert: '' }])))
+    }
+  }, [open])
+
+  const setDay = (key: string, field: keyof DayForm, value: string) =>
+    setDays(prev => ({ ...prev, [key]: { ...prev[key], [field]: value } }))
+
+  const handleSubmit = async (e: React.FormEvent) => {
+    e.preventDefault()
+    setSaving(true)
+    setError(null)
+    try {
+      const menus = WEEK_DAYS.map(d => ({
+        day:        d.key,
+        date:       addDays(weekStart, d.offset),
+        senegalese: days[d.key].senegalese.trim(),
+        european:   days[d.key].european.trim(),
+        dessert:    days[d.key].dessert.trim() || null,
+        is_active:  true,
+      })).filter(m => m.senegalese && m.european)
+
+      if (menus.length === 0) {
+        throw new Error('Renseignez au moins un jour avec plat sénégalais et européen.')
+      }
+
+      const csrfToken = document.cookie.match(/csrftoken=([^;]+)/)?.[1] ?? ''
+      const res = await fetch(`${API_CONFIG.ACCUEIL}/menu/create-week/`, {
+        method: 'POST',
+        credentials: 'include',
+        headers: { 'Content-Type': 'application/json', 'X-CSRFToken': csrfToken },
+        body: JSON.stringify({ week_start: weekStart, menus }),
+      })
+      const data = await res.json().catch(() => ({}))
+      if (!res.ok) throw new Error(data?.error || `Erreur ${res.status}`)
+      onSaved()
+      onClose()
+    } catch (err) {
+      setError(err instanceof Error ? err.message : 'Erreur inconnue')
+    } finally {
+      setSaving(false)
+    }
+  }
+
+  return (
+    <Dialog open={open} onOpenChange={onClose}>
+      <DialogContent style={{ width: '580px', maxWidth: 'calc(100vw - 2rem)', maxHeight: '90vh', overflowY: 'auto' }}>
+        <DialogHeader>
+          <DialogTitle className="flex items-center gap-2">
+            <div className="p-2 bg-gradient-to-br from-slate-500 to-blue-600 rounded-lg">
+              <ChefHat className="h-4 w-4 text-white" />
+            </div>
+            Menu de la semaine
+          </DialogTitle>
+        </DialogHeader>
+
+        <form onSubmit={handleSubmit} className="space-y-4 pt-1">
+          {/* Sélection de la semaine */}
+          <div className="space-y-1">
+            <label className="text-xs font-medium text-gray-600 uppercase tracking-wide">Semaine du (Lundi)</label>
+            <input
+              type="date"
+              value={weekStart}
+              onChange={e => setWeekStart(e.target.value)}
+              className="w-full h-9 rounded-md border border-gray-300 bg-white px-3 text-sm outline-none focus:border-blue-400 focus:ring-2 focus:ring-blue-200 transition-colors"
+            />
+          </div>
+
+          {/* Tableau des jours */}
+          <div className="space-y-3">
+            {WEEK_DAYS.map(d => {
+              const date = addDays(weekStart, d.offset)
+              return (
+                <div key={d.key} className="border border-gray-200 rounded-lg p-3 space-y-2 bg-gray-50/50">
+                  <div className="flex items-center justify-between">
+                    <span className="text-sm font-semibold text-gray-800">{d.label}</span>
+                    <span className="text-xs text-gray-400">{new Date(date + 'T00:00:00').toLocaleDateString('fr-FR', { day: 'numeric', month: 'short' })}</span>
+                  </div>
+                  <div className="grid grid-cols-2 gap-2">
+                    <div className="space-y-0.5">
+                      <label className="text-[10px] font-medium text-orange-600 uppercase">🇸🇳 Sénégalais</label>
+                      <input
+                        placeholder="Thiébou dieune…"
+                        value={days[d.key].senegalese}
+                        onChange={e => setDay(d.key, 'senegalese', e.target.value)}
+                        className="w-full h-8 rounded-md border border-gray-300 bg-white px-2 text-xs outline-none focus:border-orange-400 focus:ring-1 focus:ring-orange-200 transition-colors"
+                      />
+                    </div>
+                    <div className="space-y-0.5">
+                      <label className="text-[10px] font-medium text-blue-600 uppercase">🇪🇺 Européen</label>
+                      <input
+                        placeholder="Poulet rôti…"
+                        value={days[d.key].european}
+                        onChange={e => setDay(d.key, 'european', e.target.value)}
+                        className="w-full h-8 rounded-md border border-gray-300 bg-white px-2 text-xs outline-none focus:border-blue-400 focus:ring-1 focus:ring-blue-200 transition-colors"
+                      />
+                    </div>
+                  </div>
+                  <div className="space-y-0.5">
+                    <label className="text-[10px] font-medium text-pink-600 uppercase">Dessert (optionnel)</label>
+                    <input
+                      placeholder="Tiramisu…"
+                      value={days[d.key].dessert}
+                      onChange={e => setDay(d.key, 'dessert', e.target.value)}
+                      className="w-full h-8 rounded-md border border-gray-300 bg-white px-2 text-xs outline-none focus:border-pink-400 focus:ring-1 focus:ring-pink-200 transition-colors"
+                    />
+                  </div>
+                </div>
+              )
+            })}
+          </div>
+
+          {error && (
+            <p className="text-xs text-red-600 bg-red-50 border border-red-200 rounded-lg px-3 py-2">{error}</p>
+          )}
+
+          <div className="flex gap-2 pt-1">
+            <Button type="button" variant="outline" onClick={onClose} disabled={saving} className="flex-1">
+              Annuler
+            </Button>
+            <Button type="submit" disabled={saving}
+              className="flex-1 bg-gradient-to-r from-slate-600 to-blue-600 hover:from-slate-700 hover:to-blue-700 text-white">
+              {saving
+                ? <><Loader2 className="h-3.5 w-3.5 mr-1.5 animate-spin" />Enregistrement…</>
+                : 'Enregistrer le menu'
+              }
+            </Button>
+          </div>
+        </form>
+      </DialogContent>
+    </Dialog>
+  )
+}
+
 // Hook pour détecter la taille du widget depuis le localStorage
 function useWidgetSize() {
   const [size, setSize] = useState<'small' | 'medium' | 'large' | 'full'>('medium')
@@ -73,90 +266,46 @@ function useWidgetSize() {
     const updateSize = () => {
       try {
         const savedWidgets = localStorage.getItem('dashboard-widgets')
-        console.log('[RestaurantMenu] 🔍 Lecture du localStorage:', savedWidgets ? 'trouvé' : 'vide')
-        
         if (savedWidgets) {
           const widgets = JSON.parse(savedWidgets)
-          console.log('[RestaurantMenu] 📦 Widgets chargés:', widgets.length, 'widgets')
-          
           const menuWidget = widgets.find((w: any) => w.id === 'menu' || w.type === 'menu')
-          console.log('[RestaurantMenu] 🍽️ Widget menu trouvé:', menuWidget ? `Oui (size: ${menuWidget.size})` : 'Non')
-          
           if (menuWidget && menuWidget.size) {
-            console.log('[RestaurantMenu] ✅ Définition de la taille à:', menuWidget.size)
-            // Utiliser la fonction callback pour éviter les problèmes de closure
-            setSize((prevSize) => {
-              if (prevSize !== menuWidget.size) {
-                console.log('[RestaurantMenu] 🔄 Changement de taille détecté:', { from: prevSize, to: menuWidget.size })
-                return menuWidget.size
-              }
-              return prevSize
-            })
+            setSize((prevSize) => prevSize !== menuWidget.size ? menuWidget.size : prevSize)
             return
           }
         }
-        // Si pas trouvé dans localStorage, utiliser la valeur par défaut depuis WIDGET_CONFIG
-        console.log('[RestaurantMenu] ⚠️ Widget menu non trouvé, utilisation de la taille par défaut: medium')
         setSize((prevSize) => prevSize !== 'medium' ? 'medium' : prevSize)
-      } catch (error) {
-        console.error('[RestaurantMenu] ❌ Erreur lors de la lecture de la taille du widget:', error)
+      } catch {
         setSize((prevSize) => prevSize !== 'medium' ? 'medium' : prevSize)
       }
     }
-    
-    // Lire la taille initiale
-    console.log('[RestaurantMenu] 🚀 Initialisation du hook useWidgetSize')
+
     updateSize()
-    
-    // Écouter les changements dans le localStorage (entre onglets)
-    const handleStorageChange = () => {
-      console.log('[RestaurantMenu] 📡 Événement storage détecté')
-      updateSize()
-    }
+
+    const handleStorageChange = () => updateSize()
     window.addEventListener('storage', handleStorageChange)
-    
-    // Écouter les changements dans la même fenêtre via un événement personnalisé
-    const handleWidgetChange = (event?: Event) => {
-      console.log('[RestaurantMenu] 🔔 Événement dashboard-widgets-changed détecté', event)
-      // Petit délai pour s'assurer que le localStorage est bien mis à jour
-      setTimeout(() => {
-        console.log('[RestaurantMenu] ⏳ Mise à jour différée après événement')
-        updateSize()
-      }, 50)
-    }
+
+    const handleWidgetChange = () => setTimeout(updateSize, 50)
     window.addEventListener('dashboard-widgets-changed', handleWidgetChange)
-    
-    // Vérifier périodiquement (fallback si les événements ne fonctionnent pas)
-    // Utiliser une ref pour éviter les problèmes de closure
+
     const interval = setInterval(() => {
       try {
         const currentSaved = localStorage.getItem('dashboard-widgets')
         if (currentSaved) {
           const currentMenuWidget = JSON.parse(currentSaved).find((w: any) => w.id === 'menu' || w.type === 'menu')
           const currentSize = currentMenuWidget?.size || 'medium'
-          // Utiliser setSize avec callback pour comparer avec la valeur actuelle
-          setSize((prevSize) => {
-            if (prevSize !== currentSize) {
-              console.log('[RestaurantMenu] ⏰ Vérification périodique: taille différente détectée', { currentSize, prevSize })
-              return currentSize
-            }
-            return prevSize
-          })
+          setSize((prevSize) => prevSize !== currentSize ? currentSize : prevSize)
         }
-      } catch (error) {
-        console.error('[RestaurantMenu] ❌ Erreur dans la vérification périodique:', error)
-      }
+      } catch {}
     }, 1000)
-    
+
     return () => {
-      console.log('[RestaurantMenu] 🧹 Nettoyage des event listeners')
       window.removeEventListener('storage', handleStorageChange)
       window.removeEventListener('dashboard-widgets-changed', handleWidgetChange)
       clearInterval(interval)
     }
   }, [])
-  
-  console.log('[RestaurantMenu] 📊 Taille actuelle du widget:', size)
+
   return size
 }
 
@@ -165,8 +314,11 @@ function useWidgetSize() {
 export function RestaurantMenu() {
 
   const { weekMenu, loading, error, fetchWeekMenu } = useMenu()
+  const { user } = useAuth()
+  const isAdmin = !!(user?.is_superuser)
 
   const [currentDayIndex, setCurrentDayIndex] = useState(0)
+  const [isMenuModalOpen, setIsMenuModalOpen] = useState(false)
 
   const widgetSize = useWidgetSize()
 
@@ -456,7 +608,7 @@ export function RestaurantMenu() {
   const getResponsiveConfig = () => {
     const baseConfig = {
       small: {
-        cardHeight: 'h-[20rem] sm:h-[22rem]',
+        cardHeight: 'h-[26rem] sm:h-[28rem]',
         headerPadding: 'pb-2 sm:pb-3',
         contentPadding: 'p-1 sm:p-2',
         titleSize: 'text-sm sm:text-base',
@@ -495,7 +647,7 @@ export function RestaurantMenu() {
         paddingSize: 'p-2 sm:p-3 lg:p-4'
       },
       full: {
-        cardHeight: 'h-[24rem] sm:h-[28rem] lg:h-[32rem]',
+        cardHeight: 'h-[26rem] sm:h-[28rem]',
         headerPadding: 'pb-4 sm:pb-6 lg:pb-8',
         contentPadding: 'p-3 sm:p-4 lg:p-6 xl:p-8',
         titleSize: 'text-xl sm:text-2xl',
@@ -514,297 +666,141 @@ export function RestaurantMenu() {
 
   const config = getResponsiveConfig()
   
-  console.log('[RestaurantMenu] 🎨 Configuration responsive appliquée:', {
-    widgetSize,
-    cardHeight: config.cardHeight,
-    titleSize: config.titleSize
-  })
-
   // Gestion des états de chargement et d'erreur
 
   if (loading) {
-
     return (
-
-      <Card className={`${config.cardHeight} bg-gradient-to-br from-slate-100 via-gray-100 to-blue-100 border-0 hover:shadow-xl transition-all duration-500 cursor-pointer group flex flex-col overflow-hidden relative`} data-widget-id="menu">
-
-        {/* Effet de brillance subtil */}
-
-        <div className="absolute inset-0 bg-gradient-to-br from-slate-200/40 via-transparent to-blue-200/40 opacity-0 group-hover:opacity-100 transition-opacity duration-500"></div>
-
-        
-
-        {/* Icônes décoratives - Responsive */}
-
-        <div className="absolute top-2 right-2 sm:top-4 sm:right-4 w-12 h-12 sm:w-16 sm:h-16 bg-gradient-to-br from-slate-400 to-blue-500 rounded-full flex items-center justify-center opacity-60 group-hover:opacity-80 transition-opacity duration-300">
-
-          <ChefHat className="h-6 w-6 sm:h-8 sm:w-8 text-white" />
-
-        </div>
-
-        <div className="absolute bottom-2 left-2 sm:bottom-4 sm:left-4 w-8 h-8 sm:w-12 sm:h-12 bg-gradient-to-br from-blue-500 to-indigo-500 rounded-full flex items-center justify-center opacity-40 group-hover:opacity-60 transition-opacity duration-300">
-
-          <Utensils className="h-4 w-4 sm:h-6 sm:w-6 text-white" />
-
-        </div>
-
-        
-
-        <CardHeader className="pb-2 sm:pb-4 flex-shrink-0 relative z-10 p-2 sm:p-3 md:p-6">
-
-          <div className="flex items-center justify-between">
-
-            <div className="flex items-center space-x-2 sm:space-x-3">
-
-              <div className="p-2 sm:p-3 bg-gradient-to-br from-slate-500 to-blue-600 rounded-lg sm:rounded-xl shadow-lg group-hover:shadow-slate-200 group-hover:scale-110 transition-all duration-300">
-
-                <ChefHat className="h-4 w-4 sm:h-6 sm:w-6 text-white" />
-
+      <div className="contents">
+        <MenuCreateModal open={isMenuModalOpen} onClose={() => setIsMenuModalOpen(false)} onSaved={fetchWeekMenu} initialData={null} />
+        <Card className={`${config.cardHeight} bg-gradient-to-br from-slate-100 via-gray-100 to-blue-100 border-0 hover:shadow-xl transition-all duration-500 cursor-pointer group flex flex-col overflow-hidden relative`} data-widget-id="menu">
+          <div className="absolute inset-0 bg-gradient-to-br from-slate-200/40 via-transparent to-blue-200/40 opacity-0 group-hover:opacity-100 transition-opacity duration-500"></div>
+          <CardHeader className="pb-2 pt-4 px-5 flex-shrink-0 relative z-10">
+            <div className="flex items-center gap-3">
+              <div className="p-2.5 bg-gradient-to-br from-slate-500 to-blue-600 rounded-xl shadow-lg">
+                <ChefHat className="h-5 w-5 text-white" />
               </div>
-
               <div>
-
-                <CardTitle className="text-sm sm:text-base md:text-lg lg:text-xl font-bold text-gray-900 group-hover:text-blue-700 transition-colors duration-300">
-
-                  <span className="hidden sm:inline">Menu de la Semaine</span>
-
-                  <span className="sm:hidden">Menu</span>
-
-                </CardTitle>
-
-                <p className="text-xs sm:text-sm text-gray-600 font-medium">
-
-                  Préparation en cours...
-
-                </p>
-
+                <CardTitle className="text-sm font-bold text-gray-900 leading-tight">Menu de la Semaine</CardTitle>
+                <p className="text-xs text-slate-500 mt-0.5">Préparation en cours...</p>
               </div>
-
             </div>
-
-          </div>
-
-        </CardHeader>
-
-        
-
-        <CardContent className="flex-1 flex items-center justify-center p-4 sm:p-8 relative z-10">
-
-          <div className="text-center">
-
-            <div className="w-16 h-16 sm:w-20 sm:h-20 bg-gradient-to-br from-slate-500 to-blue-600 rounded-full flex items-center justify-center mx-auto mb-4 sm:mb-6 shadow-lg group-hover:scale-110 transition-transform duration-300">
-
-              <div className="animate-spin rounded-full h-6 w-6 sm:h-8 sm:w-8 border-b-2 border-white"></div>
-
+          </CardHeader>
+          <CardContent className="flex-1 flex items-center justify-center p-4 sm:p-8 relative z-10">
+            <div className="text-center">
+              <div className="w-16 h-16 sm:w-20 sm:h-20 bg-gradient-to-br from-slate-500 to-blue-600 rounded-full flex items-center justify-center mx-auto mb-4 sm:mb-6 shadow-lg">
+                <div className="animate-spin rounded-full h-6 w-6 sm:h-8 sm:w-8 border-b-2 border-white"></div>
+              </div>
+              <div className="bg-white/60 backdrop-blur-sm rounded-xl p-4 sm:p-6 border border-white/50 shadow-sm">
+                <h3 className="text-base sm:text-lg font-bold text-gray-900 mb-2">🍳 Cuisine en action</h3>
+                <p className="text-xs sm:text-sm text-gray-600">Nos chefs préparent le menu de la semaine...</p>
+              </div>
             </div>
-
-            <div className="bg-white/60 backdrop-blur-sm rounded-xl p-4 sm:p-6 border border-white/50 shadow-sm">
-
-              <h3 className="text-base sm:text-lg font-bold text-gray-900 mb-2">🍳 Cuisine en action</h3>
-
-              <p className="text-xs sm:text-sm text-gray-600">Nos chefs préparent le menu de la semaine...</p>
-
-            </div>
-
-          </div>
-
-        </CardContent>
-
-      </Card>
-
+          </CardContent>
+          {isAdmin && (
+            <button onClick={() => setIsMenuModalOpen(true)} title="Saisir le menu de la semaine"
+              className="absolute bottom-3 right-3 z-20 opacity-0 group-hover:opacity-100 transition-opacity duration-200 p-2 rounded-lg bg-white/90 hover:bg-white text-gray-400 hover:text-blue-600 shadow-md">
+              <Pencil className="h-4 w-4" />
+            </button>
+          )}
+        </Card>
+      </div>
     )
-
   }
 
 
 
   if (error) {
-
     return (
-
-      <Card className={`${config.cardHeight} bg-gradient-to-br from-slate-100 via-gray-100 to-blue-100 border-0 hover:shadow-xl transition-all duration-500 cursor-pointer group flex flex-col overflow-hidden relative`} data-widget-id="menu">
-
-        {/* Effet de brillance subtil */}
-
-        <div className="absolute inset-0 bg-gradient-to-br from-slate-200/40 via-transparent to-blue-200/40 opacity-0 group-hover:opacity-100 transition-opacity duration-500"></div>
-
-        
-
-        {/* Icônes décoratives - Responsive */}
-
-        <div className="absolute top-2 right-2 sm:top-4 sm:right-4 w-12 h-12 sm:w-16 sm:h-16 bg-gradient-to-br from-slate-400 to-blue-500 rounded-full flex items-center justify-center opacity-60 group-hover:opacity-80 transition-opacity duration-300">
-
-          <ChefHat className="h-6 w-6 sm:h-8 sm:w-8 text-white" />
-
-        </div>
-
-        <div className="absolute bottom-2 left-2 sm:bottom-4 sm:left-4 w-8 h-8 sm:w-12 sm:h-12 bg-gradient-to-br from-blue-500 to-indigo-500 rounded-full flex items-center justify-center opacity-40 group-hover:opacity-60 transition-opacity duration-300">
-
-          <Utensils className="h-4 w-4 sm:h-6 sm:w-6 text-white" />
-
-        </div>
-
-        
-
-        <CardHeader className="pb-2 sm:pb-4 flex-shrink-0 relative z-10 p-2 sm:p-3 md:p-6">
-
-          <div className="flex items-center justify-between">
-
-            <div className="flex items-center space-x-2 sm:space-x-3">
-
-              <div className="p-2 sm:p-3 bg-gradient-to-br from-slate-500 to-blue-600 rounded-lg sm:rounded-xl shadow-lg group-hover:shadow-slate-200 group-hover:scale-110 transition-all duration-300">
-
-                <ChefHat className="h-4 w-4 sm:h-6 sm:w-6 text-white" />
-
+      <div className="contents">
+        <MenuCreateModal open={isMenuModalOpen} onClose={() => setIsMenuModalOpen(false)} onSaved={fetchWeekMenu} initialData={weekMenu} />
+        <Card className={`${config.cardHeight} bg-gradient-to-br from-slate-100 via-gray-100 to-blue-100 border-0 hover:shadow-xl transition-all duration-500 cursor-pointer group flex flex-col overflow-hidden relative`} data-widget-id="menu">
+          <div className="absolute inset-0 bg-gradient-to-br from-slate-200/40 via-transparent to-blue-200/40 opacity-0 group-hover:opacity-100 transition-opacity duration-500"></div>
+          <CardHeader className="pb-2 pt-4 px-5 flex-shrink-0 relative z-10">
+            <div className="flex items-center gap-3">
+              <div className="p-2.5 bg-gradient-to-br from-slate-500 to-blue-600 rounded-xl shadow-lg">
+                <ChefHat className="h-5 w-5 text-white" />
               </div>
-
               <div>
-
-                <CardTitle className="text-sm sm:text-base md:text-lg lg:text-xl font-bold text-gray-900 group-hover:text-blue-700 transition-colors duration-300">
-
-                  <span className="hidden sm:inline">Menu de la Semaine</span>
-
-                  <span className="sm:hidden">Menu</span>
-
-                </CardTitle>
-
-                <p className="text-xs sm:text-sm text-gray-600 font-medium">
-
-                  Problème de connexion
-
-                </p>
-
+                <CardTitle className="text-sm font-bold text-gray-900 leading-tight">Menu de la Semaine</CardTitle>
+                <p className="text-xs text-slate-500 mt-0.5">Problème de connexion</p>
               </div>
-
             </div>
-
-          </div>
-
-        </CardHeader>
-
-        
-
-        <CardContent className="flex-1 flex items-center justify-center p-4 sm:p-8 relative z-10">
-
-          <div className="text-center">
-
-            <div className="w-16 h-16 sm:w-20 sm:h-20 bg-gradient-to-br from-slate-500 to-blue-600 rounded-full flex items-center justify-center mx-auto mb-4 sm:mb-6 shadow-lg group-hover:scale-110 transition-transform duration-300">
-
-              <span className="text-2xl sm:text-4xl">⚠️</span>
-
+          </CardHeader>
+          <CardContent className="flex-1 flex items-center justify-center p-4 sm:p-8 relative z-10">
+            <div className="text-center">
+              <div className="w-16 h-16 sm:w-20 sm:h-20 bg-gradient-to-br from-slate-500 to-blue-600 rounded-full flex items-center justify-center mx-auto mb-4 sm:mb-6 shadow-lg">
+                <span className="text-2xl sm:text-4xl">⚠️</span>
+              </div>
+              <div className="bg-white/60 backdrop-blur-sm rounded-xl p-4 sm:p-6 border border-white/50 shadow-sm">
+                <h3 className="text-base sm:text-lg font-bold text-gray-900 mb-2">❌ Erreur de chargement</h3>
+                <p className="text-xs sm:text-sm text-gray-600 mb-4">{error}</p>
+                <Button onClick={() => fetchWeekMenu()} size="sm"
+                  className="bg-gradient-to-r from-slate-500 to-blue-600 hover:from-slate-600 hover:to-blue-700 text-white rounded-xl text-xs sm:text-sm px-3 sm:px-4 py-2">
+                  🔄 Réessayer
+                </Button>
+              </div>
             </div>
-
-            <div className="bg-white/60 backdrop-blur-sm rounded-xl p-4 sm:p-6 border border-white/50 shadow-sm">
-
-              <h3 className="text-base sm:text-lg font-bold text-gray-900 mb-2">❌ Erreur de chargement</h3>
-
-              <p className="text-xs sm:text-sm text-gray-600 mb-4">{error}</p>
-
-              <Button 
-
-                onClick={() => fetchWeekMenu()}
-
-                className="bg-gradient-to-r from-slate-500 to-blue-600 hover:from-slate-600 hover:to-blue-700 text-white rounded-xl shadow-lg hover:shadow-xl transition-all duration-300 transform hover:scale-105 text-xs sm:text-sm px-3 sm:px-4 py-2"
-
-                size="sm"
-
-              >
-
-                <span className="flex items-center gap-1 sm:gap-2">
-
-                  🔄 <span className="hidden sm:inline">Réessayer</span>
-
-                  <span className="sm:hidden">Retry</span>
-
-                </span>
-
-              </Button>
-
-            </div>
-
-          </div>
-
-        </CardContent>
-
-      </Card>
-
+          </CardContent>
+          {isAdmin && (
+            <button onClick={() => setIsMenuModalOpen(true)} title="Saisir le menu de la semaine"
+              className="absolute bottom-3 right-3 z-20 opacity-0 group-hover:opacity-100 transition-opacity duration-200 p-2 rounded-lg bg-white/90 hover:bg-white text-gray-400 hover:text-blue-600 shadow-md">
+              <Pencil className="h-4 w-4" />
+            </button>
+          )}
+        </Card>
+      </div>
     )
-
   }
 
 
 
   if (!weekMenu || !weekMenu.days || weekMenu.days.length === 0) {
-  return (
-
-      <Card className={`${config.cardHeight} bg-gradient-to-br from-slate-100 via-gray-100 to-blue-100 border-0 hover:shadow-xl transition-all duration-500 cursor-pointer group flex flex-col overflow-hidden relative`} data-widget-id="menu">
-      {/* Effet de brillance subtil */}
-
-      <div className="absolute inset-0 bg-gradient-to-br from-slate-200/40 via-transparent to-blue-200/40 opacity-0 group-hover:opacity-100 transition-opacity duration-500"></div>
-
-      
-
-      {/* Icônes décoratives - Responsive */}
-
-      <div className="absolute top-2 right-2 sm:top-4 sm:right-4 w-12 h-12 sm:w-16 sm:h-16 bg-gradient-to-br from-slate-400 to-blue-500 rounded-full flex items-center justify-center opacity-60 group-hover:opacity-80 transition-opacity duration-300">
-
-        <ChefHat className="h-6 w-6 sm:h-8 sm:w-8 text-white" />
-
+    return (
+      <div className="contents">
+        <MenuCreateModal open={isMenuModalOpen} onClose={() => setIsMenuModalOpen(false)} onSaved={fetchWeekMenu} initialData={null} />
+        <Card className={`${config.cardHeight} bg-gradient-to-br from-slate-100 via-gray-100 to-blue-100 border-0 hover:shadow-xl transition-all duration-500 cursor-pointer group flex flex-col overflow-hidden relative`} data-widget-id="menu">
+          <div className="absolute inset-0 bg-gradient-to-br from-slate-200/40 via-transparent to-blue-200/40 opacity-0 group-hover:opacity-100 transition-opacity duration-500"></div>
+          <CardHeader className="pb-2 pt-4 px-5 flex-shrink-0 relative z-10">
+            <div className="flex items-center gap-3">
+              <div className="p-2.5 bg-gradient-to-br from-slate-500 to-blue-600 rounded-xl shadow-lg group-hover:shadow-slate-300/50 group-hover:scale-105 transition-all duration-300">
+                <ChefHat className="h-5 w-5 text-white" />
+              </div>
+              <div>
+                <CardTitle className="text-sm font-bold text-gray-900 leading-tight">Menu de la Semaine</CardTitle>
+                <p className="text-xs text-slate-500 mt-0.5">Aucun menu disponible</p>
+              </div>
+            </div>
+          </CardHeader>
+          <CardContent className="flex-1 flex items-center justify-center p-4 sm:p-8 relative z-10">
+            <div className="text-center">
+              <div className="w-16 h-16 sm:w-20 sm:h-20 bg-gradient-to-br from-slate-500 to-blue-600 rounded-full flex items-center justify-center mx-auto mb-4 sm:mb-6 shadow-lg group-hover:scale-110 transition-transform duration-300">
+                <span className="text-2xl sm:text-4xl">🍽️</span>
+              </div>
+              <div className="bg-white/60 backdrop-blur-sm rounded-xl p-4 sm:p-6 border border-white/50 shadow-sm">
+                <h3 className="text-base sm:text-lg font-bold text-gray-900 mb-2">Menu en préparation</h3>
+                <p className="text-xs sm:text-sm text-gray-600">Aucun menu disponible pour cette semaine. Revenez bientôt !</p>
+              </div>
+            </div>
+          </CardContent>
+          {isAdmin && (
+            <button onClick={() => setIsMenuModalOpen(true)} title="Saisir le menu de la semaine"
+              className="absolute bottom-3 right-3 z-20 opacity-0 group-hover:opacity-100 transition-opacity duration-200 p-2 rounded-lg bg-white/90 hover:bg-white text-gray-400 hover:text-blue-600 shadow-md">
+              <Pencil className="h-4 w-4" />
+            </button>
+          )}
+        </Card>
       </div>
-
-        <div className="absolute bottom-2 left-2 sm:bottom-4 sm:left-4 w-8 h-8 sm:w-12 sm:h-12 bg-gradient-to-br from-blue-500 to-indigo-500 rounded-full flex items-center justify-center opacity-40 group-hover:opacity-60 transition-opacity duration-300">
-          <Utensils className="h-4 w-4 sm:h-6 sm:w-6 text-white" />
-        </div>
-      
-
-        <CardHeader className="pb-2 sm:pb-4 flex-shrink-0 relative z-10 p-2 sm:p-3 md:p-6">
-        <div className="flex items-center justify-between">
-
-            <div className="flex items-center space-x-2 sm:space-x-3">
-              <div className="p-2 sm:p-3 bg-gradient-to-br from-slate-500 to-blue-600 rounded-lg sm:rounded-xl shadow-lg group-hover:shadow-slate-200 group-hover:scale-110 transition-all duration-300">
-                <ChefHat className="h-4 w-4 sm:h-6 sm:w-6 text-white" />
-            </div>
-
-            <div>
-
-              <CardTitle className="text-sm sm:text-base md:text-lg lg:text-xl font-bold text-gray-900 group-hover:text-blue-700 transition-colors duration-300">
-
-                <span className="hidden sm:inline">Menu de la Semaine</span>
-
-                <span className="sm:hidden">Menu</span>
-
-              </CardTitle>
-
-                <p className="text-xs sm:text-sm text-gray-600 font-medium">
-                  Aucun menu disponible
-              </p>
-
-            </div>
-
-          </div>
-
-        </div>
-
-      </CardHeader>
-
-      
-
-        <CardContent className="flex-1 flex items-center justify-center p-4 sm:p-8 relative z-10">
-          <div className="text-center">
-            <div className="w-16 h-16 sm:w-20 sm:h-20 bg-gradient-to-br from-slate-500 to-blue-600 rounded-full flex items-center justify-center mx-auto mb-4 sm:mb-6 shadow-lg group-hover:scale-110 transition-transform duration-300">
-              <span className="text-2xl sm:text-4xl">🍽️</span>
-            </div>
-            <div className="bg-white/60 backdrop-blur-sm rounded-xl p-4 sm:p-6 border border-white/50 shadow-sm">
-              <h3 className="text-base sm:text-lg font-bold text-gray-900 mb-2">Menu en préparation</h3>
-              <p className="text-xs sm:text-sm text-gray-600">Aucun menu disponible pour cette semaine. Revenez bientôt !</p>
-            </div>
-          </div>
-        </CardContent>
-      </Card>
     )
   }
 
   return (
+    <div className="contents">
+    <MenuCreateModal
+      open={isMenuModalOpen}
+      onClose={() => setIsMenuModalOpen(false)}
+      onSaved={fetchWeekMenu}
+      initialData={weekMenu}
+    />
     <Card className={`${config.cardHeight} bg-gradient-to-br from-slate-100 via-gray-100 to-blue-100 border-0 hover:shadow-xl transition-all duration-500 cursor-pointer group flex flex-col overflow-hidden relative`} data-widget-id="menu">
       {/* Effet de brillance subtil */}
       <div className="absolute inset-0 bg-gradient-to-br from-slate-200/40 via-transparent to-blue-200/40 opacity-0 group-hover:opacity-100 transition-opacity duration-500"></div>
@@ -1162,7 +1158,19 @@ export function RestaurantMenu() {
 
       </CardContent>
 
+      {/* Bouton admin ajout menu */}
+      {isAdmin && (
+        <button
+          onClick={() => setIsMenuModalOpen(true)}
+          title="Saisir le menu de la semaine"
+          className="absolute bottom-3 right-3 z-20 opacity-0 group-hover:opacity-100 transition-opacity duration-200 p-2 rounded-lg bg-white/90 hover:bg-white text-gray-400 hover:text-blue-600 shadow-md"
+        >
+          <Pencil className="h-4 w-4" />
+        </button>
+      )}
+
     </Card>
+    </div>
 
   )
 

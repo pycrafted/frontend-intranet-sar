@@ -5,20 +5,14 @@ import { usePathname, useRouter } from "next/navigation"
 import { Navigation } from "./navigation"
 import { Navbar } from "./navbar"
 import { useAuth } from "@/hooks/useAuth"
-import { authUtils } from "@/lib/auth-api"
 import { SecondaryNavbar } from "./secondary-navbar"
-import { ControlCenterSidebar } from "./control-center-sidebar"
-import { ForumSidebar } from "./forum-sidebar"
 // import { DocumentsSidebar } from "./documents-sidebar" // Supprimé
 // import { RecrutementSidebar } from "./recrutement-sidebar" // Supprimé
 import { PublicationModal } from "./publication-modal"
 import { AnnouncementModal } from "./announcement-modal"
-import { Footer } from "./footer"
 import { AuthGuard } from "./auth-guard"
-import { MaiChatbot } from "./saria-chatbot"
-import { FloatingChatProvider } from "@/contexts/FloatingChatContext"
 import { AIChatbotProvider } from "@/contexts/AIChatbotContext"
-import { FloatingChatManager } from "./social/floating-chat-manager"
+import { MaiChatbot } from "./saria-chatbot"
 
 interface LayoutWrapperProps {
   children: React.ReactNode
@@ -31,6 +25,11 @@ interface LayoutWrapperProps {
     selectedDepartment?: string
     onDepartmentChange?: (department: string) => void
     departmentOptions?: string[]
+    showFilter?: boolean
+    showTimeFilter?: boolean
+    showDepartmentFilter?: boolean
+    departmentFilterStatic?: boolean
+    rightActions?: React.ReactNode
   }
   sidebarProps?: {
     activeFilter?: string
@@ -77,104 +76,56 @@ interface LayoutWrapperProps {
   }
 }
 
-export function LayoutWrapper({ children, secondaryNavbarProps, sidebarProps }: LayoutWrapperProps) {
-  const [sidebarOpen, setSidebarOpen] = useState(false)
-  const [isSidebarCollapsed, setIsSidebarCollapsed] = useState(false) // Ouvert par défaut
-  const [isSecondarySidebarCollapsed, setIsSecondarySidebarCollapsed] = useState(true) // Rétracté par défaut
+export function LayoutWrapper({ children, secondaryNavbarProps }: LayoutWrapperProps) {
+  // Sidebar principal toujours rétracté — définitivement
+  const isSidebarCollapsed = true
+  const [isMobileNavOpen, setIsMobileNavOpen] = useState(false)
   const [showPublicationModal, setShowPublicationModal] = useState(false)
   const [showAnnouncementModal, setShowAnnouncementModal] = useState(false)
   const pathname = usePathname()
   const router = useRouter()
   const { user, isAuthenticated, isLoading } = useAuth()
 
-  // Pages protégées nécessitant une authentification
-  const protectedPages = ['/metriques', '/centre_de_controle', '/reseau-social']
+  const protectedPages = ['/metriques']
   const isProtectedPage = protectedPages.includes(pathname)
 
-  // Redirection selon la page: 
-  // - '/metriques' => admin uniquement
-  // - '/centre_de_controle' => admin OU communication
-  // - '/reseau-social' => authentification requise (géré par AuthGuard dans la page)
   useEffect(() => {
     if (!isLoading && isProtectedPage) {
-      const isAdmin = !!user && (user.is_superuser || (user as any).is_admin_group)
-      const isCom = !!user && ((user as any).is_communication_group === true)
+      const isAdmin = !!user && user.is_superuser
       if (pathname === '/metriques') {
         if (!isAuthenticated || !isAdmin) router.push('/')
-      } else if (pathname === '/centre_de_controle') {
-        if (!isAuthenticated || (!isAdmin && !isCom)) router.push('/')
       }
-      // '/reseau-social' est géré par AuthGuard directement dans la page
     }
   }, [isProtectedPage, pathname, isLoading, isAuthenticated, user, router])
 
-  // Synchroniser automatiquement le rétractement du sidebar secondaire avec le sidebar principal
-  // Mais permettre aussi le contrôle indépendant
   useEffect(() => {
-    if (pathname === "/centre_de_controle") {
-      // Si le sidebar principal est rétracté, forcer le rétractement du sidebar secondaire
-      if (isSidebarCollapsed) {
-        setIsSecondarySidebarCollapsed(true)
-      }
-      // Si le sidebar principal est développé, développer le sidebar secondaire
-      // Mais seulement si l'utilisateur n'a pas fait de contrôle manuel récent
-      else {
-        // On ne force pas le développement, on laisse l'utilisateur contrôler
-        // setIsSecondarySidebarCollapsed(false)
-      }
-    } else if (pathname === "/forum" || pathname?.startsWith("/forum/")) {
-      // Pour les pages forum (liste et détail), la sidebar secondaire est toujours visible
-      setIsSecondarySidebarCollapsed(false)
-    }
-  }, [isSidebarCollapsed, pathname])
-
-  // Initialiser les sidebars au chargement de la page
-  useEffect(() => {
-    // Sidebar principal ouvert par défaut, sidebar secondaire rétracté par défaut
-    setIsSidebarCollapsed(false)
-    // Si on est sur les pages forum (liste et détail), la sidebar secondaire est visible
-    if (pathname === "/forum" || pathname?.startsWith("/forum/")) {
-      setIsSecondarySidebarCollapsed(false)
-    } else {
-      setIsSecondarySidebarCollapsed(true)
-    }
   }, [pathname])
 
   // Contenu du layout
   const layoutContent = (
     <AIChatbotProvider>
-    <FloatingChatProvider>
     <div className="min-h-screen bg-background flex flex-col">
-      <Navbar onMenuClick={() => setSidebarOpen(!sidebarOpen)} />
+      <Navbar onMenuOpen={() => setIsMobileNavOpen(true)} />
 
       <div className="flex flex-1">
-        <Navigation 
-          isOpen={sidebarOpen} 
-          onClose={() => setSidebarOpen(false)} 
-          onCollapseChange={setIsSidebarCollapsed}
-        />
+        <Navigation isOpen={isMobileNavOpen} onClose={() => setIsMobileNavOpen(false)} />
 
-        <main className={`flex-1 flex flex-col transition-all duration-300 ${isSidebarCollapsed ? 'tablet:ml-12 md:ml-14 lg:ml-16' : 'tablet:ml-56 md:ml-60 lg:ml-64'}`}>
-          <div className={`flex-1 bg-gray-200 transition-all duration-300 ${
-            pathname === "/centre_de_controle" ? (
-              isSecondarySidebarCollapsed ? "lg:ml-16" : "lg:ml-80"
-            ) : (pathname === "/forum" || pathname?.startsWith("/forum/")) ? (
-              isSecondarySidebarCollapsed ? "lg:ml-20" : "lg:ml-80"
-            ) : ""}`}>
-      {/* Secondary Navbar pour les pages actualités, organigramme, annuaire, documents, sécurité - dans la zone de contenu */}
-      {(pathname === "/actualites" || pathname === "/organigramme" || pathname === "/annuaire" || pathname === "/documents" || pathname === "/securite") && (
-        <SecondaryNavbar 
-          {...secondaryNavbarProps} 
+        <main className="flex-1 flex flex-col transition-all duration-300 tablet:ml-[4.5rem] md:ml-[4.5rem] lg:ml-[4.5rem]">
+          <div className="flex-1 bg-gray-200 transition-all duration-300 flex flex-col">
+      {/* Secondary Navbar pour les pages actualités, organigramme, annuaire, documents, recrutement, administration */}
+      {(pathname === "/actualites" || pathname === "/organigramme" || pathname === "/annuaire" || pathname === "/documents" || pathname === "/recrutement" || pathname === "/administration/utilisateurs") && (
+        <SecondaryNavbar
           showFilter={pathname === "/organigramme" || pathname === "/actualites"}
-          showTimeFilter={pathname === "/actualites"} // Seulement pour les actualités
-          showDepartmentFilter={pathname === "/organigramme"} // Seulement pour l'organigramme
+          showTimeFilter={pathname === "/actualites"}
+          showDepartmentFilter={pathname === "/organigramme"}
+          {...secondaryNavbarProps}
         />
       )}
             
-            <div className={`mx-auto px-2 xs:px-3 sm:px-4 md:px-5 py-3 xs:py-4 sm:py-6 lg:px-8 max-w-full overflow-x-hidden ${pathname === "/" || pathname === "/securite" || pathname === "/recrutement" || pathname === "/reseau-social" ? (pathname === "/reseau-social" ? "max-w-none p-0" : "max-w-none px-1 xs:px-1.5 sm:px-2 md:px-3 lg:px-4") : pathname === "/organigramme" ? "max-w-none px-0" : "max-w-7xl"}`}>
+            <div className={`overflow-x-hidden ${pathname === "/" || pathname === "/securite" || pathname === "/recrutement" || pathname === "/forum" ? "w-full px-1 xs:px-1.5 sm:px-2 md:px-3 lg:px-4 py-3 xs:py-4 sm:py-6" : pathname === "/documents" || pathname === "/annuaire" || pathname?.startsWith("/forum/") || pathname === "/administration/utilisateurs" ? "w-full p-0" : pathname === "/organigramme" ? "w-full px-0" : "max-w-7xl mx-auto px-2 xs:px-3 sm:px-4 md:px-5 py-3 xs:py-4 sm:py-6 lg:px-8"}`}>
               {(() => {
                 // Vérifier si l'enfant est un composant React (pas un élément DOM)
-                if ((pathname === "/reseau-social" || pathname === "/recrutement" || pathname === "/organigramme" || pathname === "/forum" || pathname?.startsWith("/forum/")) && React.isValidElement(children)) {
+                if ((pathname === "/recrutement" || pathname === "/organigramme" || pathname === "/forum" || pathname?.startsWith("/forum/")) && React.isValidElement(children)) {
                   const child = children as React.ReactElement<any>
                   // Vérifier que ce n'est pas un élément DOM (type string = élément DOM)
                   if (typeof child.type !== 'string' && child.type) {
@@ -185,29 +136,9 @@ export function LayoutWrapper({ children, secondaryNavbarProps, sidebarProps }: 
               })()}
             </div>
           </div>
-          {pathname === "/centre_de_controle" && <ControlCenterSidebar 
-            {...sidebarProps} 
-            isCollapsed={isSecondarySidebarCollapsed}
-            onCollapseChange={setIsSecondarySidebarCollapsed}
-            isMainSidebarCollapsed={isSidebarCollapsed}
-          />}
-          {(pathname === "/forum" || pathname?.startsWith("/forum/")) && sidebarProps?.forums !== undefined && (
-            <ForumSidebar
-              forums={sidebarProps.forums || []}
-              loading={sidebarProps.forumsLoading}
-              onCreateClick={sidebarProps.onCreateForumClick}
-              onEditForum={sidebarProps.onEditForumClick}
-              onDeleteForum={sidebarProps.onDeleteForumClick}
-              isMainSidebarCollapsed={isSidebarCollapsed}
-              isCollapsed={isSecondarySidebarCollapsed}
-              onCollapseChange={setIsSecondarySidebarCollapsed}
-            />
-          )}
           {/* Sidebar des documents supprimée */}
           {/* Sidebar de recrutement supprimée */}
           
-          {/* Footer - toujours en bas, après les sidebars */}
-          <Footer />
         </main>
       </div>
 
@@ -221,13 +152,8 @@ export function LayoutWrapper({ children, secondaryNavbarProps, sidebarProps }: 
         onClose={() => setShowAnnouncementModal(false)} 
       />
       
-      {/* Chatbot MAÏ - disponible sur toutes les pages sauf /reseau-social */}
-      {pathname !== "/reseau-social" && <MaiChatbot />}
-      
-      {/* Gestionnaire de chats flottants - disponible sur toutes les pages */}
-      <FloatingChatManager />
+      <MaiChatbot />
     </div>
-    </FloatingChatProvider>
     </AIChatbotProvider>
   )
 

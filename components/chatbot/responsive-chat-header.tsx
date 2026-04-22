@@ -9,13 +9,15 @@ import { useScreenSize } from "@/hooks/useScreenSize"
 interface ResponsiveChatHeaderProps {
   onClose: () => void
   onMinimize?: () => void
+  isMaintenance?: boolean
   className?: string
   style?: React.CSSProperties
 }
 
-export function ResponsiveChatHeader({ 
+export function ResponsiveChatHeader({
   onClose,
   onMinimize,
+  isMaintenance = false,
   className,
   style
 }: ResponsiveChatHeaderProps) {
@@ -75,10 +77,11 @@ export function ResponsiveChatHeader({
             isSmallMobile ? "text-xs" : "text-sm"
           )}>
             <div className={cn(
-              "bg-green-400 rounded-full animate-pulse flex-shrink-0",
+              "rounded-full flex-shrink-0",
+              isMaintenance ? "bg-yellow-400" : "bg-green-400 animate-pulse",
               isSmallMobile ? "h-1.5 w-1.5" : "h-2 w-2"
             )}></div>
-            <span className="truncate">En ligne</span>
+            <span className="truncate">{isMaintenance ? 'En maintenance' : 'En ligne'}</span>
           </div>
         </div>
       </div>

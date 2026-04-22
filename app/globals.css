@@ -2000,34 +2000,6 @@ body {
   }
 }
 
-/* Styles pour harmoniser "Mot du Directeur" avec les autres composants */
-.director-widget-title {
-  font-size: 1rem !important;
-  line-height: 1.3 !important;
-  font-weight: 600 !important;
-  color: rgba(238, 0, 9, 0.8) !important;
-}
-
-@media (min-width: 640px) {
-  .director-widget-title {
-    font-size: 1.125rem !important;
-    line-height: 1.4 !important;
-  }
-}
-
-.director-widget-subtitle {
-  font-size: 0.75rem !important;
-  line-height: 1.3 !important;
-  font-weight: 400 !important;
-  color: #6b7280 !important;
-}
-
-@media (min-width: 640px) {
-  .director-widget-subtitle {
-    font-size: 0.875rem !important;
-    line-height: 1.4 !important;
-  }
-}
 
 /* Styles pour les actualités */
 .carousel-title {

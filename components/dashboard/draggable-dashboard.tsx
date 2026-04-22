@@ -1,6 +1,6 @@
 "use client"
 
-import React, { useState, useEffect } from "react"
+import React, { useState, useEffect, useRef } from "react"
 import {
   DndContext,
   closestCenter,
@@ -35,21 +35,23 @@ import { AppsWidget } from "./apps-widget"
 import { DirectorMessageWidget } from "./director-message-widget"
 import { VideoWidget } from "./video-widget"
 import { RecruitmentWidget } from "./recruitment-widget"
-import { ProjectsWidget } from "./projects-widget"
+import { TRIIndicatorWidget } from "./tri-indicator-widget"
+import { PayrollCalendarWidget } from "./payroll-calendar-widget"
 import { WidgetManager } from "./widget-manager"
 import { DashboardTour, useDashboardTour } from "./dashboard-tour"
 import { useToast, ToastContainer } from "@/components/ui/toast"
 import { Badge } from "@/components/ui/badge"
-import { Button } from "@/components/ui/button"
-import { GripVertical, Plus, HelpCircle } from "lucide-react"
+import { Card } from "@/components/ui/card"
+import { GripVertical, Plus, LayoutDashboard } from "lucide-react"
 import { useBrowserDetection } from "@/hooks/useBrowserDetection"
 import { useTabletDetection } from "@/hooks/useTabletDetection"
 import { useAuth } from "@/hooks/useAuth"
+import { API_CONFIG } from "@/lib/config"
 
 // Types pour les widgets
 export interface DashboardWidget {
   id: string
-  type: 'news' | 'ideas' | 'safety' | 'menu' | 'calendar' | 'apps' | 'director' | 'video' | 'recruitment' | 'projects'
+  type: 'news' | 'ideas' | 'safety' | 'menu' | 'calendar' | 'apps' | 'director' | 'video' | 'recruitment' | 'tri' | 'payroll'
   title: string
   size: 'small' | 'medium' | 'large' | 'full'
   order: number
@@ -98,16 +100,21 @@ const WIDGET_CONFIG: Record<string, { size: string; component: React.ComponentTy
     component: RestaurantMenu, 
     title: 'Menu de la Semaine' 
   },
-  recruitment: { 
-    size: 'medium', 
-    component: RecruitmentWidget, 
-    title: 'Recrutements Internes' 
+  recruitment: {
+    size: 'medium',
+    component: RecruitmentWidget,
+    title: 'Recrutements Internes'
   },
-  projects: { 
-    size: 'medium', 
-    component: ProjectsWidget, 
-    title: 'Projets' 
-  }
+  tri: {
+    size: 'medium',
+    component: TRIIndicatorWidget,
+    title: 'Indicateur TRI Sécurité'
+  },
+  payroll: {
+    size: 'medium',
+    component: PayrollCalendarWidget,
+    title: 'Calendrier de Paie'
+  },
 }
 
 // Configuration des tailles de grille - Responsive avec support tablettes
@@ -309,14 +316,17 @@ export function DraggableDashboard() {
   const [widgets, setWidgets] = useState<DashboardWidget[]>([])
   const [activeId, setActiveId] = useState<string | null>(null)
   const [isClient, setIsClient] = useState(false)
+  const [initialized, setInitialized] = useState(false)
   const [showWidgetManager, setShowWidgetManager] = useState(false)
   const { toasts, success, error } = useToast()
-  const { hasSeenTour, isTourOpen, startTour, completeTour } = useDashboardTour()
+  const { hasSeenTour, isTourOpen, completeTour } = useDashboardTour()
   const { browserInfo, compatibleClasses, useFallbacks } = useBrowserDetection()
   const { isTablet, isSpecificTablet, deviceType, screenSize, specificDevice } = useTabletDetection()
   const { user } = useAuth()
-  // Drag and drop activé pour tous, connectés ou non
-  const canEdit = true
+  // Réservé au groupe "administrateur" uniquement (is_superuser est forcé à true pour tous)
+  const canEdit = !!(user?.is_superuser)
+  // Empêche le save-effect de s'exécuter lors du chargement initial depuis le backend
+  const skipNextSave = useRef(false)
 
   const sensors = useSensors(
     useSensor(PointerSensor, {
@@ -332,44 +342,33 @@ export function DraggableDashboard() {
   // Fonction de migration pour convertir les anciens types et s'assurer que tous les widgets existent
   // Configuration par défaut des widgets (tailles et ordres)
   const DEFAULT_WIDGET_CONFIG = {
-    video: { size: 'medium' as const, order: 1 },
-    director: { size: 'medium' as const, order: 2 },
-    news: { size: 'medium' as const, order: 3 },
-    apps: { size: 'large' as const, order: 4 },
-    projects: { size: 'medium' as const, order: 5 },
-    recruitment: { size: 'medium' as const, order: 6 },
-    safety: { size: 'medium' as const, order: 7 },
-    calendar: { size: 'medium' as const, order: 8 },
-    menu: { size: 'large' as const, order: 9 },
-    ideas: { size: 'medium' as const, order: 10 },
+    video:       { size: 'medium' as const, order: 1  },
+    director:    { size: 'medium' as const, order: 2  },
+    news:        { size: 'medium' as const, order: 3  },
+    apps:        { size: 'large'  as const, order: 4  },
+    recruitment: { size: 'medium' as const, order: 5  },
+    tri:         { size: 'medium' as const, order: 6  },
+    safety:      { size: 'medium' as const, order: 7  },
+    calendar:    { size: 'medium' as const, order: 8  },
+    menu:        { size: 'large'  as const, order: 9  },
+    ideas:       { size: 'medium' as const, order: 10 },
+    payroll:     { size: 'medium' as const, order: 11 },
   }
 
   function getDefaultWidgets(): DashboardWidget[] {
-    // Lire la configuration sauvegardée depuis localStorage
-    const savedDefaultConfig = localStorage.getItem('dashboard-default-config')
-    let config = DEFAULT_WIDGET_CONFIG
-    
-    if (savedDefaultConfig) {
-      try {
-        const parsed = JSON.parse(savedDefaultConfig)
-        // Fusionner avec la config par défaut pour s'assurer que tous les widgets sont présents
-        config = { ...DEFAULT_WIDGET_CONFIG, ...parsed }
-      } catch (error) {
-        console.error('Erreur lors de la lecture de la configuration par défaut:', error)
-      }
-    }
-
+    const c = DEFAULT_WIDGET_CONFIG
     return [
-      { id: 'video', type: 'video', title: 'Vidéo SAR', size: config.video.size, order: config.video.order, isVisible: true },
-      { id: 'director', type: 'director', title: 'Mot du Directeur', size: config.director.size, order: config.director.order, isVisible: true },
-      { id: 'news', type: 'news', title: 'Actualités', size: config.news.size, order: config.news.order, isVisible: true },
-      { id: 'apps', type: 'apps', title: 'Accès Rapide', size: config.apps.size, order: config.apps.order, isVisible: true },
-      { id: 'projects', type: 'projects', title: 'Projets', size: config.projects.size, order: config.projects.order, isVisible: true },
-      { id: 'recruitment', type: 'recruitment', title: 'Recrutements Internes', size: config.recruitment.size, order: config.recruitment.order, isVisible: true },
-      { id: 'safety', type: 'safety', title: 'Sécurité du Travail', size: config.safety.size, order: config.safety.order, isVisible: true },
-      { id: 'calendar', type: 'calendar', title: 'Événements', size: config.calendar.size, order: config.calendar.order, isVisible: true },
-      { id: 'menu', type: 'menu', title: 'Menu de la Semaine', size: config.menu.size, order: config.menu.order, isVisible: true },
-      { id: 'ideas', type: 'ideas', title: 'Boîte à Idées', size: config.ideas.size, order: config.ideas.order, isVisible: true },
+      { id: 'video',       type: 'video',       title: 'Vidéo SAR',               size: c.video.size,       order: c.video.order,       isVisible: true },
+      { id: 'director',    type: 'director',    title: 'Mot du Directeur',         size: c.director.size,    order: c.director.order,    isVisible: true },
+      { id: 'news',        type: 'news',        title: 'Actualités',               size: c.news.size,        order: c.news.order,        isVisible: true },
+      { id: 'apps',        type: 'apps',        title: 'Accès Rapide',             size: c.apps.size,        order: c.apps.order,        isVisible: true },
+      { id: 'recruitment', type: 'recruitment', title: 'Recrutements Internes',    size: c.recruitment.size, order: c.recruitment.order, isVisible: true },
+      { id: 'tri',         type: 'tri',         title: 'Indicateur TRI Sécurité',  size: c.tri.size,         order: c.tri.order,         isVisible: true },
+      { id: 'safety',      type: 'safety',      title: 'Sécurité du Travail',      size: c.safety.size,      order: c.safety.order,      isVisible: true },
+      { id: 'calendar',    type: 'calendar',    title: 'Événements',               size: c.calendar.size,    order: c.calendar.order,    isVisible: true },
+      { id: 'menu',        type: 'menu',        title: 'Menu de la Semaine',       size: c.menu.size,        order: c.menu.order,        isVisible: true },
+      { id: 'ideas',       type: 'ideas',       title: 'Boîte à Idées',            size: c.ideas.size,       order: c.ideas.order,       isVisible: true },
+      { id: 'payroll',     type: 'payroll',     title: 'Calendrier de Paie',        size: c.payroll.size,     order: c.payroll.order,     isVisible: true },
     ]
   }
 
@@ -400,12 +399,10 @@ export function DraggableDashboard() {
       const existingWidget = migratedMap.get(defaultWidget.id)
       
       if (existingWidget) {
-        // Widget existe : conserver sa visibilité mais mettre à jour l'ordre et la taille selon la disposition par défaut
+        // Widget existe : conserver l'ordre, la taille et la visibilité sauvegardés par l'utilisateur
         finalWidgets.push({
           ...existingWidget,
-          order: defaultWidget.order,
-          size: defaultWidget.size,
-          title: defaultWidget.title
+          title: defaultWidget.title  // seul le titre suit la config (traduit/renommé)
         })
       } else {
         // Widget n'existe pas : l'ajouter avec la configuration par défaut
@@ -419,74 +416,91 @@ export function DraggableDashboard() {
     return finalWidgets
   }
 
-  // Initialiser les widgets au montage
+  // Charger le layout depuis le backend au montage.
+  // Le backend crée automatiquement les défauts si aucun layout n'existe (get_or_create).
   useEffect(() => {
     setIsClient(true)
-    
-    // Vérifier la version des widgets et forcer la migration si nécessaire
-    const widgetVersion = localStorage.getItem('dashboard-widgets-version')
-    const currentVersion = '6.0' // Version avec nouvelle disposition par défaut (menu en large, ordre mis à jour)
-    
-    // Charger la configuration sauvegardée ou utiliser la configuration par défaut
-    const savedWidgets = localStorage.getItem('dashboard-widgets')
-    if (savedWidgets && widgetVersion === currentVersion) {
+
+    const initLayout = async () => {
       try {
-        const parsed = JSON.parse(savedWidgets)
-        const migratedWidgets = migrateWidgets(parsed)
-        setWidgets(migratedWidgets)
-      } catch (error) {
-        console.error('Erreur lors du chargement des widgets:', error)
+        const res = await fetch(`${API_CONFIG.ACCUEIL}/dashboard/layout/`, {
+          credentials: 'include',
+        })
+        if (!res.ok) {
+          // Non authentifié ou erreur serveur : afficher les defaults locaux
+          setWidgets(getDefaultWidgets())
+          setInitialized(true)
+          return
+        }
+        const data = await res.json()
+        // Le backend retourne toujours un layout (défauts créés automatiquement)
+        skipNextSave.current = true
+        setWidgets(migrateWidgets(data.widgets))
+        setInitialized(true)
+      } catch {
+        // Réseau indisponible : afficher les defaults locaux
         setWidgets(getDefaultWidgets())
-        localStorage.setItem('dashboard-widgets-version', currentVersion)
+        setInitialized(true)
       }
-    } else {
-      // Version différente ou pas de sauvegarde : utiliser les widgets par défaut et marquer la version
-      setWidgets(getDefaultWidgets())
-      localStorage.setItem('dashboard-widgets-version', currentVersion)
     }
+
+    initLayout()
   }, [])
 
-
-  // Sauvegarder les widgets quand ils changent
-  useEffect(() => {
-    if (isClient && widgets.length > 0) {
-      const menuWidget = widgets.find(w => w.id === 'menu' || w.type === 'menu')
-      console.log('[DraggableDashboard] 💾 Sauvegarde des widgets dans localStorage')
-      console.log('[DraggableDashboard] 🍽️ Widget menu:', menuWidget ? `size: ${menuWidget.size}` : 'non trouvé')
-      console.log('[DraggableDashboard] 📋 Tous les widgets:', widgets.map(w => ({ id: w.id, type: w.type, size: w.size })))
-      
-      localStorage.setItem('dashboard-widgets', JSON.stringify(widgets))
-      
-      // Déclencher un événement personnalisé pour notifier les composants des changements
-      console.log('[DraggableDashboard] 🔔 Déclenchement de l\'événement dashboard-widgets-changed')
-      window.dispatchEvent(new Event('dashboard-widgets-changed'))
+  // Sauvegarde directe vers le backend (utilisée par le modal et le drag-and-drop)
+  const saveToBackend = async (widgetsToSave: DashboardWidget[], showFeedback = false) => {
+    try {
+      const res = await fetch(`${API_CONFIG.ACCUEIL}/dashboard/layout/`, {
+        method: 'PUT',
+        credentials: 'include',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ widgets: widgetsToSave }),
+      })
+      if (!res.ok) {
+        console.error('[Dashboard] Erreur sauvegarde backend:', res.status)
+        if (showFeedback) error('Erreur de sauvegarde', `Impossible de sauvegarder la disposition (${res.status})`)
+      } else if (showFeedback) {
+        success('Disposition sauvegardée', 'Les modifications ont été appliquées avec succès')
+      }
+    } catch (e) {
+      console.error('[Dashboard] Erreur réseau:', e)
+      if (showFeedback) error('Erreur réseau', 'Impossible de contacter le serveur')
     }
+  }
+
+  // Sauvegarder dans le backend à chaque drag-and-drop (debouncé 800 ms)
+  useEffect(() => {
+    if (!isClient || widgets.length === 0) return
+
+    // Ignorer le premier déclenchement quand on vient de charger depuis le backend
+    if (skipNextSave.current) {
+      skipNextSave.current = false
+      return
+    }
+
+    window.dispatchEvent(new Event('dashboard-widgets-changed'))
+
+    const timer = setTimeout(() => saveToBackend(widgets), 800)
+    return () => clearTimeout(timer)
   }, [widgets, isClient])
 
-  // Fonction pour gérer les changements de widgets avec notifications
+  // Fonction pour gérer les changements depuis le WidgetManager (modal)
+  // Applique immédiatement l'état ET sauvegarde sans debounce
   const handleWidgetsChange = (newWidgets: DashboardWidget[]) => {
-    console.log('[DraggableDashboard] 🔄 handleWidgetsChange appelé avec', newWidgets.length, 'widgets')
-    const menuWidget = newWidgets.find(w => w.id === 'menu' || w.type === 'menu')
-    console.log('[DraggableDashboard] 🍽️ Widget menu dans les nouveaux widgets:', menuWidget ? `size: ${menuWidget.size}` : 'non trouvé')
-    
-    const oldCount = widgets.length
-    const newCount = newWidgets.length
-    
-    if (newCount > oldCount) {
-      success('Carte ajoutée', 'La nouvelle carte a été ajoutée à votre dashboard')
-    } else if (newCount < oldCount) {
-      success('Carte supprimée', 'La carte a été retirée de votre dashboard')
-    }
-    
-    console.log('[DraggableDashboard] ✅ Mise à jour du state widgets')
+    // skipNextSave = true pour ne pas doubler la sauvegarde avec le useEffect
+    skipNextSave.current = true
     setWidgets(newWidgets)
+    // Sauvegarde directe avec feedback utilisateur visible
+    saveToBackend(newWidgets, true)
   }
 
 
   // Fonction pour réinitialiser le dashboard
   const handleReset = () => {
-    setWidgets(getDefaultWidgets())
-    success('Dashboard réinitialisé', 'Votre dashboard a été remis à zéro')
+    const defaults = getDefaultWidgets()
+    skipNextSave.current = true
+    setWidgets(defaults)
+    saveToBackend(defaults, true)
   }
 
 
@@ -546,26 +560,6 @@ export function DraggableDashboard() {
       {canEdit && (
         <div id="dashboard-header" className="flex items-center justify-end">
           <div className="flex items-center gap-2">
-            <Button
-              variant="outline"
-              size="sm"
-              onClick={startTour}
-              className="flex items-center gap-2"
-            >
-              <HelpCircle className="h-4 w-4" />
-              Guide
-            </Button>
-            <Button
-              variant="outline"
-              size="sm"
-              onClick={() => {
-                localStorage.removeItem('dashboard-widgets')
-                window.location.reload()
-              }}
-              className="flex items-center gap-2"
-            >
-              🔄 Réinitialiser
-            </Button>
             <div id="widget-manager">
               <WidgetManager
                 widgets={widgets}
@@ -612,18 +606,24 @@ export function DraggableDashboard() {
         </DragOverlay>
       </DndContext>
 
-      {/* Bouton flottant pour ajouter des cartes */}
-      {visibleWidgets.length === 0 && (
-        <div className="flex flex-col items-center justify-center py-12 text-center">
-          <div className="text-6xl mb-4">📊</div>
-          <h3 className="text-xl font-semibold text-gray-700 mb-2">Votre dashboard est vide</h3>
-          <p className="text-gray-500 mb-6">Commencez par ajouter des cartes pour personnaliser votre espace de travail</p>
-          <WidgetManager
-            widgets={widgets}
-            onWidgetsChange={handleWidgetsChange}
-            onReset={handleReset}
-          />
-        </div>
+      {/* État vide */}
+      {initialized && visibleWidgets.length === 0 && (
+        <Card className="max-w-4xl mx-auto p-8 xs:p-12 text-center rounded-lg">
+          <div className="space-y-3 xs:space-y-4">
+            <div className="w-12 h-12 xs:w-16 xs:h-16 bg-muted rounded-full flex items-center justify-center mx-auto">
+              <LayoutDashboard className="h-6 w-6 xs:h-8 xs:w-8 text-muted-foreground" />
+            </div>
+            <div>
+              <h3 className="text-base xs:text-lg font-semibold">Votre dashboard est vide</h3>
+              <p className="text-sm text-gray-500 mt-1">Commencez par ajouter des cartes pour personnaliser votre espace de travail</p>
+            </div>
+            {canEdit && (
+              <div className="pt-2">
+                <WidgetManager widgets={widgets} onWidgetsChange={handleWidgetsChange} onReset={handleReset} />
+              </div>
+            )}
+          </div>
+        </Card>
       )}
 
       {/* Container des notifications */}

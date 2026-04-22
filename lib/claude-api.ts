@@ -53,39 +53,29 @@ export class ClaudeAPI {
 
   async sendMessage(
     message: string,
-    conversationHistory: ClaudeMessage[] = []
+    conversationHistory: ClaudeMessage[] = [],
+    file?: File
   ): Promise<string> {
     const requestId = Date.now().toString()
-    console.log(`\n💬 [CLAUDE-API] ========== NOUVELLE REQUÊTE [${requestId}] ==========`)
-    console.log(`💬 [CLAUDE-API] [${requestId}] Message original:`, message?.substring(0, 100) + (message?.length > 100 ? '...' : ''))
-    console.log(`💬 [CLAUDE-API] [${requestId}] Historique:`, conversationHistory.length, 'messages')
-    
+
     try {
-      // Récupérer le contexte MAI
-      console.log(`🔍 [CLAUDE-API] [${requestId}] Récupération du contexte MAI...`)
-      const maiContext = await this.retrieveMAIContext(message)
-      console.log(`🔍 [CLAUDE-API] [${requestId}] Contexte MAI récupéré:`, {
-        success: maiContext.success,
-        contextLength: maiContext.context?.length || 0,
-        query: maiContext.query
-      })
-      
-      // Construire le prompt avec le contexte
-      const enhancedMessage = this.buildEnhancedPrompt(message, maiContext)
-      console.log(`📝 [CLAUDE-API] [${requestId}] Message enrichi construit (longueur:`, enhancedMessage.length, 'caractères)')
-      
-      console.log(`🌐 [CLAUDE-API] [${requestId}] Appel à /api/chat...`)
-      const response = await fetch('/api/chat', {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json"
-        },
-        body: JSON.stringify({
-          message: enhancedMessage,
-          conversationHistory: conversationHistory,
-          maiContext: maiContext
+      let response: Response
+
+      if (file) {
+        // Envoi multipart avec fichier
+        const formData = new FormData()
+        formData.append('message', message)
+        formData.append('conversationHistory', JSON.stringify(conversationHistory))
+        formData.append('file', file)
+        response = await fetch('/api/chat', { method: 'POST', body: formData })
+      } else {
+        // Envoi JSON classique
+        response = await fetch('/api/chat', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ message, conversationHistory })
         })
-      })
+      }
 
       console.log(`📡 [CLAUDE-API] [${requestId}] Réponse reçue - Status:`, response.status, response.statusText)
 
@@ -131,29 +121,8 @@ export class ClaudeAPI {
       console.error(`❌ [CLAUDE-API] [${requestId}] Stack:`, error instanceof Error ? error.stack : 'N/A')
       console.error(`❌ [CLAUDE-API] [${requestId}] ======================================\n`)
       
-      // Messages d'erreur personnalisés et informatifs
-      if (error instanceof Error) {
-        if (error.message === "CREDIT_LOW") {
-          return "Un incident technique est survenu. Veuillez contacter le service informatique pour assistance."
-        } else if (error.message === "MODEL_NOT_FOUND") {
-          return "Un incident technique est survenu. Veuillez contacter le service informatique pour assistance."
-        } else if (error.message.includes("rate limit")) {
-          return "Je reçois actuellement un volume de demandes élevé. Veuillez réessayer dans quelques instants."
-        } else if (error.message.includes("quota")) {
-          return "Je suis temporairement indisponible. Veuillez réessayer ultérieurement."
-        } else if (error.message.includes("network") || error.message.includes("fetch")) {
-          return "Problème de connectivité réseau. Veuillez vérifier votre connexion internet et réessayer."
-        } else if (error.message.includes("Configuration API manquante") || error.message.includes("clé API")) {
-          return "Erreur de configuration système. Veuillez contacter le service informatique."
-        } else if (error.message.includes("backend") || error.message.includes("404")) {
-          return "Le service de recherche est temporairement indisponible. Veuillez réessayer dans quelques instants."
-        }
-      }
-      
-      // Message d'erreur générique amélioré
-      const errorMsg = error instanceof Error ? error.message : String(error)
-      console.error(`❌ [CLAUDE-API] Message d'erreur générique retourné pour:`, errorMsg)
-      return "Je rencontre actuellement un problème technique. Veuillez reformuler votre demande ou réessayer dans quelques instants."
+      // Tous les cas d'erreur → message maintenance uniforme (aucun détail technique exposé)
+      return "MAÏ est actuellement en maintenance. Veuillez réessayer dans quelques instants."
     }
   }
 
@@ -162,10 +131,10 @@ export class ClaudeAPI {
     return messages
       .filter(msg => msg.sender === 'user' || msg.sender === 'mai')
       .map(msg => ({
-        role: msg.sender === 'user' ? 'user' : 'assistant',
+        role: (msg.sender === 'user' ? 'user' : 'assistant') as 'user' | 'assistant',
         content: msg.content
       }))
-      .slice(-this.maxHistory) // Garder seulement les derniers messages pour éviter les tokens excessifs
+      .slice(-this.maxHistory)
   }
 
   /**
@@ -258,7 +227,7 @@ RÈGLES STRICTES : Réponds de manière directe et affirmative en utilisant UNIQ
   ): Promise<string> {
     try {
       // Récupérer le contexte RAG
-      const ragContext = await this.retrieveRAGContext(message)
+      const ragContext = await this.retrieveMAIContext(message)
       
       // Construire le prompt avec le contexte
       const enhancedPrompt = this.buildEnhancedPrompt(message, ragContext)

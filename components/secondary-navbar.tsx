@@ -1,7 +1,8 @@
 "use client"
 
-import { Search, X, Building, Calendar } from "lucide-react"
+import { Building, Calendar } from "lucide-react"
 import { useState } from "react"
+import type { ReactNode } from "react"
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
 import { useAuth } from "@/hooks/useAuth"
 import { usePathname } from "next/navigation"
@@ -21,8 +22,10 @@ interface SecondaryNavbarProps {
   onTimeFilterChange?: (timeFilter: string) => void
   timeFilterOptions?: Array<{id: string, name: string}>
   showFilter?: boolean
-  showTimeFilter?: boolean // Nouvelle prop pour contrôler l'affichage du filtre de période
-  showDepartmentFilter?: boolean // Nouvelle prop pour contrôler l'affichage du filtre département
+  showTimeFilter?: boolean
+  showDepartmentFilter?: boolean
+  departmentFilterStatic?: boolean
+  rightActions?: ReactNode
 }
 
 export function SecondaryNavbar({ 
@@ -44,7 +47,9 @@ export function SecondaryNavbar({
   ],
   showFilter = true,
   showTimeFilter = true,
-  showDepartmentFilter = true
+  showDepartmentFilter = true,
+  departmentFilterStatic = false,
+  rightActions,
 }: SecondaryNavbarProps) {
   const [searchFocused, setSearchFocused] = useState(false)
   const { isAuthenticated } = useAuth()
@@ -124,87 +129,75 @@ export function SecondaryNavbar({
           </div>
         )}
         
-        {/* Conteneur responsive avec recherche et filtre */}
-        <div className={`flex flex-col xs:flex-row items-stretch xs:items-center justify-center gap-2 xs:gap-3 sm:gap-4 w-full max-w-7xl ${pathname === "/securite" ? "opacity-0 pointer-events-none" : ""}`}>
-          {/* Champ de recherche - responsive - masqué si showSearch est false */}
-          {showSearch && (
-          <div className="relative w-full xs:max-w-xs sm:max-w-md lg:max-w-xl">
-            <Search className={`absolute left-2 xs:left-3 top-1/2 transform -translate-y-1/2 h-3 w-3 xs:h-4 xs:w-4 transition-colors ${
-              searchFocused 
-                ? pathname === "/securite" ? 'text-blue-300' : 'text-blue-500'
-                : pathname === "/securite" ? 'text-gray-300' : 'text-gray-400'
-            }`} />
-            <input
-              type="text"
-              placeholder={searchPlaceholder}
-              value={searchTerm}
-              onChange={(e) => onSearchChange?.(e.target.value)}
-              onKeyDown={onSearchKeyDown}
-              onFocus={() => setSearchFocused(true)}
-              onBlur={() => setSearchFocused(false)}
-              className={`w-full pl-7 xs:pl-8 sm:pl-10 pr-7 xs:pr-8 sm:pr-10 py-2 xs:py-2.5 sm:py-3 text-xs xs:text-sm border-2 rounded-lg transition-all duration-200 ${
-                searchFocused 
-                  ? pathname === "/securite"
-                    ? 'border-blue-400 ring-2 ring-blue-900/30 bg-gray-700/50 shadow-md text-white placeholder-gray-400'
-                    : 'border-blue-500 ring-2 ring-blue-100 bg-white shadow-md'
-                  : pathname === "/securite"
-                    ? 'border-gray-500 hover:border-gray-400 bg-gray-700/30 text-white placeholder-gray-400'
-                    : 'border-gray-300 hover:border-gray-400 bg-white'
-              }`}
-            />
-            {searchTerm && (
-              <button
-                onClick={() => onSearchChange?.("")}
-                className="absolute right-2 xs:right-3 top-1/2 transform -translate-y-1/2 h-4 w-4 xs:h-5 xs:w-5 sm:h-6 sm:w-6 p-0 hover:bg-gray-100 rounded-full flex items-center justify-center"
-              >
-                <X className="h-2 w-2 xs:h-3 xs:w-3 text-gray-400" />
-              </button>
-            )}
-            
-            {/* Indicateur de frappe - responsive */}
-            {searchTerm && isTyping && (
-              <div className="absolute top-full left-0 right-0 mt-1 bg-white border border-gray-200 rounded-lg shadow-lg z-10">
-                <div className="p-2 text-xs text-gray-600 flex items-center gap-2">
-                  <div className="flex items-center gap-1">
-                    <div className="w-1 h-1 bg-blue-500 rounded-full animate-pulse"></div>
-                    <div className="w-1 h-1 bg-blue-500 rounded-full animate-pulse" style={{animationDelay: '0.2s'}}></div>
-                    <div className="w-1 h-1 bg-blue-500 rounded-full animate-pulse" style={{animationDelay: '0.4s'}}></div>
+        {/* Conteneur 3 colonnes : [spacer gauche] [contenu centré] [actions droite] */}
+        <div className={`flex flex-row items-center w-full max-w-7xl ${pathname === "/securite" ? "opacity-0 pointer-events-none" : ""}`}>
+
+          {/* Colonne gauche — spacer flex-1 */}
+          <div className="flex-1" />
+
+          {/* Colonne centre — recherche + filtres */}
+          <div className="flex flex-row items-center gap-2 xs:gap-3">
+            {/* Champ de recherche */}
+            {showSearch && (
+              <div className="relative">
+                <input
+                  type="text"
+                  placeholder={searchPlaceholder}
+                  value={searchTerm}
+                  onChange={(e) => onSearchChange?.(e.target.value)}
+                  onKeyDown={onSearchKeyDown}
+                  onFocus={() => setSearchFocused(true)}
+                  onBlur={() => setSearchFocused(false)}
+                  className={`w-48 xs:w-56 sm:w-72 md:w-80 lg:w-96 px-3 xs:px-4 py-2 xs:py-2.5 sm:py-3 text-xs xs:text-sm border-2 rounded-lg transition-all duration-200 ${
+                    searchFocused
+                      ? pathname === "/securite"
+                        ? 'border-blue-400 ring-2 ring-blue-900/30 bg-gray-700/50 shadow-md text-white placeholder-gray-400'
+                        : 'border-blue-500 ring-2 ring-blue-100 bg-white shadow-md'
+                      : pathname === "/securite"
+                        ? 'border-gray-500 hover:border-gray-400 bg-gray-700/30 text-white placeholder-gray-400'
+                        : 'border-gray-300 hover:border-gray-400 bg-white'
+                  }`}
+                />
+                {/* Indicateur de frappe */}
+                {searchTerm && isTyping && (
+                  <div className="absolute top-full left-0 right-0 mt-1 bg-white border border-gray-200 rounded-lg shadow-lg z-10">
+                    <div className="p-2 text-xs text-gray-600 flex items-center gap-2">
+                      <div className="flex items-center gap-1">
+                        <div className="w-1 h-1 bg-blue-500 rounded-full animate-pulse"></div>
+                        <div className="w-1 h-1 bg-blue-500 rounded-full animate-pulse" style={{animationDelay: '0.2s'}}></div>
+                        <div className="w-1 h-1 bg-blue-500 rounded-full animate-pulse" style={{animationDelay: '0.4s'}}></div>
+                      </div>
+                      <span className="hidden xs:inline">En cours de recherche...</span>
+                      <span className="xs:hidden">Recherche...</span>
+                    </div>
                   </div>
-                  <span className="hidden xs:inline">En cours de recherche...</span>
-                  <span className="xs:hidden">Recherche...</span>
-                </div>
+                )}
               </div>
             )}
-          </div>
-          )}
 
-          {/* Filtres - conditionnels et responsive */}
-          {showFilter && (
-            <div className="flex items-center gap-2 xs:gap-3 w-full xs:w-auto">
-              {/* Filtre par département - responsive - seulement si showDepartmentFilter est true */}
-              {showDepartmentFilter && (
-                <div className={`flex items-center gap-1 xs:gap-2 ${showSearch ? 'flex-1 xs:flex-none' : 'w-full'}`}>
-                  <Building className={`h-3 w-3 xs:h-4 xs:w-4 sm:h-5 sm:w-5 flex-shrink-0 ${
-                    pathname === "/securite"
-                      ? isAuthenticated ? 'text-gray-300' : 'text-gray-600'
-                      : isAuthenticated ? 'text-slate-500' : 'text-gray-300'
-                  }`} />
-                  <Select 
-                    value={selectedDepartment} 
-                    onValueChange={handleDepartmentChange}
-                    disabled={!isAuthenticated}
-                  >
-                    <SelectTrigger 
-                      className={`w-full ${showSearch ? 'xs:w-32 sm:w-40 lg:w-48' : 'xs:w-64 sm:w-80 lg:w-96'} h-8 xs:h-9 sm:h-10 lg:h-12 border-2 text-xs xs:text-sm rounded-lg ${
-                        pathname === "/securite"
-                          ? isAuthenticated
-                            ? 'border-gray-500 focus:border-blue-400 focus:ring-blue-400 cursor-pointer bg-gray-700/30 text-white'
-                            : 'border-gray-600 bg-gray-800/30 cursor-not-allowed opacity-60 text-gray-400'
-                          : isAuthenticated 
-                            ? 'border-slate-300 focus:border-blue-500 focus:ring-blue-500 cursor-pointer' 
-                            : 'border-gray-200 bg-gray-50 cursor-not-allowed opacity-60'
-                      }`}
-                    >
+            {/* Filtre département */}
+            {showFilter && showDepartmentFilter && (
+              <div className="flex items-center gap-1 xs:gap-2">
+                <Building className={`h-3 w-3 xs:h-4 xs:w-4 sm:h-5 sm:w-5 flex-shrink-0 ${
+                  pathname === "/securite"
+                    ? isAuthenticated ? 'text-gray-300' : 'text-gray-600'
+                    : isAuthenticated ? 'text-slate-500' : 'text-gray-300'
+                }`} />
+                {departmentFilterStatic ? (
+                  <div className="w-32 sm:w-40 lg:w-48 h-8 xs:h-9 sm:h-10 lg:h-12 rounded-lg bg-white flex items-center justify-center text-xs xs:text-sm sm:text-base font-semibold select-none tracking-wide" style={{ border: "2px solid #344256", color: "#344256" }}>
+                    {selectedDepartment}
+                  </div>
+                ) : (
+                  <Select value={selectedDepartment} onValueChange={handleDepartmentChange} disabled={!isAuthenticated}>
+                    <SelectTrigger className={`w-32 sm:w-40 lg:w-48 h-8 xs:h-9 sm:h-10 lg:h-12 border-2 text-xs xs:text-sm rounded-lg ${
+                      pathname === "/securite"
+                        ? isAuthenticated
+                          ? 'border-gray-500 focus:border-blue-400 focus:ring-blue-400 cursor-pointer bg-gray-700/30 text-white'
+                          : 'border-gray-600 bg-gray-800/30 cursor-not-allowed opacity-60 text-gray-400'
+                        : isAuthenticated
+                          ? 'border-slate-300 focus:border-blue-500 focus:ring-blue-500 cursor-pointer'
+                          : 'border-gray-200 bg-gray-50 cursor-not-allowed opacity-60'
+                    }`}>
                       <SelectValue placeholder="Département" />
                     </SelectTrigger>
                     <SelectContent>
@@ -215,35 +208,45 @@ export function SecondaryNavbar({
                       ))}
                     </SelectContent>
                   </Select>
-                </div>
-              )}
+                )}
+              </div>
+            )}
 
-              {/* Filtre par période - responsive - seulement si showTimeFilter est true */}
-              {showTimeFilter && (
-                <div className="flex items-center gap-1 xs:gap-2 flex-1 xs:flex-none">
-                  <Calendar className={`h-3 w-3 xs:h-4 xs:w-4 sm:h-5 sm:w-5 flex-shrink-0 ${
-                    pathname === "/securite" ? 'text-gray-300' : 'text-slate-500'
-                  }`} />
-                  <Select value={selectedTimeFilter} onValueChange={onTimeFilterChange}>
-                    <SelectTrigger className={`w-full xs:w-32 sm:w-36 lg:w-40 h-8 xs:h-9 sm:h-10 lg:h-12 text-xs xs:text-sm ${
-                      pathname === "/securite"
-                        ? 'border-gray-500 focus:border-blue-400 focus:ring-blue-400 bg-gray-700/30 text-white'
-                        : 'border-slate-300 focus:border-blue-500 focus:ring-blue-500'
-                    }`}>
-                      <SelectValue placeholder="Période" />
-                    </SelectTrigger>
-                    <SelectContent>
-                      {timeFilterOptions.map((option) => (
-                        <SelectItem key={option.id} value={option.id} className="text-xs xs:text-sm">
-                          {option.name}
-                        </SelectItem>
-                      ))}
-                    </SelectContent>
-                  </Select>
-                </div>
-              )}
-            </div>
-          )}
+            {/* Filtre période */}
+            {showFilter && showTimeFilter && (
+              <div className="flex items-center gap-1 xs:gap-2">
+                <Calendar className={`h-3 w-3 xs:h-4 xs:w-4 sm:h-5 sm:w-5 flex-shrink-0 ${
+                  pathname === "/securite" ? 'text-gray-300' : 'text-slate-500'
+                }`} />
+                <Select value={selectedTimeFilter} onValueChange={onTimeFilterChange}>
+                  <SelectTrigger className={`w-32 sm:w-36 lg:w-40 h-8 xs:h-9 sm:h-10 lg:h-12 text-xs xs:text-sm ${
+                    pathname === "/securite"
+                      ? 'border-gray-500 focus:border-blue-400 focus:ring-blue-400 bg-gray-700/30 text-white'
+                      : 'border-slate-300 focus:border-blue-500 focus:ring-blue-500'
+                  }`}>
+                    <SelectValue placeholder="Période" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    {timeFilterOptions.map((option) => (
+                      <SelectItem key={option.id} value={option.id} className="text-xs xs:text-sm">
+                        {option.name}
+                      </SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+              </div>
+            )}
+
+            {/* Actions à côté de la recherche */}
+            {rightActions && (
+              <div className="flex items-center">
+                {rightActions}
+              </div>
+            )}
+          </div>
+
+          {/* Colonne droite — spacer flex-1 */}
+          <div className="flex-1" />
         </div>
       </div>
     </header>

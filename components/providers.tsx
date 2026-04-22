@@ -3,6 +3,7 @@
 import { ReactNode } from "react"
 import { ToastProvider } from "@/components/ui/toast"
 import { ThemeProvider } from "@/components/theme-provider"
+import { ConfirmProvider } from "@/components/ui/confirm-dialog"
 
 interface ProvidersProps {
   children: ReactNode
@@ -11,9 +12,11 @@ interface ProvidersProps {
 export function Providers({ children }: ProvidersProps) {
   return (
     <ThemeProvider attribute="class" defaultTheme="light" enableSystem>
-      <ToastProvider>
-        {children}
-      </ToastProvider>
+      <ConfirmProvider>
+        <ToastProvider>
+          {children}
+        </ToastProvider>
+      </ConfirmProvider>
     </ThemeProvider>
   )
 }

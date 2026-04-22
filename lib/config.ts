@@ -51,6 +51,8 @@ export const API_CONFIG = {
   get ACCUEIL() { return `${getApiUrl()}/accueil` },
   get AUTH() { return `${getApiUrl()}/auth` },
   get DOCUMENTS() { return `${getApiUrl()}/documents` },
+  get RECRUTEMENT() { return `${getApiUrl()}/recrutement` },
+  get SIRH() { return `${getApiUrl()}/sirh` },
 }
 
 /**

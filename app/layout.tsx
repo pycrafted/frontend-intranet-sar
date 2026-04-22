@@ -1,5 +1,5 @@
 import type React from "react"
-import type { Metadata } from "next"
+import type { Metadata, Viewport } from "next"
 import { Inter } from "next/font/google"
 import { Analytics } from "@vercel/analytics/next"
 import { Suspense } from "react"
@@ -25,6 +25,9 @@ export const metadata: Metadata = {
     shortcut: "/sarlogo.png",
     apple: "/sarlogo.png",
   },
+}
+
+export const viewport: Viewport = {
   themeColor: "#dc2626",
 }
 

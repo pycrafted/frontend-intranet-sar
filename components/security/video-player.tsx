@@ -3,12 +3,13 @@
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import { Button } from "@/components/ui/button"
 import { ChevronLeft, ChevronRight, Play, ClipboardCheck } from "lucide-react"
+import React from "react"
 
 interface Video {
   id: number
   title: string
-  url: string
-  description: string
+  file_url: string
+  description: string | null
 }
 
 interface VideoPlayerProps {
@@ -18,61 +19,11 @@ interface VideoPlayerProps {
   currentIndex: number
   totalVideos: number
   onQuizClick?: () => void
+  headerControls?: React.ReactNode
 }
 
-export function VideoPlayer({ video, onPrevious, onNext, currentIndex, totalVideos, onQuizClick }: VideoPlayerProps) {
-  const videos = [
-    {
-      id: 1,
-      title: "Vidéo Institutionnelle SAR",
-      description: "Découvrez l'histoire, les valeurs et la mission de la Société Africaine de Raffinage depuis sa création en 1961",
-      duration: "15 min",
-      type: "Institutionnelle",
-      color: "from-red-600 to-red-700"
-    },
-    {
-      id: 2,
-      title: "Vidéo Sécurité",
-      description: "Formation complète sur les équipements de protection et les procédures de sécurité au travail",
-      duration: "12 min",
-      type: "Sécurité",
-      color: "from-amber-600 to-orange-600"
-    },
-    {
-      id: 3,
-      title: "Simulations",
-      description: "Vidéo de simulations de sécurité",
-      duration: "10 min",
-      type: "Simulations",
-      color: "from-blue-600 to-indigo-600"
-    }
-  ]
+export function VideoPlayer({ video, onPrevious, onNext, currentIndex, totalVideos, onQuizClick, headerControls }: VideoPlayerProps) {
 
-  const currentVideoInfo = videos[currentIndex] || videos[0]
-
-  // Construire l'URL avec autoplay pour les vidéos Cloudflare Stream
-  const getVideoUrl = () => {
-    if (video.url.includes('cloudflarestream.com')) {
-      // Extraire l'ID de la vidéo et le domaine depuis l'URL
-      const urlMatch = video.url.match(/https:\/\/(customer-[a-z0-9]+\.cloudflarestream\.com)\/([a-f0-9]+)\/watch/)
-      if (urlMatch && urlMatch[1] && urlMatch[2]) {
-        const domain = urlMatch[1]
-        const videoId = urlMatch[2]
-        // Construire l'URL avec autoplay et autres paramètres
-        return `https://${domain}/${videoId}/iframe?autoplay=true&loop=true&muted=true&controls=true&preload=auto`
-      }
-      // Si l'URL est déjà au format iframe, ajouter les paramètres
-      if (video.url.includes('/iframe')) {
-        const separator = video.url.includes('?') ? '&' : '?'
-        return `${video.url}${separator}autoplay=true&loop=true&muted=true&controls=true&preload=auto`
-      }
-      // Fallback : retourner l'URL originale
-      return video.url
-    }
-    return video.url
-  }
-
-  const videoUrl = getVideoUrl()
 
   return (
     <Card className="overflow-hidden shadow-2xl border-0 bg-white backdrop-blur-xl sm:hover:shadow-xl transition-all duration-500 group w-full flex flex-col">
@@ -105,69 +56,71 @@ export function VideoPlayer({ video, onPrevious, onNext, currentIndex, totalVide
                 marginBottom: 'clamp(0.25rem, 0.8vw, 0.5rem)',
                 lineHeight: '1.2'
               }}>
-                {currentVideoInfo.title}
+                {video.title}
               </CardTitle>
-              {currentVideoInfo.description && (
+              {video.description && (
                 <p className="text-gray-600 leading-relaxed line-clamp-2" style={{ 
                   fontSize: 'clamp(0.625rem, 1.2vw, 1rem)',
                   lineHeight: '1.5'
                 }}>
-                  {currentVideoInfo.description}
+                  {video.description}
                 </p>
               )}
             </div>
           </div>
           
-          {onQuizClick && (
-            <Button
-              onClick={onQuizClick}
-              className="text-white font-semibold rounded-md xs:rounded-lg shadow-lg sm:hover:shadow-xl transition-all duration-300 sm:hover:scale-105 active:scale-95 flex items-center justify-center w-full xs:w-auto touch-manipulation"
-              style={{
-                backgroundColor: "#344256",
-                borderColor: "#344256",
-                padding: 'clamp(0.375rem, 1vw, 1rem) clamp(0.75rem, 2vw, 2.5rem)',
-                fontSize: 'clamp(0.625rem, 1.2vw, 1rem)',
-                gap: 'clamp(0.375rem, 1vw, 0.75rem)'
-              }}
-              onMouseEnter={(e) => {
-                if (typeof window !== 'undefined' && window.innerWidth >= 640) {
-                  e.currentTarget.style.backgroundColor = "#2a3441"
-                  e.currentTarget.style.borderColor = "#2a3441"
-                }
-              }}
-              onMouseLeave={(e) => {
-                if (typeof window !== 'undefined' && window.innerWidth >= 640) {
-                  e.currentTarget.style.backgroundColor = "#344256"
-                  e.currentTarget.style.borderColor = "#344256"
-                }
-              }}
-            >
-              <ClipboardCheck style={{ 
-                width: 'clamp(0.75rem, 1.5vw, 1.75rem)', 
-                height: 'clamp(0.75rem, 1.5vw, 1.75rem)' 
-              }} />
-              <span>Quiz</span>
-            </Button>
-          )}
+          <div className="flex items-center gap-2 flex-shrink-0">
+            {headerControls}
+            {onQuizClick && (
+              <Button
+                onClick={onQuizClick}
+                className="text-white font-semibold rounded-md xs:rounded-lg shadow-lg sm:hover:shadow-xl transition-all duration-300 sm:hover:scale-105 active:scale-95 flex items-center justify-center touch-manipulation"
+                style={{
+                  backgroundColor: "#344256",
+                  borderColor: "#344256",
+                  padding: 'clamp(0.375rem, 1vw, 1rem) clamp(0.75rem, 2vw, 2.5rem)',
+                  fontSize: 'clamp(0.625rem, 1.2vw, 1rem)',
+                  gap: 'clamp(0.375rem, 1vw, 0.75rem)'
+                }}
+                onMouseEnter={(e) => {
+                  if (typeof window !== 'undefined' && window.innerWidth >= 640) {
+                    e.currentTarget.style.backgroundColor = "#2a3441"
+                    e.currentTarget.style.borderColor = "#2a3441"
+                  }
+                }}
+                onMouseLeave={(e) => {
+                  if (typeof window !== 'undefined' && window.innerWidth >= 640) {
+                    e.currentTarget.style.backgroundColor = "#344256"
+                    e.currentTarget.style.borderColor = "#344256"
+                  }
+                }}
+              >
+                <ClipboardCheck style={{
+                  width: 'clamp(0.75rem, 1.5vw, 1.75rem)',
+                  height: 'clamp(0.75rem, 1.5vw, 1.75rem)'
+                }} />
+                <span>Quiz</span>
+              </Button>
+            )}
+          </div>
         </div>
       </CardHeader>
 
       <CardContent className="p-0 flex-1">
         {/* Zone vidéo */}
         <div className="relative aspect-[16/9] bg-gradient-to-br from-slate-900 to-slate-800 flex items-center justify-center overflow-hidden">
-          {video.url.includes('cloudflarestream.com') ? (
-            <iframe
-              src={videoUrl}
-              title={video.title}
-              className="w-full h-full border-0"
-              allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share"
-              allowFullScreen
-              loading="eager"
+          {video.file_url ? (
+            <video
+              key={video.file_url}
+              src={video.file_url}
+              controls
+              className="w-full h-full"
+              preload="metadata"
             />
           ) : (
             <>
               <img
-                src={video.url || "/placeholder.svg"}
+                src="/placeholder.svg"
                 alt={video.title}
                 className="w-full h-full object-cover transition-transform duration-700 group-hover:scale-105"
               />

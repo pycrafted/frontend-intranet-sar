@@ -1,7 +1,7 @@
 "use client"
 
 import type { FileItem } from "./documents-page"
-import { MoreVertical, Folder, FileText, Trash2, Eye, Edit3, Download } from "lucide-react"
+import { MoreVertical, Folder, FileText, FileImage, Film, Trash2, Eye, Edit3, Download } from "lucide-react"
 import { Button } from "@/components/ui/button"
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from "@/components/ui/dropdown-menu"
 import { useAuth } from "@/hooks/useAuth"
@@ -23,21 +23,13 @@ export function DocumentListItem({ item, onDelete, onFolderClick, onView, onRena
     }
 
     const iconClass = "h-5 w-5"
-    switch (item.fileType) {
-      case "pdf":
-        return <FileText className={`${iconClass} text-red-600`} />
-      case "pptx":
-      case "ppt":
-        return <FileText className={`${iconClass} text-orange-600`} />
-      case "docx":
-      case "doc":
-        return <FileText className={`${iconClass} text-blue-600`} />
-      case "xlsx":
-      case "xls":
-        return <FileText className={`${iconClass} text-green-600`} />
-      default:
-        return <FileText className={`${iconClass} text-muted-foreground`} />
+    if (item.is_image || item.media_type === 'image') {
+      return <FileImage className={`${iconClass} text-purple-500`} />
     }
+    if (item.is_video || item.media_type === 'video') {
+      return <Film className={`${iconClass} text-blue-500`} />
+    }
+    return <FileText className={`${iconClass} text-muted-foreground`} />
   }
 
   const handleClick = () => {

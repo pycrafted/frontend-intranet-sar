@@ -2,8 +2,12 @@
 
 import { useState, useEffect } from "react"
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
-import { Shield, Building2, Users, Clock, AlertTriangle, CheckCircle } from "lucide-react"
+import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog"
+import { Button } from "@/components/ui/button"
+import { Label } from "@/components/ui/label"
+import { Shield, Building2, Users, AlertTriangle, Pencil, RotateCcw } from "lucide-react"
 import { useSafetyData } from "@/hooks/useSafetyData"
+import { useAuth } from "@/hooks/useAuth"
 import Image from "next/image"
 
 // Hook pour détecter la taille du widget
@@ -32,41 +36,19 @@ function useWidgetSize() {
 }
 
 export function SafetyCounter() {
-  const { safetyData, loading, error } = useSafetyData()
+  const { safetyData, loading, error, updateSafetyData } = useSafetyData()
+  const { user } = useAuth()
+  const isAdmin = !!(user?.is_superuser)
+
   const [isAnimating, setIsAnimating] = useState(false)
-  const [currentTime, setCurrentTime] = useState<Date | null>(null)
-  const [isClient, setIsClient] = useState(false)
+  const [isModalOpen, setIsModalOpen] = useState(false)
   const widgetSize = useWidgetSize()
 
   useEffect(() => {
-    // Marquer comme côté client
-    setIsClient(true)
-    setCurrentTime(new Date())
-    
-    // Animation du compteur au chargement
     setIsAnimating(true)
     const timer = setTimeout(() => setIsAnimating(false), 1000)
     return () => clearTimeout(timer)
   }, [])
-
-  // Mise à jour de l'heure chaque seconde
-  useEffect(() => {
-    if (!isClient) return
-    
-    const timer = setInterval(() => {
-      setCurrentTime(new Date())
-    }, 1000)
-    return () => clearInterval(timer)
-  }, [isClient])
-
-  const formatTime = (date: Date) => {
-    return date.toLocaleTimeString('fr-FR', {
-      hour: '2-digit',
-      minute: '2-digit',
-      second: '2-digit',
-      hour12: false
-    })
-  }
 
   // Configuration responsive basée sur la taille du widget et l'écran
   const getResponsiveConfig = () => {
@@ -139,16 +121,16 @@ export function SafetyCounter() {
   if (loading) {
     return (
       <Card className={`${config.cardHeight} flex flex-col overflow-hidden relative bg-gradient-to-br from-slate-900 via-blue-900 to-indigo-900 border-0`}>
-        <CardHeader className={`relative ${config.headerPadding} flex-shrink-0 z-10`}>
+        <CardHeader className="relative pb-2 pt-4 px-5 flex-shrink-0 z-10">
           <div className="flex items-center gap-3">
-            <div className={`${config.counterPadding} bg-gradient-to-br from-blue-500 to-indigo-600 rounded-xl shadow-lg`}>
-              <Shield className={`${config.iconSize} text-white`} />
+            <div className="p-2.5 bg-gradient-to-br from-blue-500 to-indigo-600 rounded-xl shadow-lg">
+              <Shield className="h-5 w-5 text-white" />
             </div>
             <div>
-              <CardTitle className={`${config.titleSize} font-bold text-white`}>
-                🛡️ Sécurité du Travail
+              <CardTitle className="text-sm font-bold text-white leading-tight">
+                Sécurité du Travail
               </CardTitle>
-              <p className={`${config.subtitleSize} text-blue-200/80 font-medium`}>
+              <p className="text-xs text-blue-200/80 mt-0.5">
                 Chargement...
               </p>
             </div>
@@ -167,16 +149,16 @@ export function SafetyCounter() {
   if (error) {
     return (
       <Card className={`${config.cardHeight} flex flex-col overflow-hidden relative bg-gradient-to-br from-slate-900 via-blue-900 to-indigo-900 border-0`}>
-        <CardHeader className={`relative ${config.headerPadding} flex-shrink-0 z-10`}>
+        <CardHeader className="relative pb-2 pt-4 px-5 flex-shrink-0 z-10">
           <div className="flex items-center gap-3">
-            <div className={`${config.counterPadding} bg-gradient-to-br from-red-500 to-red-600 rounded-xl shadow-lg`}>
-              <AlertTriangle className={`${config.iconSize} text-white`} />
+            <div className="p-2.5 bg-gradient-to-br from-red-500 to-red-600 rounded-xl shadow-lg">
+              <AlertTriangle className="h-5 w-5 text-white" />
             </div>
             <div>
-              <CardTitle className={`${config.titleSize} font-bold text-white`}>
-                🛡️ Sécurité du Travail
+              <CardTitle className="text-sm font-bold text-white leading-tight">
+                Sécurité du Travail
               </CardTitle>
-              <p className={`${config.subtitleSize} text-red-200/80 font-medium`}>
+              <p className="text-xs text-red-200/80 mt-0.5">
                 Erreur de chargement
               </p>
             </div>
@@ -196,16 +178,16 @@ export function SafetyCounter() {
   if (!safetyData) {
     return (
       <Card className={`${config.cardHeight} flex flex-col overflow-hidden relative bg-gradient-to-br from-slate-900 via-blue-900 to-indigo-900 border-0`}>
-        <CardHeader className={`relative ${config.headerPadding} flex-shrink-0 z-10`}>
+        <CardHeader className="relative pb-2 pt-4 px-5 flex-shrink-0 z-10">
           <div className="flex items-center gap-3">
-            <div className={`${config.counterPadding} bg-gradient-to-br from-blue-500 to-indigo-600 rounded-xl shadow-lg`}>
-              <Shield className={`${config.iconSize} text-white`} />
+            <div className="p-2.5 bg-gradient-to-br from-blue-500 to-indigo-600 rounded-xl shadow-lg">
+              <Shield className="h-5 w-5 text-white" />
             </div>
             <div>
-              <CardTitle className={`${config.titleSize} font-bold text-white`}>
-                🛡️ Sécurité du Travail
+              <CardTitle className="text-sm font-bold text-white leading-tight">
+                Sécurité du Travail
               </CardTitle>
-              <p className={`${config.subtitleSize} text-blue-200/80 font-medium`}>
+              <p className="text-xs text-blue-200/80 mt-0.5">
                 Aucune donnée disponible
               </p>
             </div>
@@ -222,6 +204,7 @@ export function SafetyCounter() {
   }
 
   return (
+    <>
     <Card className={`${config.cardHeight} flex flex-col overflow-hidden relative bg-gradient-to-br from-slate-900 via-blue-900 to-indigo-900 border-0 hover:shadow-2xl transition-all duration-500 group safety-widget-mobile`} data-widget-id="safety">
       {/* Image de fond avec overlay */}
       <div className="absolute inset-0">
@@ -239,29 +222,29 @@ export function SafetyCounter() {
         <div className="absolute bottom-0 left-0 w-24 h-24 bg-indigo-500/10 rounded-full translate-y-12 -translate-x-12" />
       </div>
 
-      <CardHeader className={`relative ${config.headerPadding} flex-shrink-0 z-10 p-2 sm:p-3 md:p-4 lg:p-6 safety-header`}>
-        <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3 sm:gap-4">
-          <div className="flex items-center gap-2 sm:gap-3">
-            <div className={`${config.counterPadding} bg-gradient-to-br from-blue-500 to-indigo-600 rounded-lg sm:rounded-xl shadow-lg group-hover:shadow-blue-200/50 group-hover:scale-105 transition-all duration-300`}>
-              <Shield className={`${config.iconSize} text-white`} />
+      <CardHeader className="relative pb-2 pt-4 px-5 flex-shrink-0 z-10 safety-header">
+        <div className="flex items-center justify-between gap-3">
+          <div className="flex items-center gap-3">
+            <div className="p-2.5 bg-gradient-to-br from-blue-500 to-indigo-600 rounded-xl shadow-lg group-hover:shadow-blue-200/50 group-hover:scale-105 transition-all duration-300">
+              <Shield className="h-5 w-5 text-white" />
             </div>
             <div className="min-w-0 flex-1">
-              <CardTitle className={`${config.titleSize} font-bold text-white group-hover:text-blue-200 transition-colors duration-300 leading-tight safety-title widget-title safety-widget-title`}>
+              <CardTitle className="text-sm font-bold text-white leading-tight safety-title">
                 Sécurité du Travail
               </CardTitle>
-              <p className={`${config.subtitleSize} text-blue-200/80 font-medium leading-tight mt-1 safety-subtitle widget-subtitle safety-widget-subtitle`}>
+              <p className="text-xs text-blue-200/80 mt-0.5 safety-subtitle">
                 Compteurs de jours sans accident
               </p>
             </div>
           </div>
-          
-          {/* Numéro vert SAR - Responsive */}
+
+          {/* Numéro vert SAR */}
           {widgetSize !== 'small' && (
-            <div className="text-center sm:text-right flex-shrink-0">
-              <div className={`${config.labelSize} font-bold text-green-800 drop-shadow-lg bg-green-100/90 px-2 sm:px-3 py-1 rounded-lg inline-block safety-phone`}>
+            <div className="text-right flex-shrink-0">
+              <div className="text-sm font-extrabold text-green-900 drop-shadow-lg bg-green-300/95 px-3 py-1.5 rounded-lg inline-block safety-phone shadow-md tracking-wide">
                 📞 800 00 34 34
               </div>
-              <div className={`${config.smallLabelSize} text-green-700 font-semibold mt-1 safety-phone-label`}>
+              <div className="text-xs text-white font-semibold mt-1 safety-phone-label drop-shadow">
                 Numéro vert SAR
               </div>
             </div>
@@ -299,13 +282,6 @@ export function SafetyCounter() {
               </div>
             </div>
             
-            {/* Indicateur de performance */}
-            <div className="flex items-center gap-1 mt-1 sm:mt-2">
-              <CheckCircle className="h-3 w-3 sm:h-4 sm:w-4 text-green-400" />
-              <span className={`${config.smallLabelSize} text-green-300 font-medium`}>
-                {safetyData.appreciation_sar}
-              </span>
-            </div>
           </div>
 
           {/* Compteur EE */}
@@ -335,17 +311,205 @@ export function SafetyCounter() {
               </div>
             </div>
             
-            {/* Indicateur de performance */}
-            <div className="flex items-center gap-1 mt-1 sm:mt-2">
-              <CheckCircle className="h-3 w-3 sm:h-4 sm:w-4 text-green-400" />
-              <span className={`${config.smallLabelSize} text-green-300 font-medium`}>
-                {safetyData.appreciation_ee}
-              </span>
-            </div>
           </div>
         </div>
 
       </CardContent>
+
+      {/* Bouton admin — bas droite */}
+      {isAdmin && (
+        <button
+          onClick={() => setIsModalOpen(true)}
+          title="Modifier les données de sécurité"
+          className="absolute bottom-3 right-3 z-20 opacity-0 group-hover:opacity-100 transition-opacity duration-200 p-2 rounded-lg bg-white/20 hover:bg-white/30 text-white shadow-md backdrop-blur-sm"
+        >
+          <Pencil className="h-4 w-4" />
+        </button>
+      )}
     </Card>
+
+    <SafetyEditModal
+      open={isModalOpen}
+      onClose={() => setIsModalOpen(false)}
+      safetyData={safetyData}
+      onSave={updateSafetyData}
+    />
+    </>
+  )
+}
+
+// ── Modal édition sécurité ─────────────────────────────────────────────────────
+interface SafetyEditModalProps {
+  open: boolean
+  onClose: () => void
+  safetyData: NonNullable<ReturnType<typeof useSafetyData>['safetyData']>
+  onSave: (data: Record<string, unknown>) => Promise<unknown>
+}
+
+function SafetyEditModal({ open, onClose, safetyData, onSave }: SafetyEditModalProps) {
+  const [sarCount,   setSarCount]   = useState(0)
+  const [eeCount,    setEeCount]    = useState(0)
+  const [isSaving,   setIsSaving]   = useState(false)
+  const [modalError, setModalError] = useState<string | null>(null)
+  const [confirmSar, setConfirmSar] = useState(false)
+  const [confirmEe,  setConfirmEe]  = useState(false)
+
+  useEffect(() => {
+    if (!open) return
+    setSarCount(safetyData.days_without_incident_sar)
+    setEeCount(safetyData.days_without_incident_ee)
+    setModalError(null)
+    setConfirmSar(false)
+    setConfirmEe(false)
+  }, [open]) // eslint-disable-line react-hooks/exhaustive-deps
+
+  const handleSave = async () => {
+    setIsSaving(true)
+    setModalError(null)
+    try {
+      await onSave({
+        days_without_incident_sar: sarCount,
+        days_without_incident_ee: eeCount,
+      })
+      onClose()
+    } catch {
+      setModalError('Erreur lors de la sauvegarde.')
+    } finally {
+      setIsSaving(false)
+    }
+  }
+
+  const handleReset = async (type: 'sar' | 'ee') => {
+    setIsSaving(true)
+    setModalError(null)
+    try {
+      if (type === 'sar') {
+        await onSave({ days_without_incident_sar: 0 })
+        setSarCount(0)
+        setConfirmSar(false)
+      } else {
+        await onSave({ days_without_incident_ee: 0 })
+        setEeCount(0)
+        setConfirmEe(false)
+      }
+    } catch {
+      setModalError('Erreur lors de la mise à jour.')
+    } finally {
+      setIsSaving(false)
+    }
+  }
+
+  return (
+    <Dialog open={open} onOpenChange={onClose}>
+      <DialogContent style={{ width: '500px', maxWidth: 'calc(100vw - 2rem)', maxHeight: '90vh', overflowY: 'auto' }}>
+        <DialogHeader>
+          <DialogTitle className="flex items-center gap-2">
+            <Shield className="h-5 w-5 text-blue-600" />
+            Modifier les compteurs de sécurité
+          </DialogTitle>
+        </DialogHeader>
+
+        <div className="space-y-5 py-2">
+
+          {/* ── Section SAR ── */}
+          <div className="space-y-3">
+            <div className="flex items-center gap-2">
+              <Building2 className="h-4 w-4 text-blue-500" />
+              <span className="text-sm font-bold text-slate-800">SAR — Interne</span>
+            </div>
+
+            <div className="space-y-3">
+              <div className="space-y-1.5">
+                <Label>Nombre de jours sans accident SAR</Label>
+                <input
+                  type="number" min={0} value={sarCount}
+                  onChange={e => setSarCount(Math.max(0, parseInt(e.target.value) || 0))}
+                  className="w-full px-3 py-2 text-sm border border-gray-300 rounded-lg focus:outline-none focus:border-blue-500 bg-white"
+                />
+              </div>
+
+              {/* Remettre à 0 SAR */}
+              {confirmSar ? (
+                <div className="flex items-center gap-2 px-3 py-2 bg-orange-50 border border-orange-200 rounded-lg">
+                  <RotateCcw className="h-3.5 w-3.5 text-orange-500 flex-shrink-0" />
+                  <p className="flex-1 text-xs text-orange-700">Remettre le compteur SAR à 0 (accident aujourd'hui) ?</p>
+                  <button onClick={() => handleReset('sar')} disabled={isSaving}
+                    className="px-2.5 py-1 text-xs font-semibold bg-orange-500 hover:bg-orange-600 text-white rounded-lg transition-colors disabled:opacity-50">
+                    {isSaving ? '...' : 'Confirmer'}
+                  </button>
+                  <button onClick={() => setConfirmSar(false)} disabled={isSaving}
+                    className="px-2.5 py-1 text-xs border border-gray-300 rounded-lg hover:bg-gray-50">
+                    Annuler
+                  </button>
+                </div>
+              ) : (
+                <button onClick={() => setConfirmSar(true)}
+                  className="flex items-center gap-1.5 text-xs text-orange-500 hover:text-orange-700 transition-colors">
+                  <RotateCcw className="h-3.5 w-3.5" />
+                  Accident aujourd'hui (SAR) — remettre à 0
+                </button>
+              )}
+            </div>
+          </div>
+
+          <hr className="border-gray-200" />
+
+          {/* ── Section EE ── */}
+          <div className="space-y-3">
+            <div className="flex items-center gap-2">
+              <Users className="h-4 w-4 text-emerald-500" />
+              <span className="text-sm font-bold text-slate-800">EE — Externe</span>
+            </div>
+
+            <div className="space-y-3">
+              <div className="space-y-1.5">
+                <Label>Nombre de jours sans accident EE</Label>
+                <input
+                  type="number" min={0} value={eeCount}
+                  onChange={e => setEeCount(Math.max(0, parseInt(e.target.value) || 0))}
+                  className="w-full px-3 py-2 text-sm border border-gray-300 rounded-lg focus:outline-none focus:border-emerald-500 bg-white"
+                />
+              </div>
+
+              {/* Remettre à 0 EE */}
+              {confirmEe ? (
+                <div className="flex items-center gap-2 px-3 py-2 bg-orange-50 border border-orange-200 rounded-lg">
+                  <RotateCcw className="h-3.5 w-3.5 text-orange-500 flex-shrink-0" />
+                  <p className="flex-1 text-xs text-orange-700">Remettre le compteur EE à 0 (accident aujourd'hui) ?</p>
+                  <button onClick={() => handleReset('ee')} disabled={isSaving}
+                    className="px-2.5 py-1 text-xs font-semibold bg-orange-500 hover:bg-orange-600 text-white rounded-lg transition-colors disabled:opacity-50">
+                    {isSaving ? '...' : 'Confirmer'}
+                  </button>
+                  <button onClick={() => setConfirmEe(false)} disabled={isSaving}
+                    className="px-2.5 py-1 text-xs border border-gray-300 rounded-lg hover:bg-gray-50">
+                    Annuler
+                  </button>
+                </div>
+              ) : (
+                <button onClick={() => setConfirmEe(true)}
+                  className="flex items-center gap-1.5 text-xs text-orange-500 hover:text-orange-700 transition-colors">
+                  <RotateCcw className="h-3.5 w-3.5" />
+                  Accident aujourd'hui (EE) — remettre à 0
+                </button>
+              )}
+            </div>
+          </div>
+
+          {modalError && (
+            <p className="text-xs text-red-600 bg-red-50 border border-red-200 rounded-lg px-3 py-2">
+              {modalError}
+            </p>
+          )}
+        </div>
+
+        <div className="flex justify-end gap-2 pt-1">
+          <Button variant="outline" onClick={onClose} disabled={isSaving}>Annuler</Button>
+          <Button onClick={handleSave} disabled={isSaving}
+            className="bg-blue-600 hover:bg-blue-700 text-white">
+            {isSaving ? 'Enregistrement...' : 'Enregistrer'}
+          </Button>
+        </div>
+      </DialogContent>
+    </Dialog>
   )
 }

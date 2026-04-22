@@ -23,7 +23,7 @@ export function DocumentsToolbar({ viewMode, onViewModeChange, onCreateFolder, o
             <DropdownMenuTrigger asChild>
               <Button className="gap-2 bg-primary text-primary-foreground hover:bg-primary/90">
                 <Plus className="h-5 w-5" />
-                Nouveau
+                <span className="hidden sm:inline">Nouveau</span>
               </Button>
             </DropdownMenuTrigger>
             <DropdownMenuContent align="start" className="w-56">

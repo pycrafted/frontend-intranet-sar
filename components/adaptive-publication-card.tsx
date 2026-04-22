@@ -23,7 +23,7 @@ import {
 } from "lucide-react"
 import { Article, api } from "@/lib/api"
 import { cn } from "@/lib/utils"
-import { DeleteConfirmationModal } from "./delete-confirmation-modal"
+import { useConfirm } from "@/components/ui/confirm-dialog"
 import { EditArticleModal } from "./edit-article-modal"
 import { VisibleDropdownMenu } from "./visible-dropdown-menu"
 import { HighlightText } from "./ui/highlight-text"
@@ -38,26 +38,19 @@ interface AdaptivePublicationCardProps {
 }
 
 export function AdaptivePublicationCard({ article, onDelete, onUpdate, searchTerm, isPublic = false }: AdaptivePublicationCardProps) {
+  const confirm = useConfirm()
   const [showFullContent, setShowFullContent] = useState(false)
-  const [showDeleteModal, setShowDeleteModal] = useState(false)
   const [showEditModal, setShowEditModal] = useState(false)
   const [isDeleting, setIsDeleting] = useState(false)
 
   const handleDelete = async () => {
+    if (!await confirm({ message: `Supprimer cet article ?`, title: 'Supprimer l\'article' })) return
     setIsDeleting(true)
     try {
       await api.deleteArticle(article.id)
-      
-      // Notifier le parent pour mettre à jour la liste
-      if (onDelete) {
-        onDelete(article.id)
-      }
-      
-      setShowDeleteModal(false)
+      if (onDelete) onDelete(article.id)
     } catch (error) {
       console.error('❌ Erreur lors de la suppression:', error)
-      // TODO: Afficher une notification d'erreur à l'utilisateur
-      alert('Erreur lors de la suppression de l\'article. Veuillez réessayer.')
     } finally {
       setIsDeleting(false)
     }
@@ -172,9 +165,7 @@ export function AdaptivePublicationCard({ article, onDelete, onUpdate, searchTer
                   onEdit={() => {
                     setShowEditModal(true)
                   }}
-                  onDelete={() => {
-                    setShowDeleteModal(true)
-                  }}
+                  onDelete={handleDelete}
                 />
               </div>
             )}
@@ -203,24 +194,12 @@ export function AdaptivePublicationCard({ article, onDelete, onUpdate, searchTer
       
       {/* Modals - seulement si pas en mode public */}
       {!isPublic && (
-        <>
-          {/* Modal de confirmation de suppression */}
-          <DeleteConfirmationModal
-            isOpen={showDeleteModal}
-            onClose={() => setShowDeleteModal(false)}
-            onConfirm={handleDelete}
-            article={article}
-            isDeleting={isDeleting}
-          />
-          
-          {/* Modal de modification d'article */}
-          <EditArticleModal
-            isOpen={showEditModal}
-            onClose={() => setShowEditModal(false)}
-            article={article}
-            onUpdate={handleUpdate}
-          />
-        </>
+        <EditArticleModal
+          isOpen={showEditModal}
+          onClose={() => setShowEditModal(false)}
+          article={article}
+          onUpdate={handleUpdate}
+        />
       )}
     </Card>
   )

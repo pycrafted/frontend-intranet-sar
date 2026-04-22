@@ -3,33 +3,19 @@ import { API_CONFIG } from "@/lib/config"
 
 export interface SafetyData {
   id: number
-  last_incident_date_sar: string | null
-  last_incident_date_ee: string | null
-  last_incident_type_sar: string | null
-  last_incident_type_ee: string | null
-  last_incident_description_sar: string | null
-  last_incident_description_ee: string | null
+  days_without_incident_sar: number
+  days_without_incident_ee: number
+  last_incremented_date: string | null
   safety_score: number
   created_at: string
   updated_at: string
   // Propriétés calculées
-  days_without_incident_sar: number
-  days_without_incident_ee: number
   days_without_incident: number
-  last_incident_date: string | null
-  last_incident_type: string | null
-  last_incident_description: string | null
   appreciation_sar: string
   appreciation_ee: string
-  // Champs pour compatibilité frontend
+  // Alias camelCase
   daysWithoutIncidentSAR: number
   daysWithoutIncidentEE: number
-  lastIncidentDateSAR: string | null
-  lastIncidentDateEE: string | null
-  lastIncidentTypeSAR: string | null
-  lastIncidentTypeEE: string | null
-  lastIncidentDescriptionSAR: string | null
-  lastIncidentDescriptionEE: string | null
   safetyScore: number
 }
 

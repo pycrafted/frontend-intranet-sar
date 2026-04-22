@@ -1,9 +1,7 @@
 "use client"
 
 import { useRouter } from "next/navigation"
-import { Card, CardContent } from "@/components/ui/card"
-import { Badge } from "@/components/ui/badge"
-import { MessageSquare, Users, Calendar, MoreVertical } from "lucide-react"
+import { MessageSquare, Users, MoreVertical, ChevronRight, MessageCircle } from "lucide-react"
 import { cn } from "@/lib/utils"
 import {
   DropdownMenu,
@@ -25,134 +23,91 @@ export function ForumCard({ forum, currentUserId, onEdit, onDelete }: ForumCardP
   const router = useRouter()
   const isOwner = currentUserId === forum.created_by
 
-  const handleClick = () => {
-    router.push(`/forum/${forum.id}`)
-  }
+  const handleClick = () => router.push(`/forum/${forum.id}`)
+  const handleEdit = (e: React.MouseEvent) => { e.stopPropagation(); onEdit?.(forum) }
+  const handleDelete = (e: React.MouseEvent) => { e.stopPropagation(); onDelete?.(forum) }
 
-  const handleEdit = (e: React.MouseEvent) => {
-    e.stopPropagation()
-    onEdit?.(forum)
-  }
-
-  const handleDelete = (e: React.MouseEvent) => {
-    e.stopPropagation()
-    onDelete?.(forum)
-  }
+  const dateLabel = forum.last_message
+    ? new Date(forum.last_message.created_at).toLocaleDateString("fr-FR", { day: "numeric", month: "short" })
+    : new Date(forum.created_at).toLocaleDateString("fr-FR", { day: "numeric", month: "short" })
 
   return (
-    <Card
+    <div
       className={cn(
-        "publication-card bg-white shadow-sm border border-gray-200 hover:shadow-lg rounded-xl overflow-hidden group fade-in cursor-pointer h-full flex flex-col transition-all duration-300",
-        "hover:-translate-y-1"
+        "flex items-center gap-3 sm:gap-4 bg-white rounded-xl border border-gray-200 p-3 sm:p-4",
+        "hover:shadow-md hover:border-[#344256]/30 cursor-pointer transition-all duration-200 group",
       )}
       onClick={handleClick}
     >
-      <CardContent className="p-0 h-full flex flex-col">
-        {/* Image en en-tête - Style actualités */}
-        {forum.image_url && (
-          <div className="relative h-48 sm:h-56 w-full overflow-hidden bg-gray-50">
-            <img
-              src={forum.image_url}
-              alt={forum.title}
-              className="w-full h-full object-cover group-hover:scale-110 transition-transform duration-500"
-            />
-            <div className="absolute inset-0 bg-gradient-to-t from-black/60 via-black/20 to-transparent" />
+      {/* Thumbnail */}
+      <div className="w-12 h-12 sm:w-16 sm:h-16 flex-shrink-0 rounded-lg overflow-hidden">
+        {forum.image_url ? (
+          <img
+            src={forum.image_url}
+            alt={forum.title}
+            className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300"
+          />
+        ) : (
+          <div
+            className="w-full h-full flex items-center justify-center rounded-lg"
+            style={{ backgroundColor: "#344256" }}
+          >
+            <MessageCircle className="h-5 w-5 sm:h-6 sm:w-6 text-white" />
           </div>
         )}
+      </div>
 
-        {/* Contenu - Style actualités */}
-        <div className="p-4 sm:p-5 flex-1 flex flex-col">
-          {/* Header avec date et actions */}
-          <div className="flex items-start justify-between mb-3">
-            <div className="flex items-center gap-2 text-xs sm:text-sm text-gray-500">
-              <Calendar className="w-3 h-3 sm:w-4 sm:h-4 flex-shrink-0" />
-              <span>
-                {forum.last_message
-                  ? new Date(forum.last_message.created_at).toLocaleDateString("fr-FR", {
-                      day: 'numeric',
-                      month: 'short',
-                      year: 'numeric'
-                    })
-                  : new Date().toLocaleDateString("fr-FR", {
-                      day: 'numeric',
-                      month: 'short',
-                      year: 'numeric'
-                    })}
-              </span>
-            </div>
-            
-            {/* Menu actions - Style actualités */}
-            {isOwner && (
-              <div className="flex items-center gap-1 relative">
-                <DropdownMenu>
-                  <DropdownMenuTrigger asChild onClick={(e) => e.stopPropagation()}>
-                    <Button 
-                      variant="ghost" 
-                      size="icon" 
-                      className="h-6 w-6 sm:h-7 sm:w-7 text-gray-500 hover:text-gray-700 hover:bg-gray-100 opacity-0 group-hover:opacity-100 transition-opacity"
-                      onClick={(e) => e.stopPropagation()}
-                    >
-                      <MoreVertical className="h-3 w-3 sm:h-4 sm:w-4" />
-                    </Button>
-                  </DropdownMenuTrigger>
-                  <DropdownMenuContent align="end">
-                    <DropdownMenuItem onClick={handleEdit}>
-                      Modifier
-                    </DropdownMenuItem>
-                    <DropdownMenuItem onClick={handleDelete} className="text-destructive">
-                      Supprimer
-                    </DropdownMenuItem>
-                  </DropdownMenuContent>
-                </DropdownMenu>
-              </div>
-            )}
-          </div>
-
-          {/* Type et badges - Style actualités */}
-          <div className="flex items-center gap-2 mb-3 flex-wrap">
-            <Badge className="text-xs px-2 py-1 bg-blue-100 text-blue-700 border-blue-200">
-              Forum
-            </Badge>
-            <Badge variant="secondary" className="text-xs px-2 py-1 bg-gray-100 text-gray-700">
-              <MessageSquare className="w-3 h-3 mr-1" />
-              {forum.message_count}
-            </Badge>
-            <Badge variant="secondary" className="text-xs px-2 py-1 bg-gray-100 text-gray-700">
-              <Users className="w-3 h-3 mr-1" />
-              {forum.participant_count}
-            </Badge>
-          </div>
-
-          {/* Titre - Style actualités */}
-          <h2 className="text-lg sm:text-xl font-bold text-gray-900 leading-tight mb-3 sm:mb-4 line-clamp-2 group-hover:text-primary transition-colors duration-300">
+      {/* Content */}
+      <div className="flex-1 min-w-0">
+        <div className="flex items-center justify-between gap-2 mb-1">
+          <h3 className="font-bold text-gray-900 text-sm sm:text-base truncate group-hover:text-[#344256] transition-colors">
             {forum.title}
-          </h2>
-          
-          {/* Auteur - Style actualités */}
-          <div className="flex items-center gap-2 sm:gap-3 mt-auto pt-2">
-            <div className="relative h-8 w-8 sm:h-10 sm:w-10 flex-shrink-0 overflow-hidden rounded-full ring-2 ring-gray-200">
-              <img
-                src={forum.created_by_info.avatar_url || "/placeholder-user.jpg"}
-                alt={forum.created_by_info.full_name}
-                className="w-full h-full object-cover"
-                onError={(e) => {
-                  const target = e.target as HTMLImageElement
-                  if (target.src !== "/placeholder-user.jpg") {
-                    target.src = "/placeholder-user.jpg"
-                  }
-                }}
-              />
-            </div>
-            <div className="min-w-0 flex-1">
-              <div className="font-semibold text-gray-900 text-sm sm:text-base truncate">{forum.created_by_info.full_name}</div>
-              {forum.created_by_info.position && (
-                <div className="text-xs sm:text-sm text-gray-500 truncate">{forum.created_by_info.position}</div>
-              )}
-            </div>
-          </div>
+          </h3>
+          <span className="text-xs text-gray-400 flex-shrink-0">{dateLabel}</span>
         </div>
-      </CardContent>
-    </Card>
+        <div className="flex items-center gap-3 text-xs text-gray-500 flex-wrap">
+          <span className="flex items-center gap-1">
+            <MessageSquare className="w-3 h-3" />
+            {forum.message_count} avis
+          </span>
+          <span className="flex items-center gap-1">
+            <Users className="w-3 h-3" />
+            {forum.participant_count} participant{forum.participant_count !== 1 ? "s" : ""}
+          </span>
+          <span className="hidden sm:flex items-center gap-1.5 ml-auto">
+            <img
+              src={forum.created_by_info.avatar_url || "/placeholder-user.jpg"}
+              alt=""
+              className="w-4 h-4 rounded-full object-cover"
+              onError={(e) => { (e.target as HTMLImageElement).src = "/placeholder-user.jpg" }}
+            />
+            <span className="truncate max-w-[120px]">{forum.created_by_info.full_name}</span>
+          </span>
+        </div>
+      </div>
+
+      {/* Owner menu */}
+      {isOwner && (
+        <DropdownMenu>
+          <DropdownMenuTrigger asChild onClick={(e) => e.stopPropagation()}>
+            <Button
+              variant="ghost"
+              size="icon"
+              className="h-7 w-7 text-gray-400 hover:text-gray-700 flex-shrink-0 opacity-0 group-hover:opacity-100 transition-opacity"
+            >
+              <MoreVertical className="h-4 w-4" />
+            </Button>
+          </DropdownMenuTrigger>
+          <DropdownMenuContent align="end">
+            <DropdownMenuItem onClick={handleEdit}>Modifier</DropdownMenuItem>
+            <DropdownMenuItem onClick={handleDelete} className="text-destructive">
+              Supprimer
+            </DropdownMenuItem>
+          </DropdownMenuContent>
+        </DropdownMenu>
+      )}
+
+      <ChevronRight className="h-4 w-4 text-gray-300 group-hover:text-[#344256] transition-colors flex-shrink-0" />
+    </div>
   )
 }
-

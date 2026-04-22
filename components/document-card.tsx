@@ -1,7 +1,7 @@
 "use client"
 
 import type { FileItem } from "./documents-page"
-import { MoreVertical, Folder, FileText, Trash2, Eye, Edit3, Download } from "lucide-react"
+import { MoreVertical, Folder, FileText, FileImage, Film, Trash2, Eye, Edit3, Download } from "lucide-react"
 import { Button } from "@/components/ui/button"
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from "@/components/ui/dropdown-menu"
 import { useAuth } from "@/hooks/useAuth"
@@ -22,38 +22,25 @@ export function DocumentCard({ item, onDelete, onFolderClick, onView, onRename, 
       return <Folder className="h-12 w-12 text-white" />
     }
 
-    const iconClass = "h-12 w-12"
-    switch (item.fileType) {
-      case "pdf":
-        return (
-          <div className="flex h-12 w-12 items-center justify-center rounded bg-white/20 text-white">
-            <FileText className="h-7 w-7" />
-          </div>
-        )
-      case "pptx":
-      case "ppt":
-        return (
-          <div className="flex h-12 w-12 items-center justify-center rounded bg-white/20 text-white">
-            <FileText className="h-7 w-7" />
-          </div>
-        )
-      case "docx":
-      case "doc":
-        return (
-          <div className="flex h-12 w-12 items-center justify-center rounded bg-white/20 text-white">
-            <FileText className="h-7 w-7" />
-          </div>
-        )
-      case "xlsx":
-      case "xls":
-        return (
-          <div className="flex h-12 w-12 items-center justify-center rounded bg-white/20 text-white">
-            <FileText className="h-7 w-7" />
-          </div>
-        )
-      default:
-        return <FileText className={`${iconClass} text-white`} />
+    if (item.is_image || item.media_type === 'image') {
+      return (
+        <div className="flex h-12 w-12 items-center justify-center rounded bg-white/20 text-purple-300">
+          <FileImage className="h-7 w-7" />
+        </div>
+      )
     }
+    if (item.is_video || item.media_type === 'video') {
+      return (
+        <div className="flex h-12 w-12 items-center justify-center rounded bg-white/20 text-blue-300">
+          <Film className="h-7 w-7" />
+        </div>
+      )
+    }
+    return (
+      <div className="flex h-12 w-12 items-center justify-center rounded bg-white/20 text-white">
+        <FileText className="h-7 w-7" />
+      </div>
+    )
   }
 
   const handleClick = () => {
@@ -61,7 +48,7 @@ export function DocumentCard({ item, onDelete, onFolderClick, onView, onRename, 
       // Extraire l'ID du dossier depuis l'ID de l'item (format: "folder-123")
       const folderId = parseInt(item.id.replace('folder-', ''))
       onFolderClick(folderId)
-    } else if (item.type === "document" && onView) {
+    } else if (item.type === "file" && onView) {
       // Visualiser directement le document au clic
       onView(item.id)
     }

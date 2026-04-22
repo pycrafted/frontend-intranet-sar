@@ -19,8 +19,8 @@ export function StandardLoader({
 }: StandardLoaderProps) {
   if (error) {
     return (
-      <div className="w-full space-y-6">
-        <Card className="p-12 text-center rounded-lg border-red-200 bg-red-50">
+      <div className="w-full max-w-md mx-auto space-y-6">
+        <Card className="p-12 text-center rounded-xl border-red-200 bg-red-50">
           <div className="space-y-4">
             <div className="w-16 h-16 bg-red-100 rounded-full flex items-center justify-center mx-auto">
               <Search className="h-8 w-8 text-red-600" />
@@ -45,8 +45,8 @@ export function StandardLoader({
   }
 
   return (
-    <div className="w-full space-y-6">
-      <Card className="p-12 text-center rounded-lg">
+    <div className="w-full max-w-md mx-auto space-y-6">
+      <Card className="p-12 text-center rounded-xl">
         <div className="space-y-4">
           <div className="w-16 h-16 bg-muted rounded-full flex items-center justify-center mx-auto">
             <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-blue-600"></div>

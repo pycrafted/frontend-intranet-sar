@@ -8,6 +8,7 @@ interface AIChatbotContextType {
   toggleChat: () => void
   isMinimized: boolean
   toggleMinimize: () => void
+  chatbotEnabled: boolean
 }
 
 const AIChatbotContext = createContext<AIChatbotContextType | undefined>(undefined)
@@ -50,7 +51,24 @@ export function AIChatbotProvider({ children }: { children: ReactNode }) {
   const { isOpen: initialIsOpen, isMinimized: initialIsMinimized } = loadFromStorage()
   const [isOpen, setIsOpenState] = useState(initialIsOpen)
   const [isMinimized, setIsMinimized] = useState(initialIsMinimized)
-  
+  const [chatbotEnabled, setChatbotEnabled] = useState(true)
+
+  // Vérifier si le chatbot est activé côté admin au démarrage
+  useEffect(() => {
+    const apiUrl = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:8000/api'
+    const base = apiUrl.replace(/\/api$/, '')
+    fetch(`${base}/api/config/chatbot/`)
+      .then(res => res.json())
+      .then(data => {
+        if (typeof data.chatbot_enabled === 'boolean') {
+          setChatbotEnabled(data.chatbot_enabled)
+        }
+      })
+      .catch(() => {
+        // En cas d'erreur réseau, on laisse activé par défaut
+      })
+  }, [])
+
   // Sauvegarder dans sessionStorage à chaque changement
   useEffect(() => {
     saveToStorage(isOpen, isMinimized)
@@ -80,7 +98,7 @@ export function AIChatbotProvider({ children }: { children: ReactNode }) {
   }, [])
 
   return (
-    <AIChatbotContext.Provider value={{ isOpen, setIsOpen, toggleChat, isMinimized, toggleMinimize }}>
+    <AIChatbotContext.Provider value={{ isOpen, setIsOpen, toggleChat, isMinimized, toggleMinimize, chatbotEnabled }}>
       {children}
     </AIChatbotContext.Provider>
   )

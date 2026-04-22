@@ -5,7 +5,6 @@ import type { NextRequest } from 'next/server'
 const protectedRoutes = [
   '/',
   '/actualites',
-  '/reseau-social',
   '/centre-de-controle',
   '/admin',
   '/profile',

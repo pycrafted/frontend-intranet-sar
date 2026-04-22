@@ -23,23 +23,10 @@ function getApiBaseUrl(): string {
 // Note: Ne pas appeler getApiBaseUrl() au niveau du module pour éviter les erreurs
 // lors du chargement du module. L'URL sera obtenue à la demande dans les fonctions.
 
-// Fonction pour récupérer le token CSRF
-async function getCSRFToken(): Promise<string | null> {
-  try {
-    const response = await fetch(`${getApiBaseUrl()}/auth/csrf/`, {
-      method: 'GET',
-      credentials: 'include',
-    })
-    
-    if (response.ok) {
-      const data = await response.json()
-      return data.csrfToken
-    }
-    return null
-  } catch (error) {
-    console.error('Erreur lors de la récupération du token CSRF:', error)
-    return null
-  }
+// Lire le token CSRF depuis le cookie (csrftoken) — pas de fetch nécessaire
+function getCSRFToken(): string | null {
+  if (typeof document === 'undefined') return null
+  return document.cookie.match(/csrftoken=([^;]+)/)?.[1] ?? null
 }
 
 // Interface pour les options de requête
@@ -71,7 +58,7 @@ export class APIClient {
 
     // Ajouter le token CSRF si nécessaire
     if (method !== 'GET') {
-      const csrfToken = await getCSRFToken()
+      const csrfToken = getCSRFToken()
       if (csrfToken) {
         defaultHeaders['X-CSRFToken'] = csrfToken
       }
@@ -166,33 +153,23 @@ export class APIClient {
 
   // Méthodes HTTP
   static async get(endpoint: string, options: Omit<RequestOptions, 'method'> = {}) {
-    // Désactiver l'authentification pour les endpoints de documents
-    const isDocumentsEndpoint = endpoint.includes('/documents/')
-    return APIClient.makeRequest(endpoint, { ...options, method: 'GET', requireAuth: !isDocumentsEndpoint })
+    return APIClient.makeRequest(endpoint, { ...options, method: 'GET' })
   }
 
   static async post(endpoint: string, body?: any, options: Omit<RequestOptions, 'method' | 'body'> = {}) {
-    // Désactiver l'authentification pour les endpoints de documents
-    const isDocumentsEndpoint = endpoint.includes('/documents/')
-    return APIClient.makeRequest(endpoint, { ...options, method: 'POST', body, requireAuth: !isDocumentsEndpoint })
+    return APIClient.makeRequest(endpoint, { ...options, method: 'POST', body })
   }
 
   static async put(endpoint: string, body?: any, options: Omit<RequestOptions, 'method' | 'body'> = {}) {
-    // Désactiver l'authentification pour les endpoints de documents
-    const isDocumentsEndpoint = endpoint.includes('/documents/')
-    return APIClient.makeRequest(endpoint, { ...options, method: 'PUT', body, requireAuth: !isDocumentsEndpoint })
+    return APIClient.makeRequest(endpoint, { ...options, method: 'PUT', body })
   }
 
   static async patch(endpoint: string, body?: any, options: Omit<RequestOptions, 'method' | 'body'> = {}) {
-    // Désactiver l'authentification pour les endpoints de documents
-    const isDocumentsEndpoint = endpoint.includes('/documents/')
-    return APIClient.makeRequest(endpoint, { ...options, method: 'PATCH', body, requireAuth: !isDocumentsEndpoint })
+    return APIClient.makeRequest(endpoint, { ...options, method: 'PATCH', body })
   }
 
   static async delete(endpoint: string, options: Omit<RequestOptions, 'method'> = {}) {
-    // Désactiver l'authentification pour les endpoints de documents
-    const isDocumentsEndpoint = endpoint.includes('/documents/')
-    return APIClient.makeRequest(endpoint, { ...options, method: 'DELETE', requireAuth: !isDocumentsEndpoint })
+    return APIClient.makeRequest(endpoint, { ...options, method: 'DELETE' })
   }
 }
 

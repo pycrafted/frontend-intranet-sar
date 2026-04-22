@@ -5,7 +5,8 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/com
 import { Badge } from '@/components/ui/badge'
 import { Button } from '@/components/ui/button'
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs'
-import { RefreshCw, TrendingUp, Clock, CheckCircle, XCircle, Activity } from 'lucide-react'
+import { RefreshCw, TrendingUp, Clock, CheckCircle, Activity } from 'lucide-react'
+import { StandardLoader } from '@/components/ui/standard-loader'
 
 interface MonitoringData {
   success: boolean
@@ -96,36 +97,16 @@ export default function RAGMonitoringPage() {
 
   if (loading) {
     return (
-      <div className="container mx-auto p-6">
-        <div className="flex items-center justify-center h-64">
-          <RefreshCw className="h-8 w-8 animate-spin" />
-          <span className="ml-2">Chargement des métriques...</span>
-        </div>
+      <div className="flex items-center justify-center min-h-[60vh]">
+        <StandardLoader title="Chargement des métriques..." />
       </div>
     )
   }
 
   if (error) {
     return (
-      <div className="container mx-auto p-6">
-        <Card className="border-red-200 bg-red-50">
-          <CardHeader>
-            <CardTitle className="text-red-800 flex items-center">
-              <XCircle className="h-5 w-5 mr-2" />
-              Erreur de Monitoring
-            </CardTitle>
-          </CardHeader>
-          <CardContent>
-            <p className="text-red-600">{error}</p>
-            <Button 
-              onClick={() => fetchMonitoringData(selectedPeriod)}
-              className="mt-4"
-            >
-              <RefreshCw className="h-4 w-4 mr-2" />
-              Réessayer
-            </Button>
-          </CardContent>
-        </Card>
+      <div className="flex items-center justify-center min-h-[60vh]">
+        <StandardLoader error={error} showRetry onRetry={() => fetchMonitoringData(selectedPeriod)} />
       </div>
     )
   }

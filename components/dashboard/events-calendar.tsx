@@ -4,9 +4,11 @@ import { useState, useEffect } from "react"
 import { createPortal } from "react-dom"
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import { Button } from "@/components/ui/button"
-import { Badge } from "@/components/ui/badge"
-import { ChevronLeft, ChevronRight, Calendar, Clock, MapPin, Users, Timer } from "lucide-react"
+import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog"
+import { ChevronLeft, ChevronRight, Calendar, Clock, MapPin, Timer, Pencil, Loader2, Trash2 } from "lucide-react"
 import { useEvents, Event } from "@/hooks/useEvents"
+import { useAuth } from "@/hooks/useAuth"
+import { API_CONFIG } from "@/lib/config"
 
 
 const MONTHS = [
@@ -16,23 +18,222 @@ const MONTHS = [
 
 const DAYS = ["Dim", "Lun", "Mar", "Mer", "Jeu", "Ven", "Sam"]
 
+// ── Modal création d'événement ────────────────────────────────────────────────
+
+function EventCreateModal({ open, onClose, onCreated }: {
+  open: boolean
+  onClose: () => void
+  onCreated: () => void
+}) {
+  const [form, setForm] = useState({ title: '', date: '', time: '', location: '' })
+  const [saving, setSaving] = useState(false)
+  const [error, setError] = useState<string | null>(null)
+
+  const handleSubmit = async (e: React.FormEvent) => {
+    e.preventDefault()
+    setSaving(true)
+    setError(null)
+    try {
+      const body: Record<string, string> = { title: form.title, date: form.date }
+      if (form.time)     body.time     = form.time
+      if (form.location) body.location = form.location
+
+      const res = await fetch(`${API_CONFIG.ACCUEIL}/events/`, {
+        method: 'POST',
+        credentials: 'include',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(body),
+      })
+      const data = await res.json().catch(() => ({}))
+      if (!res.ok) throw new Error(data?.detail || data?.title?.[0] || `Erreur ${res.status}`)
+      onCreated()
+      onClose()
+      setForm({ title: '', date: '', time: '', location: '' })
+    } catch (err) {
+      setError(err instanceof Error ? err.message : 'Erreur inconnue')
+    } finally {
+      setSaving(false)
+    }
+  }
+
+  return (
+    <Dialog open={open} onOpenChange={onClose}>
+      <DialogContent style={{ width: '460px', maxWidth: 'calc(100vw - 2rem)' }}>
+        <DialogHeader>
+          <DialogTitle className="flex items-center gap-2">
+            <div className="p-2 bg-gradient-to-br from-rose-500 to-pink-600 rounded-lg">
+              <Calendar className="h-4 w-4 text-white" />
+            </div>
+            Nouvel événement
+          </DialogTitle>
+        </DialogHeader>
+
+        <form onSubmit={handleSubmit} className="space-y-3 pt-1">
+          <div className="space-y-1">
+            <label className="text-xs font-medium text-gray-600 uppercase tracking-wide">Titre *</label>
+            <input
+              required
+              placeholder="Intitulé de l'événement"
+              value={form.title}
+              onChange={e => setForm(f => ({ ...f, title: e.target.value }))}
+              className="w-full h-9 rounded-md border border-gray-300 bg-white px-3 text-sm outline-none focus:border-rose-400 focus:ring-2 focus:ring-rose-200 transition-colors"
+            />
+          </div>
+
+          <div className="grid grid-cols-2 gap-3">
+            <div className="space-y-1">
+              <label className="text-xs font-medium text-gray-600 uppercase tracking-wide">Date *</label>
+              <input
+                required
+                type="date"
+                value={form.date}
+                onChange={e => setForm(f => ({ ...f, date: e.target.value }))}
+                className="w-full h-9 rounded-md border border-gray-300 bg-white px-3 text-sm outline-none focus:border-rose-400 focus:ring-2 focus:ring-rose-200 transition-colors"
+              />
+            </div>
+            <div className="space-y-1">
+              <label className="text-xs font-medium text-gray-600 uppercase tracking-wide">Heure</label>
+              <input
+                type="time"
+                value={form.time}
+                onChange={e => setForm(f => ({ ...f, time: e.target.value }))}
+                className="w-full h-9 rounded-md border border-gray-300 bg-white px-3 text-sm outline-none focus:border-rose-400 focus:ring-2 focus:ring-rose-200 transition-colors"
+              />
+            </div>
+          </div>
+
+          <div className="space-y-1">
+            <label className="text-xs font-medium text-gray-600 uppercase tracking-wide">Lieu</label>
+            <input
+              placeholder="Salle, adresse…"
+              value={form.location}
+              onChange={e => setForm(f => ({ ...f, location: e.target.value }))}
+              className="w-full h-9 rounded-md border border-gray-300 bg-white px-3 text-sm outline-none focus:border-rose-400 focus:ring-2 focus:ring-rose-200 transition-colors"
+            />
+          </div>
+
+          {error && (
+            <p className="text-xs text-red-600 bg-red-50 border border-red-200 rounded-lg px-3 py-2">{error}</p>
+          )}
+
+          <div className="flex gap-2 pt-1">
+            <Button type="button" variant="outline" onClick={onClose} disabled={saving} className="flex-1">
+              Annuler
+            </Button>
+            <Button type="submit" disabled={saving}
+              className="flex-1 bg-rose-600 hover:bg-rose-700 text-white">
+              {saving
+                ? <><Loader2 className="h-3.5 w-3.5 mr-1.5 animate-spin" />Enregistrement…</>
+                : 'Créer l\'événement'
+              }
+            </Button>
+          </div>
+        </form>
+      </DialogContent>
+    </Dialog>
+  )
+}
+
+// ── Modal suppression d'événement ────────────────────────────────────────────
+
+function EventDeleteModal({ event, onClose, onDeleted }: {
+  event: Event | null
+  onClose: () => void
+  onDeleted: () => void
+}) {
+  const [deleting, setDeleting] = useState(false)
+  const [error, setError] = useState<string | null>(null)
+
+  if (!event) return null
+
+  const handleDelete = async () => {
+    setDeleting(true)
+    setError(null)
+    try {
+      const res = await fetch(`${API_CONFIG.ACCUEIL}/events/${event.id}/`, {
+        method: 'DELETE',
+        credentials: 'include',
+      })
+      if (!res.ok && res.status !== 204) throw new Error(`Erreur ${res.status}`)
+      onDeleted()
+      onClose()
+    } catch (err) {
+      setError(err instanceof Error ? err.message : 'Erreur inconnue')
+    } finally {
+      setDeleting(false)
+    }
+  }
+
+  return (
+    <Dialog open={!!event} onOpenChange={onClose}>
+      <DialogContent style={{ width: '420px', maxWidth: 'calc(100vw - 2rem)' }}>
+        <DialogHeader>
+          <DialogTitle className="flex items-center gap-2">
+            <div className="p-2 bg-gradient-to-br from-rose-500 to-pink-600 rounded-lg">
+              <Calendar className="h-4 w-4 text-white" />
+            </div>
+            Détail de l'événement
+          </DialogTitle>
+        </DialogHeader>
+
+        <div className="space-y-3 py-1">
+          <p className="font-semibold text-slate-800 text-base">{event.title}</p>
+          <div className="flex flex-wrap gap-3 text-sm text-slate-600">
+            <span className="flex items-center gap-1.5">
+              <Calendar className="h-3.5 w-3.5 text-rose-400" />
+              {event.date_formatted}
+            </span>
+            {event.time_formatted && (
+              <span className="flex items-center gap-1.5">
+                <Clock className="h-3.5 w-3.5 text-rose-400" />
+                {event.time_formatted}
+              </span>
+            )}
+            {event.location && (
+              <span className="flex items-center gap-1.5">
+                <MapPin className="h-3.5 w-3.5 text-rose-400" />
+                {event.location}
+              </span>
+            )}
+          </div>
+
+          <div className="border-t border-gray-100 pt-3">
+            <p className="text-xs text-slate-500 mb-3">Confirmer la suppression de cet événement ?</p>
+            {error && (
+              <p className="text-xs text-red-600 bg-red-50 border border-red-200 rounded-lg px-3 py-2 mb-3">{error}</p>
+            )}
+            <div className="flex gap-2">
+              <Button variant="outline" onClick={onClose} disabled={deleting} className="flex-1">
+                Annuler
+              </Button>
+              <Button onClick={handleDelete} disabled={deleting}
+                className="flex-1 bg-red-600 hover:bg-red-700 text-white">
+                {deleting
+                  ? <><Loader2 className="h-3.5 w-3.5 mr-1.5 animate-spin" />Suppression…</>
+                  : <><Trash2 className="h-3.5 w-3.5 mr-1.5" />Supprimer</>
+                }
+              </Button>
+            </div>
+          </div>
+        </div>
+      </DialogContent>
+    </Dialog>
+  )
+}
+
+// ── Composant principal ───────────────────────────────────────────────────────
+
 export function EventsCalendar() {
   const [currentDate, setCurrentDate] = useState(new Date())
   const [hoveredEvent, setHoveredEvent] = useState<{event: Event, position: {x: number, y: number}} | null>(null)
-  
+  const [isModalOpen, setIsModalOpen] = useState(false)
+  const [selectedEvent, setSelectedEvent] = useState<Event | null>(null)
+
+  const { user } = useAuth()
+  const isAdmin = !!(user?.is_superuser)
+
   // Utiliser le hook useEvents pour récupérer les données
-  const { 
-    events, 
-    loading, 
-    error, 
-    fetchEvents, 
-    fetchNextEvent, 
-    formatEventDate, 
-    formatEventTime, 
-    getEventTypeIcon, 
-    getEventTypeColor,
-    getDaysUntilNextEvent
-  } = useEvents()
+  const { events, loading, error, fetchEvents } = useEvents()
 
   const currentMonth = currentDate.getMonth()
   const currentYear = currentDate.getFullYear()
@@ -222,21 +423,32 @@ export function EventsCalendar() {
   }
 
   return (
+    <div className="contents">
+    <EventCreateModal
+      open={isModalOpen}
+      onClose={() => setIsModalOpen(false)}
+      onCreated={fetchEvents}
+    />
+    <EventDeleteModal
+      event={selectedEvent}
+      onClose={() => setSelectedEvent(null)}
+      onDeleted={fetchEvents}
+    />
     <Card className="h-[26rem] sm:h-[28rem] lg:h-[28rem] bg-gradient-to-br from-rose-100 via-pink-100 to-orange-100 border-0 hover:shadow-xl transition-all duration-300 cursor-pointer group flex flex-col overflow-hidden relative">
       {/* Effet de brillance subtil */}
       <div className="absolute inset-0 bg-gradient-to-br from-rose-200/40 via-transparent to-pink-200/40 opacity-0 group-hover:opacity-100 transition-opacity duration-500"></div>
       
-      <CardHeader className="pb-2 sm:pb-3 md:pb-4 flex-shrink-0 relative z-10 p-2 sm:p-3 md:p-4">
+      <CardHeader className="pb-2 pt-4 px-5 flex-shrink-0 relative z-10">
         <div className="flex items-center justify-between">
-          <div className="flex items-center space-x-2 sm:space-x-3">
-            <div className="p-2 sm:p-2.5 md:p-3 bg-gradient-to-br from-rose-500 to-pink-600 rounded-lg sm:rounded-xl shadow-lg group-hover:shadow-rose-200 group-hover:scale-110 transition-all duration-300">
-              <Calendar className="h-4 w-4 sm:h-5 sm:w-5 md:h-6 md:w-6 text-white" />
+          <div className="flex items-center gap-3">
+            <div className="p-2.5 rounded-xl bg-gradient-to-br from-rose-500 to-pink-600 shadow-lg group-hover:shadow-rose-300/50 group-hover:scale-105 transition-all duration-300">
+              <Calendar className="h-5 w-5 text-white" />
             </div>
             <div>
-              <CardTitle className="text-sm sm:text-base md:text-lg lg:text-xl font-bold text-gray-900 group-hover:text-rose-700 transition-colors duration-300">
+              <CardTitle className="text-sm font-bold text-gray-900 leading-tight">
                 Événements
               </CardTitle>
-              <p className="text-[10px] sm:text-xs md:text-sm text-gray-600 font-medium">
+              <p className="text-xs text-gray-500 mt-0.5">
                 {futureEvents.length} événement{futureEvents.length > 1 ? 's' : ''} à venir
               </p>
             </div>
@@ -313,7 +525,9 @@ export function EventsCalendar() {
                   ${dayData.isToday ? 'bg-white/90 border-red-300' : ''}
                   ${hasEventOnDate && firstEvent && dayData.isCurrentMonth ? 'bg-gradient-to-br from-rose-100 via-pink-100 to-rose-50 border-2 border-rose-400 shadow-lg hover:shadow-xl hover:scale-105 animate-shimmer-event' : ''}
                 `}
-                onClick={() => {}}
+                onClick={() => {
+                  if (isAdmin && hasEventOnDate && firstEvent) setSelectedEvent(firstEvent)
+                }}
                 onMouseEnter={dayData.isCurrentMonth && hasEventOnDate && firstEvent ? (e) => handleMouseEnter(firstEvent, e.currentTarget) : undefined}
                 onMouseLeave={dayData.isCurrentMonth && hasEventOnDate ? handleMouseLeave : undefined}
               >
@@ -340,6 +554,17 @@ export function EventsCalendar() {
 
       </CardContent>
 
+      {/* Bouton admin ajout événement */}
+      {isAdmin && (
+        <button
+          onClick={() => setIsModalOpen(true)}
+          title="Ajouter un événement"
+          className="absolute bottom-3 right-3 z-20 opacity-0 group-hover:opacity-100 transition-opacity duration-200 p-2 rounded-lg bg-white/90 hover:bg-white text-gray-400 hover:text-rose-600 shadow-md"
+        >
+          <Pencil className="h-4 w-4" />
+        </button>
+      )}
+
       {/* Tooltip en portail pour éviter les coupures */}
       {hoveredEvent && typeof window !== 'undefined' && createPortal(
         <div 
@@ -351,19 +576,30 @@ export function EventsCalendar() {
           }}
         >
           <div className="bg-gray-900 text-white text-xs rounded-lg px-3 py-2 shadow-xl border border-gray-700 min-w-[200px] max-w-[300px]">
-            <div className="flex items-center gap-2 mb-1">
-              <span className="text-sm">{getEventEmoji(hoveredEvent.event)}</span>
-              <span className="font-semibold">{hoveredEvent.event.title}</span>
+            {/* Titre + date à droite */}
+            <div className="flex items-start justify-between gap-3 mb-1">
+              <div className="flex items-center gap-2">
+                <span className="text-sm">{getEventEmoji(hoveredEvent.event)}</span>
+                <span className="font-semibold leading-tight">{hoveredEvent.event.title}</span>
+              </div>
+              <div className="flex-shrink-0 text-right">
+                <span className="text-[10px] text-rose-300 font-medium">
+                  {hoveredEvent.event.date_formatted}
+                </span>
+                {hoveredEvent.event.time_formatted && (
+                  <div className="flex items-center justify-end gap-1 mt-0.5 text-[10px] text-gray-400">
+                    <Clock className="h-2.5 w-2.5" />
+                    {hoveredEvent.event.time_formatted}
+                  </div>
+                )}
+              </div>
             </div>
-            <div className="text-gray-300 text-[10px] leading-tight">
-              {hoveredEvent.event.description}
-            </div>
-            <div className="flex items-center gap-3 mt-2 text-[10px] text-gray-400">
-              {!hoveredEvent.event.is_all_day && hoveredEvent.event.time_formatted && (
-                <span>🕐 {hoveredEvent.event.time_formatted}</span>
-              )}
-              <span>📍 {hoveredEvent.event.location}</span>
-            </div>
+            {hoveredEvent.event.location && (
+              <div className="flex items-center gap-1 mt-1.5 text-[10px] text-gray-400">
+                <MapPin className="h-2.5 w-2.5 flex-shrink-0" />
+                {hoveredEvent.event.location}
+              </div>
+            )}
             {/* Flèche du tooltip */}
             <div className="absolute top-full left-1/2 transform -translate-x-1/2 w-0 h-0 border-l-4 border-r-4 border-t-4 border-transparent border-t-gray-900"></div>
           </div>
@@ -371,5 +607,6 @@ export function EventsCalendar() {
         document.body
       )}
     </Card>
+    </div>
   )
 }

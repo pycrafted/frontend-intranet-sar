@@ -1,276 +1,276 @@
 "use client"
 
-import { useState, useEffect } from "react"
+import { useState, useEffect, useRef } from "react"
+import { useAuth } from "@/contexts/AuthContext"
 import { LayoutWrapper } from "@/components/layout-wrapper"
-import { Badge } from "@/components/ui/badge"
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
-import { Button } from "@/components/ui/button"
-import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar"
-import { Input } from "@/components/ui/input"
-import { Mail, Phone, Smartphone, MessageCircle, ChevronLeft, ChevronRight, Search } from "lucide-react"
-import { useEmployees, Employee, Department } from "@/hooks/useEmployees"
+import { Card } from "@/components/ui/card"
+import { Phone, Smartphone, Search, Mail, Pencil, EyeOff, Eye, RefreshCw } from "lucide-react"
+import { useEmployees, Employee } from "@/hooks/useEmployees"
 import { StandardLoader } from "@/components/ui/standard-loader"
-import { ChatButton } from "@/components/social/chat-button"
-import { useSocialNetwork } from "@/hooks/useSocialNetwork"
+import { useConfirm } from "@/components/ui/confirm-dialog"
 
-// Données statiques basées sur l'image
-const fallbackEmployees: Employee[] = [
-  {
-    id: 1,
-    first_name: "Maimouna",
-    last_name: "DIOP DIAGNE",
-    full_name: "Maimouna DIOP DIAGNE",
-    initials: "MD",
-    email: "maimoumadiagne@sar.sn",
-    phone_fixed: "+221 33 825 96 21",
-    phone_mobile: "77 459 63 21",
-    employee_id: "SAR001",
-    position_title: "Directrice Commerciale et Marketing",
-    main_direction_name: "Direction Commerciale et Marketing",
-    matricule: "SAR001",
-    manager: null,
-    manager_name: null,
-    hierarchy_level: 1,
-    hire_date: "2020-01-01",
-    work_schedule: "Temps plein",
-    avatar: "/placeholder-user.jpg",
-    position: 1,
-    office_location: null,
-    created_at: "2020-01-01T00:00:00Z",
-    updated_at: "2020-01-01T00:00:00Z",
-  },
-  {
-    id: 2,
-    first_name: "Mamadou Abib",
-    last_name: "DIOP",
-    full_name: "Mamadou Abib DIOP",
-    initials: "MA",
-    email: "mamadoudiop@sar.sn",
-    phone_fixed: "+221 33 825 03 20",
-    phone_mobile: "77 250 31 20",
-    employee_id: "SAR002",
-    position_title: "Directeur général",
-    main_direction_name: "Administration",
-    matricule: "SAR002",
-    manager: null,
-    manager_name: null,
-    hierarchy_level: 1,
-    hire_date: "2020-01-01",
-    work_schedule: "Temps plein",
-    avatar: "/placeholder-user.jpg",
-    position: 1,
-    office_location: null,
-    created_at: "2020-01-01T00:00:00Z",
-    updated_at: "2020-01-01T00:00:00Z",
-  },
-  {
-    id: 3,
-    first_name: "Oumar",
-    last_name: "DIOUF",
-    full_name: "Oumar DIOUF",
-    initials: "OD",
-    email: "oumardiouf@sar.sn",
-    phone_fixed: "+221 33 825 98 31",
-    phone_mobile: null,
-    employee_id: "SAR003",
-    position_title: "Directeur des Ressources Humaines",
-    main_direction_name: "Direction des Ressources Humaines",
-    matricule: "SAR003",
-    manager: null,
-    manager_name: null,
-    hierarchy_level: 1,
-    hire_date: "2020-01-01",
-    work_schedule: "Temps plein",
-    avatar: "/placeholder-user.jpg",
-    position: 1,
-    office_location: null,
-    created_at: "2020-01-01T00:00:00Z",
-    updated_at: "2020-01-01T00:00:00Z",
-  },
-  {
-    id: 4,
-    first_name: "Souleymane",
-    last_name: "SECK",
-    full_name: "Souleymane SECK",
-    initials: "SS",
-    email: "souleymaneseck@sar.sn",
-    phone_fixed: "+221 33 825 59 13",
-    phone_mobile: "77 145 93 13",
-    employee_id: "SAR004",
-    position_title: "Directeur EXECUTIVE - SUPPORT",
-    main_direction_name: "Direction EXECUTIVE - SUPPORT",
-    matricule: "SAR004",
-    manager: null,
-    manager_name: null,
-    hierarchy_level: 1,
-    hire_date: "2020-01-01",
-    work_schedule: "Temps plein",
-    avatar: "/placeholder-user.jpg",
-    position: 1,
-    office_location: null,
-    created_at: "2020-01-01T00:00:00Z",
-    updated_at: "2020-01-01T00:00:00Z",
-  },
-  {
-    id: 5,
-    first_name: "Ousmane",
-    last_name: "SEMBENE",
-    full_name: "Ousmane SEMBENE",
-    initials: "OS",
-    email: "ousmanesembene@sar.sn",
-    phone_fixed: null,
-    phone_mobile: "77 514 96 38",
-    employee_id: "SAR005",
-    position_title: "Directeur Technique",
-    main_direction_name: "Direction Technique",
-    matricule: "SAR005",
-    manager: null,
-    manager_name: null,
-    hierarchy_level: 1,
-    hire_date: "2020-01-01",
-    work_schedule: "Temps plein",
-    avatar: "/placeholder-user.jpg",
-    position: 1,
-    office_location: null,
-    created_at: "2020-01-01T00:00:00Z",
-    updated_at: "2020-01-01T00:00:00Z",
-  },
-  {
-    id: 6,
-    first_name: "Daouda",
-    last_name: "KEBE",
-    full_name: "Daouda KEBE",
-    initials: "DK",
-    email: "daoudakebe@sar.sn",
-    phone_fixed: "+221 33 825 63 20",
-    phone_mobile: "77 256 39 20",
-    employee_id: "SAR006",
-    position_title: "Directeur EXECUTIVE OPERATIONS",
-    main_direction_name: "Direction Executif",
-    matricule: "SAR006",
-    manager: null,
-    manager_name: null,
-    hierarchy_level: 1,
-    hire_date: "2020-01-01",
-    work_schedule: "Temps plein",
-    avatar: "/placeholder-user.jpg",
-    position: 1,
-    office_location: null,
-    created_at: "2020-01-01T00:00:00Z",
-    updated_at: "2020-01-01T00:00:00Z",
-  },
-  {
-    id: 7,
-    first_name: "Fatou",
-    last_name: "DIAGNE",
-    full_name: "Fatou DIAGNE",
-    initials: "FD",
-    email: "fatoudiagne@sar.sn",
-    phone_fixed: null,
-    phone_mobile: null,
-    employee_id: "SAR007",
-    position_title: "Responsable Qualité",
-    main_direction_name: "Direction Qualité",
-    matricule: "SAR007",
-    manager: null,
-    manager_name: null,
-    hierarchy_level: 2,
-    hire_date: "2021-03-15",
-    work_schedule: "Temps plein",
-    avatar: "/placeholder-user.jpg",
-    position: 1,
-    office_location: null,
-    created_at: "2021-03-15T00:00:00Z",
-    updated_at: "2021-03-15T00:00:00Z",
-  },
-  {
-    id: 8,
-    first_name: "Ibrahima",
-    last_name: "FALL",
-    full_name: "Ibrahima FALL",
-    initials: "IF",
-    email: "ibrahimafall@sar.sn",
-    phone_fixed: "+221 33 825 67 90",
-    phone_mobile: "77 456 78 90",
-    employee_id: "SAR008",
-    position_title: "Chef de Projet",
-    main_direction_name: "Direction Technique",
-    matricule: "SAR008",
-    manager: null,
-    manager_name: null,
-    hierarchy_level: 2,
-    hire_date: "2021-06-01",
-    work_schedule: "Temps plein",
-    avatar: "/placeholder-user.jpg",
-    position: 1,
-    office_location: null,
-    created_at: "2021-06-01T00:00:00Z",
-    updated_at: "2021-06-01T00:00:00Z",
-  },
-  {
-    id: 9,
-    first_name: "Aminata",
-    last_name: "SARR",
-    full_name: "Aminata SARR",
-    initials: "AS",
-    email: "aminatasarr@sar.sn",
-    phone_fixed: "+221 33 825 78 01",
-    phone_mobile: "77 567 89 01",
-    employee_id: "SAR009",
-    position_title: "Analyste Financier",
-    main_direction_name: "Direction Financière",
-    matricule: "SAR009",
-    manager: null,
-    manager_name: null,
-    hierarchy_level: 2,
-    hire_date: "2022-01-10",
-    work_schedule: "Temps plein",
-    avatar: "/placeholder-user.jpg",
-    position: 1,
-    office_location: null,
-    created_at: "2022-01-10T00:00:00Z",
-    updated_at: "2022-01-10T00:00:00Z",
+
+const INPUT_STYLE: React.CSSProperties = {
+  width: "100%", fontSize: 10, padding: "3px 6px", borderRadius: 6,
+  border: "1.5px solid #94a3b8", outline: "none", color: "#344256",
+  background: "#ffffff", boxSizing: "border-box",
+}
+
+/* ── Card employé — style organigramme ── */
+function EmployeeCard({ employee, isAdmin, editMode, onSave }: {
+  employee: Employee
+  isAdmin: boolean
+  editMode: boolean
+  onSave: (id: number, data: Partial<Employee>) => Promise<void>
+}) {
+  const confirm = useConfirm()
+  const [hovered, setHovered] = useState(false)
+  const [draft, setDraft] = useState({
+    first_name: employee.first_name ?? "",
+    last_name: employee.last_name ?? "",
+    position_title: employee.position_title ?? "",
+    email: employee.email ?? "",
+    phone_fixed: employee.phone_fixed ?? "",
+    phone_mobile: employee.phone_mobile ?? "",
+  })
+  const [saving, setSaving] = useState(false)
+
+  // Sync draft when employee data changes (e.g. after save)
+  useEffect(() => {
+    setDraft({
+      first_name: employee.first_name ?? "",
+      last_name: employee.last_name ?? "",
+      position_title: employee.position_title ?? "",
+      email: employee.email ?? "",
+      phone_fixed: employee.phone_fixed ?? "",
+      phone_mobile: employee.phone_mobile ?? "",
+    })
+  }, [employee])
+
+  const [togglingActive, setTogglingActive] = useState(false)
+
+  async function handleToggleActive(e: React.MouseEvent) {
+    e.stopPropagation()
+    const action = inactive ? "réactiver" : "désactiver"
+    if (!await confirm({ message: `Voulez-vous ${action} la card de ${employee.full_name} ?`, title: 'Confirmer', variant: 'warning', confirmLabel: 'Confirmer' })) return
+    setTogglingActive(true)
+    try {
+      await onSave(employee.id, { is_active: !employee.is_active })
+    } catch {
+      alert(`Impossible de ${action} cette fiche. Essayez de rafraîchir la page.`)
+    } finally {
+      setTogglingActive(false)
+    }
   }
-]
 
-const fallbackDepartments = ["Tous", "Direction Commerciale et Marketing", "Administration", "Direction des Ressources Humaines", "Direction EXECUTIVE - SUPPORT", "Direction Technique", "Direction Executif"]
+  async function handleBlurSave(field: keyof typeof draft) {
+    const original: Record<string, string | null | undefined> = {
+      first_name: employee.first_name,
+      last_name: employee.last_name,
+      position_title: employee.position_title,
+      email: employee.email,
+      phone_fixed: employee.phone_fixed,
+      phone_mobile: employee.phone_mobile,
+    }
+    if (draft[field] === (original[field] ?? "")) return
+    setSaving(true)
+    try {
+      const nullableFields = ["phone_fixed", "phone_mobile"]
+      await onSave(employee.id, { [field]: draft[field] || (nullableFields.includes(field) ? null : undefined) })
+    } finally {
+      setSaving(false)
+    }
+  }
+
+  function openEmail(e: React.MouseEvent) {
+    e.preventDefault()
+    e.stopPropagation()
+    if (employee.email) {
+      window.open(
+        "https://outlook.office.com/mail/deeplink/compose?to=" + encodeURIComponent(employee.email),
+        "_blank", "noopener,noreferrer"
+      )
+    }
+  }
+
+  const inactive = employee.is_active === false
+
+  return (
+    <div
+      onMouseEnter={() => setHovered(true)}
+      onMouseLeave={() => setHovered(false)}
+      style={{
+        position: "relative",
+        display: "flex", flexDirection: "column", alignItems: "center",
+        gap: 8, padding: "14px 12px 12px", borderRadius: 14,
+        border: "2px solid " + (inactive ? "#e2e8f0" : editMode ? "#344256" : hovered ? "#94a3b8" : "#dde3ee"),
+        background: inactive ? "#f1f5f9" : "#ffffff",
+        boxShadow: inactive ? "none" : hovered ? "0 6px 20px rgba(0,0,0,.12)" : "0 2px 10px rgba(0,0,0,.08)",
+        opacity: inactive ? 0.45 : 1,
+        transition: "border-color 0.2s, box-shadow 0.2s, background 0.2s, opacity 0.2s",
+        cursor: "default", textAlign: "center", boxSizing: "border-box",
+      }}
+    >
+      {/* Bouton désactivation — admin seulement, masqué en mode édition */}
+      {isAdmin && !editMode && (
+        <button
+          type="button"
+          onClick={handleToggleActive}
+          disabled={togglingActive}
+          title={inactive ? "Réactiver cette card" : "Désactiver cette card"}
+          style={{
+            position: "absolute", top: 7, right: 7,
+            width: 22, height: 22, borderRadius: 6,
+            border: "1.5px solid " + (inactive ? "#94a3b8" : "#dde3ee"),
+            background: inactive ? "#e2e8f0" : "#fff",
+            color: inactive ? "#344256" : "#94a3b8",
+            cursor: togglingActive ? "wait" : "pointer",
+            display: "flex", alignItems: "center", justifyContent: "center",
+            padding: 0, transition: "all 0.15s",
+          }}
+          onMouseEnter={e => { e.currentTarget.style.borderColor = "#344256"; e.currentTarget.style.color = "#344256" }}
+          onMouseLeave={e => {
+            e.currentTarget.style.borderColor = inactive ? "#94a3b8" : "#dde3ee"
+            e.currentTarget.style.color = inactive ? "#344256" : "#94a3b8"
+          }}
+        >
+          {inactive ? <Eye size={12} /> : <EyeOff size={12} />}
+        </button>
+      )}
+
+      {/* Nom */}
+      {editMode ? (
+        <div style={{ width: "100%", display: "flex", gap: 4, paddingRight: isAdmin ? 16 : 0 }}>
+          <input
+            style={{ ...INPUT_STYLE, fontWeight: 700, fontSize: 11 }}
+            value={draft.first_name}
+            placeholder="Prénom"
+            onChange={e => setDraft(d => ({ ...d, first_name: e.target.value }))}
+            onBlur={() => handleBlurSave("first_name")}
+          />
+          <input
+            style={{ ...INPUT_STYLE, fontWeight: 700, fontSize: 11 }}
+            value={draft.last_name}
+            placeholder="Nom"
+            onChange={e => setDraft(d => ({ ...d, last_name: e.target.value }))}
+            onBlur={() => handleBlurSave("last_name")}
+          />
+        </div>
+      ) : (
+        <p style={{ margin: 0, fontSize: 13, fontWeight: 800, lineHeight: 1.35, color: "#344256", wordBreak: "break-word", width: "100%", paddingRight: isAdmin ? 16 : 0 }}>
+          {employee.full_name}
+        </p>
+      )}
+
+      {/* Séparateur */}
+      <div style={{ width: "75%", height: 1, background: "#e2e8f0", flexShrink: 0 }} />
+
+      {/* Poste */}
+      {editMode ? (
+        <input
+          style={INPUT_STYLE}
+          value={draft.position_title}
+          placeholder="Poste"
+          onChange={e => setDraft(d => ({ ...d, position_title: e.target.value }))}
+          onBlur={() => handleBlurSave("position_title")}
+        />
+      ) : employee.position_title ? (
+        <p style={{ margin: 0, fontSize: 11, fontWeight: 500, lineHeight: 1.35, color: "#475569", wordBreak: "break-word", width: "100%" }}>
+          {employee.position_title}
+        </p>
+      ) : null}
+
+      {/* Badge direction (non éditable) */}
+      {employee.main_direction_name && (
+        <span style={{
+          fontSize: 10, fontWeight: 500, lineHeight: 1.4,
+          padding: "3px 9px", borderRadius: 99,
+          background: "#e8ecf0", color: "#344256",
+          wordBreak: "break-word", display: "block",
+        }}>
+          {employee.main_direction_name}
+        </span>
+      )}
+
+      {/* Séparateur contacts */}
+      <div style={{ width: "100%", height: 1, background: "#f1f5f9", flexShrink: 0 }} />
+
+      {/* Contacts */}
+      <div style={{ width: "100%", display: "flex", flexDirection: "column", gap: 4 }}>
+        {editMode ? (
+          <>
+            <div style={{ display: "flex", alignItems: "center", gap: 5 }}>
+              <Mail size={11} style={{ color: "#94a3b8", flexShrink: 0 }} />
+              <input style={INPUT_STYLE} value={draft.email} placeholder="Email" onChange={e => setDraft(d => ({ ...d, email: e.target.value }))} onBlur={() => handleBlurSave("email")} />
+            </div>
+            <div style={{ display: "flex", alignItems: "center", gap: 5 }}>
+              <Phone size={11} style={{ color: "#94a3b8", flexShrink: 0 }} />
+              <input style={INPUT_STYLE} value={draft.phone_fixed} placeholder="Tél. fixe" onChange={e => setDraft(d => ({ ...d, phone_fixed: e.target.value }))} onBlur={() => handleBlurSave("phone_fixed")} />
+            </div>
+            <div style={{ display: "flex", alignItems: "center", gap: 5 }}>
+              <Smartphone size={11} style={{ color: "#94a3b8", flexShrink: 0 }} />
+              <input style={INPUT_STYLE} value={draft.phone_mobile} placeholder="Mobile" onChange={e => setDraft(d => ({ ...d, phone_mobile: e.target.value }))} onBlur={() => handleBlurSave("phone_mobile")} />
+            </div>
+          </>
+        ) : (
+          [
+            { icon: <Mail size={11} />, value: employee.email, href: employee.email ? "#" : null, onClick: employee.email ? openEmail : undefined },
+            { icon: <Phone size={11} />, value: employee.phone_fixed, href: employee.phone_fixed ? "tel:" + employee.phone_fixed : null },
+            { icon: <Smartphone size={11} />, value: employee.phone_mobile, href: employee.phone_mobile ? "tel:" + employee.phone_mobile : null },
+          ].map((row, i) => (
+            <div key={i} style={{ display: "flex", alignItems: "center", gap: 5, fontSize: 10, color: "#64748b" }}>
+              <span style={{ color: "#94a3b8", flexShrink: 0 }}>{row.icon}</span>
+              {row.value && row.href ? (
+                <a href={row.href} onClick={row.onClick}
+                  style={{ overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap", color: "#64748b", textDecoration: "none" }}
+                  onMouseEnter={e => { e.currentTarget.style.color = "#344256" }}
+                  onMouseLeave={e => { e.currentTarget.style.color = "#64748b" }}>
+                  {row.value}
+                </a>
+              ) : (
+                <span style={{ color: "#cbd5e1", fontStyle: "italic" }}>Non disponible</span>
+              )}
+            </div>
+          ))
+        )}
+      </div>
+
+      {/* Bouton Chat (hors edit mode) ou indicateur de sauvegarde */}
+      {editMode ? (
+        saving ? (
+          <span style={{ fontSize: 10, color: "#94a3b8", fontStyle: "italic" }}>Enregistrement...</span>
+        ) : null
+      ) : null}
+    </div>
+  )
+}
 
 export default function AnnuairePage() {
+  const { user } = useAuth()
+  const confirm = useConfirm()
+  const isAdmin = !!(user?.is_superuser)
+  const [editMode, setEditMode] = useState(false)
   const [searchTerm, setSearchTerm] = useState("")
   const [debouncedSearchTerm, setDebouncedSearchTerm] = useState("")
   const [isTyping, setIsTyping] = useState(false)
   const [selectedDepartment, setSelectedDepartment] = useState("Tous")
   const [filteredEmployees, setFilteredEmployees] = useState<Employee[]>([])
-  const [currentPage, setCurrentPage] = useState(1)
-  // Items par page : 8 cartes par page pour toutes les tailles d'écran
-  const getItemsPerPage = () => {
-    return 8; // 8 cartes par page pour toutes les tailles d'écran
-  }
-  const [itemsPerPage, setItemsPerPage] = useState(8)
-  
-  // Mettre à jour itemsPerPage lors du redimensionnement
-  useEffect(() => {
-    const updateItemsPerPage = () => {
-      setItemsPerPage(getItemsPerPage())
-    }
-    updateItemsPerPage()
-    window.addEventListener('resize', updateItemsPerPage)
-    return () => window.removeEventListener('resize', updateItemsPerPage)
-  }, [])
 
   // Utiliser l'API
-  const { 
-    employees, 
-    departments, 
-    loading, 
-    error, 
-    searchEmployees 
+  const {
+    employees,
+    departments,
+    loading,
+    error,
+    searchEmployees,
+    updateEmployee,
+    refetch,
   } = useEmployees()
 
   // Logs supprimés pour réduire le bruit
 
   // Construire la liste des départements pour le filtre
-  const departmentOptions = ["Tous", ...(departments.map(dept => dept.name) || fallbackDepartments.slice(1))]
+  const departmentOptions = ["Tous", ...departments.map(dept => dept.name)]
 
   // Debounce pour la recherche (comme dans actualités)
   useEffect(() => {
@@ -303,15 +303,9 @@ export default function AnnuairePage() {
     // Si pas de recherche et pas de filtre département, ne pas appeler searchEmployees
     // Utiliser directement les employés chargés initialement
     if (!debouncedSearchTerm && selectedDepartment === 'Tous') {
-      // Pas de filtre, utiliser les employés chargés initialement
-      // Ne pas modifier filteredEmployees ici car il est déjà mis à jour par l'autre useEffect
-      setCurrentPage(1)
       return
     }
-    
-    // Il y a un filtre, appeler searchEmployees
     searchEmployees(debouncedSearchTerm, selectedDepartment)
-    setCurrentPage(1) // Réinitialiser à la première page lors de la recherche
   }, [debouncedSearchTerm, selectedDepartment])
 
   const handleSearch = (term: string) => {
@@ -329,43 +323,84 @@ export default function AnnuairePage() {
 
   const handleDepartmentChange = (department: string) => {
     setSelectedDepartment(department)
-    setCurrentPage(1) // Réinitialiser à la première page lors du changement de département
-    // La recherche sera déclenchée automatiquement par le useEffect
-  }
-
-  const handleEmailClick = (email: string) => {
-    // Ouvrir Outlook Web App dans un nouvel onglet avec le destinataire prérempli
-    const outlookUrl = `https://outlook.office.com/mail/deeplink/compose?to=${encodeURIComponent(email)}`;
-    window.open(outlookUrl, '_blank', 'noopener,noreferrer');
   }
 
 
 
-  // Utiliser les données de l'API ou les données filtrées
-  const displayData = filteredEmployees.length > 0 ? filteredEmployees : employees
-  
-  
-  // Calcul de la pagination
-  const totalPages = Math.ceil(displayData.length / itemsPerPage)
-  const startIndex = (currentPage - 1) * itemsPerPage
-  const endIndex = startIndex + itemsPerPage
-  const currentEmployees = displayData.slice(startIndex, endIndex)
-  
-  // Créer un tableau d'éléments pour maintenir la grille
-  const displayEmployees = Array.from({ length: itemsPerPage }, (_, index) => 
-    currentEmployees[index] || null
+
+  // Utiliser les données de l'API ou les données filtrées, triées de A à Z
+  // Les non-admins ne voient pas les employees désactivés
+  const baseData = (filteredEmployees.length > 0 ? filteredEmployees : employees)
+    .filter(e => isAdmin || e.is_active !== false)
+  const displayData = [...baseData].sort((a, b) =>
+    a.full_name.localeCompare(b.full_name, 'fr', { sensitivity: 'base' })
   )
+  
+  
 
-  // Fonctions de pagination
-  const goToPreviousPage = () => {
-    if (currentPage > 1) {
-      setCurrentPage(currentPage - 1)
+  // Réactiver toutes les cards désactivées
+  const [reactivatingAll, setReactivatingAll] = useState(false)
+  async function handleReactivateAll() {
+    const inactive = employees.filter(e => e.is_active === false)
+    if (inactive.length === 0) return
+    if (!await confirm({ message: `Réactiver ${inactive.length} card${inactive.length > 1 ? "s" : ""} désactivée${inactive.length > 1 ? "s" : ""} ?`, title: 'Confirmer', variant: 'warning', confirmLabel: 'Réactiver' })) return
+    setReactivatingAll(true)
+    try {
+      await Promise.all(inactive.map(e => updateEmployee(e.id, { is_active: true })))
+    } finally {
+      setReactivatingAll(false)
     }
   }
 
-  const goToNextPage = () => {
-    if (currentPage < totalPages) {
-      setCurrentPage(currentPage + 1)
+  const inactiveCount = employees.filter(e => e.is_active === false).length
+
+  // Sync LDAP — streaming SSE
+  const [syncing, setSyncing] = useState(false)
+  const [syncLogs, setSyncLogs] = useState<{ type: string; msg: string }[]>([])
+  const logsEndRef = useRef<HTMLDivElement>(null)
+
+  useEffect(() => {
+    if (logsEndRef.current) logsEndRef.current.scrollIntoView({ behavior: 'smooth' })
+  }, [syncLogs])
+
+  async function handleSyncLdap() {
+    setSyncing(true)
+    setSyncLogs([])
+    try {
+      const csrfToken = document.cookie.match(/csrftoken=([^;]+)/)?.[1] ?? null
+      const { API_CONFIG } = await import('@/lib/config')
+      const res = await fetch(`${API_CONFIG.ANNUAIRE}/sync-ldap/`, {
+        method: 'POST',
+        credentials: 'include',
+        headers: { 'Content-Type': 'application/json', ...(csrfToken ? { 'X-CSRFToken': csrfToken } : {}) },
+      })
+      const reader = res.body?.getReader()
+      const decoder = new TextDecoder()
+      if (!reader) throw new Error('Pas de stream')
+      let buffer = ''
+      while (true) {
+        const { done, value } = await reader.read()
+        if (done) break
+        buffer += decoder.decode(value, { stream: true })
+        const lines = buffer.split('\n')
+        buffer = lines.pop() ?? ''
+        for (const line of lines) {
+          if (line.startsWith('data: ')) {
+            try {
+              const evt = JSON.parse(line.slice(6))
+              setSyncLogs(prev => [...prev, evt])
+              if (evt.type === 'done' || evt.type === 'error') {
+                setSyncing(false)
+                if (evt.type === 'done') refetch()
+              }
+            } catch { /* ignore */ }
+          }
+        }
+      }
+    } catch (err: any) {
+      setSyncLogs(prev => [...prev, { type: 'error', msg: err?.message ?? 'Erreur inconnue' }])
+    } finally {
+      setSyncing(false)
     }
   }
 
@@ -379,10 +414,77 @@ export default function AnnuairePage() {
           isTyping,
           selectedDepartment,
           onDepartmentChange: handleDepartmentChange,
-          departmentOptions
+          departmentOptions,
+          rightActions: isAdmin ? (
+            <div className="flex items-center gap-1.5 sm:gap-2">
+              {/* Sync LDAP */}
+              <button
+                type="button"
+                onClick={handleSyncLdap}
+                disabled={syncing}
+                title="Synchroniser avec le LDAP"
+                className="flex items-center justify-center gap-1.5 rounded-lg border-2 font-semibold transition-all duration-150"
+                style={{
+                  padding: "6px 8px",
+                  fontSize: 12, fontWeight: 600,
+                  borderColor: "#dde3ee", background: "#fff", color: "#344256",
+                  cursor: syncing ? "wait" : "pointer",
+                  minWidth: 32,
+                }}
+                onMouseEnter={e => { if (!syncing) { e.currentTarget.style.borderColor = "#344256"; e.currentTarget.style.background = "#f1f5f9" } }}
+                onMouseLeave={e => { if (!syncing) { e.currentTarget.style.borderColor = "#dde3ee"; e.currentTarget.style.background = "#fff" } }}
+              >
+                <RefreshCw size={14} style={{ animation: syncing ? "spin 1s linear infinite" : "none", flexShrink: 0 }} />
+                <span className="hidden sm:inline">{syncing ? "Sync..." : "Sync LDAP"}</span>
+              </button>
+              {/* Réactiver tout */}
+              {inactiveCount > 0 && (
+                <button
+                  type="button"
+                  onClick={handleReactivateAll}
+                  disabled={reactivatingAll}
+                  title="Réactiver toutes les cards désactivées"
+                  className="flex items-center justify-center gap-1.5 rounded-lg border-2 font-semibold transition-all duration-150"
+                  style={{
+                    padding: "6px 8px",
+                    fontSize: 12, fontWeight: 600,
+                    borderColor: "#dde3ee", background: "#fff", color: "#344256",
+                    cursor: reactivatingAll ? "wait" : "pointer",
+                    minWidth: 32,
+                  }}
+                  onMouseEnter={e => { e.currentTarget.style.borderColor = "#344256"; e.currentTarget.style.background = "#f1f5f9" }}
+                  onMouseLeave={e => { e.currentTarget.style.borderColor = "#dde3ee"; e.currentTarget.style.background = "#fff" }}
+                >
+                  <Eye size={14} style={{ flexShrink: 0 }} />
+                  <span className="hidden sm:inline">{reactivatingAll ? "..." : `Réactiver (${inactiveCount})`}</span>
+                </button>
+              )}
+              {/* Mode édition */}
+              <button
+                type="button"
+                onClick={() => setEditMode(m => !m)}
+                title={editMode ? "Quitter le mode édition" : "Modifier les cards"}
+                className="flex items-center justify-center gap-1.5 rounded-lg border-2 font-semibold transition-all duration-150"
+                style={{
+                  padding: "6px 8px",
+                  fontSize: 12, fontWeight: 600,
+                  borderColor: editMode ? "#344256" : "#dde3ee",
+                  background: editMode ? "#344256" : "#fff",
+                  color: editMode ? "#fff" : "#344256",
+                  cursor: "pointer",
+                  minWidth: 32,
+                }}
+                onMouseEnter={e => { if (!editMode) { e.currentTarget.style.borderColor = "#344256"; e.currentTarget.style.background = "#f1f5f9" } }}
+                onMouseLeave={e => { if (!editMode) { e.currentTarget.style.borderColor = "#dde3ee"; e.currentTarget.style.background = "#fff" } }}
+              >
+                <Pencil size={14} style={{ flexShrink: 0 }} />
+                <span className="hidden sm:inline">{editMode ? "Terminer" : "Modifier"}</span>
+              </button>
+            </div>
+          ) : undefined,
         }}
       >
-        <div className="w-full space-y-4 xs:space-y-6">
+        <div className="mx-auto max-w-[1600px] px-6 py-6 space-y-4 xs:space-y-6">
           {/* État de chargement et d'erreur - Style actualités */}
           {(loading || error) && (
             <StandardLoader 
@@ -397,232 +499,34 @@ export default function AnnuairePage() {
           {/* Contenu principal - Style actualités */}
           {!loading && !error && (
             <div className="space-y-4 xs:space-y-6 stagger-animation">
+              {/* Compteur employés */}
+              {displayData.length > 0 && (
+                <div className="flex items-center gap-2">
+                  <div className="w-1 h-5 rounded-full" style={{ backgroundColor: '#344256' }}></div>
+                  <h2 className="text-base font-semibold text-gray-900">
+                    {debouncedSearchTerm || selectedDepartment !== 'Tous'
+                      ? `Résultats${debouncedSearchTerm ? ` pour « ${debouncedSearchTerm} »` : ''}${selectedDepartment !== 'Tous' ? ` — ${selectedDepartment}` : ''}`
+                      : 'Tous les employés'}
+                  </h2>
+                  <span className="ml-1 text-xs px-2 py-0.5 rounded-full font-medium text-white" style={{ backgroundColor: '#344256' }}>
+                    {displayData.filter(e => e.is_active !== false).length}
+                  </span>
+                  {isAdmin && inactiveCount > 0 && (
+                    <span className="text-xs text-gray-400">
+                      ({inactiveCount} désactivé{inactiveCount > 1 ? 's' : ''})
+                    </span>
+                  )}
+                </div>
+              )}
+
               {/* Header - Style actualités */}
               {displayData.length > 0 && (
                 <div className="space-y-3 xs:space-y-4 relative">
-                  <div className="flex items-center gap-2 mb-3 xs:mb-4 px-1 max-w-7xl mx-auto">
-                    <div className="w-1 h-4 xs:h-6 bg-gradient-to-b from-blue-400 to-indigo-400 rounded-full shadow-sm"></div>
-                    <h3 className="text-base xs:text-lg font-semibold text-gray-900">Annuaire des employés</h3>
-                    <Badge variant="secondary" className="ml-2 bg-blue-100 text-blue-800 text-xs xs:text-sm px-2 py-1">
-                      {displayData.length}
-                    </Badge>
-                  </div>
 
-                  {/* Grille des employés - Style actualités moderne */}
-                  <div className="grid grid-cols-1 xs:grid-cols-2 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4 xs:gap-4 sm:gap-5 md:gap-6 max-w-7xl mx-auto">
-                    {displayEmployees.map((employee) => (
-                      employee ? (
-                        <Card
-                          key={employee.id}
-                          className="rounded-xl overflow-hidden group fade-in w-full bg-white border-2 border-gray-200 hover:shadow-2xl transition-all duration-500 hover:-translate-y-1 cursor-pointer"
-                          style={{ borderColor: '#e5e7eb' }}
-                          onMouseEnter={(e) => {
-                            if (typeof window !== 'undefined' && window.innerWidth >= 640) {
-                              e.currentTarget.style.borderColor = "#344256";
-                            }
-                          }}
-                          onMouseLeave={(e) => {
-                            if (typeof window !== 'undefined' && window.innerWidth >= 640) {
-                              e.currentTarget.style.borderColor = "#e5e7eb";
-                            }
-                          }}
-                        >
-                          <CardContent className="p-0 w-full flex flex-col">
-                            {/* Header avec avatar centré - Style actualités */}
-                            <div className="px-4 sm:px-5 pt-4 sm:pt-5 pb-3 sm:pb-4">
-                              <div className="flex flex-col items-center text-center">
-                                {/* Avatar centré */}
-                                <Avatar className="w-20 h-20 sm:w-24 sm:h-24 border-2 border-gray-200 shadow-md group-hover:shadow-lg group-hover:scale-105 transition-all duration-300 mb-3 sm:mb-4">
-                                  <AvatarImage
-                                    src={employee.avatar || "/placeholder-user.jpg"}
-                                    alt={employee.full_name}
-                                    onError={(e) => {
-                                      const target = e.target as HTMLImageElement;
-                                      target.style.display = 'none';
-                                    }}
-                                  />
-                                  <AvatarFallback className="bg-gradient-to-br from-blue-500 to-indigo-600 text-white font-semibold text-lg sm:text-xl">
-                                    {employee.initials}
-                                  </AvatarFallback>
-                                </Avatar>
-                                
-                                {/* Nom centré */}
-                                <h3 
-                                  className="text-base sm:text-lg font-bold text-gray-900 transition-colors line-clamp-2 mb-2 sm:mb-3"
-                                  onMouseEnter={(e) => {
-                                    if (typeof window !== 'undefined' && window.innerWidth >= 640) {
-                                      e.currentTarget.style.color = "#344256";
-                                    }
-                                  }}
-                                  onMouseLeave={(e) => {
-                                    if (typeof window !== 'undefined' && window.innerWidth >= 640) {
-                                      e.currentTarget.style.color = "#111827";
-                                    }
-                                  }}
-                                >
-                                  {employee.full_name}
-                                </h3>
-                                
-                                {/* Poste avec style spécial */}
-                                {employee.position_title && (
-                                  <div className="mb-3 sm:mb-4 w-full">
-                                    <div className="inline-block px-3 sm:px-4 py-1.5 sm:py-2 rounded-lg" style={{ backgroundColor: '#f3f4f6' }}>
-                                      <p className="text-xs sm:text-sm text-gray-700 font-semibold line-clamp-2">
-                                        {employee.position_title}
-                                      </p>
-                                    </div>
-                                  </div>
-                                )}
-                                
-                                {/* Direction */}
-                                {employee.main_direction_name && (
-                                  <Badge variant="outline" className="text-xs bg-blue-50 text-blue-700 border-blue-200 mb-3 sm:mb-4">
-                                    {employee.main_direction_name}
-                                  </Badge>
-                                )}
-                              </div>
-                            </div>
-
-                            {/* Contenu principal - Style actualités */}
-                            <div className="px-4 sm:px-5 pb-4 sm:pb-5 flex-1 flex flex-col">
-
-                              {/* Informations de contact - Toujours affichées */}
-                              <div className="space-y-2 sm:space-y-2.5 mb-4 sm:mb-5 flex-1">
-                                {/* Email - Toujours affiché */}
-                                <div className="flex items-center gap-2 text-sm text-gray-600">
-                                  <Mail className="w-4 h-4 text-gray-400 flex-shrink-0" />
-                                  {employee.email ? (
-                                    <a
-                                      href="#"
-                                      onClick={(e) => {
-                                        e.preventDefault();
-                                        e.stopPropagation();
-                                        const outlookUrl = `https://outlook.office.com/mail/deeplink/compose?to=${encodeURIComponent(employee.email)}`;
-                                        window.open(outlookUrl, '_blank', 'noopener,noreferrer');
-                                      }}
-                                      className="transition-colors truncate"
-                                      style={{ color: '#4b5563' }}
-                                      onMouseEnter={(e) => {
-                                        if (typeof window !== 'undefined' && window.innerWidth >= 640) {
-                                          e.currentTarget.style.color = "#344256";
-                                        }
-                                      }}
-                                      onMouseLeave={(e) => {
-                                        if (typeof window !== 'undefined' && window.innerWidth >= 640) {
-                                          e.currentTarget.style.color = "#4b5563";
-                                        }
-                                      }}
-                                    >
-                                      {employee.email}
-                                    </a>
-                                  ) : (
-                                    <span className="text-gray-600">Non Disponible</span>
-                                  )}
-                                </div>
-                                
-                                {/* Téléphone fixe - Toujours affiché */}
-                                <div className="flex items-center gap-2 text-sm text-gray-600">
-                                  <Phone className="w-4 h-4 text-gray-400 flex-shrink-0" />
-                                  {employee.phone_fixed ? (
-                                    <a 
-                                      href={`tel:${employee.phone_fixed}`} 
-                                      className="transition-colors"
-                                      style={{ color: '#4b5563' }}
-                                      onMouseEnter={(e) => {
-                                        if (typeof window !== 'undefined' && window.innerWidth >= 640) {
-                                          e.currentTarget.style.color = "#344256";
-                                        }
-                                      }}
-                                      onMouseLeave={(e) => {
-                                        if (typeof window !== 'undefined' && window.innerWidth >= 640) {
-                                          e.currentTarget.style.color = "#4b5563";
-                                        }
-                                      }}
-                                    >
-                                      {employee.phone_fixed}
-                                    </a>
-                                  ) : (
-                                    <span className="text-gray-600">Non Disponible</span>
-                                  )}
-                                </div>
-                                
-                                {/* Téléphone mobile - Toujours affiché */}
-                                <div className="flex items-center gap-2 text-sm text-gray-600">
-                                  <Smartphone className="w-4 h-4 text-gray-400 flex-shrink-0" />
-                                  {employee.phone_mobile ? (
-                                    <a 
-                                      href={`tel:${employee.phone_mobile}`} 
-                                      className="transition-colors"
-                                      style={{ color: '#4b5563' }}
-                                      onMouseEnter={(e) => {
-                                        if (typeof window !== 'undefined' && window.innerWidth >= 640) {
-                                          e.currentTarget.style.color = "#344256";
-                                        }
-                                      }}
-                                      onMouseLeave={(e) => {
-                                        if (typeof window !== 'undefined' && window.innerWidth >= 640) {
-                                          e.currentTarget.style.color = "#4b5563";
-                                        }
-                                      }}
-                                    >
-                                      {employee.phone_mobile}
-                                    </a>
-                                  ) : (
-                                    <span className="text-gray-600">Non Disponible</span>
-                                  )}
-                                </div>
-                              </div>
-
-                              {/* Footer avec actions - Style actualités */}
-                              <div className="mt-auto pt-3 border-t border-gray-100">
-                                <div className="flex gap-2">
-                                  <Button
-                                    size="sm"
-                                    variant="outline"
-                                    className="flex-1 text-xs sm:text-sm"
-                                    style={{
-                                      borderColor: "#344256"
-                                    }}
-                                    onClick={(e) => {
-                                      e.stopPropagation();
-                                      const outlookUrl = `https://outlook.office.com/mail/deeplink/compose?to=${encodeURIComponent(employee.email)}`;
-                                      window.open(outlookUrl, '_blank', 'noopener,noreferrer');
-                                    }}
-                                  >
-                                    <Mail className="w-3 h-3 sm:w-4 sm:h-4 mr-1" />
-                                    Email
-                                  </Button>
-                                  <ChatButton employee={employee} className="flex-1">
-                                    <Button 
-                                      size="sm"
-                                      className="w-full text-xs sm:text-sm text-white"
-                                      style={{
-                                        backgroundColor: "#344256",
-                                        borderColor: "#344256"
-                                      }}
-                                      onMouseEnter={(e) => {
-                                        if (typeof window !== 'undefined' && window.innerWidth >= 640) {
-                                          e.currentTarget.style.backgroundColor = "#2a3441";
-                                          e.currentTarget.style.borderColor = "#2a3441";
-                                        }
-                                      }}
-                                      onMouseLeave={(e) => {
-                                        if (typeof window !== 'undefined' && window.innerWidth >= 640) {
-                                          e.currentTarget.style.backgroundColor = "#344256";
-                                          e.currentTarget.style.borderColor = "#344256";
-                                        }
-                                      }}
-                                    >
-                                      <MessageCircle className="w-3 h-3 sm:w-4 sm:h-4 mr-1" />
-                                      Chat
-                                    </Button>
-                                  </ChatButton>
-                                </div>
-                              </div>
-                            </div>
-                          </CardContent>
-                        </Card>
-                      ) : null
+                  {/* Grille 6 colonnes */}
+                  <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-6 gap-3 w-full">
+                    {displayData.map((employee) => (
+                      <EmployeeCard key={employee.id} employee={employee} isAdmin={isAdmin} editMode={editMode} onSave={updateEmployee} />
                     ))}
                   </div>
                 </div>
@@ -647,99 +551,44 @@ export default function AnnuairePage() {
             </div>
           )}
 
-          {/* Pagination - Style actualités */}
-          {!loading && !error && totalPages > 1 && (
-            <div className="flex items-center justify-center gap-2 sm:gap-3 flex-wrap max-w-7xl mx-auto">
-                <Button
-                  onClick={goToPreviousPage}
-                  disabled={currentPage === 1}
-                  className="flex items-center justify-center w-8 h-8 xs:w-9 xs:h-9 sm:w-10 sm:h-10 rounded-lg bg-card border border-border text-foreground hover:bg-accent hover:text-accent-foreground transition-colors disabled:opacity-50 disabled:cursor-not-allowed disabled:hover:bg-card"
-                  aria-label="Page précédente"
-                >
-                  <ChevronLeft className="w-4 h-4 xs:w-4.5 xs:h-4.5 sm:w-5 sm:h-5" />
-                </Button>
-
-                {/* Afficher les pages - Simplifié pour éviter les problèmes d'hydratation */}
-                {totalPages <= 7 ? (
-                  // Afficher toutes les pages si 7 ou moins
-                  Array.from({ length: totalPages }, (_, i) => i + 1).map((page) => (
-                    <Button
-                      key={page}
-                      onClick={() => setCurrentPage(page)}
-                      className={`flex items-center justify-center w-8 h-8 xs:w-9 xs:h-9 sm:w-10 sm:h-10 rounded-lg border transition-colors font-medium text-xs xs:text-sm ${
-                        currentPage === page
-                          ? "bg-primary text-primary-foreground border-primary"
-                          : "bg-card text-foreground border-border hover:bg-accent hover:text-accent-foreground"
-                      }`}
-                      aria-label={`Page ${page}`}
-                      aria-current={currentPage === page ? "page" : undefined}
-                    >
-                      {page}
-                    </Button>
-                  ))
-                ) : (
-                  // Afficher avec ellipses si plus de 7 pages
-                  <>
-                    {currentPage > 3 && (
-                      <>
-                        <Button
-                          onClick={() => setCurrentPage(1)}
-                          className="flex items-center justify-center w-8 h-8 xs:w-9 xs:h-9 sm:w-10 sm:h-10 rounded-lg border transition-colors font-medium text-xs xs:text-sm bg-card text-foreground border-border hover:bg-accent hover:text-accent-foreground"
-                          aria-label="Page 1"
-                        >
-                          1
-                        </Button>
-                        {currentPage > 4 && (
-                          <span className="px-1 xs:px-2 text-foreground text-xs xs:text-sm">...</span>
-                        )}
-                      </>
-                    )}
-                    {Array.from({ length: Math.min(5, totalPages) }, (_, i) => {
-                      const startPage = Math.max(1, Math.min(currentPage - 2, totalPages - 4));
-                      return startPage + i;
-                    }).filter(page => page <= totalPages).map((page) => (
-                      <Button
-                        key={page}
-                        onClick={() => setCurrentPage(page)}
-                        className={`flex items-center justify-center w-8 h-8 xs:w-9 xs:h-9 sm:w-10 sm:h-10 rounded-lg border transition-colors font-medium text-xs xs:text-sm ${
-                          currentPage === page
-                            ? "bg-primary text-primary-foreground border-primary"
-                            : "bg-card text-foreground border-border hover:bg-accent hover:text-accent-foreground"
-                        }`}
-                        aria-label={`Page ${page}`}
-                        aria-current={currentPage === page ? "page" : undefined}
-                      >
-                        {page}
-                      </Button>
-                    ))}
-                    {currentPage < totalPages - 2 && (
-                      <>
-                        {currentPage < totalPages - 3 && (
-                          <span className="px-1 xs:px-2 text-foreground text-xs xs:text-sm">...</span>
-                        )}
-                        <Button
-                          onClick={() => setCurrentPage(totalPages)}
-                          className="flex items-center justify-center w-8 h-8 xs:w-9 xs:h-9 sm:w-10 sm:h-10 rounded-lg border transition-colors font-medium text-xs xs:text-sm bg-card text-foreground border-border hover:bg-accent hover:text-accent-foreground"
-                          aria-label={`Page ${totalPages}`}
-                        >
-                          {totalPages}
-                        </Button>
-                      </>
-                    )}
-                  </>
-                )}
-
-                <Button
-                  onClick={goToNextPage}
-                  disabled={currentPage === totalPages}
-                  className="flex items-center justify-center w-8 h-8 xs:w-9 xs:h-9 sm:w-10 sm:h-10 rounded-lg bg-card border border-border text-foreground hover:bg-accent hover:text-accent-foreground transition-colors disabled:opacity-50 disabled:cursor-not-allowed disabled:hover:bg-card"
-                  aria-label="Page suivante"
-                >
-                  <ChevronRight className="w-4 h-4 xs:w-4.5 xs:h-4.5 sm:w-5 sm:h-5" />
-                </Button>
-              </div>
-            )}
         </div>
+
+        {/* Panneau de logs LDAP */}
+        {syncLogs.length > 0 && (
+          <div style={{
+            position: "fixed", bottom: 24, right: 24, width: 440, maxHeight: 320,
+            background: "#1e293b", borderRadius: 14, boxShadow: "0 8px 32px rgba(0,0,0,0.35)",
+            display: "flex", flexDirection: "column", zIndex: 9999,
+            border: "1.5px solid #334155", overflow: "hidden",
+          }}>
+            <div style={{
+              display: "flex", alignItems: "center", justifyContent: "space-between",
+              padding: "10px 14px", borderBottom: "1px solid #334155", flexShrink: 0,
+            }}>
+              <span style={{ fontSize: 12, fontWeight: 700, color: "#94a3b8", letterSpacing: "0.05em" }}>
+                LOGS — SYNC LDAP {syncing && <span style={{ color: "#60a5fa" }}>● en cours…</span>}
+              </span>
+              <button
+                type="button"
+                onClick={() => setSyncLogs([])}
+                style={{ background: "none", border: "none", color: "#64748b", cursor: "pointer", fontSize: 16, lineHeight: 1, padding: 0 }}
+              >
+                ✕
+              </button>
+            </div>
+            <div style={{ flex: 1, overflowY: "auto", padding: "10px 14px", fontFamily: "monospace", fontSize: 11, lineHeight: 1.6 }}>
+              {syncLogs.map((log, i) => (
+                <div key={i} style={{
+                  color: (log.type === "error" || log.type === "error_log") ? "#f87171" : log.type === "done" ? "#4ade80" : "#cbd5e1",
+                  wordBreak: "break-all",
+                }}>
+                  {log.type === "done" ? "✓ " : (log.type === "error" || log.type === "error_log") ? "✗ " : "› "}{log.msg}
+                </div>
+              ))}
+              <div ref={logsEndRef} />
+            </div>
+          </div>
+        )}
       </LayoutWrapper>
   )
 }

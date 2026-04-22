@@ -10,6 +10,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog"
 import { Alert, AlertDescription } from "@/components/ui/alert"
 import { Users, Edit, Trash2, Shield, Mail, User as UserIcon, Building2, X, Filter, KeyRound } from "lucide-react"
+import { useConfirm } from "@/components/ui/confirm-dialog"
 
 type AdminUser = {
   id: number
@@ -33,6 +34,7 @@ type AdminUser = {
 const ADMIN_GROUPS = ["administrateur", "communication", "utilisateur simple"]
 
 export function UsersAdminTable() {
+  const confirm = useConfirm()
   const [users, setUsers] = useState<AdminUser[]>([])
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState<string | null>(null)
@@ -140,7 +142,7 @@ export function UsersAdminTable() {
   }
 
   const deleteUser = async (id: number) => {
-    if (!confirm('Supprimer cet utilisateur ?')) return
+    if (!await confirm({ message: 'Supprimer cet utilisateur ?', title: 'Supprimer l\'utilisateur' })) return
     try {
       setLoading(true)
       const res = await fetch(`${baseUrl}/auth/admin/users/${id}/`, { method: 'DELETE', credentials: 'include' })
@@ -172,7 +174,7 @@ export function UsersAdminTable() {
   }
 
   const resetPassword = async (id: number) => {
-    if (!confirm('Réinitialiser le mot de passe de cet utilisateur ?')) return
+    if (!await confirm({ message: 'Réinitialiser le mot de passe de cet utilisateur ?', title: 'Réinitialiser le mot de passe', variant: 'warning', confirmLabel: 'Réinitialiser' })) return
     try {
       setLoading(true)
       const res = await fetch(`${baseUrl}/auth/admin/users/${id}/reset-password/`, { method: 'POST', credentials: 'include' })

@@ -2,6 +2,7 @@
 
 import { useState, useEffect } from 'react'
 import { useSafetyData } from '@/hooks/useSafetyData'
+import { useConfirm } from '@/components/ui/confirm-dialog'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
@@ -30,6 +31,7 @@ interface SafetyDataFormProps {
 }
 
 export function SafetyDataForm({ onSuccess, onError }: SafetyDataFormProps) {
+  const confirm = useConfirm()
   const { safetyData, loading, error, updateSafetyData, resetSafetyData } = useSafetyData()
   
   // États locaux pour les formulaires
@@ -112,7 +114,7 @@ export function SafetyDataForm({ onSuccess, onError }: SafetyDataFormProps) {
 
   // Gestion de la réinitialisation
   const handleReset = async () => {
-    if (!confirm("Êtes-vous sûr de vouloir réinitialiser les données de sécurité ? Cette action remettra les compteurs à zéro.")) {
+    if (!await confirm({ message: "Êtes-vous sûr de vouloir réinitialiser les données de sécurité ? Cette action remettra les compteurs à zéro.", title: 'Réinitialiser les données', variant: 'warning', confirmLabel: 'Réinitialiser' })) {
       return
     }
 

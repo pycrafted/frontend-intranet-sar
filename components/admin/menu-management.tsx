@@ -35,6 +35,7 @@ import {
   MapPin
 } from 'lucide-react'
 import { useMenu } from '@/hooks/useMenu'
+import { useConfirm } from '@/components/ui/confirm-dialog'
 
 interface MenuItem {
   id: number
@@ -67,7 +68,8 @@ interface WeekMenu {
 }
 
 export function MenuManagement() {
-  const { 
+  const confirm = useConfirm()
+  const {
     menuItems, 
     dayMenus, 
     weekMenu, 
@@ -261,7 +263,7 @@ export function MenuManagement() {
   }
 
   const handleDeleteItem = async (id: number) => {
-    if (confirm('Êtes-vous sûr de vouloir supprimer ce plat ?')) {
+    if (await confirm({ message: 'Êtes-vous sûr de vouloir supprimer ce plat ?', title: 'Supprimer le plat' })) {
       const result = await deleteMenuItem(id)
       if (result.success) {
         setSuccessMessage('Plat supprimé avec succès')
@@ -348,7 +350,7 @@ export function MenuManagement() {
   }
 
   const handleDeleteDayMenu = async (id: number) => {
-    if (confirm('Êtes-vous sûr de vouloir supprimer ce menu du jour ?')) {
+    if (await confirm({ message: 'Êtes-vous sûr de vouloir supprimer ce menu du jour ?', title: 'Supprimer le menu du jour' })) {
       const result = await deleteDayMenu(id)
       if (result.success) {
         setSuccessMessage('Menu du jour supprimé avec succès')

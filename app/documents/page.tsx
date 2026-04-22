@@ -11,7 +11,7 @@ import { DocumentUpload } from "@/components/document-upload"
 import { ContextMenu } from "@/components/context-menu"
 import { FolderCreateModal } from "@/components/folder-create-modal"
 import { RenameModal } from "@/components/rename-modal"
-import { DeleteConfirmationModal } from "@/components/delete-confirmation-modal"
+import { useConfirm } from "@/components/ui/confirm-dialog"
 import { DocumentsHeader } from "@/components/documents-header"
 import { DocumentsToolbar } from "@/components/documents-toolbar"
 import { DocumentsGrid } from "@/components/documents-grid"
@@ -21,6 +21,7 @@ import { UploadDialog } from "@/components/upload-dialog"
 import { RenameDialog } from "@/components/rename-dialog"
 import { InfoModal } from "@/components/info-modal"
 import { useDocuments, Document } from "@/hooks/useDocuments"
+import { API_CONFIG } from "@/lib/config"
 import { useToast } from "@/components/ui/toast"
 import {
   Search,
@@ -68,6 +69,7 @@ const sortOptions = [
 ]
 
 export default function DocumentsPage() {
+  const confirm = useConfirm()
   const { success, error: toastError } = useToast()
   const [searchTerm, setSearchTerm] = useState("")
   const [debouncedSearchTerm, setDebouncedSearchTerm] = useState("")
@@ -91,12 +93,9 @@ export default function DocumentsPage() {
   const [isFolderModalOpen, setIsFolderModalOpen] = useState(false)
   const [isRenameModalOpen, setIsRenameModalOpen] = useState(false)
   const [renameItem, setRenameItem] = useState<{ type: 'document' | 'folder'; name: string; id: number } | null>(null)
-  const [isDeleteModalOpen, setIsDeleteModalOpen] = useState(false)
   const [isRenameDialogOpen, setIsRenameDialogOpen] = useState(false)
   const [renameDialogItem, setRenameDialogItem] = useState<{ id: string; name: string } | null>(null)
   const [isRenaming, setIsRenaming] = useState(false)
-  const [deleteItem, setDeleteItem] = useState<{ type: 'document' | 'folder'; name: string; id: number } | null>(null)
-  const [isBulkDeleteModalOpen, setIsBulkDeleteModalOpen] = useState(false)
   const [isInfoModalOpen, setIsInfoModalOpen] = useState(false)
   const [infoModalContent, setInfoModalContent] = useState<{ title: string; message: string }>({ title: '', message: '' })
   const [currentPage, setCurrentPage] = useState(1)
@@ -104,6 +103,7 @@ export default function DocumentsPage() {
   const [touchStartTime, setTouchStartTime] = useState<number>(0)
   const [touchStartPosition, setTouchStartPosition] = useState<{ x: number; y: number }>({ x: 0, y: 0 })
   const [showTouchIndicator, setShowTouchIndicator] = useState<{ x: number; y: number } | null>(null)
+  const [mediaViewerItem, setMediaViewerItem] = useState<{ url: string; type: 'image' | 'video'; name: string } | null>(null)
 
   // Debounce pour la recherche
   useEffect(() => {
@@ -197,7 +197,10 @@ export default function DocumentsPage() {
       file_extension: doc.file_extension,
       download_count: doc.download_count,
       file_url: doc.file_url,
-      is_pdf: doc.is_pdf
+      is_pdf: doc.is_pdf,
+      is_image: doc.is_image,
+      is_video: doc.is_video,
+      media_type: doc.media_type,
     }))
   ]
 
@@ -213,23 +216,19 @@ export default function DocumentsPage() {
   }
 
   // Convertir les données pour le nouveau design
-  const convertToFileItems = (items: any[]): Array<{
-    id: string
-    name: string
-    type: "folder" | "file"
-    fileType?: string
-    size?: string
-    modifiedDate: string
-    owner: string
-  }> => {
+  const convertToFileItems = (items: any[]) => {
     return items.map(item => ({
       id: item.id,
       name: item.name,
-      type: item.type,
+      type: item.type === 'document' ? 'file' as const : item.type as 'folder' | 'file',
       fileType: item.file_extension?.toLowerCase(),
       size: item.type === 'folder' ? undefined : `${(item.size / 1024 / 1024).toFixed(1)} MB`,
       modifiedDate: formatDate(item.created_at),
-      owner: item.created_by_name || 'Moi'
+      owner: item.created_by_name || 'Moi',
+      media_type: item.media_type as 'document' | 'image' | 'video' | undefined,
+      is_image: item.is_image as boolean | undefined,
+      is_video: item.is_video as boolean | undefined,
+      file_url: item.file_url as string | undefined,
     }))
   }
 
@@ -398,45 +397,32 @@ export default function DocumentsPage() {
     await viewDocument(document.id)
   }
 
-  const handleDelete = (document: Document) => {
-    setDeleteItem({
-      type: 'document',
-      name: document.title,
-      id: document.id
-    })
-    setIsDeleteModalOpen(true)
-  }
-
-  const handleBulkDelete = () => {
-    if (selectedDocuments.length === 0) return
-    setIsBulkDeleteModalOpen(true)
-  }
-
-  const handleDeleteConfirm = async () => {
-    if (!deleteItem) return
-
+  const handleDelete = async (document: Document) => {
+    if (!await confirm({ message: `Supprimer "${document.title}" ? Cette action est irréversible.`, title: 'Supprimer le document' })) return
     try {
-      if (deleteItem.type === 'document') {
-        await deleteDocument(deleteItem.id)
-      } else {
-        await deleteFolder(deleteItem.id)
-      }
-      setIsDeleteModalOpen(false)
-      setDeleteItem(null)
+      await deleteDocument(document.id)
     } catch (error) {
       console.error('Erreur lors de la suppression:', error)
-      alert('Erreur lors de la suppression')
     }
   }
 
-  const handleBulkDeleteConfirm = async () => {
+  const handleDeleteFolder = async (folderId: number, folderName: string) => {
+    if (!await confirm({ message: `Supprimer le dossier "${folderName}" ? Cette action est irréversible.`, title: 'Supprimer le dossier' })) return
+    try {
+      await deleteFolder(folderId)
+    } catch (error) {
+      console.error('Erreur lors de la suppression:', error)
+    }
+  }
+
+  const handleBulkDelete = async () => {
+    if (selectedDocuments.length === 0) return
+    if (!await confirm({ message: `Supprimer ${selectedDocuments.length} document(s) ? Cette action est irréversible.`, title: 'Supprimer les documents' })) return
     try {
       await deleteMultipleDocuments(selectedDocuments)
       setSelectedDocuments([])
-      setIsBulkDeleteModalOpen(false)
     } catch (error) {
       console.error('Erreur lors de la suppression:', error)
-      alert('Erreur lors de la suppression')
     }
   }
 
@@ -512,7 +498,7 @@ export default function DocumentsPage() {
         const result = await uploadDocument({
           title: file.name,
           file,
-          folder: selectedFolder
+          folder: selectedFolder ?? undefined
         })
         
         if (result.success) {
@@ -575,12 +561,7 @@ export default function DocumentsPage() {
       const folderId = parseInt(id.replace('folder-', ''))
       const folder = folders.find(f => f.id === folderId)
       if (folder) {
-        setDeleteItem({
-          type: 'folder',
-          name: folder.name,
-          id: folderId
-        })
-        setIsDeleteModalOpen(true)
+        handleDeleteFolder(folderId, folder.name)
       }
     }
   }
@@ -589,23 +570,28 @@ export default function DocumentsPage() {
   const handleViewDocument = async (id: string) => {
     if (id.startsWith('doc-')) {
       const docId = parseInt(id.replace('doc-', ''))
-      
-      // Vérifier que l'ID est valide
+
       if (isNaN(docId)) {
-        console.error('❌ [VIEW_DOCUMENT] ID invalide:', id, docId)
         toastError("Erreur", "Impossible d'ouvrir le document. Veuillez rafraîchir la page.")
         return
       }
-      
+
+      const doc = documents.find(d => d.id === docId)
+      if (doc && (doc.is_image || doc.is_video)) {
+        setMediaViewerItem({
+          url: `${API_CONFIG.DOCUMENTS}/${docId}/view/`,
+          type: doc.is_image ? 'image' : 'video',
+          name: doc.title,
+        })
+        return
+      }
+
       try {
         const result = await viewDocument(docId)
-        if (result.success) {
-          // Document ouvert avec succès
-        } else {
-          // Afficher le message d'erreur du backend dans un modal
+        if (!result.success) {
           setInfoModalContent({
             title: "Visualisation non disponible",
-            message: result.error
+            message: result.error ?? 'Erreur lors de la visualisation'
           })
           setIsInfoModalOpen(true)
         }
@@ -629,15 +615,11 @@ export default function DocumentsPage() {
         console.log('🔍 [DOWNLOAD] Téléchargement du document:', docId, document.title)
         
         try {
-          const result = await downloadDocument(docId, document.title)
-          if (result.success) {
-            console.log('✅ [DOWNLOAD] Document téléchargé avec succès')
-          } else {
-            console.error('❌ [DOWNLOAD] Erreur lors du téléchargement:', result.error)
+          const result = await downloadDocument(docId, document.title, document.file_extension)
+          if (!result.success) {
             alert(`Erreur lors du téléchargement: ${result.error}`)
           }
         } catch (error) {
-          console.error('❌ [DOWNLOAD] Erreur complète:', error)
           alert('Erreur lors du téléchargement du document')
         }
       } else {
@@ -775,7 +757,7 @@ export default function DocumentsPage() {
       // sidebarProps supprimés - plus de sidebar pour les documents
     >
       <div className="min-h-screen" style={{ backgroundColor: '#e5e7eb' }}>
-        <main className="mx-auto max-w-[1600px] px-6 py-6">
+        <main className="mx-auto max-w-[1600px] px-3 py-3 sm:px-6 sm:py-6">
           <div className="mb-4">
             <DocumentsBreadcrumb 
               currentPath={currentFolderPath}
@@ -843,12 +825,7 @@ export default function DocumentsPage() {
               const folderId = parseInt(contextMenu.item!.id.replace('folder-', ''))
               const folder = folders.find(f => f.id === folderId)
               if (folder) {
-                setDeleteItem({
-                  type: 'folder',
-                  name: folder.name,
-                  id: folderId
-                })
-                setIsDeleteModalOpen(true)
+                handleDeleteFolder(folderId, folder.name)
               }
             }
           }}
@@ -881,32 +858,6 @@ export default function DocumentsPage() {
         />
       )}
 
-      {/* Delete Confirmation Modal */}
-      {isDeleteModalOpen && deleteItem && (
-        <DeleteConfirmationModal
-          isOpen={isDeleteModalOpen}
-          onClose={() => {
-            setIsDeleteModalOpen(false)
-            setDeleteItem(null)
-          }}
-          onConfirm={handleDeleteConfirm}
-          item={deleteItem}
-          isLoading={isLoading}
-        />
-      )}
-
-      {/* Bulk Delete Confirmation Modal */}
-      {isBulkDeleteModalOpen && (
-        <DeleteConfirmationModal
-          isOpen={isBulkDeleteModalOpen}
-          onClose={() => setIsBulkDeleteModalOpen(false)}
-          onConfirm={handleBulkDeleteConfirm}
-          item={{ type: 'document', name: '', id: 0 }}
-          isLoading={isLoading}
-          isMultiple={true}
-          count={selectedDocuments.length}
-        />
-      )}
 
       {/* Upload Modal */}
       {isUploadModalOpen && (
@@ -996,6 +947,64 @@ export default function DocumentsPage() {
           actionLabel="Compris"
           showDownloadIcon={infoModalContent.message.includes("télécharger")}
         />
+
+      {/* Media Viewer Modal (image / video) */}
+      {mediaViewerItem && (
+        <div
+          className="fixed inset-0 z-50 flex items-center justify-center bg-black/85"
+          onClick={() => setMediaViewerItem(null)}
+        >
+          <div
+            className="relative flex max-h-[90vh] max-w-5xl mx-4 flex-col"
+            onClick={e => e.stopPropagation()}
+          >
+            <div className="flex items-center justify-between rounded-t-lg bg-black/60 px-4 py-2 min-w-0">
+              <span className="truncate text-sm text-white/80 mr-4">{mediaViewerItem.name}</span>
+              <div className="flex gap-2">
+                <Button
+                  variant="ghost"
+                  size="sm"
+                  className="text-white hover:bg-white/20"
+                  onClick={async () => {
+                    const res = await fetch(mediaViewerItem.url)
+                    const blob = await res.blob()
+                    const blobUrl = URL.createObjectURL(blob)
+                    const a = document.createElement('a')
+                    a.href = blobUrl
+                    a.download = mediaViewerItem.name
+                    a.click()
+                    URL.revokeObjectURL(blobUrl)
+                  }}
+                >
+                  <Download className="h-4 w-4" />
+                </Button>
+                <Button
+                  variant="ghost"
+                  size="icon"
+                  className="text-white hover:bg-white/20"
+                  onClick={() => setMediaViewerItem(null)}
+                >
+                  <X className="h-5 w-5" />
+                </Button>
+              </div>
+            </div>
+            {mediaViewerItem.type === 'image' ? (
+              <img
+                src={mediaViewerItem.url}
+                alt={mediaViewerItem.name}
+                className="block max-h-[80vh] max-w-full rounded-b-lg object-contain"
+              />
+            ) : (
+              <video
+                src={mediaViewerItem.url}
+                controls
+                autoPlay
+                className="block max-h-[80vh] max-w-full rounded-b-lg"
+              />
+            )}
+          </div>
+        </div>
+      )}
     </LayoutWrapper>
   )
 }

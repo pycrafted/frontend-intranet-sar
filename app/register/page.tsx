@@ -9,6 +9,7 @@ import { Eye, EyeOff, Lock, Mail, User, Phone, Briefcase, Building, Users, Arrow
 import Image from "next/image"
 import Link from "next/link"
 import { useRegister, useAuth } from "@/hooks/useAuth"
+import { StandardLoader } from "@/components/ui/standard-loader"
 import { useUsers } from "@/hooks/useUsers"
 
 // Liste des départements disponibles
@@ -60,9 +61,7 @@ export default function RegisterPage() {
   if (authLoading) {
     return (
       <div className="min-h-screen bg-gradient-to-br from-slate-50 via-blue-50 to-indigo-100 flex items-center justify-center">
-        <div className="text-center">
-          <div className="w-8 h-8 border-2 border-red-600 border-t-transparent rounded-full animate-spin mx-auto mb-4" />
-        </div>
+        <StandardLoader title="Vérification..." />
       </div>
     )
   }
@@ -150,7 +149,7 @@ export default function RegisterPage() {
             <p className="text-gray-600 mb-6">
               Votre compte a été créé. Vous allez être redirigé vers l'accueil...
             </p>
-            <div className="w-8 h-8 border-2 border-red-600 border-t-transparent rounded-full animate-spin mx-auto" />
+            <StandardLoader title="Redirection en cours..." />
           </CardContent>
         </Card>
       </div>

@@ -14,6 +14,10 @@ export type FileItem = {
   size?: string
   modifiedDate: string
   owner: string
+  media_type?: 'document' | 'image' | 'video'
+  is_image?: boolean
+  is_video?: boolean
+  file_url?: string
 }
 
 export function DocumentsPage() {

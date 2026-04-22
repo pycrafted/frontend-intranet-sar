@@ -60,15 +60,11 @@ export function useSecurity() {
 
   const uploadDocument = async (documentData: SecurityDocumentUpload) => {
     try {
-      setIsLoading(true)
-      setError(null)
-
       // Validation du type de fichier avant l'upload
       const allowedExtensions = ['.pdf', '.jpg', '.jpeg', '.png', '.gif', '.webp']
       const fileExtension = '.' + documentData.file.name.split('.').pop()?.toLowerCase() || ''
       if (!allowedExtensions.includes(fileExtension)) {
         const errorMessage = `Type de fichier non autorisé. Extensions acceptées: ${allowedExtensions.join(', ')}`
-        setError(errorMessage)
         return { success: false, error: errorMessage }
       }
 
@@ -76,7 +72,6 @@ export function useSecurity() {
       const maxSize = 50 * 1024 * 1024 // 50MB
       if (documentData.file.size > maxSize) {
         const errorMessage = `Le fichier est trop volumineux. Taille maximale: ${(maxSize / (1024 * 1024)).toFixed(1)}MB`
-        setError(errorMessage)
         return { success: false, error: errorMessage }
       }
 
@@ -114,53 +109,38 @@ export function useSecurity() {
         formData.append('order', documentData.order.toString())
       }
 
-      const response = await api.post('/security/documents/', formData, { requireAuth: false })
+      const response = await api.post('/security/documents/', formData, { requireAuth: true })
 
       if (response.ok) {
         const newDocument = await response.json()
         setDocuments(prev => [...prev, newDocument].sort((a, b) => a.order - b.order || new Date(b.created_at).getTime() - new Date(a.created_at).getTime()))
         return { success: true, document: newDocument }
       } else {
-        let errorData
-        try {
-          errorData = await response.json()
-          const errorMessage = errorData.file?.[0] || errorData.title?.[0] || errorData.description?.[0] || errorData.detail || 'Erreur lors de l\'upload'
-          throw new Error(errorMessage)
-        } catch (jsonError) {
-          const textResponse = await response.text()
-          throw new Error(`Erreur serveur (${response.status}): ${textResponse.substring(0, 100)}...`)
-        }
+        const errorData = await response.json().catch(() => ({}))
+        const errorMessage = errorData.file?.[0] || errorData.title?.[0] || errorData.description?.[0] || errorData.detail || `Erreur ${response.status}`
+        throw new Error(errorMessage)
       }
     } catch (err) {
       const errorMessage = err instanceof Error ? err.message : 'Erreur lors de l\'upload'
-      setError(errorMessage)
       console.error('❌ [USE_SECURITY] Erreur uploadDocument:', err)
       return { success: false, error: errorMessage }
-    } finally {
-      setIsLoading(false)
     }
   }
 
   const deleteDocument = async (documentId: number) => {
     try {
-      setIsLoading(true)
-      setError(null)
-      const response = await api.delete(`/security/documents/${documentId}/`, { requireAuth: false })
+      const response = await api.delete(`/security/documents/${documentId}/`, { requireAuth: true })
 
       if (response.ok) {
         setDocuments(prev => prev.filter(doc => doc.id !== documentId))
         return { success: true }
       } else {
-        const errorData = await response.json().catch(() => ({ detail: 'Erreur lors de la suppression' }))
-        throw new Error(errorData.detail || 'Erreur lors de la suppression')
+        const errorData = await response.json().catch(() => ({}))
+        throw new Error(errorData.detail || `Erreur ${response.status}`)
       }
     } catch (err) {
-      const errorMessage = err instanceof Error ? err.message : 'Erreur lors de la suppression'
-      setError(errorMessage)
       console.error('❌ [USE_SECURITY] Erreur deleteDocument:', err)
-      return { success: false, error: errorMessage }
-    } finally {
-      setIsLoading(false)
+      return { success: false, error: err instanceof Error ? err.message : 'Erreur lors de la suppression' }
     }
   }
 

@@ -12,9 +12,11 @@ const nextConfig = {
   },
   // Configuration pour autoriser les origines de développement
   // Utilise NEXT_PUBLIC_FRONTEND_URL depuis les variables d'environnement (.env.local)
-  allowedDevOrigins: process.env.NEXT_PUBLIC_FRONTEND_URL 
-    ? [process.env.NEXT_PUBLIC_FRONTEND_URL]
-    : [],
+  allowedDevOrigins: [
+    'http://localhost:3000',
+    'http://127.0.0.1:3000',
+    ...(process.env.NEXT_PUBLIC_FRONTEND_URL ? [process.env.NEXT_PUBLIC_FRONTEND_URL] : []),
+  ],
   images: {
     unoptimized: true,
     // Domaines configurés via variables d'environnement

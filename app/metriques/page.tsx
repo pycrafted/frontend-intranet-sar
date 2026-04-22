@@ -1,8 +1,10 @@
 "use client"
 
-import { useState } from "react"
+import { useState, useEffect } from "react"
+import { useRouter } from "next/navigation"
 import { LayoutWrapper } from "@/components/layout-wrapper"
 import { AuthGuard } from "@/components/auth-guard"
+import { useAuth } from "@/hooks/useAuth"
 import { useMetrics } from "@/hooks/useMetrics"
 import { Card, CardContent } from "@/components/ui/card"
 import { Badge } from "@/components/ui/badge"
@@ -46,6 +48,14 @@ const COLORS = ['#3B82F6', '#10B981', '#F59E0B', '#EF4444', '#8B5CF6', '#EC4899'
 export default function MetriquesPage() {
   const { metrics, loginStats, loading, error, fetchLoginStats } = useMetrics()
   const [statsPeriod, setStatsPeriod] = useState<'daily' | 'weekly' | 'monthly' | 'yearly'>('daily')
+  const { user } = useAuth()
+  const router = useRouter()
+
+  const isAdmin = !!(user?.is_superuser)
+
+  useEffect(() => {
+    if (user && !isAdmin) router.replace('/')
+  }, [user, isAdmin, router])
 
   const handlePeriodChange = (period: 'daily' | 'weekly' | 'monthly' | 'yearly') => {
     setStatsPeriod(period)

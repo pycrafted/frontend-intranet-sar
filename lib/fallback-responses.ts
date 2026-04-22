@@ -67,5 +67,5 @@ export function findFallbackResponse(message: string): string {
   }
   
   // Réponse par défaut si aucune correspondance
-  return "Je suis MAÏ, votre assistant virtuel d'entreprise. Mon système d'intelligence artificielle principal est temporairement indisponible, mais je peux vous fournir des informations générales concernant nos systèmes internes. Comment puis-je vous assister ?"
+  return "MAÏ est actuellement en maintenance. Veuillez réessayer dans quelques instants."
 }

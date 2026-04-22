@@ -3,6 +3,7 @@
 import { useEffect, useState } from 'react'
 import { useRouter } from 'next/navigation'
 import { useAuth } from '@/hooks/useAuth'
+import { StandardLoader } from '@/components/ui/standard-loader'
 
 interface AuthGuardProps {
   children: React.ReactNode
@@ -42,11 +43,8 @@ export function AuthGuard({ children, fallback, redirectTo }: AuthGuardProps) {
   // Afficher le fallback pendant la vérification
   if (shouldShowFallback) {
     return fallback || (
-      <div className="min-h-screen bg-gradient-to-br from-slate-50 via-blue-50 to-indigo-100 flex items-center justify-center">
-        <div className="text-center">
-          <div className="w-8 h-8 border-2 border-red-600 border-t-transparent rounded-full animate-spin mx-auto mb-4" />
-          <p className="text-gray-600">Vérification de l'authentification...</p>
-        </div>
+      <div className="min-h-screen flex items-center justify-center">
+        <StandardLoader title="" message="" />
       </div>
     )
   }

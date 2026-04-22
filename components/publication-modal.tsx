@@ -1,6 +1,7 @@
 "use client"
 
 import { useState } from "react"
+import { useConfirm } from "@/components/ui/confirm-dialog"
 import { FileText, Image, Video, Upload, AlertCircle, Play } from "lucide-react"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
@@ -30,6 +31,7 @@ interface PublicationModalProps {
 
 
 export function PublicationModal({ isOpen, onClose }: PublicationModalProps) {
+  const confirm = useConfirm()
   const [step, setStep] = useState(1)
   const [formData, setFormData] = useState({
     title: "",
@@ -87,11 +89,9 @@ export function PublicationModal({ isOpen, onClose }: PublicationModalProps) {
   }
 
   // Fonction pour gérer la fermeture du modal
-  const handleClose = () => {
+  const handleClose = async () => {
     if (hasUnsavedChanges && !isSubmitting) {
-      const confirmClose = window.confirm(
-        "Vous avez des modifications non sauvegardées. Êtes-vous sûr de vouloir fermer le modal ?"
-      )
+      const confirmClose = await confirm({ message: "Vous avez des modifications non sauvegardées. Êtes-vous sûr de vouloir fermer le modal ?", title: 'Fermer sans sauvegarder', variant: 'warning', confirmLabel: 'Fermer' })
       if (!confirmClose) return
     }
     resetForm()

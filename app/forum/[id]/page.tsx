@@ -4,14 +4,17 @@ import { useState, useEffect, useRef } from "react"
 import { useParams, useRouter } from "next/navigation"
 import { AuthGuard } from "@/components/auth-guard"
 import { Button } from "@/components/ui/button"
-import { cn } from "@/lib/utils"
-import { MessageSquare, ImageIcon, X, Calendar, MoreVertical, ArrowDown, ArrowUp } from "lucide-react"
+import { ImageIcon, X, Calendar, MoreVertical } from "lucide-react"
+import { Card, CardContent } from "@/components/ui/card"
 import { LayoutWrapper } from "@/components/layout-wrapper"
 import { ForumMessageForm } from "@/components/forum/forum-message-form"
 import { ForumCreateModal } from "@/components/forum/forum-create-modal"
+import { ForumSidebar } from "@/components/forum-sidebar"
 import { useForum } from "@/hooks/useForum"
+import { StandardLoader } from "@/components/ui/standard-loader"
 import { useAuth } from "@/hooks/useAuth"
 import { useToast } from "@/components/ui/toast"
+import { useConfirm } from "@/components/ui/confirm-dialog"
 import {
   Dialog,
   DialogContent,
@@ -23,7 +26,6 @@ import {
 import { Textarea } from "@/components/ui/textarea"
 import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
-import { Card, CardContent } from "@/components/ui/card"
 import { Badge } from "@/components/ui/badge"
 import {
   DropdownMenu,
@@ -37,7 +39,8 @@ interface ForumDetailPageProps {
   isMainSidebarCollapsed?: boolean
 }
 
-export default function ForumDetailPage({ isMainSidebarCollapsed = false }: ForumDetailPageProps) {
+export default function ForumDetailPage(_: ForumDetailPageProps) {
+  const confirm = useConfirm()
   const params = useParams()
   const router = useRouter()
   const { user } = useAuth()
@@ -63,9 +66,7 @@ export default function ForumDetailPage({ isMainSidebarCollapsed = false }: Foru
 
   const [isCreateModalOpen, setIsCreateModalOpen] = useState(false)
   const [isEditMessageModalOpen, setIsEditMessageModalOpen] = useState(false)
-  const [isDeleteMessageModalOpen, setIsDeleteMessageModalOpen] = useState(false)
   const [isEditForumModalOpen, setIsEditForumModalOpen] = useState(false)
-  const [isDeleteForumModalOpen, setIsDeleteForumModalOpen] = useState(false)
   const [selectedMessage, setSelectedMessage] = useState<ForumMessage | null>(null)
   const [editMessageContent, setEditMessageContent] = useState("")
   const [isEditingMessage, setIsEditingMessage] = useState(false)
@@ -99,17 +100,6 @@ export default function ForumDetailPage({ isMainSidebarCollapsed = false }: Foru
     }
   }, [forumId, fetchForum, fetchMessages])
 
-  const scrollToBottom = () => {
-    const formElement = document.getElementById("forum-message-form")
-    if (formElement) {
-      formElement.scrollIntoView({ behavior: "smooth", block: "center" })
-    }
-  }
-
-  const scrollToTop = () => {
-    // Scroller vers le haut de la page
-    window.scrollTo({ behavior: "smooth", top: 0 })
-  }
 
   const handleCreateForum = async (data: ForumCreateData) => {
     try {
@@ -197,19 +187,11 @@ export default function ForumDetailPage({ isMainSidebarCollapsed = false }: Foru
     }
   }
 
-  const handleDeleteMessage = (message: ForumMessage) => {
-    setSelectedMessage(message)
-    setIsDeleteMessageModalOpen(true)
-  }
-
-  const confirmDeleteMessage = async () => {
-    if (!selectedMessage) return
-
+  const handleDeleteMessage = async (message: ForumMessage) => {
+    if (!await confirm({ message: 'Supprimer ce message ? Cette action est irréversible.', title: 'Supprimer le message' })) return
     try {
-      await deleteMessageHandler(selectedMessage.id)
+      await deleteMessageHandler(message.id)
       success("Message supprimé", "Le message a été supprimé avec succès")
-      setIsDeleteMessageModalOpen(false)
-      setSelectedMessage(null)
       await fetchMessages(forumId)
     } catch (err) {
       const errorMessage = err instanceof Error ? err.message : "Erreur lors de la suppression du message"
@@ -296,16 +278,11 @@ export default function ForumDetailPage({ isMainSidebarCollapsed = false }: Foru
     }
   }
 
-  const handleDeleteForum = (forum: typeof currentForum) => {
+  const handleDeleteForum = async (forum: typeof currentForum) => {
     if (!forum) return
-    setIsDeleteForumModalOpen(true)
-  }
-
-  const confirmDeleteForum = async () => {
-    if (!currentForum) return
-
+    if (!await confirm({ message: `Supprimer le forum "${forum.title}" ? Cette action est irréversible.`, title: 'Supprimer le forum' })) return
     try {
-      await deleteForumHandler(currentForum.id)
+      await deleteForumHandler(forum.id)
       success("Forum supprimé", "Le forum a été supprimé avec succès")
       router.push("/forum")
     } catch (err) {
@@ -319,10 +296,7 @@ export default function ForumDetailPage({ isMainSidebarCollapsed = false }: Foru
       <AuthGuard redirectTo="/">
         <LayoutWrapper>
           <div className="flex items-center justify-center min-h-[60vh]">
-            <div className="text-center">
-              <div className="animate-spin rounded-full h-10 w-10 sm:h-12 sm:w-12 border-b-2 border-primary mx-auto mb-4"></div>
-              <p className="text-sm sm:text-base text-muted-foreground">Chargement...</p>
-            </div>
+            <StandardLoader title="Chargement..." />
           </div>
         </LayoutWrapper>
       </AuthGuard>
@@ -333,10 +307,8 @@ export default function ForumDetailPage({ isMainSidebarCollapsed = false }: Foru
     return (
       <AuthGuard redirectTo="/">
         <LayoutWrapper>
-          <div className="flex items-center justify-center min-h-[60vh] px-6">
-            <div className="p-4 sm:p-6 bg-destructive/10 border border-destructive/20 rounded-lg text-destructive max-w-md">
-              <p className="text-sm sm:text-base">{error}</p>
-            </div>
+          <div className="flex items-center justify-center min-h-[60vh]">
+            <StandardLoader error={error} />
           </div>
         </LayoutWrapper>
       </AuthGuard>
@@ -362,82 +334,48 @@ export default function ForumDetailPage({ isMainSidebarCollapsed = false }: Foru
 
   return (
     <AuthGuard redirectTo="/">
-      <LayoutWrapper
-        sidebarProps={{
-          forums,
-          forumsLoading: loading,
-          onCreateForumClick: () => setIsCreateModalOpen(true),
-          onEditForumClick: (forum: any) => handleEditForum(forum),
-          onDeleteForumClick: handleDeleteForum,
-        }}
-      >
-        <div className="w-full space-y-4 xs:space-y-6">
-          {/* Contenu principal - Style actualités */}
-          <div className="px-4 sm:px-6 lg:px-8 py-6 lg:py-8">
-            <div className="max-w-4xl mx-auto space-y-3 xs:space-y-4">
-              {/* Carte du forum - Style actualités */}
+      <LayoutWrapper>
+        <ForumSidebar
+          forums={forums}
+          loading={loading}
+          onCreateClick={() => setIsCreateModalOpen(true)}
+          onEditForum={handleEditForum}
+          onDeleteForum={handleDeleteForum}
+          isMainSidebarCollapsed={true}
+        />
+        <div className="lg:pl-80 w-full space-y-4 xs:space-y-6 px-0">
+          <div className="py-6 px-4">
+            <div className="max-w-3xl mx-auto space-y-3 xs:space-y-4">
               <Card className="adaptive-publication-card rounded-xl overflow-hidden group fade-in w-full news-card">
                 <CardContent className="p-0 w-full">
-                  {/* Image header avec overlay - Style actualités */}
                   {currentForum.image_url && (
                     <div className="relative h-64 sm:h-80 w-full overflow-hidden bg-gray-50 -mx-0">
-                      <img
-                        src={currentForum.image_url}
-                        alt={currentForum.title}
-                        className="w-full h-full object-cover"
-                      />
+                      <img src={currentForum.image_url} alt={currentForum.title} className="w-full h-full object-cover" />
                       <div className="absolute inset-0 bg-black/30" />
                     </div>
                   )}
-                  
-                  {/* Header avec date et auteur - Style actualités */}
                   <div className="px-3 xs:px-4 sm:px-6 pt-2 xs:pt-3 pb-1">
                     <div className="flex items-center justify-between mb-2 xs:mb-3">
                       <div className="publication-date flex items-center gap-1 xs:gap-2 text-base xs:text-lg text-gray-500">
                         <Calendar className="w-4 h-4 xs:w-5 xs:h-5 flex-shrink-0" />
                         <span className="date-text font-medium text-gray-600 hidden xs:inline">
                           {currentForum.last_message
-                            ? new Date(currentForum.last_message.created_at).toLocaleDateString("fr-FR", {
-                                weekday: 'long',
-                                year: 'numeric',
-                                month: 'long',
-                                day: 'numeric'
-                              })
-                            : new Date().toLocaleDateString("fr-FR", {
-                                weekday: 'long',
-                                year: 'numeric',
-                                month: 'long',
-                                day: 'numeric'
-                              })}
+                            ? new Date(currentForum.last_message.created_at).toLocaleDateString("fr-FR", { weekday: 'long', year: 'numeric', month: 'long', day: 'numeric' })
+                            : new Date().toLocaleDateString("fr-FR", { weekday: 'long', year: 'numeric', month: 'long', day: 'numeric' })}
                         </span>
                         <span className="date-text font-medium text-gray-600 xs:hidden">
                           {currentForum.last_message
-                            ? new Date(currentForum.last_message.created_at).toLocaleDateString("fr-FR", {
-                                day: 'numeric',
-                                month: 'short',
-                                year: '2-digit'
-                              })
-                            : new Date().toLocaleDateString("fr-FR", {
-                                day: 'numeric',
-                                month: 'short',
-                                year: '2-digit'
-                              })}
+                            ? new Date(currentForum.last_message.created_at).toLocaleDateString("fr-FR", { day: 'numeric', month: 'short', year: '2-digit' })
+                            : new Date().toLocaleDateString("fr-FR", { day: 'numeric', month: 'short', year: '2-digit' })}
                         </span>
                       </div>
-                      
-                      {/* Auteur à droite */}
                       <div className="flex items-center gap-3 xs:gap-4">
                         <div className="relative h-10 w-10 xs:h-12 xs:w-12 flex-shrink-0 overflow-hidden rounded-full ring-2 ring-gray-200">
                           <img
                             src={currentForum.created_by_info.avatar_url || "/placeholder-user.jpg"}
                             alt={currentForum.created_by_info.full_name}
                             className="w-full h-full object-cover"
-                            onError={(e) => {
-                              const target = e.target as HTMLImageElement
-                              if (target.src !== "/placeholder-user.jpg") {
-                                target.src = "/placeholder-user.jpg"
-                              }
-                            }}
+                            onError={(e) => { const t = e.target as HTMLImageElement; if (t.src !== "/placeholder-user.jpg") t.src = "/placeholder-user.jpg" }}
                           />
                         </div>
                         <div className="text-right">
@@ -451,8 +389,6 @@ export default function ForumDetailPage({ isMainSidebarCollapsed = false }: Foru
                       </div>
                     </div>
                   </div>
-
-                  {/* Titre - Style actualités */}
                   <div className="px-3 xs:px-4 sm:px-6 pb-4 xs:pb-6 w-full">
                     <h1 className="article-title mb-0 w-full block text-2xl xs:text-3xl font-bold text-gray-900 leading-tight">
                       {currentForum.title}
@@ -461,38 +397,13 @@ export default function ForumDetailPage({ isMainSidebarCollapsed = false }: Foru
                 </CardContent>
               </Card>
 
-              {/* Messages section - Style actualités */}
               <div className="space-y-3 xs:space-y-4 relative">
-                <div className="flex items-center gap-2 mb-3 xs:mb-4 px-1 max-w-4xl mx-auto">
-                  <div className="w-1 h-4 xs:h-6 bg-gradient-to-b from-blue-400 to-indigo-400 rounded-full shadow-sm"></div>
+                <div className="flex items-center gap-2 mb-3 xs:mb-4 px-1">
+                  <div className="w-1 h-4 xs:h-6 rounded-full" style={{ backgroundColor: '#344256' }}></div>
                   <h3 className="text-base xs:text-lg font-semibold text-gray-900">Avis</h3>
-                  <Badge variant="secondary" className="ml-2 bg-blue-100 text-blue-800 text-xs xs:text-sm px-2 py-1">
+                  <Badge variant="secondary" className="ml-2 text-xs xs:text-sm px-2 py-1 text-white" style={{ backgroundColor: '#344256' }}>
                     {messages.length}
                   </Badge>
-                </div>
-
-                {/* Boutons Scroll - Toujours visibles */}
-                <div className="fixed right-4 sm:right-6 top-1/2 -translate-y-1/2 z-40 flex flex-col gap-3 hidden md:flex">
-                  {/* Bouton Scroll to Top */}
-                  <Button
-                    onClick={scrollToTop}
-                    className="h-12 w-12 rounded-full shadow-lg bg-primary hover:bg-primary/90 text-white flex items-center justify-center transition-all hover:scale-110"
-                    aria-label="Aller en haut de la page"
-                    title="Aller en haut de la page"
-                  >
-                    <ArrowUp className="h-5 w-5" />
-                  </Button>
-                  {/* Bouton Scroll to Bottom */}
-                  {messages.length > 0 && (
-                    <Button
-                      onClick={scrollToBottom}
-                      className="h-12 w-12 rounded-full shadow-lg bg-primary hover:bg-primary/90 text-white flex items-center justify-center transition-all hover:scale-110"
-                      aria-label="Aller au formulaire d'avis"
-                      title="Aller au formulaire d'avis"
-                    >
-                      <ArrowDown className="h-5 w-5" />
-                    </Button>
-                  )}
                 </div>
 
                 {messages.length === 0 ? (
@@ -502,74 +413,44 @@ export default function ForumDetailPage({ isMainSidebarCollapsed = false }: Foru
                     </CardContent>
                   </Card>
                 ) : (
-                  <div className="space-y-3 xs:space-y-4 max-w-4xl mx-auto">
+                  <div className="space-y-3 xs:space-y-4">
                     {messages.map((message) => (
-                      <Card 
-                        key={message.id} 
+                      <Card
+                        key={message.id}
                         id={`forum-message-${message.id}`}
                         className="adaptive-publication-card rounded-xl overflow-hidden group fade-in w-full news-card transition-all duration-300"
                       >
                         <CardContent className="p-0 w-full">
-                          {/* Header avec date - Style actualités */}
                           <div className="px-3 xs:px-4 sm:px-6 pt-2 xs:pt-3 pb-1">
                             <div className="flex items-center justify-between mb-2 xs:mb-3">
                               <div className="publication-date flex items-center gap-1 xs:gap-2 text-base xs:text-lg text-gray-500">
                                 <Calendar className="w-4 h-4 xs:w-5 xs:h-5 flex-shrink-0" />
                                 <span className="date-text font-medium text-gray-600 hidden xs:inline">
-                                  {new Date(message.created_at).toLocaleDateString("fr-FR", {
-                                    weekday: 'long',
-                                    year: 'numeric',
-                                    month: 'long',
-                                    day: 'numeric'
-                                  })}
+                                  {new Date(message.created_at).toLocaleDateString("fr-FR", { weekday: 'long', year: 'numeric', month: 'long', day: 'numeric' })}
                                 </span>
                                 <span className="date-text font-medium text-gray-600 xs:hidden">
-                                  {new Date(message.created_at).toLocaleDateString("fr-FR", {
-                                    day: 'numeric',
-                                    month: 'short',
-                                    year: '2-digit'
-                                  })}
+                                  {new Date(message.created_at).toLocaleDateString("fr-FR", { day: 'numeric', month: 'short', year: '2-digit' })}
                                 </span>
                                 <span className="separator text-gray-400 hidden xs:inline">•</span>
                                 <span className="time-text text-gray-500 hidden xs:inline">
-                                  {new Date(message.created_at).toLocaleTimeString("fr-FR", {
-                                    hour: '2-digit',
-                                    minute: '2-digit'
-                                  })}
+                                  {new Date(message.created_at).toLocaleTimeString("fr-FR", { hour: '2-digit', minute: '2-digit' })}
                                 </span>
                               </div>
-                              {/* Menu à trois points - visible uniquement pour l'auteur */}
                               {user && message.author === user.id && (
                                 <DropdownMenu>
                                   <DropdownMenuTrigger asChild>
-                                    <Button
-                                      variant="ghost"
-                                      size="icon"
-                                      className="h-8 w-8 text-gray-500 hover:text-gray-700 hover:bg-gray-100"
-                                    >
+                                    <Button variant="ghost" size="icon" className="h-8 w-8 text-gray-500 hover:text-gray-700 hover:bg-gray-100">
                                       <MoreVertical className="h-4 w-4" />
                                     </Button>
                                   </DropdownMenuTrigger>
                                   <DropdownMenuContent align="end">
-                                    <DropdownMenuItem
-                                      onClick={() => handleEditMessage(message)}
-                                      className="cursor-pointer"
-                                    >
-                                      Modifier
-                                    </DropdownMenuItem>
-                                    <DropdownMenuItem
-                                      onClick={() => handleDeleteMessage(message)}
-                                      className="cursor-pointer text-destructive focus:text-destructive"
-                                    >
-                                      Supprimer
-                                    </DropdownMenuItem>
+                                    <DropdownMenuItem onClick={() => handleEditMessage(message)} className="cursor-pointer">Modifier</DropdownMenuItem>
+                                    <DropdownMenuItem onClick={() => handleDeleteMessage(message)} className="cursor-pointer text-destructive focus:text-destructive">Supprimer</DropdownMenuItem>
                                   </DropdownMenuContent>
                                 </DropdownMenu>
                               )}
                             </div>
                           </div>
-
-                          {/* Contenu du message - Style actualités */}
                           <div className="px-3 xs:px-4 sm:px-6 pb-4 xs:pb-6 w-full">
                             <div className="flex items-start gap-3 xs:gap-4 mb-3 xs:mb-4">
                               <div className="relative h-10 w-10 xs:h-12 xs:w-12 flex-shrink-0 overflow-hidden rounded-full ring-2 ring-gray-200">
@@ -577,12 +458,7 @@ export default function ForumDetailPage({ isMainSidebarCollapsed = false }: Foru
                                   src={message.author_info.avatar_url || "/placeholder-user.jpg"}
                                   alt={message.author_info.full_name}
                                   className="w-full h-full object-cover"
-                                  onError={(e) => {
-                                    const target = e.target as HTMLImageElement
-                                    if (target.src !== "/placeholder-user.jpg") {
-                                      target.src = "/placeholder-user.jpg"
-                                    }
-                                  }}
+                                  onError={(e) => { const t = e.target as HTMLImageElement; if (t.src !== "/placeholder-user.jpg") t.src = "/placeholder-user.jpg" }}
                                 />
                               </div>
                               <div className="flex-1 min-w-0">
@@ -591,36 +467,19 @@ export default function ForumDetailPage({ isMainSidebarCollapsed = false }: Foru
                                 </div>
                               </div>
                             </div>
-                            
                             <div className="text-gray-700 leading-relaxed text-xl xs:text-2xl">
                               <div className="publication-content whitespace-pre-wrap break-words">
                                 {message.content.split(/(!\[.*?\]\(.*?\))/g).map((part, index) => {
-                                  // Détecter les images markdown ![alt](url)
                                   const imageMatch = part.match(/!\[(.*?)\]\((.*?)\)/)
                                   if (imageMatch) {
-                                    const [, alt, url] = imageMatch
-                                    return (
-                                      <img
-                                        key={index}
-                                        src={url}
-                                        alt={alt || "GIF"}
-                                        className="max-w-full h-auto rounded-lg my-2"
-                                        loading="lazy"
-                                      />
-                                    )
+                                    return <img key={index} src={imageMatch[2]} alt={imageMatch[1] || "GIF"} className="max-w-full h-auto rounded-lg my-2" loading="lazy" />
                                   }
                                   return <span key={index}>{part}</span>
                                 })}
                               </div>
-                              {/* Afficher l'image uploadée si elle existe */}
                               {message.image_url && (
                                 <div className="mt-3">
-                                  <img
-                                    src={message.image_url}
-                                    alt="Image du message"
-                                    className="max-w-full h-auto rounded-lg"
-                                    loading="lazy"
-                                  />
+                                  <img src={message.image_url} alt="Image du message" className="max-w-full h-auto rounded-lg" loading="lazy" />
                                 </div>
                               )}
                             </div>
@@ -632,51 +491,32 @@ export default function ForumDetailPage({ isMainSidebarCollapsed = false }: Foru
                 )}
               </div>
 
-              {/* Formulaire d'avis - Style actualités */}
-              <Card id="forum-message-form" className="adaptive-publication-card rounded-xl overflow-visible fade-in w-full" style={{ backgroundColor: '#344256' }}>
-                <CardContent className="p-0 w-full overflow-visible">
-                  <div className="px-3 xs:px-4 sm:px-6 pt-2 xs:pt-3 pb-1">
-                    <div className="flex items-center gap-1 xs:gap-2 flex-wrap mb-3 xs:mb-4">
-                      <Badge variant="outline" className="text-base px-3 py-1.5 bg-white/20 text-white border-white/30">
-                        {isEditingMessage ? "Modifier l'avis" : "Nouvel avis"}
-                      </Badge>
-                    </div>
-                  </div>
-                  
-                  <div className="px-3 xs:px-4 sm:px-6 pb-4 xs:pb-6 w-full overflow-visible">
-                    <div className="flex items-start gap-3 xs:gap-4 mb-3 xs:mb-4">
-                      <div className="relative h-10 w-10 xs:h-12 xs:w-12 flex-shrink-0 overflow-hidden rounded-full ring-2 ring-white/20">
-                        <img
-                          src={user?.avatar_url || "/placeholder-user.jpg"}
-                          alt={user?.full_name || "Vous"}
-                          className="w-full h-full object-cover"
-                          onError={(e) => {
-                            const target = e.target as HTMLImageElement
-                            if (target.src !== "/placeholder-user.jpg") {
-                              target.src = "/placeholder-user.jpg"
-                            }
-                          }}
-                        />
-                      </div>
-                      <div className="flex-1">
-                        <div className="font-semibold text-white text-base xs:text-lg mb-1">{user?.full_name || "Vous"}</div>
-                        <p className="text-sm xs:text-base text-white/80 mb-3 xs:mb-4">
-                          {isEditingMessage ? "Modifiez votre message ci-dessous" : "Partagez votre point de vue avec la communauté"}
-                        </p>
-                      </div>
-                    </div>
-
-                    <div className="relative overflow-visible">
-                      <ForumMessageForm
-                        onSubmit={handleCreateMessage}
-                        onCancel={handleCancelEdit}
-                        loading={loading}
-                        placeholder="Partagez vos idées, posez vos questions..."
-                        initialContent={editingMessageContent}
-                        initialImageUrl={editingMessageImage}
-                        isEditing={isEditingMessage}
+              <Card id="forum-message-form" className="rounded-xl overflow-visible fade-in w-full" style={{ backgroundColor: '#344256' }}>
+                <CardContent className="p-4 w-full overflow-visible">
+                  <div className="flex items-center gap-3 mb-3">
+                    <div className="relative h-8 w-8 flex-shrink-0 overflow-hidden rounded-full ring-2 ring-white/20">
+                      <img
+                        src={user?.avatar_url || "/placeholder-user.jpg"}
+                        alt={user?.full_name || "Vous"}
+                        className="w-full h-full object-cover"
+                        onError={(e) => { const t = e.target as HTMLImageElement; if (t.src !== "/placeholder-user.jpg") t.src = "/placeholder-user.jpg" }}
                       />
                     </div>
+                    <span className="font-semibold text-white text-sm">{user?.full_name || "Vous"}</span>
+                    <Badge variant="outline" className="ml-auto text-xs px-2 py-0.5 bg-white/20 text-white border-white/30">
+                      {isEditingMessage ? "Modifier l'avis" : "Nouvel avis"}
+                    </Badge>
+                  </div>
+                  <div className="relative overflow-visible">
+                    <ForumMessageForm
+                      onSubmit={handleCreateMessage}
+                      onCancel={handleCancelEdit}
+                      loading={loading}
+                      placeholder="Partagez vos idées, posez vos questions..."
+                      initialContent={editingMessageContent}
+                      initialImageUrl={editingMessageImage}
+                      isEditing={isEditingMessage}
+                    />
                   </div>
                 </CardContent>
               </Card>
@@ -726,38 +566,6 @@ export default function ForumDetailPage({ isMainSidebarCollapsed = false }: Foru
           </DialogContent>
         </Dialog>
 
-        {/* Modal de confirmation de suppression de message */}
-        <Dialog open={isDeleteMessageModalOpen} onOpenChange={setIsDeleteMessageModalOpen}>
-          <DialogContent className="max-w-[90vw] sm:max-w-lg mx-4 sm:mx-0">
-            <DialogHeader>
-              <DialogTitle className="text-base sm:text-lg">Supprimer le message</DialogTitle>
-              <DialogDescription className="text-sm sm:text-base">
-                Êtes-vous sûr de vouloir supprimer ce message ? Cette action est irréversible.
-              </DialogDescription>
-            </DialogHeader>
-            <DialogFooter className="flex-col sm:flex-row gap-2 sm:gap-0">
-              <Button
-                variant="outline"
-                onClick={() => {
-                  setIsDeleteMessageModalOpen(false)
-                  setSelectedMessage(null)
-                }}
-                disabled={loading}
-                className="w-full sm:w-auto"
-              >
-                Annuler
-              </Button>
-              <Button 
-                variant="destructive" 
-                onClick={confirmDeleteMessage} 
-                disabled={loading}
-                className="w-full sm:w-auto"
-              >
-                {loading ? "Suppression..." : "Supprimer"}
-              </Button>
-            </DialogFooter>
-          </DialogContent>
-        </Dialog>
 
         {/* Modal de modification de forum */}
         <Dialog open={isEditForumModalOpen} onOpenChange={setIsEditForumModalOpen}>
@@ -857,35 +665,6 @@ export default function ForumDetailPage({ isMainSidebarCollapsed = false }: Foru
           </DialogContent>
         </Dialog>
 
-        {/* Modal de confirmation de suppression de forum */}
-        <Dialog open={isDeleteForumModalOpen} onOpenChange={setIsDeleteForumModalOpen}>
-          <DialogContent className="sm:max-w-[425px] max-w-[90vw] mx-4">
-            <DialogHeader>
-              <DialogTitle className="text-base sm:text-lg">Supprimer le forum</DialogTitle>
-              <DialogDescription className="text-sm sm:text-base">
-                Êtes-vous sûr de vouloir supprimer le forum "{currentForum.title}" ? Cette action est irréversible.
-              </DialogDescription>
-            </DialogHeader>
-            <DialogFooter className="flex-col sm:flex-row gap-2 sm:gap-0">
-              <Button
-                variant="outline"
-                onClick={() => setIsDeleteForumModalOpen(false)}
-                disabled={loading}
-                className="w-full sm:w-auto"
-              >
-                Annuler
-              </Button>
-              <Button 
-                variant="destructive" 
-                onClick={confirmDeleteForum} 
-                disabled={loading}
-                className="w-full sm:w-auto"
-              >
-                {loading ? "Suppression..." : "Supprimer"}
-              </Button>
-            </DialogFooter>
-          </DialogContent>
-        </Dialog>
 
         {/* Modal de création de forum */}
         <ForumCreateModal

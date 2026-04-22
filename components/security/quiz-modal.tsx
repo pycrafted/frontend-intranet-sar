@@ -12,330 +12,22 @@ import {
 import { Button } from "@/components/ui/button"
 import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group"
 import { Label } from "@/components/ui/label"
-import { CheckCircle2, XCircle, RotateCcw, ClipboardCheck, ChevronRight, ChevronLeft } from "lucide-react"
+import { Input } from "@/components/ui/input"
+import { Textarea } from "@/components/ui/textarea"
+import {
+  CheckCircle2, XCircle, RotateCcw, ClipboardCheck,
+  ChevronRight, ChevronLeft, Plus, Pencil, Trash2,
+  Settings, X, GripVertical,
+} from "lucide-react"
+import { useQuiz, QuizQuestion, QuizOption, QuizQuestionInput } from "@/hooks/useQuiz"
+import { useConfirm } from "@/components/ui/confirm-dialog"
+import { useAuth } from "@/hooks/useAuth"
 
 interface QuizModalProps {
   open: boolean
   onOpenChange: (open: boolean) => void
 }
 
-interface Question {
-  source: string
-  question: string
-  options: string[]
-  answer: string
-  explanation: string
-}
-
-const allQuestions: Question[] = [
-  // --- Questions existantes (Interdictions Générales & Vidéos) ---
-  {
-    "source": "Affiche des interdictions",
-    "question": "Quel est l'objectif principal de l'ensemble des interdictions affichées sur le site de la SAR ?",
-    "options": [
-      "Améliorer le confort des employés.",
-      "Prévenir les accidents en maîtrisant les risques dans un environnement dangereux.",
-      "Réduire les coûts de maintenance.",
-      "Se conformer à une obligation légale sans impact direct."
-    ],
-    "answer": "Prévenir les accidents en maîtrisant les risques dans un environnement dangereux.",
-    "explanation": "Toutes ces règles visent à garantir la sécurité, la santé et la protection de l'environnement dans une raffinerie, un site à haut risque."
-  },
-  {
-    "source": "Affiche des interdictions",
-    "question": "Pour quelle raison de sécurité l'alcool et le cannabis sont-ils formellement interdits sur le site ?",
-    "options": [
-      "Pour des raisons de productivité uniquement.",
-      "Parce qu'ils altèrent le jugement et les réflexes, ce qui est incompatible avec la sécurité.",
-      "Pour des raisons d'image de l'entreprise.",
-      "Parce que leur odeur peut masquer celle d'une fuite de gaz."
-    ],
-    "answer": "Parce qu'ils altèrent le jugement et les réflexes, ce qui est incompatible avec la sécurité.",
-    "explanation": "Une politique de tolérance zéro est appliquée car ces substances compromettent gravement la vigilance et la capacité à réagir en cas de danger."
-  },
-  {
-    "source": "Affiche des interdictions",
-    "question": "Parmi les interdictions générales, laquelle fait l'objet d'une exception dans une zone spécifiquement désignée ?",
-    "options": [
-      "L'usage du téléphone portable",
-      "Le port d'objets tranchants",
-      "L'usage du tabac",
-      "La présence d'animaux"
-    ],
-    "answer": "L'usage du tabac",
-    "explanation": "Il est interdit de fumer partout sur le site, à l'exception de l'espace fumeurs balisé et sécurisé pour éviter tout risque d'ignition en zone ATEX."
-  },
-  {
-    "source": "Affiche des interdictions",
-    "question": "Pourquoi les téléphones portables et les montres connectées sont-ils interdits hors des zones autorisées ?",
-    "options": [
-      "Pour éviter les distractions.",
-      "En raison du risque d'explosion qu'ils peuvent causer par étincelle.",
-      "Pour prévenir les vols.",
-      "Pour ne pas perturber les communications radio."
-    ],
-    "answer": "En raison du risque d'explosion qu'ils peuvent causer par étincelle.",
-    "explanation": "Ces appareils électroniques non certifiés ATEX peuvent générer des étincelles capables d'enflammer les vapeurs de gaz ou d'hydrocarbures présentes sur le site."
-  },
-  {
-    "source": "Affiche des interdictions",
-    "question": "Pour quelle raison l'utilisation d'écouteurs ou de casques audio est-elle strictement interdite ?",
-    "options": [
-      "Car ils peuvent tomber dans les machines.",
-      "Car ils isolent l'utilisateur des bruits ambiants, des alarmes et des signaux d'alerte.",
-      "Car ils consomment de l'électricité.",
-      "Car ils sont considérés comme une source d'ignition."
-    ],
-    "answer": "Car ils isolent l'utilisateur des bruits ambiants, des alarmes et des signaux d'alerte.",
-    "explanation": "La perception auditive de l'environnement est cruciale pour détecter un danger (fuite, alarme, véhicule) et garantir sa propre sécurité et celle des autres."
-  },
-  {
-    "source": "Affiche des interdictions",
-    "question": "Outre les briquets et allumettes, quel autre type d'objet est interdit car il représente une source d'ignition ?",
-    "options": [
-      "Les bouteilles d'eau en plastique",
-      "Les produits inflammables personnels comme les aérosols ou solvants",
-      "Les outils métalliques",
-      "Les médicaments personnels"
-    ],
-    "answer": "Les produits inflammables personnels comme les aérosols ou solvants",
-    "explanation": "Toute source potentielle de flamme ou d'inflammation est bannie pour éviter d'enflammer les vapeurs d'hydrocarbures."
-  },
-  {
-    "source": "Vidéo institutionnelle",
-    "question": "En quelle année la Société Africaine de Raffinage (SAR) a-t-elle été créée et par qui a-t-elle été inaugurée en 1964 ?",
-    "options": [
-      "Créée en 1960, inaugurée par Mamadou Dia",
-      "Créée en 1961, inaugurée par Léopold Sédar Senghor",
-      "Créée en 1964, inaugurée par Abdou Diouf",
-      "Créée en 1958, inaugurée par Charles de Gaulle"
-    ],
-    "answer": "Créée en 1961, inaugurée par Léopold Sédar Senghor",
-    "explanation": "La SAR a été fondée en 1961 et officiellement inaugurée le 27 janvier 1964 par le Président Léopold Sédar Senghor."
-  },
-  {
-    "source": "Vidéo institutionnelle",
-    "question": "Quelle est l'activité principale de la SAR ?",
-    "options": [
-      "La distribution de carburant en station-service",
-      "Le stockage de gaz naturel pour l'export",
-      "La transformation du pétrole brut en produits pétroliers finis",
-      "L'exploration de nouveaux gisements de pétrole"
-    ],
-    "answer": "La transformation du pétrole brut en produits pétroliers finis",
-    "explanation": "Le cœur de métier de la SAR est le raffinage, qui consiste à transformer le pétrole brut en produits comme le gaz butane, l'essence ou le fuel."
-  },
-  {
-    "source": "Vidéo institutionnelle",
-    "question": "Comment le pétrole brut est-il acheminé des navires pétroliers jusqu'au parc de stockage de la SAR ?",
-    "options": [
-      "Par de plus petits bateaux-citernes",
-      "Par une flotte de camions-citernes",
-      "Par une conduite sous-marine de six kilomètres",
-      "Par un oléoduc terrestre depuis le port de Dakar"
-    ],
-    "answer": "Par une conduite sous-marine de six kilomètres",
-    "explanation": "Les tankers déchargent au large de Gorée et le brut est transporté jusqu'à la raffinerie via un sea-line de 6 km."
-  },
-  {
-    "source": "Vidéo institutionnelle",
-    "question": "En 2005, quel investissement majeur a permis de moderniser le pilotage des unités de la raffinerie ?",
-    "options": [
-      "La construction de nouveaux réservoirs de stockage.",
-      "L'achat d'une nouvelle flotte de camions.",
-      "La mise en service d'une salle de contrôle centrale anti-explosion.",
-      "Le remplacement complet de l'oléoduc sous-marin."
-    ],
-    "answer": "La mise en service d'une salle de contrôle centrale anti-explosion.",
-    "explanation": "Un investissement de 5 milliards FCFA a permis de numériser le contrôle des opérations dans une salle sécurisée, marquant l'entrée dans l'ère numérique."
-  },
-  {
-    "source": "Vidéo institutionnelle",
-    "question": "Parmi les normes suivantes, laquelle atteste de la compétence technique du laboratoire de la SAR ?",
-    "options": [
-      "ISO 9001 (Qualité)",
-      "ISO 14001 (Environnement)",
-      "ISO 45001 (Santé et Sécurité au Travail)",
-      "ISO 17025 (Accréditation des laboratoires)"
-    ],
-    "answer": "ISO 17025 (Accréditation des laboratoires)",
-    "explanation": "En plus des certifications Qualité, Environnement et Sécurité, la SAR détient l'accréditation ISO 17025, qui reconnaît la fiabilité des analyses de son laboratoire."
-  },
-  {
-    "source": "Vidéo de sécurité",
-    "question": "Quelle est la priorité absolue qui guide toutes les opérations et décisions à la SAR ?",
-    "options": [
-      "La productivité et la rentabilité",
-      "La rapidité des opérations",
-      "La Sécurité, la Santé, la Sûreté et l'Environnement (SSSE)",
-      "L'innovation technologique"
-    ],
-    "answer": "La Sécurité, la Santé, la Sûreté et l'Environnement (SSSE)",
-    "explanation": "Les quatre piliers SSSE sont le fondement non négociable de la culture d'entreprise et priment sur toute autre considération."
-  },
-  {
-    "source": "Vidéo de sécurité",
-    "question": "À quelle fréquence des exercices pratiques sont-ils organisés à l'école de feu pour le personnel ?",
-    "options": [
-      "Une fois par an",
-      "Chaque mois",
-      "Chaque mardi",
-      "Seulement avant un arrêt technique"
-    ],
-    "answer": "Chaque mardi",
-    "explanation": "Des exercices hebdomadaires permettent de maintenir un haut niveau de préparation et de réactivité du personnel face au risque d'incendie."
-  },
-  {
-    "source": "Vidéo de sécurité",
-    "question": "Quelle est la procédure impérative à suivre immédiatement en cas d'accident du travail ?",
-    "options": [
-      "Finir sa tâche puis appeler son supérieur.",
-      "Alerter immédiatement le service médical pour une prise en charge rapide.",
-      "Demander l'avis de ses collègues avant d'agir.",
-      "Attendre la fin de sa journée de travail pour se déclarer."
-    ],
-    "answer": "Alerter immédiatement le service médical pour une prise en charge rapide.",
-    "explanation": "Toute blessure doit être signalée sans délai au service médical pour garantir une intervention et des soins appropriés, assurés par une ambulance et un médecin du travail."
-  },
-  {
-    "source": "Transversal",
-    "question": "Quelle devise résume le mieux la philosophie de la SAR en matière de gestion des risques ?",
-    "options": [
-      "« La productivité avant tout »",
-      "« La sécurité, c'est d'abord la prévention »",
-      "« Travailler plus pour gagner plus »",
-      "« Le risque zéro n'existe pas, il faut l'accepter »"
-    ],
-    "answer": "« La sécurité, c'est d'abord la prévention »",
-    "explanation": "Cette devise met l'accent sur l'anticipation et l'identification des dangers avant qu'ils ne se transforment en accidents."
-  },
-  {
-    "source": "Transversal",
-    "question": "Quelle certification est spécifiquement dédiée au management de la santé et de la sécurité au travail ?",
-    "options": [
-      "ISO 9001",
-      "ISO 14001",
-      "ISO 45001",
-      "ISO 17025"
-    ],
-    "answer": "ISO 45001",
-    "explanation": "La norme ISO 45001 établit les exigences pour un système de management visant à améliorer la sécurité et à réduire les risques pour la santé des travailleurs."
-  },
-  {
-    "source": "Transversal",
-    "question": "Quelle est l'étape de sécurité obligatoire pour tout stagiaire avant de commencer à travailler sur le site ?",
-    "options": [
-      "Signer son contrat de stage.",
-      "Visionner des vidéos de sécurité et réussir le quiz de validation.",
-      "Rencontrer le directeur du site.",
-      "Faire une visite libre des installations."
-    ],
-    "answer": "Visionner des vidéos de sécurité et réussir le quiz de validation.",
-    "explanation": "Cette procédure garantit que chaque personne accédant au site a bien compris et intégré les règles de sécurité fondamentales et les risques associés."
-  },
-  // --- NOUVELLES QUESTIONS ENRICHIES ---
-  // --- Source: Note d'information Cigarettes/Stupéfiants 2025 ---
-  {
-    "source": "Note d'Info (Addictions)",
-    "question": "Quelle est la règle concernant l'utilisation des cigarettes électroniques sur le site de la SAR ?",
-    "options": [
-      "Autorisée partout car il n'y a pas de combustion.",
-      "Autorisée uniquement dans les bureaux individuels.",
-      "Autorisée uniquement dans les zones dédiées (coins fumeurs).",
-      "Strictement interdite sur l'ensemble du site."
-    ],
-    "answer": "Autorisée uniquement dans les zones dédiées (coins fumeurs).",
-    "explanation": "L'utilisation de cigarettes électroniques est soumise aux mêmes restrictions que le tabac classique et n'est permise que dans les coins fumeurs."
-  },
-  {
-    "source": "Note d'Info (Addictions)",
-    "question": "Quelles sont les conséquences prévues en cas de consommation de stupéfiants (ex: chanvre indien) ou d'alcool à la SAR ?",
-    "options": [
-      "Un simple rappel à l'ordre.",
-      "Une amende forfaitaire.",
-      "Des sanctions disciplinaires pouvant aller jusqu'à l'exclusion définitive et des poursuites.",
-      "Une mise à pied de 24 heures."
-    ],
-    "answer": "Des sanctions disciplinaires pouvant aller jusqu'à l'exclusion définitive et des poursuites.",
-    "explanation": "La note d'information stipule que tout contrevenant s'expose à l'exclusion définitive et à d'éventuelles poursuites judiciaires."
-  },
-  // --- Source: Flash Info Risques Électriques ---
-  {
-    "source": "Flash Info (Électricité)",
-    "question": "Selon le flash info sécurité, quelle est la différence entre électrisation et électrocution ?",
-    "options": [
-      "L'électrocution désigne uniquement les accidents à haute tension.",
-      "L'électrisation est plus grave que l'électrocution.",
-      "L'électrocution entraîne la mort, tandis que l'électrisation est une blessure.",
-      "Ces deux termes sont synonymes."
-    ],
-    "answer": "L'électrocution entraîne la mort, tandis que l'électrisation est une blessure.",
-    "explanation": "Une électrisation peut être plus ou moins grave (brûlure, troubles cardiaques), alors que le terme électrocution signifie la mort par courant électrique."
-  },
-  {
-    "source": "Flash Info (Électricité)",
-    "question": "À partir de quelle intensité le courant électrique présente-t-il un danger pour l'homme selon le Flash Info ?",
-    "options": [
-      "1 Ampère",
-      "5 mA (milliampères)",
-      "50 mA (milliampères)",
-      "220 Volts"
-    ],
-    "answer": "5 mA (milliampères)",
-    "explanation": "Le danger commence dès 5 mA, et la gravité dépend ensuite de la durée, du trajet du courant et de l'état de la peau."
-  },
-  {
-    "source": "Flash Info (Électricité)",
-    "question": "Est-il obligatoire pour un travailleur d'avoir une habilitation pour opérer à proximité d'une installation électrique ?",
-    "options": [
-      "Non, seule la présence d'un électricien est requise.",
-      "Oui, l'habilitation est obligatoire pour réaliser des opérations sur ou à proximité d'installations.",
-      "Non, si le travailleur porte des gants isolants.",
-      "Seulement pour les travaux sous tension."
-    ],
-    "answer": "Oui, l'habilitation est obligatoire pour réaliser des opérations sur ou à proximité d'installations.",
-    "explanation": "Former le personnel est une mesure de prévention clé : l'habilitation est obligatoire pour toute opération proche de l'électricité."
-  },
-  // --- Source: Fiche Sensibilisation FVR (Fièvre Vallée du Rift) ---
-  {
-    "source": "Sensibilisation FVR",
-    "question": "Comment la Fièvre de la Vallée du Rift (FVR) se transmet-elle principalement de l'animal à l'homme ?",
-    "options": [
-      "Par l'inhalation de poussières.",
-      "Par contact direct avec des animaux infectés, leurs liquides ou par piqûres de moustiques.",
-      "Par la consommation d'eau potable.",
-      "Par simple proximité sans contact."
-    ],
-    "answer": "Par contact direct avec des animaux infectés, leurs liquides ou par piqûres de moustiques.",
-    "explanation": "La transmission se fait lors de la manipulation de viande, de sang, de liquides biologiques d'animaux malades, ou par vecteurs (moustiques)."
-  },
-  {
-    "source": "Sensibilisation FVR",
-    "question": "Quelle mesure de prévention alimentaire est cruciale pour se protéger de la FVR ?",
-    "options": [
-      "Congeler la viande avant consommation.",
-      "Laver la viande à l'eau de Javel.",
-      "Bien cuire la viande et faire bouillir le lait cru.",
-      "Ne manger que des légumes."
-    ],
-    "answer": "Bien cuire la viande et faire bouillir le lait cru.",
-    "explanation": "Il faut éviter tout contact avec le lait ou la viande crue provenant d'animaux malades, et impérativement les cuire/bouillir pour tuer le virus."
-  },
-  {
-    "source": "Sensibilisation FVR",
-    "question": "Quel symptôme chez l'animal doit alerter sur un cas potentiel de FVR ?",
-    "options": [
-      "Une prise de poids rapide.",
-      "Une perte de poils localisée.",
-      "Des avortements spontanés, faiblesse et écoulement nasal sanglant.",
-      "Une agressivité anormale."
-    ],
-    "answer": "Des avortements spontanés, faiblesse et écoulement nasal sanglant.",
-    "explanation": "Les avortements, les décès inattendus, le refus de s'alimenter et les écoulements nasaux sont des signes cliniques majeurs chez le bétail."
-  }
-]
-
-// Fonction pour mélanger un tableau
 function shuffleArray<T>(array: T[]): T[] {
   const shuffled = [...array]
   for (let i = shuffled.length - 1; i > 0; i--) {
@@ -345,16 +37,14 @@ function shuffleArray<T>(array: T[]): T[] {
   return shuffled
 }
 
-// Fonction pour obtenir l'emoji d'émotion basé sur le score
 function getEmotionEmoji(score: number): string {
-  if (score >= 9) return "🎉" // Excellent
-  if (score >= 7) return "😊" // Bien
-  if (score >= 5) return "😐" // Moyen
-  if (score >= 3) return "😕" // Pas bien
-  return "😢" // Très mal
+  if (score >= 9) return "🎉"
+  if (score >= 7) return "😊"
+  if (score >= 5) return "😐"
+  if (score >= 3) return "😕"
+  return "😢"
 }
 
-// Fonction pour obtenir le message d'encouragement
 function getEncouragementMessage(score: number): string {
   if (score >= 9) return "Excellent ! Vous maîtrisez parfaitement les règles de sécurité de la SAR."
   if (score >= 7) return "Très bien ! Vous avez une bonne connaissance des procédures de sécurité."
@@ -363,19 +53,337 @@ function getEncouragementMessage(score: number): string {
   return "Nécessite une formation complète. Veuillez revoir toutes les vidéos de sécurité."
 }
 
+// ── Formulaire d'édition d'une question ─────────────────────────────────────
+
+interface QuestionFormData {
+  question: string
+  source: string
+  explanation: string
+  order: number
+  is_active: boolean
+  options: { text: string; is_correct: boolean; order: number }[]
+}
+
+const emptyForm = (): QuestionFormData => ({
+  question: '',
+  source: '',
+  explanation: '',
+  order: 0,
+  is_active: true,
+  options: [
+    { text: '', is_correct: false, order: 0 },
+    { text: '', is_correct: false, order: 1 },
+    { text: '', is_correct: false, order: 2 },
+    { text: '', is_correct: false, order: 3 },
+  ],
+})
+
+function QuestionEditor({
+  initial,
+  onSave,
+  onCancel,
+  saving,
+}: {
+  initial: QuestionFormData
+  onSave: (data: QuestionFormData) => void
+  onCancel: () => void
+  saving: boolean
+}) {
+  const [form, setForm] = useState<QuestionFormData>(initial)
+  const [formError, setFormError] = useState('')
+
+  const setOption = (i: number, field: 'text' | 'is_correct', value: string | boolean) => {
+    setForm(f => {
+      const opts = [...f.options]
+      if (field === 'is_correct') {
+        // une seule bonne réponse
+        opts.forEach((o, idx) => { opts[idx] = { ...o, is_correct: idx === i } })
+      } else {
+        opts[i] = { ...opts[i], [field]: value }
+      }
+      return { ...f, options: opts }
+    })
+  }
+
+  const addOption = () => {
+    setForm(f => ({
+      ...f,
+      options: [...f.options, { text: '', is_correct: false, order: f.options.length }],
+    }))
+  }
+
+  const removeOption = (i: number) => {
+    setForm(f => ({ ...f, options: f.options.filter((_, idx) => idx !== i) }))
+  }
+
+  const handleSave = () => {
+    if (!form.question.trim()) { setFormError('La question est requise.'); return }
+    if (form.options.length < 2) { setFormError('Au moins 2 options sont requises.'); return }
+    if (!form.options.some(o => o.is_correct)) { setFormError('Cochez la bonne réponse.'); return }
+    if (form.options.some(o => !o.text.trim())) { setFormError('Toutes les options doivent avoir un texte.'); return }
+    setFormError('')
+    onSave({ ...form, options: form.options.map((o, i) => ({ ...o, order: i })) })
+  }
+
+  return (
+    <div className="space-y-4">
+      <div className="space-y-1">
+        <Label className="text-xs font-semibold uppercase tracking-wide text-gray-500">Question *</Label>
+        <Textarea
+          value={form.question}
+          onChange={e => setForm(f => ({ ...f, question: e.target.value }))}
+          rows={3}
+          placeholder="Saisissez la question..."
+          className="resize-none text-sm"
+        />
+      </div>
+
+      <div className="grid grid-cols-2 gap-3">
+        <div className="space-y-1">
+          <Label className="text-xs font-semibold uppercase tracking-wide text-gray-500">Source</Label>
+          <Input
+            value={form.source}
+            onChange={e => setForm(f => ({ ...f, source: e.target.value }))}
+            placeholder="Ex: Vidéo de sécurité"
+            className="text-sm"
+          />
+        </div>
+        <div className="space-y-1">
+          <Label className="text-xs font-semibold uppercase tracking-wide text-gray-500">Ordre</Label>
+          <Input
+            type="number"
+            value={form.order}
+            onChange={e => setForm(f => ({ ...f, order: parseInt(e.target.value) || 0 }))}
+            className="text-sm"
+          />
+        </div>
+      </div>
+
+      <div className="space-y-1">
+        <Label className="text-xs font-semibold uppercase tracking-wide text-gray-500">Explication (après réponse)</Label>
+        <Textarea
+          value={form.explanation}
+          onChange={e => setForm(f => ({ ...f, explanation: e.target.value }))}
+          rows={2}
+          placeholder="Explication de la bonne réponse..."
+          className="resize-none text-sm"
+        />
+      </div>
+
+      <div className="space-y-2">
+        <div className="flex items-center justify-between">
+          <Label className="text-xs font-semibold uppercase tracking-wide text-gray-500">Options de réponse *</Label>
+          <button
+            type="button"
+            onClick={addOption}
+            className="flex items-center gap-1 text-xs text-blue-600 hover:text-blue-700 font-medium"
+          >
+            <Plus className="h-3 w-3" /> Ajouter
+          </button>
+        </div>
+        {form.options.map((opt, i) => (
+          <div key={i} className="flex items-start gap-2">
+            <button
+              type="button"
+              title="Bonne réponse"
+              onClick={() => setOption(i, 'is_correct', true)}
+              className={`mt-2.5 flex-shrink-0 w-4 h-4 rounded-full border-2 transition-colors ${
+                opt.is_correct
+                  ? 'border-green-500 bg-green-500'
+                  : 'border-gray-300 hover:border-green-400'
+              }`}
+            />
+            <Input
+              value={opt.text}
+              onChange={e => setOption(i, 'text', e.target.value)}
+              placeholder={`Option ${i + 1}`}
+              className={`text-sm flex-1 ${opt.is_correct ? 'border-green-400 bg-green-50' : ''}`}
+            />
+            {form.options.length > 2 && (
+              <button
+                type="button"
+                onClick={() => removeOption(i)}
+                className="mt-2 text-gray-300 hover:text-red-500 transition-colors flex-shrink-0"
+              >
+                <X className="h-4 w-4" />
+              </button>
+            )}
+          </div>
+        ))}
+        <p className="text-xs text-gray-400">Cliquez sur le cercle pour marquer la bonne réponse.</p>
+      </div>
+
+      {formError && (
+        <p className="text-sm text-red-600 bg-red-50 border border-red-200 rounded-lg px-3 py-2">{formError}</p>
+      )}
+
+      <div className="flex gap-2 pt-1">
+        <Button type="button" variant="outline" size="sm" onClick={onCancel} disabled={saving} className="flex-1">
+          Annuler
+        </Button>
+        <Button type="button" size="sm" onClick={handleSave} disabled={saving} className="flex-1">
+          {saving ? 'Enregistrement...' : 'Enregistrer'}
+        </Button>
+      </div>
+    </div>
+  )
+}
+
+// ── Vue administration des questions ────────────────────────────────────────
+
+function AdminPanel({
+  questions,
+  onCreateQuestion,
+  onUpdateQuestion,
+  onDeleteQuestion,
+}: {
+  questions: QuizQuestion[]
+  onCreateQuestion: (data: QuestionFormData) => Promise<void>
+  onUpdateQuestion: (id: number, data: QuestionFormData) => Promise<void>
+  onDeleteQuestion: (id: number) => Promise<void>
+}) {
+  const confirm = useConfirm()
+  const [mode, setMode] = useState<'list' | 'create' | 'edit'>('list')
+  const [editTarget, setEditTarget] = useState<QuizQuestion | null>(null)
+  const [saving, setSaving] = useState(false)
+  const [deletingId, setDeletingId] = useState<number | null>(null)
+
+  const handleSave = async (data: QuestionFormData) => {
+    setSaving(true)
+    try {
+      if (mode === 'edit' && editTarget) {
+        await onUpdateQuestion(editTarget.id, data)
+      } else {
+        await onCreateQuestion(data)
+      }
+      setMode('list')
+      setEditTarget(null)
+    } finally {
+      setSaving(false)
+    }
+  }
+
+  const handleEdit = (q: QuizQuestion) => {
+    setEditTarget(q)
+    setMode('edit')
+  }
+
+  const handleDelete = async (id: number) => {
+    if (!await confirm({ message: 'Supprimer cette question ?', title: 'Supprimer la question' })) return
+    setDeletingId(id)
+    try { await onDeleteQuestion(id) } finally { setDeletingId(null) }
+  }
+
+  const initialForEdit = (): QuestionFormData => {
+    if (!editTarget) return emptyForm()
+    return {
+      question: editTarget.question,
+      source: editTarget.source,
+      explanation: editTarget.explanation,
+      order: editTarget.order,
+      is_active: editTarget.is_active,
+      options: editTarget.options.map(o => ({ text: o.text, is_correct: o.is_correct, order: o.order })),
+    }
+  }
+
+  if (mode === 'create' || mode === 'edit') {
+    return (
+      <div>
+        <button
+          onClick={() => { setMode('list'); setEditTarget(null) }}
+          className="flex items-center gap-1 text-xs text-gray-500 hover:text-gray-700 mb-4"
+        >
+          <ChevronLeft className="h-3 w-3" />
+          Retour à la liste
+        </button>
+        <h3 className="text-sm font-semibold text-gray-800 mb-4">
+          {mode === 'create' ? 'Nouvelle question' : 'Modifier la question'}
+        </h3>
+        <QuestionEditor
+          initial={mode === 'edit' ? initialForEdit() : emptyForm()}
+          onSave={handleSave}
+          onCancel={() => { setMode('list'); setEditTarget(null) }}
+          saving={saving}
+        />
+      </div>
+    )
+  }
+
+  return (
+    <div className="space-y-3">
+      <div className="flex items-center justify-between">
+        <p className="text-sm text-gray-500">{questions.length} question(s) au total</p>
+        <Button size="sm" onClick={() => setMode('create')}>
+          <Plus className="h-4 w-4 mr-1" /> Nouvelle question
+        </Button>
+      </div>
+
+      {questions.length === 0 ? (
+        <div className="text-center py-10 text-gray-400 text-sm">
+          Aucune question. Cliquez sur "Nouvelle question" pour commencer.
+        </div>
+      ) : (
+        <div className="space-y-2 max-h-[50vh] overflow-y-auto pr-1">
+          {questions.map((q, i) => (
+            <div
+              key={q.id}
+              className={`flex items-start gap-3 p-3 rounded-lg border ${
+                q.is_active ? 'bg-white border-gray-200' : 'bg-gray-50 border-dashed border-gray-300 opacity-60'
+              }`}
+            >
+              <span className="flex-shrink-0 text-xs font-bold text-gray-400 mt-0.5 w-5 text-right">{i + 1}</span>
+              <div className="flex-1 min-w-0">
+                <p className="text-sm font-medium text-gray-800 line-clamp-2">{q.question}</p>
+                {q.source && <p className="text-xs text-gray-400 mt-0.5">{q.source}</p>}
+                <p className="text-xs text-gray-400 mt-0.5">{q.options.length} option(s) · {q.options.filter(o => o.is_correct).length} bonne(s)</p>
+              </div>
+              <div className="flex gap-1 flex-shrink-0">
+                <button
+                  onClick={() => handleEdit(q)}
+                  className="p-1.5 rounded text-gray-400 hover:text-blue-600 hover:bg-blue-50 transition-colors"
+                  title="Modifier"
+                >
+                  <Pencil className="h-3.5 w-3.5" />
+                </button>
+                <button
+                  onClick={() => handleDelete(q.id)}
+                  disabled={deletingId === q.id}
+                  className="p-1.5 rounded text-gray-400 hover:text-red-600 hover:bg-red-50 transition-colors disabled:opacity-40"
+                  title="Supprimer"
+                >
+                  <Trash2 className="h-3.5 w-3.5" />
+                </button>
+              </div>
+            </div>
+          ))}
+        </div>
+      )}
+    </div>
+  )
+}
+
+// ── Modal principale ─────────────────────────────────────────────────────────
+
 export function QuizModal({ open, onOpenChange }: QuizModalProps) {
-  const [selectedQuestions, setSelectedQuestions] = useState<Question[]>([])
+  const { questions, loading, error, fetchQuestions, createQuestion, updateQuestion, deleteQuestion } = useQuiz()
+  const { user } = useAuth()
+  const isAdmin = !!(user?.is_superuser)
+
+  const [tab, setTab] = useState<'quiz' | 'admin'>('quiz')
+
+  // Quiz state
+  const [selectedQuestions, setSelectedQuestions] = useState<QuizQuestion[]>([])
   const [currentQuestion, setCurrentQuestion] = useState(0)
-  const [selectedAnswer, setSelectedAnswer] = useState<string | null>(null)
+  const [selectedAnswer, setSelectedAnswer] = useState<number | null>(null)
   const [showResult, setShowResult] = useState(false)
   const [score, setScore] = useState(0)
-  const [answers, setAnswers] = useState<string[]>([])
+  const [answers, setAnswers] = useState<number[]>([])
   const [isCorrect, setIsCorrect] = useState<boolean[]>([])
 
-  // Sélectionner 10 questions aléatoires au début
   useEffect(() => {
-    if (open) {
-      const shuffled = shuffleArray(allQuestions)
+    if (open && tab === 'quiz') {
+      const active = questions.filter(q => q.is_active && q.options.length >= 2 && q.options.some(o => o.is_correct))
+      const shuffled = shuffleArray(active)
       setSelectedQuestions(shuffled.slice(0, 10))
       setCurrentQuestion(0)
       setSelectedAnswer(null)
@@ -384,42 +392,35 @@ export function QuizModal({ open, onOpenChange }: QuizModalProps) {
       setAnswers([])
       setIsCorrect([])
     }
-  }, [open])
+  }, [open, tab, questions])
 
   const handleNext = () => {
-    if (selectedAnswer !== null && selectedQuestions[currentQuestion]) {
-      const question = selectedQuestions[currentQuestion]
-      const correct = selectedAnswer === question.answer
-      
-      const newAnswers = [...answers, selectedAnswer]
-      const newIsCorrect = [...isCorrect, correct]
-      
-      setAnswers(newAnswers)
-      setIsCorrect(newIsCorrect)
-      
-      if (correct) {
-        setScore(score + 1)
-      }
-
-      if (currentQuestion < selectedQuestions.length - 1) {
-        setCurrentQuestion(currentQuestion + 1)
-        setSelectedAnswer(null)
-      } else {
-        setShowResult(true)
-      }
+    if (selectedAnswer === null) return
+    const q = selectedQuestions[currentQuestion]
+    const correct = q.options[selectedAnswer]?.is_correct ?? false
+    const newAnswers = [...answers, selectedAnswer]
+    const newIsCorrect = [...isCorrect, correct]
+    setAnswers(newAnswers)
+    setIsCorrect(newIsCorrect)
+    if (correct) setScore(s => s + 1)
+    if (currentQuestion < selectedQuestions.length - 1) {
+      setCurrentQuestion(c => c + 1)
+      setSelectedAnswer(null)
+    } else {
+      setShowResult(true)
     }
   }
 
   const handlePrevious = () => {
     if (currentQuestion > 0) {
-      setCurrentQuestion(currentQuestion - 1)
-      setSelectedAnswer(answers[currentQuestion - 1] || null)
+      setCurrentQuestion(c => c - 1)
+      setSelectedAnswer(answers[currentQuestion - 1] ?? null)
     }
   }
 
   const handleReset = () => {
-    const shuffled = shuffleArray(allQuestions)
-    setSelectedQuestions(shuffled.slice(0, 10))
+    const active = questions.filter(q => q.is_active && q.options.length >= 2 && q.options.some(o => o.is_correct))
+    setSelectedQuestions(shuffleArray(active).slice(0, 10))
     setCurrentQuestion(0)
     setSelectedAnswer(null)
     setShowResult(false)
@@ -428,243 +429,239 @@ export function QuizModal({ open, onOpenChange }: QuizModalProps) {
     setIsCorrect([])
   }
 
-  const handleClose = () => {
-    onOpenChange(false)
-  }
-
   const currentQ = selectedQuestions[currentQuestion]
 
+  const handleAdminCreate = async (data: any) => {
+    await createQuestion(data as QuizQuestionInput)
+    await fetchQuestions()
+  }
+
+  const handleAdminUpdate = async (id: number, data: any) => {
+    await updateQuestion(id, data as Partial<QuizQuestionInput>)
+    await fetchQuestions()
+  }
+
+  const handleAdminDelete = async (id: number) => {
+    await deleteQuestion(id)
+    await fetchQuestions()
+  }
+
   return (
-    <Dialog open={open} onOpenChange={handleClose}>
-      <DialogContent className="w-[95vw] xs:w-[90vw] sm:w-[85vw] max-w-[calc(100vw-1rem)] xs:max-w-sm sm:max-w-lg md:max-w-2xl lg:max-w-4xl xl:max-w-5xl max-h-[95vh] overflow-y-auto bg-gradient-to-br from-slate-50 to-white border-0 shadow-2xl p-2 xs:p-3 sm:p-4 md:p-6">
-        <DialogHeader className="text-center pb-3 xs:pb-4 sm:pb-5 md:pb-6">
-          <div className="relative">
-            <div className="absolute inset-0 bg-gradient-to-r from-blue-500/10 to-indigo-500/10 rounded-full blur-3xl"></div>
-            <div className="relative text-white p-3 xs:p-4 sm:p-5 md:p-6 rounded-xl xs:rounded-2xl shadow-xl" style={{ backgroundColor: "#344256" }}>
-              <div className="flex items-center justify-center gap-1.5 xs:gap-2 sm:gap-2.5 md:gap-3 mb-1.5 xs:mb-2 flex-wrap">
-                <div className="p-1 xs:p-1.5 sm:p-2 bg-white/20 rounded-full">
-                  <ClipboardCheck className="h-3.5 w-3.5 xs:h-4 xs:w-4 sm:h-5 sm:w-5 md:h-6 md:w-6" />
-                </div>
-                <DialogTitle className="text-sm xs:text-base sm:text-lg md:text-2xl lg:text-3xl font-bold leading-tight px-1">
-                  {showResult ? "Résultats du Questionnaire" : "Questionnaire de Sécurité SAR"}
-                </DialogTitle>
+    <Dialog open={open} onOpenChange={onOpenChange}>
+      <DialogContent className="w-[95vw] xs:w-[95vw] sm:w-[95vw] max-w-[calc(100vw-1rem)] xs:max-w-[95vw] sm:max-w-[95vw] md:max-w-3xl lg:max-w-4xl xl:max-w-5xl max-h-[95vh] overflow-y-auto bg-gradient-to-br from-slate-50 to-white border-0 shadow-2xl p-2 xs:p-3 sm:p-6 md:p-6">
+
+        {/* Header */}
+        <DialogHeader className="text-center pb-3 xs:pb-4">
+          <div className="relative text-white p-3 xs:p-4 sm:p-5 rounded-xl xs:rounded-2xl shadow-xl" style={{ backgroundColor: "#344256" }}>
+            <div className="flex items-center justify-center gap-2 mb-1 flex-wrap">
+              <div className="p-1 xs:p-1.5 bg-white/20 rounded-full">
+                <ClipboardCheck className="h-4 w-4 xs:h-5 xs:w-5" />
               </div>
-              <DialogDescription className="text-white/80 text-xs xs:text-sm sm:text-base md:text-lg mt-1 xs:mt-1.5">
-                {showResult ? "Voici vos résultats détaillés" : `Question ${currentQuestion + 1} sur ${selectedQuestions.length}`}
-              </DialogDescription>
+              <DialogTitle className="text-sm xs:text-base sm:text-lg md:text-2xl font-bold leading-tight">
+                {tab === 'admin' ? 'Gestion des questions' : showResult ? 'Résultats du Questionnaire' : 'Questionnaire de Sécurité SAR'}
+              </DialogTitle>
+              {isAdmin && (
+                <button
+                  onClick={() => setTab(t => t === 'admin' ? 'quiz' : 'admin')}
+                  className="ml-auto p-1.5 rounded-lg bg-white/20 hover:bg-white/30 transition-colors"
+                  title={tab === 'admin' ? 'Voir le quiz' : 'Gérer les questions'}
+                >
+                  {tab === 'admin' ? <ClipboardCheck className="h-4 w-4" /> : <Settings className="h-4 w-4" />}
+                </button>
+              )}
             </div>
+            <DialogDescription className="text-white/80 text-xs xs:text-sm mt-1">
+              {tab === 'admin'
+                ? 'Ajouter, modifier ou supprimer des questions'
+                : showResult
+                  ? 'Voici vos résultats détaillés'
+                  : loading
+                    ? 'Chargement des questions...'
+                    : `Question ${currentQuestion + 1} sur ${selectedQuestions.length}`
+              }
+            </DialogDescription>
           </div>
         </DialogHeader>
 
-        {!showResult && currentQ ? (
-          <div className="space-y-3 xs:space-y-4 sm:space-y-5 md:space-y-6 lg:space-y-8 py-3 xs:py-4 sm:py-5 md:py-6">
-            {/* Barre de progression - Responsive */}
-            <div className="w-full bg-slate-200 rounded-full h-1 xs:h-1.5 sm:h-2 mb-3 xs:mb-4 sm:mb-5 md:mb-6">
-              <div 
-                className="h-1 xs:h-1.5 sm:h-2 rounded-full transition-all duration-500 ease-out"
-                style={{ 
-                  width: `${((currentQuestion + 1) / selectedQuestions.length) * 100}%`,
-                  backgroundColor: "#344256"
-                }}
-              />
-            </div>
-
-            {/* Source de la question - Responsive */}
-            <div className="rounded-lg xs:rounded-xl p-2.5 xs:p-3 sm:p-4 shadow-sm" style={{ backgroundColor: "#344256", color: "white" }}>
-              <div className="flex items-center gap-1.5 xs:gap-2">
-                <div className="w-1 h-1 xs:w-1.5 xs:h-1.5 sm:w-2 sm:h-2 bg-white rounded-full flex-shrink-0"></div>
-                <p className="text-[10px] xs:text-xs sm:text-sm font-semibold break-words">
-                  Source : {currentQ.source}
-                </p>
-              </div>
-            </div>
-
-            {/* Question - Responsive */}
-            <div className="bg-white rounded-xl xs:rounded-2xl p-3 xs:p-4 sm:p-5 md:p-6 lg:p-8 shadow-lg border border-slate-200">
-              <h3 className="text-sm xs:text-base sm:text-lg md:text-xl lg:text-2xl font-bold text-slate-800 text-balance leading-relaxed mb-3 xs:mb-4 sm:mb-5 md:mb-6">
-                {currentQ.question}
-              </h3>
-
-              <RadioGroup
-                value={selectedAnswer || ""}
-                onValueChange={setSelectedAnswer}
-                className="space-y-1.5 xs:space-y-2 sm:space-y-2.5 md:space-y-3"
-              >
-                {currentQ.options.map((option, index) => (
-                  <div
-                    key={index}
-                    className="group flex items-start xs:items-center space-x-2 xs:space-x-3 sm:space-x-4 p-2.5 xs:p-3 sm:p-4 md:p-5 rounded-lg xs:rounded-xl sm:hover:bg-gradient-to-r sm:hover:from-blue-50 sm:hover:to-indigo-50 transition-all duration-300 border border-slate-200 sm:hover:border-blue-300 sm:hover:shadow-md cursor-pointer active:bg-blue-50 touch-manipulation"
-                  >
-                    <RadioGroupItem 
-                      value={option} 
-                      id={`option-${index}`}
-                      className="w-3.5 h-3.5 xs:w-4 xs:h-4 sm:w-5 sm:h-5 border-2 border-slate-300 sm:group-hover:border-slate-500 flex-shrink-0 mt-0.5 xs:mt-0"
-                      style={{ color: "#344256" }}
-                    />
-                    <Label
-                      htmlFor={`option-${index}`}
-                      className="flex-1 cursor-pointer text-xs xs:text-sm sm:text-base md:text-lg leading-relaxed text-slate-700 sm:group-hover:text-slate-800 font-medium break-words"
-                    >
-                      {option}
-                    </Label>
-                  </div>
-                ))}
-              </RadioGroup>
-            </div>
+        {/* Contenu admin */}
+        {tab === 'admin' && (
+          <div className="py-2">
+            <AdminPanel
+              questions={questions}
+              onCreateQuestion={handleAdminCreate}
+              onUpdateQuestion={handleAdminUpdate}
+              onDeleteQuestion={handleAdminDelete}
+            />
           </div>
-        ) : showResult ? (
-          <div className="space-y-3 xs:space-y-4 sm:space-y-5 md:space-y-6 lg:space-y-8 py-3 xs:py-4 sm:py-5 md:py-6">
-            {/* Résultats principaux - Responsive */}
-            <div className="text-center bg-gradient-to-br from-white to-slate-50 rounded-xl xs:rounded-2xl p-3 xs:p-4 sm:p-5 md:p-6 lg:p-8 shadow-lg border border-slate-200">
-              <div className="text-3xl xs:text-4xl sm:text-5xl md:text-6xl lg:text-8xl mb-3 xs:mb-4 sm:mb-5 md:mb-6">
-                {getEmotionEmoji(score)}
+        )}
+
+        {/* Contenu quiz */}
+        {tab === 'quiz' && (
+          <>
+            {loading && (
+              <div className="flex justify-center py-16">
+                <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary" />
               </div>
-              <h3 className="text-2xl xs:text-3xl sm:text-4xl md:text-5xl font-bold text-slate-800 mb-2 xs:mb-3 sm:mb-4">
-                {score} / 10
-              </h3>
-              <p className="text-slate-600 text-xs xs:text-sm sm:text-base md:text-lg lg:text-xl leading-relaxed mb-4 xs:mb-5 sm:mb-6 md:mb-8 px-2">
-                {getEncouragementMessage(score)}
-              </p>
-              
-              {/* Barre de score visuelle - Responsive */}
-              <div className="w-full bg-slate-200 rounded-full h-2 xs:h-2.5 sm:h-3 md:h-4 mb-3 xs:mb-4 sm:mb-5 md:mb-6">
-                <div 
-                  className={`h-2 xs:h-2.5 sm:h-3 md:h-4 rounded-full transition-all duration-1000 ease-out ${
-                    score >= 8 ? 'bg-gradient-to-r from-green-500 to-green-600' :
-                    score >= 6 ? 'bg-gradient-to-r from-yellow-500 to-orange-500' :
-                    'bg-gradient-to-r from-red-500 to-red-600'
-                  }`}
-                  style={{ width: `${(score / 10) * 100}%` }}
-                />
+            )}
+
+            {!loading && error && (
+              <div className="text-center py-10 text-red-500 text-sm">{error}</div>
+            )}
+
+            {!loading && !error && selectedQuestions.length === 0 && (
+              <div className="text-center py-10 text-gray-400 text-sm">
+                Aucune question disponible.
+                {isAdmin && ' Ajoutez des questions via l\'onglet de gestion.'}
               </div>
-            </div>
-            
-            {/* Détail des réponses - Responsive */}
-            <div className="bg-gradient-to-br from-slate-50 to-white border border-slate-200 rounded-xl xs:rounded-2xl p-3 xs:p-4 sm:p-5 md:p-6 shadow-lg">
-              <h4 className="text-base xs:text-lg sm:text-xl md:text-2xl font-bold text-slate-800 mb-3 xs:mb-4 sm:mb-5 md:mb-6 flex items-center gap-1.5 xs:gap-2 sm:gap-2.5 md:gap-3">
-                <ClipboardCheck className="h-4 w-4 xs:h-4.5 xs:w-4.5 sm:h-5 sm:w-5 md:h-6 md:w-6 text-blue-600 flex-shrink-0" />
-                <span>Détail des réponses</span>
-              </h4>
-              <div className="space-y-2.5 xs:space-y-3 sm:space-y-3.5 md:space-y-4">
-                {selectedQuestions.map((question, qIndex) => {
-                  const userAnswer = answers[qIndex]
-                  const correct = isCorrect[qIndex]
-                  return (
+            )}
+
+            {!loading && !error && !showResult && currentQ && (
+              <div className="space-y-4 py-3 xs:py-4">
+                {/* Barre de progression */}
+                <div className="w-full bg-slate-200 rounded-full h-1.5">
+                  <div
+                    className="h-1.5 rounded-full transition-all duration-500"
+                    style={{ width: `${((currentQuestion + 1) / selectedQuestions.length) * 100}%`, backgroundColor: "#344256" }}
+                  />
+                </div>
+
+                {currentQ.source && (
+                  <div className="rounded-lg p-2.5 text-xs font-semibold text-white flex items-center gap-2" style={{ backgroundColor: "#344256" }}>
+                    <div className="w-1.5 h-1.5 bg-white rounded-full flex-shrink-0" />
+                    Source : {currentQ.source}
+                  </div>
+                )}
+
+                <div className="bg-white rounded-xl p-4 sm:p-6 shadow-lg border border-slate-200">
+                  <h3 className="text-sm xs:text-base sm:text-lg font-bold text-slate-800 leading-relaxed mb-4">
+                    {currentQ.question}
+                  </h3>
+                  <RadioGroup
+                    value={selectedAnswer !== null ? String(selectedAnswer) : ""}
+                    onValueChange={v => setSelectedAnswer(parseInt(v))}
+                    className="space-y-2"
+                  >
+                    {currentQ.options.map((option, index) => (
+                      <div
+                        key={option.id}
+                        className="group flex items-start xs:items-center space-x-3 p-3 rounded-xl border border-slate-200 hover:border-blue-300 hover:bg-blue-50 transition-all duration-200 cursor-pointer"
+                      >
+                        <RadioGroupItem
+                          value={String(index)}
+                          id={`option-${index}`}
+                          className="w-4 h-4 border-2 border-slate-300 flex-shrink-0 mt-0.5 xs:mt-0"
+                          style={{ color: "#344256" }}
+                        />
+                        <Label htmlFor={`option-${index}`} className="flex-1 cursor-pointer text-sm text-slate-700 font-medium">
+                          {option.text}
+                        </Label>
+                      </div>
+                    ))}
+                  </RadioGroup>
+                </div>
+              </div>
+            )}
+
+            {!loading && !error && showResult && (
+              <div className="space-y-4 py-3 xs:py-4">
+                <div className="text-center bg-white rounded-xl p-6 shadow-lg border border-slate-200">
+                  <div className="text-5xl mb-4">{getEmotionEmoji(score)}</div>
+                  <h3 className="text-3xl font-bold text-slate-800 mb-2">{score} / {selectedQuestions.length}</h3>
+                  <p className="text-slate-600 text-sm leading-relaxed mb-4">{getEncouragementMessage(score)}</p>
+                  <div className="w-full bg-slate-200 rounded-full h-3">
                     <div
-                      key={qIndex}
-                      className={`p-2.5 xs:p-3 sm:p-4 md:p-5 lg:p-6 rounded-lg xs:rounded-xl border-2 transition-all duration-300 sm:hover:shadow-md ${
-                        correct 
-                          ? "border-green-200 bg-gradient-to-r from-green-50 to-green-100/50" 
-                          : "border-red-200 bg-gradient-to-r from-red-50 to-red-100/50"
-                      }`}
-                    >
-                      <div className="flex items-start gap-2 xs:gap-2.5 sm:gap-3 md:gap-4">
-                        <div className={`p-1 xs:p-1.5 sm:p-2 rounded-full flex-shrink-0 ${
-                          correct ? 'bg-green-100' : 'bg-red-100'
-                        }`}>
-                          {correct ? (
-                            <CheckCircle2 className="h-3.5 w-3.5 xs:h-4 xs:w-4 sm:h-5 sm:w-5 md:h-6 md:w-6 text-green-600" strokeWidth={2.5} />
-                          ) : (
-                            <XCircle className="h-3.5 w-3.5 xs:h-4 xs:w-4 sm:h-5 sm:w-5 md:h-6 md:w-6 text-red-600" strokeWidth={2.5} />
-                          )}
-                        </div>
-                        <div className="flex-1 min-w-0">
-                          <p className="font-bold text-xs xs:text-sm sm:text-base md:text-lg text-slate-800 mb-1.5 xs:mb-2">Question {qIndex + 1}</p>
-                          <p className="text-slate-700 mb-2 xs:mb-2.5 sm:mb-3 md:mb-4 font-medium text-xs xs:text-sm sm:text-base break-words">{question.question}</p>
-                          <div className="space-y-1.5 xs:space-y-2">
-                            <p className="text-[10px] xs:text-xs sm:text-sm text-slate-600 break-words">
-                              <span className="font-semibold">Votre réponse :</span> {userAnswer}
-                            </p>
-                            {!correct && (
-                              <p className="text-[10px] xs:text-xs sm:text-sm text-green-700 font-medium break-words">
-                                <span className="font-semibold">Bonne réponse :</span> {question.answer}
+                      className={`h-3 rounded-full transition-all duration-1000 ${score >= 8 ? 'bg-green-500' : score >= 6 ? 'bg-yellow-500' : 'bg-red-500'}`}
+                      style={{ width: `${(score / selectedQuestions.length) * 100}%` }}
+                    />
+                  </div>
+                </div>
+
+                <div className="bg-white rounded-xl p-4 shadow-lg border border-slate-200">
+                  <h4 className="text-base font-bold text-slate-800 mb-4 flex items-center gap-2">
+                    <ClipboardCheck className="h-5 w-5 text-blue-600" /> Détail des réponses
+                  </h4>
+                  <div className="space-y-3">
+                    {selectedQuestions.map((q, qi) => {
+                      const correct = isCorrect[qi]
+                      const chosenIndex = answers[qi]
+                      const correctOption = q.options.find(o => o.is_correct)
+                      return (
+                        <div key={q.id} className={`p-3 rounded-xl border-2 ${correct ? 'border-green-200 bg-green-50' : 'border-red-200 bg-red-50'}`}>
+                          <div className="flex items-start gap-3">
+                            <div className={`p-1.5 rounded-full flex-shrink-0 ${correct ? 'bg-green-100' : 'bg-red-100'}`}>
+                              {correct
+                                ? <CheckCircle2 className="h-4 w-4 text-green-600" />
+                                : <XCircle className="h-4 w-4 text-red-600" />
+                              }
+                            </div>
+                            <div className="flex-1 min-w-0">
+                              <p className="font-bold text-xs text-slate-800 mb-1">Question {qi + 1}</p>
+                              <p className="text-slate-700 text-xs mb-2 font-medium">{q.question}</p>
+                              <p className="text-xs text-slate-600">
+                                <span className="font-semibold">Votre réponse :</span>{' '}
+                                {chosenIndex !== undefined ? q.options[chosenIndex]?.text : '—'}
                               </p>
-                            )}
-                            <p className="text-[10px] xs:text-xs sm:text-sm text-slate-500 italic bg-slate-100 p-1.5 xs:p-2 sm:p-2.5 md:p-3 rounded-lg break-words">
-                              <span className="font-semibold">Explication :</span> {question.explanation}
-                            </p>
+                              {!correct && correctOption && (
+                                <p className="text-xs text-green-700 font-medium mt-0.5">
+                                  <span className="font-semibold">Bonne réponse :</span> {correctOption.text}
+                                </p>
+                              )}
+                              {q.explanation && (
+                                <p className="text-xs text-slate-500 italic bg-slate-100 p-2 rounded-lg mt-1">
+                                  <span className="font-semibold">Explication :</span> {q.explanation}
+                                </p>
+                              )}
+                            </div>
                           </div>
                         </div>
-                      </div>
-                    </div>
-                  )
-                })}
+                      )
+                    })}
+                  </div>
+                </div>
               </div>
-            </div>
-          </div>
-        ) : null}
+            )}
 
-        <DialogFooter className="gap-1.5 xs:gap-2 sm:gap-3 md:gap-4 pt-3 xs:pt-4 sm:pt-5 md:pt-6 flex-col xs:flex-row flex-wrap">
-          {!showResult ? (
-            <>
-              <Button 
-                variant="outline" 
-                onClick={handleClose} 
-                className="font-semibold px-3 py-1.5 xs:px-4 xs:py-2 sm:px-5 sm:py-2.5 md:px-6 md:py-3 border-2 border-slate-300 sm:hover:border-slate-400 sm:hover:bg-slate-50 active:bg-slate-100 transition-all duration-300 text-xs xs:text-sm sm:text-base w-full xs:w-auto touch-manipulation"
-              >
-                Annuler
-              </Button>
-              
-              {currentQuestion > 0 && (
-                <Button
-                  onClick={handlePrevious}
-                  variant="outline"
-                  className="font-semibold px-3 py-1.5 xs:px-4 xs:py-2 sm:px-5 sm:py-2.5 md:px-6 md:py-3 border-2 text-slate-600 sm:hover:bg-slate-50 active:bg-slate-100 transition-all duration-300 flex items-center justify-center gap-1.5 xs:gap-2 text-xs xs:text-sm sm:text-base w-full xs:w-auto touch-manipulation"
-                >
-                  <ChevronLeft className="h-3 w-3 xs:h-3.5 xs:w-3.5 sm:h-4 sm:w-4" />
-                  Précédent
-                </Button>
-              )}
-              
-              <Button
-                onClick={handleNext}
-                disabled={selectedAnswer === null}
-                className="text-white font-semibold px-3 py-1.5 xs:px-4 xs:py-2 sm:px-5 sm:py-2.5 md:px-6 md:py-3 shadow-lg sm:hover:shadow-xl transition-all duration-300 disabled:opacity-50 disabled:cursor-not-allowed active:scale-95 flex items-center justify-center gap-1.5 xs:gap-2 text-xs xs:text-sm sm:text-base w-full xs:w-auto touch-manipulation"
-                style={{ backgroundColor: "#344256" }}
-                onMouseEnter={(e) => {
-                  if (typeof window !== 'undefined' && window.innerWidth >= 640) {
-                    e.currentTarget.style.backgroundColor = "#2a3441"
-                  }
-                }}
-                onMouseLeave={(e) => {
-                  if (typeof window !== 'undefined' && window.innerWidth >= 640) {
-                    e.currentTarget.style.backgroundColor = "#344256"
-                  }
-                }}
-              >
-                {currentQuestion < selectedQuestions.length - 1 ? (
+            {/* Footer quiz */}
+            {!loading && !error && selectedQuestions.length > 0 && (
+              <DialogFooter className="gap-2 pt-3 flex-col xs:flex-row flex-wrap">
+                {!showResult ? (
                   <>
-                    Suivant
-                    <ChevronRight className="h-3 w-3 xs:h-3.5 xs:w-3.5 sm:h-4 sm:w-4" />
+                    <Button variant="outline" onClick={() => onOpenChange(false)} className="w-full xs:w-auto text-xs xs:text-sm">
+                      Annuler
+                    </Button>
+                    {currentQuestion > 0 && (
+                      <Button variant="outline" onClick={handlePrevious} className="w-full xs:w-auto text-xs xs:text-sm">
+                        <ChevronLeft className="h-3.5 w-3.5 mr-1" /> Précédent
+                      </Button>
+                    )}
+                    <Button
+                      onClick={handleNext}
+                      disabled={selectedAnswer === null}
+                      style={{ backgroundColor: "#344256" }}
+                      className="text-white w-full xs:w-auto text-xs xs:text-sm"
+                    >
+                      {currentQuestion < selectedQuestions.length - 1 ? (
+                        <>Suivant <ChevronRight className="h-3.5 w-3.5 ml-1" /></>
+                      ) : (
+                        <>Terminer <CheckCircle2 className="h-3.5 w-3.5 ml-1" /></>
+                      )}
+                    </Button>
                   </>
                 ) : (
                   <>
-                    Terminer
-                    <CheckCircle2 className="h-3 w-3 xs:h-3.5 xs:w-3.5 sm:h-4 sm:w-4" />
+                    <Button variant="outline" onClick={handleReset} className="w-full xs:w-auto text-xs xs:text-sm text-blue-600 border-blue-300 hover:bg-blue-50">
+                      <RotateCcw className="h-3.5 w-3.5 mr-1" /> Nouveau Quiz
+                    </Button>
+                    <Button onClick={() => onOpenChange(false)} className="bg-green-600 hover:bg-green-700 text-white w-full xs:w-auto text-xs xs:text-sm">
+                      <CheckCircle2 className="h-3.5 w-3.5 mr-1" /> Fermer
+                    </Button>
                   </>
                 )}
-              </Button>
-            </>
-          ) : (
-            <>
-              <Button 
-                variant="outline" 
-                onClick={handleReset} 
-                className="font-semibold px-3 py-1.5 xs:px-4 xs:py-2 sm:px-5 sm:py-2.5 md:px-6 md:py-3 border-2 border-blue-300 text-blue-600 sm:hover:bg-blue-50 sm:hover:border-blue-400 active:bg-blue-100 transition-all duration-300 flex items-center justify-center gap-1.5 xs:gap-2 text-xs xs:text-sm sm:text-base w-full xs:w-auto touch-manipulation"
-              >
-                <RotateCcw className="h-3 w-3 xs:h-3.5 xs:w-3.5 sm:h-4 sm:w-4" />
-                Nouveau Quiz
-              </Button>
-              <Button
-                onClick={handleClose}
-                className="bg-gradient-to-r from-green-600 to-green-700 sm:hover:from-green-700 sm:hover:to-green-800 text-white font-semibold px-3 py-1.5 xs:px-4 xs:py-2 sm:px-5 sm:py-2.5 md:px-6 md:py-3 shadow-lg sm:hover:shadow-xl active:scale-95 transition-all duration-300 flex items-center justify-center gap-1.5 xs:gap-2 text-xs xs:text-sm sm:text-base w-full xs:w-auto touch-manipulation"
-              >
-                <CheckCircle2 className="h-3 w-3 xs:h-3.5 xs:w-3.5 sm:h-4 sm:w-4" />
-                Fermer
-              </Button>
-            </>
-          )}
-        </DialogFooter>
+              </DialogFooter>
+            )}
+          </>
+        )}
+
       </DialogContent>
     </Dialog>
   )

@@ -107,7 +107,8 @@ export function UploadDialog({ open, onOpenChange, onUpload }: UploadDialogProps
                 ou glissez-déposez vos fichiers ici
               </p>
             </div>
-            <input ref={fileInputRef} type="file" multiple className="hidden" onChange={handleFileSelect} />
+            <input ref={fileInputRef} type="file" multiple className="hidden" onChange={handleFileSelect}
+              accept=".pdf,.doc,.docx,.xls,.xlsx,.ppt,.pptx,.txt,.csv,.jpg,.jpeg,.png,.gif,.webp,.bmp,.svg,.mp4,.webm,.ogg,.mov,.avi,.mkv,.m4v" />
           </div>
 
           {selectedFiles.length > 0 && (

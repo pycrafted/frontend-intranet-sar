@@ -80,12 +80,17 @@ export function CountdownWidget() {
 
   if (!nextEvent) {
     return (
-      <Card className="h-[28rem] flex flex-col">
-        <CardHeader className="pb-3 flex-shrink-0">
-          <CardTitle className="text-lg font-semibold flex items-center gap-2">
-            <Clock className="h-5 w-5 text-blue-600" />
-            Aucun événement à venir
-          </CardTitle>
+      <Card className="h-[26rem] sm:h-[28rem] flex flex-col border-0">
+        <CardHeader className="pb-2 pt-4 px-5 flex-shrink-0 relative z-10">
+          <div className="flex items-center gap-3">
+            <div className="p-2.5 rounded-xl bg-gradient-to-br from-blue-500 to-indigo-600 shadow-lg">
+              <Clock className="h-5 w-5 text-white" />
+            </div>
+            <div>
+              <CardTitle className="text-sm font-bold text-slate-800 leading-tight">Événement à venir</CardTitle>
+              <p className="text-xs text-slate-500 mt-0.5">Aucun événement planifié</p>
+            </div>
+          </div>
         </CardHeader>
         <CardContent className="flex-1 flex flex-col justify-center">
           <div className="text-center py-8">
@@ -98,16 +103,21 @@ export function CountdownWidget() {
   }
 
   return (
-    <Card className={`h-[28rem] flex flex-col overflow-hidden ${isEventSoon() ? 'ring-2 ring-orange-200' : ''}`}>
-      <CardHeader className="pb-3 flex-shrink-0">
-        <div className="flex items-center justify-between">
-          <CardTitle className="text-lg font-semibold flex items-center gap-2">
-            <Clock className="h-5 w-5 text-blue-600" />
-            Événement à venir dans {countdown.days} jours
-          </CardTitle>
-          <Badge 
-            variant="outline" 
-            className={`${getPriorityColor(nextEvent.priority)} text-white border-0`}
+    <Card className={`h-[26rem] sm:h-[28rem] flex flex-col overflow-hidden border-0 hover:shadow-2xl transition-all duration-500 group ${isEventSoon() ? 'ring-2 ring-orange-200' : ''}`}>
+      <CardHeader className="pb-2 pt-4 px-5 flex-shrink-0 relative z-10">
+        <div className="flex items-center justify-between gap-3">
+          <div className="flex items-center gap-3">
+            <div className="p-2.5 rounded-xl bg-gradient-to-br from-blue-500 to-indigo-600 shadow-lg group-hover:shadow-blue-300/50 group-hover:scale-105 transition-all duration-300">
+              <Clock className="h-5 w-5 text-white" />
+            </div>
+            <div>
+              <CardTitle className="text-sm font-bold text-slate-800 leading-tight">Événement à venir</CardTitle>
+              <p className="text-xs text-slate-500 mt-0.5">dans {countdown.days} jour{countdown.days > 1 ? 's' : ''}</p>
+            </div>
+          </div>
+          <Badge
+            variant="outline"
+            className={`${getPriorityColor(nextEvent.priority)} text-white border-0 flex-shrink-0`}
           >
             {nextEvent.priority}
           </Badge>

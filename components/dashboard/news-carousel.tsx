@@ -2,12 +2,21 @@
 
 import { useState, useEffect, useRef, useCallback } from "react"
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
-import { Badge } from "@/components/ui/badge"
 import { Button } from "@/components/ui/button"
-import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar"
-import { Newspaper, Clock, User, ExternalLink, ChevronLeft, ChevronRight } from "lucide-react"
+import { Newspaper, ExternalLink, ChevronLeft, ChevronRight } from "lucide-react"
 import { useArticles } from "@/hooks/useArticles"
+import { useLinkedInActualites, LinkedInActualite } from "@/hooks/useLinkedInActualites"
+import LinkedInModal from "@/components/linkedin-modal"
 import Link from "next/link"
+
+const GENERIC_IMG = "/media/generique.jpg"
+
+type SlideItem = {
+  id: number | string
+  imageUrl: string | null
+  summary: string
+  linkedInItem?: LinkedInActualite
+}
 
 interface NewsCarouselProps {
   autoScrollInterval?: number
@@ -15,204 +24,128 @@ interface NewsCarouselProps {
 }
 
 export function NewsCarousel({ autoScrollInterval = 4000, className = "" }: NewsCarouselProps) {
-  const { articles, loading, error } = useArticles({
-    type: 'news',
-    pageSize: 10
-  })
-
+  const { articles: regularArticles, loading: loadingRegular } = useArticles({ type: 'news', pageSize: 10 })
+  const { items: linkedInItems, loading: loadingLinkedIn } = useLinkedInActualites()
+  const [modalItem, setModalItem] = useState<LinkedInActualite | null>(null)
   const [currentIndex, setCurrentIndex] = useState(0)
   const [isPaused, setIsPaused] = useState(false)
   const [isHovered, setIsHovered] = useState(false)
+  const [touchStart, setTouchStart] = useState<number | null>(null)
+  const [touchEnd, setTouchEnd] = useState<number | null>(null)
   const intervalRef = useRef<NodeJS.Timeout | null>(null)
   const carouselRef = useRef<HTMLDivElement>(null)
 
-  // Trier les articles par date (plus récent en premier)
-  const sortedArticles = articles
-    .sort((a, b) => new Date(b.date).getTime() - new Date(a.date).getTime())
-    .slice(0, 5) // Limiter à 5 articles pour le carrousel
+  const loading = loadingLinkedIn || loadingRegular
 
-  const formatDate = (dateString: string) => {
-    const date = new Date(dateString)
-    const now = new Date()
-    const diffTime = now.getTime() - date.getTime()
-    const diffDays = Math.floor(diffTime / (1000 * 60 * 60 * 24))
-    
-    if (diffDays === 0) return "Aujourd'hui"
-    if (diffDays === 1) return "Hier"
-    if (diffDays < 7) return `Il y a ${diffDays} jours`
-    
-    return date.toLocaleDateString('fr-FR', {
-      day: 'numeric',
-      month: 'short'
-    })
-  }
+  // LinkedIn posts en priorité, fallback sur articles réguliers
+  const hasLinkedIn = linkedInItems.length > 0
 
-  // Fonction pour créer un résumé du contenu
-  const getSummary = (content: string, maxLength: number = 150) => {
-    if (!content) return ''
-    // Nettoyer le contenu HTML si présent
-    const textContent = content.replace(/<[^>]*>/g, '').trim()
-    if (textContent.length <= maxLength) return textContent
-    // Tronquer au dernier espace avant la limite pour éviter de couper un mot
-    const truncated = textContent.substring(0, maxLength)
+  const sortedArticles: SlideItem[] = hasLinkedIn
+    ? linkedInItems.slice(0, 10).map(item => ({
+        id: item.id,
+        imageUrl: item.image_url || GENERIC_IMG,
+        summary: item.content.replace(/\n+/g, ' ').trim(),
+        linkedInItem: item,
+      }))
+    : regularArticles
+        .sort((a, b) => new Date(b.date).getTime() - new Date(a.date).getTime())
+        .slice(0, 10)
+        .map(a => ({
+          id: a.id,
+          imageUrl: a.image_url || null,
+          summary: (a.content || a.title || '').replace(/<[^>]*>/g, '').trim(),
+        }))
+
+  const getSummary = (text: string, max = 150) => {
+    const clean = text.replace(/<[^>]*>/g, '').trim()
+    if (clean.length <= max) return clean
+    const truncated = clean.substring(0, max)
     const lastSpace = truncated.lastIndexOf(' ')
-    return lastSpace > 0 
-      ? truncated.substring(0, lastSpace) + '...'
-      : truncated + '...'
-  }
-
-
-  const getInitials = (name: string | null | undefined) => {
-    if (!name || typeof name !== 'string') {
-      return '??'
-    }
-    return name
-      .split(' ')
-      .map(word => word.charAt(0))
-      .join('')
-      .toUpperCase()
-      .slice(0, 2)
+    return (lastSpace > 0 ? truncated.substring(0, lastSpace) : truncated) + '...'
   }
 
   // Navigation
   const goToNext = useCallback(() => {
-    setCurrentIndex((prevIndex) => 
-      prevIndex === sortedArticles.length - 1 ? 0 : prevIndex + 1
-    )
+    setCurrentIndex(prev => (prev === sortedArticles.length - 1 ? 0 : prev + 1))
   }, [sortedArticles.length])
 
   const goToPrevious = useCallback(() => {
-    setCurrentIndex((prevIndex) => 
-      prevIndex === 0 ? sortedArticles.length - 1 : prevIndex - 1
-    )
+    setCurrentIndex(prev => (prev === 0 ? sortedArticles.length - 1 : prev - 1))
   }, [sortedArticles.length])
 
-  const goToSlide = (index: number) => {
-    setCurrentIndex(index)
-  }
-
-  // Gestion du défilement automatique
+// Auto-scroll
   useEffect(() => {
     if (sortedArticles.length <= 1 || isPaused || isHovered) return
-
     intervalRef.current = setInterval(goToNext, autoScrollInterval)
-
-    return () => {
-      if (intervalRef.current) {
-        clearInterval(intervalRef.current)
-      }
-    }
+    return () => { if (intervalRef.current) clearInterval(intervalRef.current) }
   }, [sortedArticles.length, isPaused, isHovered, autoScrollInterval, goToNext])
 
-  // Gestion des événements clavier
+  // Clavier
   useEffect(() => {
-    const handleKeyDown = (event: KeyboardEvent) => {
-      if (event.key === 'ArrowLeft') {
-        event.preventDefault()
-        goToPrevious()
-      } else if (event.key === 'ArrowRight') {
-        event.preventDefault()
-        goToNext()
-      }
+    const handleKeyDown = (e: KeyboardEvent) => {
+      if (e.key === 'ArrowLeft') { e.preventDefault(); goToPrevious() }
+      else if (e.key === 'ArrowRight') { e.preventDefault(); goToNext() }
     }
-
-    if (carouselRef.current) {
-      carouselRef.current.addEventListener('keydown', handleKeyDown)
-    }
-
-    return () => {
-      if (carouselRef.current) {
-        carouselRef.current.removeEventListener('keydown', handleKeyDown)
-      }
-    }
+    const el = carouselRef.current
+    if (el) el.addEventListener('keydown', handleKeyDown)
+    return () => { if (el) el.removeEventListener('keydown', handleKeyDown) }
   }, [goToNext, goToPrevious])
 
-  // Gestion du swipe sur mobile
-  const [touchStart, setTouchStart] = useState<number | null>(null)
-  const [touchEnd, setTouchEnd] = useState<number | null>(null)
-
+  // Swipe mobile
   const handleTouchStart = (e: React.TouchEvent) => {
     setTouchEnd(null)
     setTouchStart(e.targetTouches[0].clientX)
   }
-
-  const handleTouchMove = (e: React.TouchEvent) => {
-    setTouchEnd(e.targetTouches[0].clientX)
-  }
-
+  const handleTouchMove = (e: React.TouchEvent) => setTouchEnd(e.targetTouches[0].clientX)
   const handleTouchEnd = () => {
     if (!touchStart || !touchEnd) return
-    
-    const distance = touchStart - touchEnd
-    const isLeftSwipe = distance > 50
-    const isRightSwipe = distance < -50
-
-    if (isLeftSwipe) {
-      goToNext()
-    } else if (isRightSwipe) {
-      goToPrevious()
-    }
+    const dist = touchStart - touchEnd
+    if (dist > 50) goToNext()
+    else if (dist < -50) goToPrevious()
   }
 
+  // ── État loading ──────────────────────────────────────────────────────────
   if (loading) {
     return (
       <Card className={`h-[26rem] sm:h-[28rem] lg:h-[28rem] flex flex-col ${className}`}>
-        <CardHeader className="pb-2 sm:pb-3 flex-shrink-0 p-2 sm:p-3 md:p-6">
-          <CardTitle className="text-base sm:text-lg font-semibold flex items-center gap-2">
-            <Newspaper className="h-4 w-4 sm:h-5 sm:w-5 text-blue-600" />
-            Actualités
-          </CardTitle>
+        <CardHeader className="pb-2 pt-4 px-5 flex-shrink-0">
+          <div className="flex items-center gap-3">
+            <div className="p-2.5 rounded-xl bg-white border border-slate-200 shadow-sm">
+              <Newspaper className="h-5 w-5 text-slate-800" />
+            </div>
+            <div>
+              <CardTitle className="text-sm font-bold text-slate-800 leading-tight">Actualités</CardTitle>
+              <p className="text-xs text-slate-500 mt-0.5">Dernières nouvelles SAR</p>
+            </div>
+          </div>
         </CardHeader>
         <CardContent className="flex-1 flex flex-col justify-center p-3 sm:p-6">
           <div className="space-y-3 sm:space-y-4">
-            {[...Array(1)].map((_, i) => (
-              <div key={i} className="animate-pulse">
-                <div className="h-3 sm:h-4 bg-gray-200 rounded w-3/4 mb-2" />
-                <div className="h-2 sm:h-3 bg-gray-200 rounded w-1/2 mb-2 sm:mb-3" />
-                <div className="h-2 sm:h-3 bg-gray-200 rounded w-full" />
-              </div>
-            ))}
+            <div className="animate-pulse">
+              <div className="h-3 sm:h-4 bg-gray-200 rounded w-3/4 mb-2" />
+              <div className="h-2 sm:h-3 bg-gray-200 rounded w-1/2 mb-2 sm:mb-3" />
+              <div className="h-2 sm:h-3 bg-gray-200 rounded w-full" />
+            </div>
           </div>
         </CardContent>
       </Card>
     )
   }
 
-  if (error) {
-    return (
-      <Card className={`h-[26rem] sm:h-[28rem] lg:h-[28rem] flex flex-col ${className}`}>
-        <CardHeader className="pb-2 sm:pb-3 flex-shrink-0 p-2 sm:p-3 md:p-6">
-          <CardTitle className="text-base sm:text-lg font-semibold flex items-center gap-2">
-            <Newspaper className="h-4 w-4 sm:h-5 sm:w-5 text-blue-600" />
-            Actualités
-          </CardTitle>
-        </CardHeader>
-        <CardContent className="flex-1 flex flex-col justify-center p-3 sm:p-6">
-          <div className="text-center py-4 sm:py-6">
-            <div className="text-red-500 mb-2 text-2xl sm:text-3xl">⚠️</div>
-            <p className="text-xs sm:text-sm text-gray-500 mb-3">Erreur lors du chargement</p>
-            <Button 
-              variant="outline" 
-              size="sm" 
-              className="text-xs sm:text-sm"
-              onClick={() => window.location.reload()}
-            >
-              Réessayer
-            </Button>
-          </div>
-        </CardContent>
-      </Card>
-    )
-  }
-
+  // ── État vide ─────────────────────────────────────────────────────────────
   if (sortedArticles.length === 0) {
     return (
       <Card className={`h-[26rem] sm:h-[28rem] lg:h-[28rem] flex flex-col ${className}`}>
-        <CardHeader className="pb-2 sm:pb-3 flex-shrink-0 p-2 sm:p-3 md:p-6">
-          <CardTitle className="text-base sm:text-lg font-semibold flex items-center gap-2">
-            <Newspaper className="h-4 w-4 sm:h-5 sm:w-5 text-blue-600" />
-            Actualités
-          </CardTitle>
+        <CardHeader className="pb-2 pt-4 px-5 flex-shrink-0">
+          <div className="flex items-center gap-3">
+            <div className="p-2.5 rounded-xl bg-white border border-slate-200 shadow-sm">
+              <Newspaper className="h-5 w-5 text-slate-800" />
+            </div>
+            <div>
+              <CardTitle className="text-sm font-bold text-slate-800 leading-tight">Actualités</CardTitle>
+              <p className="text-xs text-slate-500 mt-0.5">Dernières nouvelles SAR</p>
+            </div>
+          </div>
         </CardHeader>
         <CardContent className="flex-1 flex flex-col justify-center p-3 sm:p-6">
           <div className="text-center py-4 sm:py-6">
@@ -224,147 +157,110 @@ export function NewsCarousel({ autoScrollInterval = 4000, className = "" }: News
     )
   }
 
-  const currentArticle = sortedArticles[currentIndex]
+  const currentSlide = sortedArticles[currentIndex]
 
+  // ── Carrousel ─────────────────────────────────────────────────────────────
   return (
-    <Card 
-      ref={carouselRef}
-      className={`h-[26rem] sm:h-[28rem] lg:h-[28rem] flex flex-col overflow-hidden relative carousel-card news-carousel-mobile ${className}`}
-      tabIndex={0}
-      onMouseEnter={() => setIsHovered(true)}
-      onMouseLeave={() => setIsHovered(false)}
-      onFocus={() => setIsPaused(true)}
-      onBlur={() => setIsPaused(false)}
-      onTouchStart={handleTouchStart}
-      onTouchMove={handleTouchMove}
-      onTouchEnd={handleTouchEnd}
-    >
-      {/* Image de fond si disponible */}
-      {currentArticle.image_url && (
-        <div className="absolute inset-0">
-          <img
-            src={currentArticle.image_url}
-            alt={currentArticle.title}
-            className="w-full h-full object-cover"
-          />
-          {/* Overlay sombre pour la lisibilité */}
-          <div className="absolute inset-0 bg-black/40" />
-        </div>
-      )}
+    <>
+      <Card
+        ref={carouselRef as React.RefObject<HTMLDivElement>}
+        className={`h-[26rem] sm:h-[28rem] lg:h-[28rem] flex flex-col overflow-hidden relative carousel-card news-carousel-mobile group ${className}`}
+        tabIndex={0}
+        onMouseEnter={() => setIsHovered(true)}
+        onMouseLeave={() => setIsHovered(false)}
+        onFocus={() => setIsPaused(true)}
+        onBlur={() => setIsPaused(false)}
+        onTouchStart={handleTouchStart}
+        onTouchMove={handleTouchMove}
+        onTouchEnd={handleTouchEnd}
+      >
+        {/* Image de fond */}
+        {currentSlide.imageUrl && (
+          <div className="absolute inset-0">
+            <img
+              src={currentSlide.imageUrl}
+              alt=""
+              className="w-full h-full object-cover"
+              onError={e => { (e.target as HTMLImageElement).src = GENERIC_IMG }}
+            />
+            <div className="absolute inset-0 bg-black/40" />
+          </div>
+        )}
 
-      {/* Contrôles de navigation - Responsive */}
-      {sortedArticles.length > 1 && (
-        <>
-          <Button
-            variant="ghost"
-            size="sm"
-            className="absolute left-1 top-1/2 -translate-y-1/2 z-10 bg-black/20 hover:bg-black/40 text-white border border-white/30 h-6 w-6 sm:h-8 sm:w-8 p-0"
-            onClick={goToPrevious}
-            aria-label="Article précédent"
-          >
-            <ChevronLeft className="h-3 w-3 sm:h-4 sm:w-4" />
-          </Button>
-          
-          <Button
-            variant="ghost"
-            size="sm"
-            className="absolute right-1 top-1/2 -translate-y-1/2 z-10 bg-black/20 hover:bg-black/40 text-white border border-white/30 h-6 w-6 sm:h-8 sm:w-8 p-0"
-            onClick={goToNext}
-            aria-label="Article suivant"
-          >
-            <ChevronRight className="h-3 w-3 sm:h-4 sm:w-4" />
-          </Button>
-        </>
-      )}
+        {/* Navigation prev/next */}
+        {sortedArticles.length > 1 && (
+          <>
+            <Button
+              variant="ghost" size="sm"
+              className="absolute left-1 top-1/2 -translate-y-1/2 z-10 bg-black/20 hover:bg-black/40 text-white border border-white/30 h-6 w-6 sm:h-8 sm:w-8 p-0 opacity-0 group-hover:opacity-100 transition-opacity duration-200"
+              onClick={goToPrevious}
+              aria-label="Article précédent"
+            >
+              <ChevronLeft className="h-3 w-3 sm:h-4 sm:w-4" />
+            </Button>
+            <Button
+              variant="ghost" size="sm"
+              className="absolute right-1 top-1/2 -translate-y-1/2 z-10 bg-black/20 hover:bg-black/40 text-white border border-white/30 h-6 w-6 sm:h-8 sm:w-8 p-0 opacity-0 group-hover:opacity-100 transition-opacity duration-200"
+              onClick={goToNext}
+              aria-label="Article suivant"
+            >
+              <ChevronRight className="h-3 w-3 sm:h-4 sm:w-4" />
+            </Button>
+          </>
+        )}
 
-      <CardHeader className="relative pb-2 sm:pb-3 flex-shrink-0 p-3 sm:p-6">
-        <CardTitle className="text-base sm:text-lg font-semibold flex items-center gap-2 text-white drop-shadow-lg">
-          <Newspaper className="h-4 w-4 sm:h-5 sm:w-5" />
-          Actualités
-          {sortedArticles.length > 1 && (
-            <span className="text-xs sm:text-sm font-normal text-white/70">
-              ({currentIndex + 1}/{sortedArticles.length})
-            </span>
-          )}
-        </CardTitle>
-      </CardHeader>
-      
-      <CardContent className="relative flex-1 flex flex-col p-2 sm:p-3 md:p-6 overflow-hidden carousel-content">
-        <div className="flex flex-col h-full justify-end sm:justify-start">
-          <div
-            className="p-3 sm:p-3 md:p-6 rounded-lg bg-white/10 backdrop-blur-sm border border-white/20 hover:bg-white/20 transition-all duration-300 group flex flex-col overflow-hidden sm:flex-1"
-          >
-            <div className="flex flex-col space-y-2 sm:space-y-2 md:space-y-3">
-              {/* En-tête de l'article */}
-              <div className="flex flex-wrap items-center gap-2 flex-shrink-0 hidden sm:flex">
+        <CardHeader className="relative z-10 pb-2 pt-4 px-5 flex-shrink-0">
+          <div className="flex items-center justify-between gap-3">
+            <div className="flex items-center gap-3">
+              <div className="p-2.5 rounded-xl bg-white/90 shadow-sm group-hover:scale-105 transition-all duration-300">
+                <Newspaper className="h-5 w-5 text-slate-800" />
               </div>
-              
-              {/* Titre */}
-              <h3 className="text-sm sm:text-sm md:text-base lg:text-lg xl:text-xl font-bold text-white line-clamp-2 group-hover:text-yellow-200 transition-colors drop-shadow-lg flex-shrink-0 carousel-title leading-tight sm:leading-normal">
-                {currentArticle.title}
-              </h3>
-              
-              {/* Contenu - Résumé uniquement */}
-              <div className="overflow-hidden">
-                <p className="text-[10px] sm:text-[10px] md:text-xs text-white/90 drop-shadow-md carousel-text leading-relaxed">
-                  <span className="block sm:hidden">{getSummary(currentArticle.content, 100)}</span>
-                  <span className="hidden sm:block md:hidden">{getSummary(currentArticle.content, 80)}</span>
-                  <span className="hidden md:block lg:hidden">{getSummary(currentArticle.content, 120)}</span>
-                  <span className="hidden lg:block">{getSummary(currentArticle.content, 150)}</span>
-                </p>
-              </div>
-              
-              {/* Métadonnées - Toujours en bas */}
-              <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-2 sm:gap-2 md:gap-4 text-xs sm:text-xs md:text-sm text-white flex-shrink-0 mt-2 sm:mt-2 metadata-text">
-                <div className="flex items-center gap-2 sm:gap-4">
-                  <div className="flex items-center gap-1">
-                    <Clock className="h-3 w-3 sm:h-4 sm:w-4 text-white" />
-                    <span className="drop-shadow-md text-white">{formatDate(currentArticle.date)}</span>
-                  </div>
-                </div>
+              <div>
+                <CardTitle className="text-sm font-bold text-white leading-tight drop-shadow-lg">
+                  Actualités
+                  {sortedArticles.length > 1 && (
+                    <span className="text-xs font-normal text-white/70 ml-1.5">
+                      ({currentIndex + 1}/{sortedArticles.length})
+                    </span>
+                  )}
+                </CardTitle>
+                <p className="text-xs text-white/70 mt-0.5 drop-shadow-md">Dernières nouvelles SAR</p>
               </div>
             </div>
+            <Link href="/actualites" className="flex-shrink-0">
+              <Button variant="ghost" size="sm" className="h-7 px-3 text-xs text-white hover:bg-white/20 border border-white/30">
+                Voir toutes les actus
+                <ExternalLink className="h-3 w-3 ml-1" />
+              </Button>
+            </Link>
           </div>
-          
-          {/* Bouton "Lire la suite" - Sorti de la carte transparente */}
-          <div className="mt-2 sm:mt-3 flex justify-end">
-            <Button
-              variant="ghost"
-              size="sm"
-              className="h-6 sm:h-8 px-2 sm:px-3 text-xs sm:text-sm text-white hover:bg-white/20 border border-white/30 flex-shrink-0 carousel-button"
-              asChild
-            >
-              <Link href="/actualites">
-                Lire la suite
-                <ExternalLink className="h-3 w-3 sm:h-4 sm:w-4 ml-1" />
-              </Link>
-            </Button>
-          </div>
-        </div>
-      </CardContent>
+        </CardHeader>
 
-      {/* Indicateurs de pagination - Responsive */}
-      {sortedArticles.length > 1 && (
-        <div className="absolute bottom-2 sm:bottom-4 left-1/2 -translate-x-1/2 flex space-x-1 sm:space-x-2 z-10 carousel-indicators">
-          {sortedArticles.map((_, index) => (
-            <button
-              key={index}
-              className={`w-1.5 h-1.5 sm:w-2 sm:h-2 rounded-full transition-all duration-300 ${
-                index === currentIndex 
-                  ? 'bg-white' 
-                  : 'bg-white/50 hover:bg-white/70'
-              }`}
-              onClick={() => goToSlide(index)}
-              aria-label={`Aller à l'article ${index + 1}`}
-            />
-          ))}
-        </div>
-      )}
-    </Card>
+        <CardContent className="relative flex-1 flex flex-col px-4 pb-4 pt-0 overflow-hidden carousel-content">
+          <div className="flex flex-col h-full justify-end">
+            {currentSlide.summary?.trim() && (
+              <button
+                type="button"
+                className="w-full text-left p-3 rounded-lg bg-white/10 backdrop-blur-sm border border-white/20 hover:bg-white/20 transition-all duration-300 group"
+                onClick={() => currentSlide.linkedInItem && setModalItem(currentSlide.linkedInItem)}
+              >
+                <p className="text-[11px] text-white/90 drop-shadow-md leading-relaxed line-clamp-6 carousel-text">
+                  {getSummary(currentSlide.summary, 300)}
+                </p>
+              </button>
+            )}
+          </div>
+        </CardContent>
+
+      </Card>
+
+      {/* Modal LinkedIn */}
+      <LinkedInModal
+        item={modalItem}
+        allItems={linkedInItems.filter(i => !!i.linkedin_url)}
+        onClose={() => setModalItem(null)}
+        onNavigate={setModalItem}
+      />
+    </>
   )
 }
-
-
-
-
-

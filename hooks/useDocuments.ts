@@ -36,6 +36,9 @@ export interface Document {
   file_size_display: string
   file_extension: string
   is_pdf: boolean
+  is_image: boolean
+  is_video: boolean
+  media_type: 'document' | 'image' | 'video'
   file_url: string
   uploaded_by: number
   uploaded_by_name: string
@@ -164,19 +167,23 @@ export function useDocuments() {
       setError(null)
 
       // Validation du type de fichier avant l'upload
-      const allowedExtensions = ['.pdf', '.doc', '.docx', '.xls', '.xlsx', '.ppt', '.pptx', '.txt', '.csv']
-      const fileExtension = '.' + documentData.file.name.split('.').pop()?.toLowerCase() || ''
-      
+      const docExt    = ['.pdf', '.doc', '.docx', '.xls', '.xlsx', '.ppt', '.pptx', '.txt', '.csv']
+      const imageExt  = ['.jpg', '.jpeg', '.png', '.gif', '.webp', '.bmp', '.svg']
+      const videoExt  = ['.mp4', '.webm', '.ogg', '.mov', '.avi', '.mkv', '.m4v']
+      const allowedExtensions = [...docExt, ...imageExt, ...videoExt]
+      const fileExtension = '.' + (documentData.file.name.split('.').pop()?.toLowerCase() || '')
+
       if (!allowedExtensions.includes(fileExtension)) {
-        const errorMessage = `Type de fichier non autorisé. Extensions acceptées: ${allowedExtensions.join(', ')}`
+        const errorMessage = `Type de fichier non autorisé. Formats acceptés : documents, images et vidéos.`
         setError(errorMessage)
         return { success: false, error: errorMessage }
       }
 
-      // Validation de la taille (50MB max)
-      const maxSize = 50 * 1024 * 1024 // 50MB
+      // Limite selon le type
+      const isVideo = videoExt.includes(fileExtension)
+      const maxSize = isVideo ? 500 * 1024 * 1024 : 50 * 1024 * 1024
       if (documentData.file.size > maxSize) {
-        const errorMessage = `Le fichier est trop volumineux. Taille maximale: ${(maxSize / (1024 * 1024)).toFixed(1)}MB`
+        const errorMessage = `Fichier trop volumineux. Maximum : ${isVideo ? '500' : '50'} MB.`
         setError(errorMessage)
         return { success: false, error: errorMessage }
       }
@@ -316,23 +323,21 @@ export function useDocuments() {
   }
 
   // Télécharger un document
-  const downloadDocument = async (documentId: number, filename: string) => {
+  const downloadDocument = async (documentId: number, filename: string, fileExtension?: string) => {
     try {
       const response = await api.get(`/documents/${documentId}/download/`)
-      
+
       if (response.ok) {
-        // Créer un blob et déclencher le téléchargement
         const blob = await response.blob()
         const url = window.URL.createObjectURL(blob)
         const link = document.createElement('a')
         link.href = url
-        link.download = filename.endsWith('.pdf') ? filename : `${filename}.pdf`
+        const ext = fileExtension || ''
+        link.download = ext && !filename.toLowerCase().endsWith(ext.toLowerCase()) ? `${filename}${ext}` : filename
         document.body.appendChild(link)
         link.click()
         document.body.removeChild(link)
         window.URL.revokeObjectURL(url)
-        
-        // Recharger la liste pour mettre à jour le compteur
         fetchDocuments()
         return { success: true }
       } else {

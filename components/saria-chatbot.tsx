@@ -4,7 +4,6 @@ import React, { useState, useRef, useEffect } from "react"
 import { Card } from "@/components/ui/card"
 import { cn } from "@/lib/utils"
 import { useSariaChatbot } from "@/hooks/useSariaChatbot"
-import { useAuth } from "@/contexts/AuthContext"
 import { useScreenSize } from "@/hooks/useScreenSize"
 import { useAIChatbot } from "@/contexts/AIChatbotContext"
 import { ResponsiveFloatingButton } from "./chatbot/responsive-floating-button"
@@ -12,7 +11,6 @@ import { ResponsiveChatHeader } from "./chatbot/responsive-chat-header"
 import { ResponsiveMessagesArea } from "./chatbot/responsive-messages-area"
 import { ResponsiveInputArea } from "./chatbot/responsive-input-area"
 import { Maximize2, Sparkles, X } from "lucide-react"
-import { Avatar, AvatarImage, AvatarFallback } from "@/components/ui/avatar"
 import { Button } from "@/components/ui/button"
 
 interface MaiChatbotProps {
@@ -26,29 +24,30 @@ export function MaiChatbot({ className }: MaiChatbotProps) {
     isTyping,
     loadingMessage,
     loadingPhase,
+    isMaintenance,
     toggleChat: hookToggleChat,
     sendMessage
   } = useSariaChatbot()
   
-  const { isOpen: contextIsOpen, setIsOpen: setContextIsOpen, toggleChat: contextToggleChat, isMinimized, toggleMinimize } = useAIChatbot()
-  const { user } = useAuth()
+  const { isOpen: contextIsOpen, setIsOpen: setContextIsOpen, toggleChat: contextToggleChat, isMinimized, toggleMinimize, chatbotEnabled } = useAIChatbot()
   const { isMobile, isTablet, isSmallMobile } = useScreenSize()
-  
+
   // Utiliser l'état du contexte comme source de vérité, mais synchroniser avec le hook
   const isOpen = contextIsOpen
   const toggleChat = () => {
-    hookToggleChat() // Mettre à jour le hook
-    contextToggleChat() // Mettre à jour le contexte
+    hookToggleChat()
+    contextToggleChat()
   }
-  
+
   // Synchroniser l'état du hook avec le contexte au montage
   useEffect(() => {
     if (hookIsOpen !== contextIsOpen) {
       setContextIsOpen(hookIsOpen)
     }
   }, [hookIsOpen, contextIsOpen, setContextIsOpen])
-  
+
   const [inputValue, setInputValue] = useState('')
+  const [selectedFile, setSelectedFile] = useState<File | null>(null)
   const messagesEndRef = useRef<HTMLDivElement>(null)
   const inputRef = useRef<HTMLInputElement>(null)
 
@@ -67,19 +66,24 @@ export function MaiChatbot({ className }: MaiChatbotProps) {
   }, [isOpen])
 
   const handleSendMessage = async () => {
-    if (!inputValue.trim()) return
+    if (!inputValue.trim() && !selectedFile) return
 
     const messageContent = inputValue.trim()
+    const fileToSend = selectedFile
     setInputValue('')
-    await sendMessage(messageContent)
+    setSelectedFile(null)
+    await sendMessage(messageContent, fileToSend ?? undefined)
   }
 
-  const handleKeyPress = (e: React.KeyboardEvent) => {
+  const handleKeyDown = (e: React.KeyboardEvent) => {
     if (e.key === 'Enter' && !e.shiftKey) {
       e.preventDefault()
       handleSendMessage()
     }
   }
+
+  // Chatbot désactivé depuis l'admin → invisible (après tous les hooks)
+  if (!chatbotEnabled) return null
 
   // Classes responsives pour le conteneur principal
   const getChatbotClasses = () => {
@@ -168,8 +172,8 @@ export function MaiChatbot({ className }: MaiChatbotProps) {
                     <Sparkles className="h-3 w-3 text-yellow-300 flex-shrink-0" />
                   </div>
                   <div className="text-white/80 text-xs flex items-center gap-1">
-                    <div className="h-1.5 w-1.5 bg-green-400 rounded-full"></div>
-                    <span>En ligne</span>
+                    <div className={`h-1.5 w-1.5 rounded-full ${isMaintenance ? 'bg-yellow-400' : 'bg-green-400'}`}></div>
+                    <span>{isMaintenance ? 'En maintenance' : 'En ligne'}</span>
                   </div>
                 </div>
               </div>
@@ -210,6 +214,7 @@ export function MaiChatbot({ className }: MaiChatbotProps) {
             <ResponsiveChatHeader
               onClose={toggleChat}
               onMinimize={toggleMinimize}
+              isMaintenance={isMaintenance}
               className=""
               style={{ backgroundColor: "#344256" }}
             />
@@ -220,8 +225,8 @@ export function MaiChatbot({ className }: MaiChatbotProps) {
               isTyping={isTyping}
               loadingMessage={loadingMessage}
               loadingPhase={loadingPhase}
-              user={user}
               messagesEndRef={messagesEndRef}
+              onSendMessage={sendMessage}
             />
 
           {/* Zone de saisie */}
@@ -229,9 +234,12 @@ export function MaiChatbot({ className }: MaiChatbotProps) {
               inputValue={inputValue}
               setInputValue={setInputValue}
               onSendMessage={handleSendMessage}
-                      onKeyPress={handleKeyPress}
+              onKeyDown={handleKeyDown}
               isTyping={isTyping}
               inputRef={inputRef}
+              selectedFile={selectedFile}
+              onFileSelect={setSelectedFile}
+              onFileRemove={() => setSelectedFile(null)}
             />
           </Card>
           </div>

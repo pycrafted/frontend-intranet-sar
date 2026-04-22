@@ -4,8 +4,6 @@ import { useState, useRef, useEffect } from "react"
 import { Button } from "@/components/ui/button"
 import { Textarea } from "@/components/ui/textarea"
 import { Send, Image as ImageIcon, X } from "lucide-react"
-import { EmojiPicker } from "@/components/social/emoji-picker"
-import { GifPicker } from "@/components/social/gif-picker"
 
 interface ForumMessageFormProps {
   onSubmit: (content: string, image?: File | null) => Promise<void>
@@ -95,15 +93,6 @@ export function ForumMessageForm({
     }
   }
 
-  const handleEmojiSelect = (emoji: string) => {
-    setContent((prev) => prev + emoji)
-  }
-
-  const handleGifSelect = (gifUrl: string) => {
-    // Insérer le GIF sous forme d'image markdown
-    setContent((prev) => prev + ` ![GIF](${gifUrl})`)
-  }
-
   return (
     <form onSubmit={handleSubmit} className="space-y-5">
       <div className="relative">
@@ -139,8 +128,6 @@ export function ForumMessageForm({
             disabled={loading}
             className="hidden"
           />
-          <GifPicker onGifSelect={handleGifSelect} />
-          <EmojiPicker onEmojiSelect={handleEmojiSelect} />
         </div>
       </div>
 

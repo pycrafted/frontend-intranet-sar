@@ -18,6 +18,7 @@ export interface Employee {
   manager_name: string | null
   hierarchy_level: number
   avatar: string | null  // URL complète de l'avatar
+  is_active: boolean
   office_location: string | null
   work_schedule: string
   hire_date: string
@@ -155,6 +156,30 @@ export const useEmployees = () => {
     }
   }
 
+  const updateEmployee = async (id: number, data: Partial<Pick<Employee, 'email' | 'phone_fixed' | 'phone_mobile' | 'position_title' | 'is_active'>>) => {
+    try {
+      const csrfToken = typeof document !== 'undefined'
+        ? document.cookie.match(/csrftoken=([^;]+)/)?.[1] ?? null
+        : null
+      const response = await fetch(`${getApiBaseUrl()}/employees/${id}/`, {
+        method: 'PATCH',
+        credentials: 'include',
+        headers: {
+          'Content-Type': 'application/json',
+          ...(csrfToken ? { 'X-CSRFToken': csrfToken } : {}),
+        },
+        body: JSON.stringify(data),
+      })
+      if (!response.ok) throw new Error(`Erreur ${response.status}`)
+      const updated = await response.json()
+      setEmployees(prev => prev.map(e => e.id === id ? { ...e, ...updated } : e))
+      return updated
+    } catch (err) {
+      console.error('❌ [ANNUAIRE] Erreur update employé:', err)
+      throw err
+    }
+  }
+
   const getEmployeeById = async (id: number) => {
     try {
       console.log('🔍 [ANNUAIRE] Récupération employé ID:', id)
@@ -221,6 +246,7 @@ export const useEmployees = () => {
     loading,
     error,
     searchEmployees,
+    updateEmployee,
     getEmployeeById,
     getEmployeeSubordinates,
     getDepartmentStatistics,

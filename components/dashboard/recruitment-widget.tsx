@@ -4,397 +4,392 @@ import { useState } from "react"
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import { Badge } from "@/components/ui/badge"
 import { Button } from "@/components/ui/button"
-import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog"
-import { 
-  Briefcase, 
-  MapPin, 
-  Clock, 
-  Users, 
-  Star, 
-  ArrowRight,
-  Calendar,
-  Building,
-  Target,
-  Award,
-  CheckCircle,
-  ExternalLink,
-  Sparkles,
-  Ban
+import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog"
+import {
+  Briefcase, ArrowRight, Loader2, Ban, MapPin, Users,
+  ChevronLeft, ChevronRight, RefreshCw, Send, Upload,
+  CheckCircle2, XCircle, Building2, Clock, Calendar,
 } from "lucide-react"
+import { useJobs, OdooJob } from "@/hooks/useJobs"
+import { useAuth } from "@/hooks/useAuth"
+import { API_CONFIG } from "@/lib/config"
+import { useToast } from "@/components/ui/toast"
+import Link from "next/link"
 
-// Types pour les postes
-interface JobPosting {
-  id: string
-  title: string
-  department: string
-  location: string
-  type: 'CDI' | 'CDD' | 'Stage' | 'Freelance'
-  level: 'Junior' | 'Confirmé' | 'Senior' | 'Expert'
-  urgency: 'Normal' | 'Urgent' | 'Très urgent'
-  description: string
-  missions: string[]
-  requirements: string[]
-  benefits: string[]
-  certifications?: string[]
-  salary?: string
-  startDate: string
-  applicationDeadline: string
-  contactPerson: string
-  contactEmail: string
-}
+const PAGE_SIZE = 3
 
-// Données statiques des postes (à remplacer par une API plus tard)
-const jobPostings: JobPosting[] = [
-  {
-    id: "1",
-    title: "Chef de Service Réseaux et Systèmes",
-    department: "Direction des Systèmes d'Information",
-    location: "Dakar, Sénégal",
-    type: "CDI",
-    level: "Senior",
-    urgency: "Normal",
-    description: "Poste de management technique pour superviser l'infrastructure réseau et systèmes de la SAR.",
-    missions: [
-      "Assister le Chef de Département SI dans la gestion opérationnelle et stratégique des infrastructures réseaux et systèmes",
-      "Superviser l'administration et l'exploitation du réseau informatique afin d'assurer sa performance, sa sécurité et sa disponibilité",
-      "Piloter la gestion de l'infrastructure matérielle (serveurs, équipements réseau, systèmes de stockage, etc.)",
-      "Encadrer l'installation, la configuration et la maintenance des réseaux locaux et des services associés (messagerie, DNS, DHCP, etc.)",
-      "Garantir la disponibilité et la continuité des services informatiques mis à disposition des utilisateurs"
-    ],
-    requirements: [
-      "Formation : Diplôme de niveau Bac +4/5 (École d'ingénieur en informatique avec spécialisation en systèmes et réseaux ou Master en informatique)",
-      "Expérience : Minimum 5 ans dans un poste similaire, idéalement en environnement critique ou industriel",
-      "Maîtrise des environnements systèmes (Windows Server, Linux) et des services réseau associés (Active Directory, DNS, DHCP, etc.)",
-      "Compétence en scripting pour l'automatisation des tâches (PowerShell, Bash, ou Python)"
-    ],
-    benefits: [
-      "Salaire compétitif selon profil et expérience",
-      "Formations techniques et certifications",
-      "Environnement de travail moderne et sécurisé",
-      "Possibilité d'évolution et de développement professionnel",
-      "Assurance santé et avantages sociaux"
-    ],
-    certifications: [
-      "Cisco : CCNP, CCIE (un atout majeur)",
-      "Fortinet : NSE4 ou supérieur",
-      "VMware : VCP-NV",
-      "PMP ou ITIL pour la gestion de projets et des services IT",
-      "Toute certification en cybersécurité (CISSP, CISM) serait un plus"
-    ],
-    salary: "À négocier selon profil",
-    startDate: "1er Février 2024",
-    applicationDeadline: "29 Septembre 2025",
-    contactPerson: "Direction des Systèmes d'Information",
-    contactEmail: "rh@sar.sn"
-  },
-  {
-    id: "2",
-    title: "Développeur Full Stack",
-    department: "Direction des Systèmes d'Information",
-    location: "Dakar, Sénégal",
-    type: "CDI",
-    level: "Confirmé",
-    urgency: "Urgent",
-    description: "Développement et maintenance des applications web et mobiles de la SAR.",
-    missions: [
-      "Développement d'applications web et mobiles",
-      "Maintenance et évolution des systèmes existants",
-      "Collaboration avec les équipes métier",
-      "Participation aux projets d'innovation technologique"
-    ],
-    requirements: [
-      "Bac+3 minimum en informatique",
-      "3+ ans d'expérience en développement",
-      "Maîtrise de React, Node.js, Python",
-      "Connaissance des bases de données",
-      "Esprit d'équipe et autonomie"
-    ],
-    benefits: [
-      "Salaire compétitif selon profil",
-      "Formations techniques régulières",
-      "Environnement de travail moderne",
-      "Possibilité d'évolution rapide"
-    ],
-    salary: "À négocier selon profil",
-    startDate: "15 Janvier 2024",
-    applicationDeadline: "10 Janvier 2024",
-    contactPerson: "Idrissa CISSÉ",
-    contactEmail: "idrissa.cisse@sar.sn"
-  },
-  {
-    id: "3",
-    title: "Stagiaire QHSE",
-    department: "Direction QHSE",
-    location: "Dakar, Sénégal",
-    type: "Stage",
-    level: "Junior",
-    urgency: "Normal",
-    description: "Stage de 6 mois pour découvrir les métiers de la Qualité, Hygiène, Sécurité et Environnement.",
-    missions: [
-      "Participation aux audits QHSE",
-      "Mise à jour de la documentation",
-      "Formation du personnel",
-      "Analyse des risques"
-    ],
-    requirements: [
-      "Bac+2 minimum en QHSE ou équivalent",
-      "Intérêt pour la sécurité au travail",
-      "Rigueur et méthode",
-      "Bonne communication"
-    ],
-    benefits: [
-      "Indemnité de stage",
-      "Formation certifiante",
-      "Encadrement personnalisé",
-      "Possibilité d'embauche"
-    ],
-    salary: "Indemnité de stage",
-    startDate: "1er Mars 2024",
-    applicationDeadline: "15 Février 2024",
-    contactPerson: "Cheikh Sidi Yahya LY",
-    contactEmail: "cheikh.ly@sar.sn"
-  }
-]
+// ── Formulaire de candidature ─────────────────────────────────────────────────
 
-// Composant pour afficher un poste dans la liste
-function JobCard({ job, onViewDetails }: { job: JobPosting, onViewDetails: (job: JobPosting) => void }) {
-  const getTypeColor = (type: string) => {
-    switch (type) {
-      case 'CDI': return 'bg-blue-100 text-blue-800'
-      case 'CDD': return 'bg-purple-100 text-purple-800'
-      case 'Stage': return 'bg-green-100 text-green-800'
-      case 'Freelance': return 'bg-yellow-100 text-yellow-800'
-      default: return 'bg-gray-100 text-gray-800'
+function ApplyForm({ job, onClose }: { job: OdooJob; onClose: () => void }) {
+  const [form, setForm] = useState({ name: '', email: '', phone: '', cover_letter: '' })
+  const [cvFile, setCvFile] = useState<File | null>(null)
+  const [submitting, setSubmitting] = useState(false)
+  const [result, setResult] = useState<'success' | 'error' | null>(null)
+  const [errorMsg, setErrorMsg] = useState('')
+
+  const handleSubmit = async (e: React.FormEvent) => {
+    e.preventDefault()
+    setSubmitting(true)
+    setResult(null)
+    setErrorMsg('')
+    try {
+      const fd = new FormData()
+      fd.append('name', form.name)
+      fd.append('email', form.email)
+      if (form.phone) fd.append('phone', form.phone)
+      if (form.cover_letter) fd.append('cover_letter', form.cover_letter)
+      if (cvFile) fd.append('cv', cvFile)
+
+      const res = await fetch(`${API_CONFIG.RECRUTEMENT}/jobs/${job.odoo_id}/apply/`, {
+        method: 'POST', body: fd, credentials: 'include',
+      })
+      const data = await res.json()
+      if (res.ok && data.success) setResult('success')
+      else { setResult('error'); setErrorMsg(data.error || 'Une erreur est survenue.') }
+    } catch {
+      setResult('error'); setErrorMsg('Impossible de contacter le serveur.')
+    } finally {
+      setSubmitting(false)
     }
   }
 
+  if (result === 'success') {
+    return (
+      <div className="flex flex-col items-center gap-3 py-8 text-center">
+        <CheckCircle2 className="h-14 w-14 text-green-500" />
+        <div>
+          <p className="font-semibold text-gray-900 text-base">Candidature envoyée !</p>
+          <p className="text-sm text-gray-500 mt-1">
+            Votre dossier pour <strong>{job.name}</strong> a bien été transmis.
+          </p>
+        </div>
+        <Button variant="outline" size="sm" onClick={onClose}>Fermer</Button>
+      </div>
+    )
+  }
+
   return (
-    <div className="group relative bg-white rounded-lg border border-gray-200 hover:border-blue-300 hover:shadow-md transition-all duration-300 p-3 cursor-pointer"
-         onClick={() => onViewDetails(job)}>
-      <div className="flex items-start justify-between mb-2">
-        <div className="flex-1 min-w-0">
-          <h3 className="font-semibold text-gray-900 text-sm sm:text-base mb-1 group-hover:text-blue-600 transition-colors">
-            {job.title}
-          </h3>
-          <p className="text-xs sm:text-sm text-gray-600">{job.department}</p>
+    <form onSubmit={handleSubmit} className="space-y-3 pt-1">
+      <div className="grid grid-cols-2 gap-3">
+        <div className="space-y-1">
+          <label className="text-xs font-medium text-gray-600 uppercase tracking-wide">Nom complet *</label>
+          <input required placeholder="Prénom Nom" value={form.name}
+            onChange={e => setForm(f => ({ ...f, name: e.target.value }))}
+            className="w-full h-9 rounded-md border border-gray-300 bg-white px-3 text-sm outline-none focus:border-orange-400 focus:ring-2 focus:ring-orange-200 transition-colors" />
         </div>
-        <div className="flex flex-col gap-1 ml-2">
-          <Badge className={`text-xs ${getTypeColor(job.type)}`}>
-            {job.type}
-          </Badge>
-          <Badge className="text-xs bg-gray-100 text-gray-700">
-            {job.level}
-          </Badge>
+        <div className="space-y-1">
+          <label className="text-xs font-medium text-gray-600 uppercase tracking-wide">Email *</label>
+          <input required type="email" placeholder="votre@email.com" value={form.email}
+            onChange={e => setForm(f => ({ ...f, email: e.target.value }))}
+            className="w-full h-9 rounded-md border border-gray-300 bg-white px-3 text-sm outline-none focus:border-orange-400 focus:ring-2 focus:ring-orange-200 transition-colors" />
         </div>
       </div>
-      
-      <div className="flex items-center gap-1 text-xs text-gray-500">
-        <Clock className="h-3 w-3" />
-        <span>Clôture: {job.applicationDeadline}</span>
+
+      <div className="space-y-1">
+        <label className="text-xs font-medium text-gray-600 uppercase tracking-wide">Téléphone</label>
+        <input type="tel" placeholder="+221 77 000 00 00" value={form.phone}
+          onChange={e => setForm(f => ({ ...f, phone: e.target.value }))}
+          className="w-full h-9 rounded-md border border-gray-300 bg-white px-3 text-sm outline-none focus:border-orange-400 focus:ring-2 focus:ring-orange-200 transition-colors" />
       </div>
-    </div>
+
+      <div className="space-y-1">
+        <label className="text-xs font-medium text-gray-600 uppercase tracking-wide">Lettre de motivation</label>
+        <textarea rows={3} placeholder="Expliquez pourquoi vous correspondez à ce poste..."
+          value={form.cover_letter}
+          onChange={e => setForm(f => ({ ...f, cover_letter: e.target.value }))}
+          className="w-full rounded-md border border-gray-300 bg-white px-3 py-2 text-sm outline-none focus:border-orange-400 focus:ring-2 focus:ring-orange-200 resize-none transition-colors" />
+      </div>
+
+      <div className="space-y-1">
+        <label className="text-xs font-medium text-gray-600 uppercase tracking-wide">CV (PDF / DOC — max 10 Mo)</label>
+        <label className="flex items-center gap-2.5 px-3 py-2 rounded-lg border border-dashed border-gray-300 hover:border-orange-400 hover:bg-orange-50/50 cursor-pointer transition-colors">
+          <Upload className="h-4 w-4 text-gray-400 flex-shrink-0" />
+          <span className="text-sm text-gray-500 truncate">
+            {cvFile ? cvFile.name : 'Cliquez pour sélectionner votre CV'}
+          </span>
+          <input type="file" accept=".pdf,.doc,.docx" className="hidden"
+            onChange={e => setCvFile(e.target.files?.[0] || null)} />
+        </label>
+      </div>
+
+      {result === 'error' && (
+        <div className="flex items-start gap-2 p-3 rounded-lg bg-red-50 border border-red-200 text-sm text-red-700">
+          <XCircle className="h-4 w-4 flex-shrink-0 mt-0.5" />
+          {errorMsg}
+        </div>
+      )}
+
+      <div className="flex gap-2 pt-1">
+        <Button type="button" variant="outline" size="sm" onClick={onClose} disabled={submitting} className="flex-1">
+          Annuler
+        </Button>
+        <Button type="submit" size="sm" disabled={submitting}
+          className="flex-1 bg-orange-600 hover:bg-orange-700 text-white">
+          {submitting
+            ? <><Loader2 className="h-3.5 w-3.5 mr-1.5 animate-spin" />Envoi...</>
+            : <><Send className="h-3.5 w-3.5 mr-1.5" />Envoyer ma candidature</>
+          }
+        </Button>
+      </div>
+    </form>
   )
 }
 
-// Composant pour le modal de détails
-function JobDetailsModal({ job, isOpen, onClose }: { job: JobPosting | null, isOpen: boolean, onClose: () => void }) {
+// ── Modal candidature ─────────────────────────────────────────────────────────
+
+function JobApplyModal({ job, onClose }: { job: OdooJob | null; onClose: () => void }) {
   if (!job) return null
 
+  const hasDeadline  = job.publication_end_date  && job.publication_end_date  !== 'False'
+  const hasStartDate = job.publication_start_date && job.publication_start_date !== 'False'
+
   return (
-    <Dialog open={isOpen} onOpenChange={onClose}>
-      <DialogContent className="max-w-4xl max-h-[90vh] overflow-y-auto bg-gradient-to-br from-orange-50 via-red-50 to-pink-50 border-0 [&>button]:hidden">
+    <Dialog open={!!job} onOpenChange={onClose}>
+      <DialogContent style={{ width: '560px', maxWidth: 'calc(100vw - 2rem)', maxHeight: '90vh', overflowY: 'auto' }}>
         <DialogHeader>
-          <DialogTitle className="text-2xl font-bold text-gray-900 mb-3 bg-gradient-to-r from-orange-600 to-red-600 bg-clip-text text-transparent">
-            {job.title}
+          <DialogTitle className="flex items-start gap-3 pr-6">
+            <div className="p-2 bg-gradient-to-br from-orange-500 to-red-600 rounded-lg flex-shrink-0">
+              <Briefcase className="h-4 w-4 text-white" />
+            </div>
+            <div className="min-w-0">
+              <div className="flex items-center gap-2 flex-wrap">
+                <span className="font-bold text-slate-900">{job.name}</span>
+                {job.is_internal ? (
+                  <span className="text-[9px] font-bold uppercase tracking-wide px-1.5 py-0.5 rounded-full bg-indigo-100 text-indigo-700 border border-indigo-200">
+                    Interne
+                  </span>
+                ) : (
+                  <span className="text-[9px] font-bold uppercase tracking-wide px-1.5 py-0.5 rounded-full bg-green-100 text-green-700 border border-green-200">
+                    Publié
+                  </span>
+                )}
+              </div>
+              <div className="flex flex-wrap items-center gap-3 mt-1">
+                {job.department_name && (
+                  <span className="flex items-center gap-1 text-xs text-slate-500">
+                    <Building2 className="h-3 w-3" />{job.department_name}
+                  </span>
+                )}
+                {job.address && (
+                  <span className="flex items-center gap-1 text-xs text-slate-500">
+                    <MapPin className="h-3 w-3" />{job.address}
+                  </span>
+                )}
+                {hasStartDate && (
+                  <span className="flex items-center gap-1 text-xs text-slate-500">
+                    <Calendar className="h-3 w-3" />Depuis le {job.publication_start_date}
+                  </span>
+                )}
+                {hasDeadline && (
+                  <span className="flex items-center gap-1 text-xs text-red-600 font-medium">
+                    <Clock className="h-3 w-3" />Clôture le {job.publication_end_date}
+                  </span>
+                )}
+              </div>
+            </div>
           </DialogTitle>
         </DialogHeader>
-        
-        <div className="space-y-6">
-          {/* Description */}
-          <div>
-            <h3 className="font-semibold text-gray-900 mb-3 text-lg flex items-center gap-2">
-              <div className="w-1 h-6 bg-gradient-to-b from-orange-500 to-red-600 rounded-full"></div>
-              Description du poste
-            </h3>
-            <p className="text-gray-700 text-sm leading-relaxed bg-white p-4 rounded-lg border-l-4 border-orange-500 shadow-sm">
-              {job.description}
-            </p>
-          </div>
 
-          {/* Informations pratiques */}
-          <div>
-            <h3 className="font-semibold text-gray-900 mb-3 text-lg flex items-center gap-2">
-              <div className="w-1 h-6 bg-gradient-to-b from-orange-500 to-red-600 rounded-full"></div>
-              Informations pratiques
-            </h3>
-            <div className="bg-white border border-orange-200 rounded-lg p-4 shadow-sm">
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-4 text-sm">
-                <div>
-                  <span className="font-medium text-gray-700">Début:</span>
-                  <span className="ml-2 text-gray-600">{job.startDate}</span>
-                </div>
-                <div>
-                  <span className="font-medium text-gray-700">Clôture candidatures:</span>
-                  <span className="ml-2 text-gray-600">{job.applicationDeadline}</span>
-                </div>
-              </div>
-            </div>
-          </div>
-
-          {/* Missions */}
-          <div>
-            <h3 className="font-semibold text-gray-900 mb-3 text-lg flex items-center gap-2">
-              <div className="w-1 h-6 bg-gradient-to-b from-orange-500 to-red-600 rounded-full"></div>
-              Missions
-            </h3>
-            <div className="bg-white border border-orange-200 rounded-lg p-4 shadow-sm">
-              <ul className="space-y-3">
-                {job.missions.map((mission, index) => (
-                  <li key={index} className="flex items-start gap-3 text-sm text-gray-700">
-                    <span className="text-orange-600 font-bold mt-0.5 flex-shrink-0">•</span>
-                    <span>{mission}</span>
-                  </li>
-                ))}
-              </ul>
-            </div>
-          </div>
-
-          {/* Profil recherché */}
-          <div>
-            <h3 className="font-semibold text-gray-900 mb-3 text-lg flex items-center gap-2">
-              <div className="w-1 h-6 bg-gradient-to-b from-orange-500 to-red-600 rounded-full"></div>
-              Profil
-            </h3>
-            <div className="bg-white border border-orange-200 rounded-lg p-4 shadow-sm">
-              <ul className="space-y-3">
-                {job.requirements.map((req, index) => (
-                  <li key={index} className="flex items-start gap-3 text-sm text-gray-700">
-                    <span className="text-orange-600 font-bold mt-0.5 flex-shrink-0">•</span>
-                    <span>{req}</span>
-                  </li>
-                ))}
-              </ul>
-            </div>
-          </div>
-
-          {/* Certifications */}
-          {job.certifications && job.certifications.length > 0 && (
-            <div>
-              <h3 className="font-semibold text-gray-900 mb-3 text-lg flex items-center gap-2">
-                <div className="w-1 h-6 bg-gradient-to-b from-orange-500 to-red-600 rounded-full"></div>
-                Certifications requises / appréciées
-              </h3>
-              <div className="bg-white border border-orange-200 rounded-lg p-4 shadow-sm">
-                <ul className="space-y-3">
-                  {job.certifications.map((cert, index) => (
-                    <li key={index} className="flex items-start gap-3 text-sm text-gray-700">
-                      <span className="text-orange-600 font-bold mt-0.5 flex-shrink-0">•</span>
-                      <span>{cert}</span>
-                    </li>
-                  ))}
-                </ul>
-              </div>
-            </div>
-          )}
-
-          {/* Actions */}
-          <div className="pt-4 border-t border-orange-200 flex justify-center">
-            <Button className="w-full max-w-[150px] bg-gradient-to-r from-orange-500 to-red-600 hover:from-orange-600 hover:to-red-700 text-white shadow-lg hover:shadow-xl transition-all duration-300">
-              <ExternalLink className="h-4 w-4 mr-2" />
-              Postuler
-            </Button>
-          </div>
+        <div className="border-t border-gray-100 pt-4">
+          <ApplyForm job={job} onClose={onClose} />
         </div>
       </DialogContent>
     </Dialog>
   )
 }
 
-// Composant principal
+// ── Widget principal ──────────────────────────────────────────────────────────
+
 export function RecruitmentWidget() {
-  const [selectedJob, setSelectedJob] = useState<JobPosting | null>(null)
-  const [isModalOpen, setIsModalOpen] = useState(false)
+  const { jobs, loading, error, refetch } = useJobs()
+  const { success, error: toastError } = useToast()
+  const { user } = useAuth()
+  const isAdmin = !!(user?.is_superuser)
+  const [page, setPage] = useState(0)
+  const [syncing, setSyncing] = useState(false)
+  const [selectedJob, setSelectedJob] = useState<OdooJob | null>(null)
 
-  const handleViewDetails = (job: JobPosting) => {
-    setSelectedJob(job)
-    setIsModalOpen(true)
+  const handleSync = async () => {
+    if (syncing) return
+    setSyncing(true)
+    try {
+      const res = await fetch(`${API_CONFIG.RECRUTEMENT}/jobs/sync/`, {
+        method: 'POST',
+        credentials: 'include',
+      })
+      const data = await res.json().catch(() => ({}))
+      if (!res.ok) throw new Error(data?.error || `Erreur ${res.status}`)
+      await refetch()
+      const msg = data.synced !== undefined
+        ? `${data.synced} offre${data.synced > 1 ? 's' : ''} synchronisée${data.synced > 1 ? 's' : ''} depuis Odoo`
+        : "Les offres d'emploi ont été mises à jour"
+      success("Synchronisation réussie", msg)
+    } catch (err) {
+      const msg = err instanceof Error ? err.message : "Impossible de contacter Odoo."
+      toastError("Échec de la synchronisation", msg)
+    } finally {
+      setSyncing(false)
+    }
   }
 
-  const handleCloseModal = () => {
-    setIsModalOpen(false)
-    setSelectedJob(null)
-  }
-
+  const totalPages = Math.ceil(jobs.length / PAGE_SIZE)
+  const pageJobs = jobs.slice(page * PAGE_SIZE, page * PAGE_SIZE + PAGE_SIZE)
 
   return (
-    <>
-      <Card className="h-[26rem] sm:h-[28rem] lg:h-[28rem] flex flex-col overflow-hidden relative bg-gradient-to-br from-orange-50 via-red-50 to-pink-50 border-0 hover:shadow-2xl transition-all duration-500 group">
-        {/* Motifs décoratifs élégants */}
-        <div className="absolute inset-0">
-          <div className="absolute inset-0 bg-gradient-to-br from-orange-100/20 via-red-100/15 to-pink-100/20" />
-          {/* Motifs décoratifs - Couleurs claires attrayantes */}
-          <div className="absolute top-0 right-0 w-32 h-32 bg-orange-300/30 rounded-full -translate-y-16 translate-x-16 group-hover:bg-orange-200/40 transition-colors duration-500" />
-          <div className="absolute bottom-0 left-0 w-24 h-24 bg-red-300/30 rounded-full translate-y-12 -translate-x-12 group-hover:bg-red-200/40 transition-colors duration-500" />
-          <div className="absolute top-1/2 left-1/2 w-16 h-16 bg-pink-300/20 rounded-full -translate-x-8 -translate-y-8 group-hover:bg-pink-200/30 transition-colors duration-500" />
-        </div>
+    <div className="contents">
+    <Card className="h-[26rem] sm:h-[28rem] lg:h-[28rem] flex flex-col overflow-hidden relative bg-gradient-to-br from-orange-50 via-red-50 to-pink-50 border-0 hover:shadow-2xl transition-all duration-500 group">
+      {/* Motifs décoratifs */}
+      <div className="absolute inset-0 pointer-events-none">
+        <div className="absolute top-0 right-0 w-32 h-32 bg-orange-300/30 rounded-full -translate-y-16 translate-x-16" />
+        <div className="absolute bottom-0 left-0 w-24 h-24 bg-red-300/30 rounded-full translate-y-12 -translate-x-12" />
+      </div>
 
-        <CardHeader className="relative pb-2 sm:pb-3 md:pb-4 flex-shrink-0 z-10 p-2 sm:p-3 md:p-4">
-          <div className="flex items-center justify-between">
-            <div className="flex items-center gap-2 sm:gap-3">
-              <div className="p-2 sm:p-2.5 md:p-3 bg-gradient-to-br from-orange-500 to-red-600 rounded-lg sm:rounded-xl shadow-lg group-hover:shadow-orange-300/50 group-hover:scale-105 transition-all duration-300">
-                <Briefcase className="h-4 w-4 sm:h-5 sm:w-5 md:h-6 md:w-6 text-white" />
-              </div>
-              <div>
-                <CardTitle className="text-sm sm:text-base md:text-lg lg:text-xl font-bold text-slate-800 group-hover:text-orange-700 transition-colors duration-300">
-                  Recrutements Internes
-                </CardTitle>
-                <p className="text-[10px] sm:text-xs md:text-sm text-slate-600 font-medium">
-                  Opportunités de carrière
-                </p>
-              </div>
+      <CardHeader className="relative pb-2 pt-4 px-5 flex-shrink-0 z-10">
+        <div className="flex items-center justify-between gap-3">
+          <div className="flex items-center gap-3">
+            <div className="p-2.5 bg-gradient-to-br from-orange-500 to-red-600 rounded-xl shadow-lg group-hover:shadow-orange-300/50 group-hover:scale-105 transition-all duration-300">
+              <Briefcase className="h-5 w-5 text-white" />
             </div>
-            <Button 
-              variant="outline" 
-              size="sm"
-              className="hidden sm:flex text-orange-600 border-orange-200 hover:bg-orange-50 font-semibold shadow-sm hover:shadow-md transition-all duration-300 group/btn text-xs sm:text-sm"
-              onClick={() => window.open('/recrutement', '_blank')}
-            >
-              Voir tous les postes
-              <ArrowRight className="h-3 w-3 sm:h-4 sm:w-4 ml-2 group-hover/btn:translate-x-1 transition-transform duration-300" />
-            </Button>
-          </div>
-        </CardHeader>
-        
-        <CardContent className="relative flex-1 flex flex-col justify-center items-center text-center p-2 sm:p-3 md:p-6 pt-2 z-10">
-          <div className="space-y-2 sm:space-y-4 md:space-y-6 lg:space-y-8">
-            {/* Icône dynamique et centrée - Même style que boîte à idée */}
-            <div className="relative">
-              <div className="w-16 h-16 sm:w-20 sm:h-20 md:w-24 md:h-24 lg:w-32 lg:h-32 bg-gradient-to-br from-orange-400 via-red-500 to-pink-500 rounded-full flex items-center justify-center mx-auto shadow-2xl group-hover:scale-110 transition-all duration-500 group-hover:animate-pulse">
-                <Ban className="h-8 w-8 sm:h-10 sm:w-10 md:h-12 md:w-12 lg:h-16 lg:w-16 text-white drop-shadow-lg" />
-              </div>
-              {/* Effet de scintillement - Uniquement au survol */}
-              <div className="absolute inset-0 w-16 h-16 sm:w-20 sm:h-20 md:w-24 md:h-24 lg:w-32 lg:h-32 bg-gradient-to-br from-orange-300 via-red-400 to-pink-400 rounded-full mx-auto opacity-0 group-hover:opacity-100 group-hover:animate-ping transition-opacity duration-500"></div>
-            </div>
-            
-            {/* Texte centré */}
-            <div className="space-y-2 sm:space-y-3 md:space-y-4">
-              <h3 className="text-sm sm:text-base md:text-lg lg:text-xl xl:text-2xl font-bold text-slate-900 group-hover:text-orange-700 transition-colors duration-300">
-                Pas de poste à pourvoir en ce moment
-              </h3>
-              <p className="text-slate-500 text-xs sm:text-sm md:text-base">
-                Revenez bientôt pour découvrir de nouvelles opportunités
+            <div>
+              <CardTitle className="text-sm font-bold text-slate-800 leading-tight">
+                Recrutements Internes
+              </CardTitle>
+              <p className="text-xs text-slate-500 mt-0.5">
+                Opportunités de carrière
               </p>
             </div>
           </div>
-        </CardContent>
-      </Card>
+          <Link href="/recrutement">
+            <Button
+              variant="outline"
+              size="sm"
+              className="hidden sm:flex text-orange-600 border-orange-200 hover:bg-orange-50 font-semibold text-xs"
+            >
+              Voir tous les détails
+              <ArrowRight className="h-3 w-3 ml-1.5 group-hover:translate-x-0.5 transition-transform" />
+            </Button>
+          </Link>
+        </div>
+      </CardHeader>
 
-      {/* Modal de détails */}
-      <JobDetailsModal 
-        job={selectedJob} 
-        isOpen={isModalOpen} 
-        onClose={handleCloseModal} 
-      />
-    </>
+      <CardContent className="relative flex-1 flex flex-col z-10 p-3 sm:p-4 pt-0 overflow-hidden">
+        {loading && (
+          <div className="flex-1 flex items-center justify-center">
+            <Loader2 className="h-6 w-6 animate-spin text-orange-500" />
+          </div>
+        )}
+
+        {!loading && (error || jobs.length === 0) && (
+          <div className="flex-1 flex flex-col items-center justify-center text-center gap-3">
+            <div className="w-16 h-16 sm:w-20 sm:h-20 bg-gradient-to-br from-orange-400 via-red-500 to-pink-500 rounded-full flex items-center justify-center mx-auto shadow-xl group-hover:scale-110 transition-all duration-500">
+              <Ban className="h-8 w-8 sm:h-10 sm:w-10 text-white" />
+            </div>
+            <div>
+              <p className="text-sm sm:text-base font-bold text-slate-900 group-hover:text-orange-700 transition-colors">
+                Pas de poste à pourvoir en ce moment
+              </p>
+              <p className="text-xs sm:text-sm text-slate-500 mt-1">
+                Revenez bientôt pour de nouvelles opportunités
+              </p>
+            </div>
+          </div>
+        )}
+
+        {!loading && jobs.length > 0 && (
+          <div className="flex-1 flex flex-col overflow-hidden">
+            {/* Compteur */}
+            <div className="flex items-center justify-between mb-2 flex-shrink-0">
+              <Badge className="bg-orange-100 text-orange-700 border-orange-200 text-xs">
+                <Users className="h-3 w-3 mr-1" />
+                {jobs.length} poste{jobs.length > 1 ? 's' : ''} ouvert{jobs.length > 1 ? 's' : ''}
+              </Badge>
+              {totalPages > 1 && (
+                <span className="text-[10px] text-slate-500">
+                  {page + 1} / {totalPages}
+                </span>
+              )}
+            </div>
+
+            {/* Liste des postes */}
+            <div className="flex-1 flex flex-col gap-1 overflow-hidden">
+              {pageJobs.map((job) => (
+                <button
+                  key={job.odoo_id}
+                  onClick={() => setSelectedJob(job)}
+                  className="group/item w-full flex items-start justify-between p-2.5 rounded-lg bg-white/80 hover:bg-white border border-orange-100 hover:border-orange-300 hover:shadow-md transition-all duration-200 text-left"
+                >
+                  <div className="flex-1 min-w-0 mr-2">
+                    <div className="flex items-center gap-1.5 flex-wrap">
+                      <p className="text-sm font-semibold text-slate-800 group-hover/item:text-orange-700 transition-colors line-clamp-1">
+                        {job.name}
+                      </p>
+                      {job.is_internal ? (
+                        <span className="flex-shrink-0 text-[9px] font-bold uppercase tracking-wide px-1.5 py-0.5 rounded-full bg-indigo-100 text-indigo-700 border border-indigo-200">
+                          Interne
+                        </span>
+                      ) : (
+                        <span className="flex-shrink-0 text-[9px] font-bold uppercase tracking-wide px-1.5 py-0.5 rounded-full bg-green-100 text-green-700 border border-green-200">
+                          Publié
+                        </span>
+                      )}
+                    </div>
+                    <div className="flex items-center gap-2 mt-0.5">
+                      {job.department_name && (
+                        <span className="text-[10px] text-slate-500 line-clamp-1">{job.department_name}</span>
+                      )}
+                      {job.address && (
+                        <span className="text-[10px] text-slate-400 flex items-center gap-0.5">
+                          <MapPin className="h-2.5 w-2.5" />
+                          {job.address}
+                        </span>
+                      )}
+                    </div>
+                  </div>
+                  <Send className="h-3.5 w-3.5 text-orange-300 flex-shrink-0 mt-0.5 group-hover/item:text-orange-500 transition-colors" />
+                </button>
+              ))}
+            </div>
+
+            {/* Pagination */}
+            <div className="flex-shrink-0 mt-2">
+              {totalPages > 1 && (
+                <div className="flex items-center justify-between gap-2">
+                  <Button variant="outline" size="sm"
+                    onClick={() => setPage(p => Math.max(0, p - 1))}
+                    disabled={page === 0}
+                    className="flex-1 h-7 text-xs text-orange-600 border-orange-200 hover:bg-orange-50 disabled:opacity-40">
+                    <ChevronLeft className="h-3.5 w-3.5 mr-1" />Précédent
+                  </Button>
+                  <Button variant="outline" size="sm"
+                    onClick={() => setPage(p => Math.min(totalPages - 1, p + 1))}
+                    disabled={page === totalPages - 1}
+                    className="flex-1 h-7 text-xs text-orange-600 border-orange-200 hover:bg-orange-50 disabled:opacity-40">
+                    Suivant<ChevronRight className="h-3.5 w-3.5 ml-1" />
+                  </Button>
+                </div>
+              )}
+            </div>
+          </div>
+        )}
+      </CardContent>
+
+      {/* Bouton synchronisation manuelle Odoo — admin uniquement */}
+      {isAdmin && (
+        <button
+          onClick={handleSync}
+          disabled={syncing || loading}
+          title="Synchroniser avec Odoo"
+          className="absolute bottom-3 right-3 z-20 opacity-0 group-hover:opacity-100 transition-opacity duration-200 p-2 rounded-lg bg-white/90 hover:bg-white shadow-md disabled:cursor-not-allowed"
+        >
+          {syncing
+            ? <Loader2 className="h-4 w-4 text-orange-500 animate-spin" />
+            : <RefreshCw className="h-4 w-4 text-gray-400 hover:text-orange-500 transition-colors" />
+          }
+        </button>
+      )}
+    </Card>
+
+    <JobApplyModal job={selectedJob} onClose={() => setSelectedJob(null)} />
+    </div>
   )
 }

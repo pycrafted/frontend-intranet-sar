@@ -18,11 +18,12 @@ export interface SariaChatbotState {
   isTyping: boolean
   loadingMessage: string
   loadingPhase: 'searching' | 'processing'
+  isMaintenance: boolean
 }
 
 export interface SariaChatbotActions {
   toggleChat: () => void
-  sendMessage: (content: string) => void
+  sendMessage: (content: string, file?: File) => void
   addMessage: (message: Omit<Message, 'id' | 'timestamp'>) => void
   clearMessages: () => void
 }
@@ -42,7 +43,8 @@ export function useSariaChatbot() {
     messages: initialMessages,
     isTyping: false,
     loadingMessage: '',
-    loadingPhase: 'searching'
+    loadingPhase: 'searching',
+    isMaintenance: false
   })
 
   const { startLoading, stopLoading, currentLoadingMessage, isLoading, loadingPhase } = useLoadingMessages()
@@ -67,20 +69,23 @@ export function useSariaChatbot() {
     }))
   }, [])
 
-  const sendMessage = useCallback(async (content: string) => {
+  const sendMessage = useCallback(async (content: string, file?: File) => {
     const messageId = Date.now().toString()
     console.log(`\n🤖 [MAI-CHATBOT] ========== NOUVEAU MESSAGE [${messageId}] ==========`)
     
-    if (!content.trim()) {
-      console.log(`⚠️ [MAI-CHATBOT] [${messageId}] Message vide, ignoré`)
+    if (!content.trim() && !file) {
+      console.log(`⚠️ [MAI-CHATBOT] [${messageId}] Message vide sans fichier, ignoré`)
       return
     }
 
     console.log(`📝 [MAI-CHATBOT] [${messageId}] Message utilisateur:`, content.trim().substring(0, 100) + (content.trim().length > 100 ? '...' : ''))
 
     // Ajouter le message de l'utilisateur
+    const displayContent = file
+      ? (content.trim() ? `${content.trim()}\n📎 ${file.name}` : `📎 ${file.name}`)
+      : content.trim()
     addMessage({
-      content: content.trim(),
+      content: displayContent,
       sender: 'user'
     })
     console.log(`✅ [MAI-CHATBOT] [${messageId}] Message utilisateur ajouté à l'historique`)
@@ -106,9 +111,13 @@ export function useSariaChatbot() {
       
       // Appeler l'API Claude
       console.log(`🌐 [MAI-CHATBOT] [${messageId}] Appel à claudeAPI.sendMessage...`)
-      const response = await claudeAPI.sendMessage(content.trim(), claudeMessages)
+      const response = await claudeAPI.sendMessage(content.trim(), claudeMessages, file)
       console.log(`✅ [MAI-CHATBOT] [${messageId}] Réponse reçue de Claude (longueur:`, response.length, 'caractères)')
       
+      // Détecter si MAÏ est en maintenance
+      const maintenance = response === 'MAÏ est actuellement en maintenance. Veuillez réessayer dans quelques instants.'
+      setState(prev => ({ ...prev, isMaintenance: maintenance }))
+
       // Ajouter la réponse de MAÏ
       addMessage({
         content: response,
