@@ -3,7 +3,7 @@
 import { useEffect, useState } from 'react'
 import { useRouter } from 'next/navigation'
 import { useAuth } from '@/hooks/useAuth'
-import { StandardLoader } from '@/components/ui/standard-loader'
+import { PageLoader } from '@/components/ui/loader'
 
 interface AuthGuardProps {
   children: React.ReactNode
@@ -42,11 +42,7 @@ export function AuthGuard({ children, fallback, redirectTo }: AuthGuardProps) {
 
   // Afficher le fallback pendant la vérification
   if (shouldShowFallback) {
-    return fallback || (
-      <div className="min-h-screen flex items-center justify-center">
-        <StandardLoader title="" message="" />
-      </div>
-    )
+    return fallback || <PageLoader />
   }
 
   // Si pas authentifié, ne rien afficher (redirection en cours)

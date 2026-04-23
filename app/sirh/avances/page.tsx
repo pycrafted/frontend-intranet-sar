@@ -4,7 +4,7 @@ import { useState } from 'react'
 import Link from 'next/link'
 import { ArrowLeft, AlertCircle } from 'lucide-react'
 import { LayoutWrapper } from '@/components/layout-wrapper'
-import { StandardLoader } from '@/components/ui/standard-loader'
+import { PageLoader } from '@/components/ui/loader'
 import { AuthGuard } from '@/components/auth-guard'
 import { useSirhContext } from '@/contexts/SirhContext'
 import { AdvanceList } from '@/components/sirh/advances/AdvanceList'
@@ -32,9 +32,7 @@ export default function AvancesPage() {
           )}
 
           {sirh.loading ? (
-            <div className="flex items-center justify-center py-10">
-              <StandardLoader title="" message="" />
-            </div>
+            <PageLoader />
           ) : (
             <AdvanceList advances={sirh.advances} advanceTypes={sirh.advanceTypes} onNew={() => setModal(true)} />
           )}

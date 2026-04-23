@@ -593,17 +593,6 @@ export function RestaurantMenu() {
 
 
 
-  // Fonction pour obtenir un nom de dessert selon le jour
-  const getDessertName = (day: string) => {
-    const desserts: { [key: string]: string } = {
-      'monday': 'Tiramisu',
-      'tuesday': 'Mousse au chocolat',
-      'wednesday': 'Tarte aux pommes',
-      'thursday': 'Crème brûlée',
-    }
-    return desserts[day] || 'Dessert du jour'
-  }
-
   // Configuration responsive basée sur la taille du widget et l'écran
   const getResponsiveConfig = () => {
     const baseConfig = {
@@ -872,17 +861,19 @@ export function RestaurantMenu() {
                         </div>
 
                         {/* Dessert compact - Optimisé pour mobile */}
-                        <div className="flex-1 flex flex-col justify-center bg-gradient-to-r from-pink-100 to-purple-100 border-pink-200 border rounded p-2.5 min-h-0">
-                          <div className="flex items-center justify-start gap-1.5 mb-1.5">
-                            <div className="w-2 h-2 rounded-full bg-gradient-to-r from-pink-500 to-purple-500"></div>
-                            <span className="text-xs font-bold text-pink-700 flex items-center gap-1">
-                              Dessert
-                            </span>
+                        {dayMenu.dessert && (
+                          <div className="flex-1 flex flex-col justify-center bg-gradient-to-r from-pink-100 to-purple-100 border-pink-200 border rounded p-2.5 min-h-0">
+                            <div className="flex items-center justify-start gap-1.5 mb-1.5">
+                              <div className="w-2 h-2 rounded-full bg-gradient-to-r from-pink-500 to-purple-500"></div>
+                              <span className="text-xs font-bold text-pink-700 flex items-center gap-1">
+                                Dessert
+                              </span>
+                            </div>
+                            <p className="text-sm font-semibold text-gray-900 leading-snug text-center px-1">
+                              {dayMenu.dessert}
+                            </p>
                           </div>
-                          <p className="text-sm font-semibold text-gray-900 leading-snug text-center px-1">
-                            {getDessertName(dayInfo.day)}
-                          </p>
-                        </div>
+                        )}
                       </>
                     ) : (
                       <div className="flex-1 flex flex-col justify-center bg-gradient-to-br from-slate-50 to-gray-100 border border-slate-200 rounded p-3 text-center">
@@ -1054,19 +1045,19 @@ export function RestaurantMenu() {
 
                       {/* Dessert */}
 
-                      <div className="flex-1 flex flex-col justify-center min-h-0 bg-gradient-to-r from-pink-100 to-purple-100 border-pink-200 border rounded-lg p-2 sm:p-3 group-hover/day:scale-105 transition-transform duration-300">
-                        <div className="flex items-center justify-start gap-2 mb-1.5">
-                          <div className="w-2.5 h-2.5 rounded-full bg-gradient-to-r from-pink-500 to-purple-500 shadow-sm"></div>
-                          <span className="text-[10px] sm:text-xs font-bold text-pink-700 flex items-center gap-1">
-                            Dessert
-                          </span>
-                        </div>
+                      {dayMenu.dessert && (
+                        <div className="flex-1 flex flex-col justify-center min-h-0 bg-gradient-to-r from-pink-100 to-purple-100 border-pink-200 border rounded-lg p-2 sm:p-3 group-hover/day:scale-105 transition-transform duration-300">
+                          <div className="flex items-center justify-start gap-2 mb-1.5">
+                            <div className="w-2.5 h-2.5 rounded-full bg-gradient-to-r from-pink-500 to-purple-500 shadow-sm"></div>
+                            <span className="text-[10px] sm:text-xs font-bold text-pink-700 flex items-center gap-1">
+                              Dessert
+                            </span>
+                          </div>
                           <p className="text-xs sm:text-sm font-semibold text-gray-900 leading-tight text-center px-1">
-
-                          {getDessertName(dayInfo.day)}
+                            {dayMenu.dessert}
                           </p>
-
                         </div>
+                      )}
 
                     </>
 
@@ -1128,18 +1119,6 @@ export function RestaurantMenu() {
 
 
 
-                      {/* Dessert placeholder */}
-                      <div className="flex-1 flex flex-col justify-center min-h-0 bg-gradient-to-r from-pink-100 to-purple-100 border-pink-200 border rounded-lg p-2 sm:p-3 group-hover/day:scale-105 transition-transform duration-300">
-                        <div className="flex items-center justify-start gap-2 mb-1.5">
-                          <div className="w-2.5 h-2.5 rounded-full bg-gradient-to-r from-pink-500 to-purple-500 shadow-sm"></div>
-                          <span className="text-[10px] sm:text-xs font-bold text-pink-700 flex items-center gap-1">
-                            Dessert
-                          </span>
-                        </div>
-                        <p className="text-xs sm:text-sm font-semibold text-gray-900 leading-tight text-center px-1">
-                          {getDessertName(dayInfo.day)}
-                        </p>
-                      </div>
                     </div>
 
                   )}

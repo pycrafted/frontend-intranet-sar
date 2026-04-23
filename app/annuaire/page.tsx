@@ -6,7 +6,7 @@ import { LayoutWrapper } from "@/components/layout-wrapper"
 import { Card } from "@/components/ui/card"
 import { Phone, Smartphone, Search, Mail, Pencil, EyeOff, Eye, RefreshCw } from "lucide-react"
 import { useEmployees, Employee } from "@/hooks/useEmployees"
-import { StandardLoader } from "@/components/ui/standard-loader"
+import { PageLoader } from "@/components/ui/loader"
 import { useConfirm } from "@/components/ui/confirm-dialog"
 
 
@@ -247,9 +247,9 @@ function EmployeeCard({ employee, isAdmin, editMode, onSave }: {
 
 export default function AnnuairePage() {
   const { user } = useAuth()
-  const confirm = useConfirm()
   const isAdmin = !!(user?.is_superuser)
   const [editMode, setEditMode] = useState(false)
+  const [showInactive, setShowInactive] = useState(false)
   const [searchTerm, setSearchTerm] = useState("")
   const [debouncedSearchTerm, setDebouncedSearchTerm] = useState("")
   const [isTyping, setIsTyping] = useState(false)
@@ -331,26 +331,12 @@ export default function AnnuairePage() {
   // Utiliser les données de l'API ou les données filtrées, triées de A à Z
   // Les non-admins ne voient pas les employees désactivés
   const baseData = (filteredEmployees.length > 0 ? filteredEmployees : employees)
-    .filter(e => isAdmin || e.is_active !== false)
+    .filter(e => e.is_active !== false || (isAdmin && showInactive))
   const displayData = [...baseData].sort((a, b) =>
     a.full_name.localeCompare(b.full_name, 'fr', { sensitivity: 'base' })
   )
   
   
-
-  // Réactiver toutes les cards désactivées
-  const [reactivatingAll, setReactivatingAll] = useState(false)
-  async function handleReactivateAll() {
-    const inactive = employees.filter(e => e.is_active === false)
-    if (inactive.length === 0) return
-    if (!await confirm({ message: `Réactiver ${inactive.length} card${inactive.length > 1 ? "s" : ""} désactivée${inactive.length > 1 ? "s" : ""} ?`, title: 'Confirmer', variant: 'warning', confirmLabel: 'Réactiver' })) return
-    setReactivatingAll(true)
-    try {
-      await Promise.all(inactive.map(e => updateEmployee(e.id, { is_active: true })))
-    } finally {
-      setReactivatingAll(false)
-    }
-  }
 
   const inactiveCount = employees.filter(e => e.is_active === false).length
 
@@ -437,26 +423,39 @@ export default function AnnuairePage() {
                 <RefreshCw size={14} style={{ animation: syncing ? "spin 1s linear infinite" : "none", flexShrink: 0 }} />
                 <span className="hidden sm:inline">{syncing ? "Sync..." : "Sync LDAP"}</span>
               </button>
-              {/* Réactiver tout */}
+              {/* Afficher/masquer les cards désactivées */}
               {inactiveCount > 0 && (
                 <button
                   type="button"
-                  onClick={handleReactivateAll}
-                  disabled={reactivatingAll}
-                  title="Réactiver toutes les cards désactivées"
-                  className="flex items-center justify-center gap-1.5 rounded-lg border-2 font-semibold transition-all duration-150"
+                  onClick={() => setShowInactive(v => !v)}
+                  title={showInactive ? "Masquer les cards désactivées" : `Afficher les cards désactivées (${inactiveCount})`}
+                  className="relative flex items-center justify-center rounded-lg border-2 font-semibold transition-all duration-150"
                   style={{
                     padding: "6px 8px",
                     fontSize: 12, fontWeight: 600,
-                    borderColor: "#dde3ee", background: "#fff", color: "#344256",
-                    cursor: reactivatingAll ? "wait" : "pointer",
+                    borderColor: showInactive ? "#344256" : "#dde3ee",
+                    background: showInactive ? "#344256" : "#fff",
+                    color: showInactive ? "#fff" : "#344256",
+                    cursor: "pointer",
                     minWidth: 32,
                   }}
-                  onMouseEnter={e => { e.currentTarget.style.borderColor = "#344256"; e.currentTarget.style.background = "#f1f5f9" }}
-                  onMouseLeave={e => { e.currentTarget.style.borderColor = "#dde3ee"; e.currentTarget.style.background = "#fff" }}
+                  onMouseEnter={e => { if (!showInactive) { e.currentTarget.style.borderColor = "#344256"; e.currentTarget.style.background = "#f1f5f9" } }}
+                  onMouseLeave={e => { if (!showInactive) { e.currentTarget.style.borderColor = "#dde3ee"; e.currentTarget.style.background = "#fff" } }}
                 >
-                  <Eye size={14} style={{ flexShrink: 0 }} />
-                  <span className="hidden sm:inline">{reactivatingAll ? "..." : `Réactiver (${inactiveCount})`}</span>
+                  {showInactive ? <EyeOff size={14} style={{ flexShrink: 0 }} /> : <Eye size={14} style={{ flexShrink: 0 }} />}
+                  <span
+                    style={{
+                      position: "absolute", top: -6, right: -6,
+                      minWidth: 16, height: 16, borderRadius: 99,
+                      background: showInactive ? "#fff" : "#344256",
+                      color: showInactive ? "#344256" : "#fff",
+                      fontSize: 10, fontWeight: 700,
+                      display: "flex", alignItems: "center", justifyContent: "center",
+                      padding: "0 3px", lineHeight: 1,
+                    }}
+                  >
+                    {inactiveCount}
+                  </span>
                 </button>
               )}
               {/* Mode édition */}
@@ -486,14 +485,11 @@ export default function AnnuairePage() {
       >
         <div className="mx-auto max-w-[1600px] px-6 py-6 space-y-4 xs:space-y-6">
           {/* État de chargement et d'erreur - Style actualités */}
-          {(loading || error) && (
-            <StandardLoader 
-              title={loading ? "Chargement de l'annuaire..." : undefined}
-              message={loading ? "Veuillez patienter pendant que nous récupérons les données." : undefined}
-              error={error}
-              showRetry={!!error}
-              onRetry={() => window.location.reload()}
-            />
+          {loading && <PageLoader />}
+          {!loading && error && (
+            <div className="bg-red-50 border border-red-200 rounded-xl px-5 py-4 text-red-700 text-sm">
+              {error}
+            </div>
           )}
 
           {/* Contenu principal - Style actualités */}

@@ -23,8 +23,11 @@ import {
   Phone,
   ClipboardList,
   UserCog,
+  Settings,
+  Bot,
 } from "lucide-react"
 import { useAuth } from "@/hooks/useAuth"
+import { useAIChatbot } from "@/contexts/AIChatbotContext"
 
 // Navigation sections - sans badges (version de base)
 const getBaseNavigationSections = () => [
@@ -67,8 +70,49 @@ export function Navigation({ isOpen, onClose, onCollapseChange }: NavigationProp
   const isCollapsed = true // Toujours rétracté — définitivement
   const [mounted, setMounted] = useState(false) // Pour éviter les erreurs d'hydratation
   const { logout } = useLogout()
+  const [showSettings, setShowSettings] = useState(false)
+  const [togglingChatbot, setTogglingChatbot] = useState(false)
 
   const { user } = useAuth()
+  const { chatbotEnabled, setChatbotEnabled, sirhEnabled, setSirhEnabled } = useAIChatbot()
+
+  useEffect(() => {
+    if (!showSettings) return
+    const handler = (e: MouseEvent) => {
+      const target = e.target as Element
+      if (!target.closest('[data-settings-dropdown]')) setShowSettings(false)
+    }
+    document.addEventListener('mousedown', handler)
+    return () => document.removeEventListener('mousedown', handler)
+  }, [showSettings])
+
+  const patchConfig = async (payload: Record<string, boolean>) => {
+    const csrfToken = document.cookie.match(/csrftoken=([^;]+)/)?.[1] ?? ''
+    const base = process.env.NEXT_PUBLIC_API_URL?.replace(/\/api$/, '') || 'http://localhost:8000'
+    await fetch(`${base}/api/config/chatbot/update/`, {
+      method: 'PATCH',
+      credentials: 'include',
+      headers: { 'Content-Type': 'application/json', 'X-CSRFToken': csrfToken },
+      body: JSON.stringify(payload),
+    })
+  }
+
+  const handleToggleChatbot = async (enabled: boolean) => {
+    setTogglingChatbot(true)
+    try {
+      await patchConfig({ chatbot_enabled: enabled })
+      setChatbotEnabled(enabled)
+    } catch { } finally { setTogglingChatbot(false) }
+  }
+
+  const [togglingSirh, setTogglingSirh] = useState(false)
+  const handleToggleSirh = async (enabled: boolean) => {
+    setTogglingSirh(true)
+    try {
+      await patchConfig({ sirh_enabled: enabled })
+      setSirhEnabled(enabled)
+    } catch { } finally { setTogglingSirh(false) }
+  }
 
   // Marquer comme monté après le premier rendu côté client
   useEffect(() => {
@@ -107,6 +151,7 @@ export function Navigation({ isOpen, onClose, onCollapseChange }: NavigationProp
     sections.forEach(section => {
       section.items = section.items.filter(item => {
         if ((item as any).authOnly && !isAuthenticated) return false
+        if (item.href === '/sirh' && !sirhEnabled) return false
         return true
       })
     })
@@ -120,14 +165,14 @@ export function Navigation({ isOpen, onClose, onCollapseChange }: NavigationProp
       })
     }
     setNavigationSections(sections)
-  }, [user])
+  }, [user, sirhEnabled])
 
   // Fonction de déconnexion
   const handleLogout = async () => {
     try {
       setIsLoading(true)
       await logout()
-      router.push('/login')
+      router.push('/')
     } catch (error) {
       setIsLoading(false)
     }
@@ -309,8 +354,85 @@ export function Navigation({ isOpen, onClose, onCollapseChange }: NavigationProp
         ))}
       </nav>
 
-      {/* Bas de sidebar : déconnexion */}
+      {/* Bas de sidebar : paramètres + déconnexion */}
       <div className="border-t border-slate-200/60 bg-slate-50/50 p-1.5 mt-auto flex flex-col gap-0.5">
+
+        {/* Dropdown paramètres — superadmin uniquement */}
+        {user?.is_superuser && (
+          <div className="relative" data-settings-dropdown>
+            <button
+              onClick={() => setShowSettings(s => !s)}
+              title="Paramètres"
+              className={cn(
+                "w-full flex items-center justify-center py-2 px-1 rounded-xl transition-all duration-200 group",
+                showSettings ? "bg-[#344256]/10" : "hover:bg-slate-100"
+              )}
+            >
+              <Settings className="h-4 w-4 transition-colors" style={{ color: '#344256' }} />
+            </button>
+
+            {showSettings && (
+              <div
+                className="absolute bottom-0 left-full ml-2 z-50 bg-white rounded-xl shadow-xl border border-slate-200 p-3 w-52"
+                style={{ boxShadow: '0 8px 30px rgba(0,0,0,0.12)' }}
+              >
+                <p className="text-[10px] font-semibold text-slate-400 uppercase tracking-wider mb-2">Paramètres</p>
+                <label className="flex items-center gap-2.5 cursor-pointer group/label">
+                  <div className="relative flex-shrink-0">
+                    <input
+                      type="checkbox"
+                      checked={chatbotEnabled}
+                      disabled={togglingChatbot}
+                      onChange={e => handleToggleChatbot(e.target.checked)}
+                      className="sr-only"
+                    />
+                    <div
+                      onClick={() => !togglingChatbot && handleToggleChatbot(!chatbotEnabled)}
+                      className="w-8 h-4 rounded-full transition-colors duration-200 cursor-pointer flex items-center px-0.5"
+                      style={{ backgroundColor: chatbotEnabled ? '#344256' : '#cbd5e1' }}
+                    >
+                      <div
+                        className="w-3 h-3 rounded-full bg-white shadow transition-transform duration-200"
+                        style={{ transform: chatbotEnabled ? 'translateX(16px)' : 'translateX(0)' }}
+                      />
+                    </div>
+                  </div>
+                  <div className="flex items-center gap-1.5 min-w-0">
+                    <Bot className="h-3.5 w-3.5 flex-shrink-0" style={{ color: '#344256' }} />
+                    <span className="text-xs font-medium text-slate-700 truncate">Chatbot MAÏ</span>
+                  </div>
+                  {togglingChatbot && (
+                    <div className="h-3 w-3 border-2 border-t-transparent rounded-full animate-spin flex-shrink-0" style={{ borderColor: '#344256', borderTopColor: 'transparent' }} />
+                  )}
+                </label>
+
+                <div className="my-2 border-t border-slate-100" />
+
+                <label className="flex items-center gap-2.5 cursor-pointer">
+                  <div className="relative flex-shrink-0">
+                    <div
+                      onClick={() => !togglingSirh && handleToggleSirh(!sirhEnabled)}
+                      className="w-8 h-4 rounded-full transition-colors duration-200 cursor-pointer flex items-center px-0.5"
+                      style={{ backgroundColor: sirhEnabled ? '#344256' : '#cbd5e1' }}
+                    >
+                      <div
+                        className="w-3 h-3 rounded-full bg-white shadow transition-transform duration-200"
+                        style={{ transform: sirhEnabled ? 'translateX(16px)' : 'translateX(0)' }}
+                      />
+                    </div>
+                  </div>
+                  <div className="flex items-center gap-1.5 min-w-0">
+                    <ClipboardList className="h-3.5 w-3.5 flex-shrink-0" style={{ color: '#344256' }} />
+                    <span className="text-xs font-medium text-slate-700 truncate">Interface SIRH</span>
+                  </div>
+                  {togglingSirh && (
+                    <div className="h-3 w-3 border-2 border-t-transparent rounded-full animate-spin flex-shrink-0" style={{ borderColor: '#344256', borderTopColor: 'transparent' }} />
+                  )}
+                </label>
+              </div>
+            )}
+          </div>
+        )}
 
         {/* Bouton déconnexion */}
         {user && (

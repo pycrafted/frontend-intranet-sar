@@ -7,19 +7,15 @@ import { AuthGuard } from "@/components/auth-guard"
 import { useAuth } from "@/hooks/useAuth"
 import { useMetrics } from "@/hooks/useMetrics"
 import { Card, CardContent } from "@/components/ui/card"
-import { Badge } from "@/components/ui/badge"
-import { StandardLoader } from "@/components/ui/standard-loader"
-import { 
-  BarChart3, 
-  Users, 
-  LogIn, 
-  FileText, 
-  MessageSquare,
+import { PageLoader } from "@/components/ui/loader"
+import {
+  BarChart3,
+  LogIn,
   TrendingUp,
   Calendar,
   Clock,
-  Activity,
-  Download,
+  ChevronLeft,
+  ChevronRight,
 } from "lucide-react"
 import {
   BarChart,
@@ -33,21 +29,22 @@ import {
   CartesianGrid,
   Tooltip,
   ResponsiveContainer,
-  PieChart,
-  Pie,
-  Cell,
-  Legend
 } from "recharts"
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
 import { format, parseISO } from "date-fns"
 import { fr } from "date-fns/locale"
-import { cn } from "@/lib/utils"
 
-const COLORS = ['#3B82F6', '#10B981', '#F59E0B', '#EF4444', '#8B5CF6', '#EC4899', '#06B6D4', '#84CC16']
+const MAIN = '#344256'
+const MAIN_LIGHT = `${MAIN}18`
+const CHART_PRIMARY = '#344256'
+const CHART_SECONDARY = '#7c8fa0'
+const CHART_MUTED = '#b0bec5'
+const GRID_COLOR = '#e2e8f0'
+const AXIS_COLOR = '#94a3b8'
 
 export default function MetriquesPage() {
-  const { metrics, loginStats, loading, error, fetchLoginStats } = useMetrics()
-  const [statsPeriod, setStatsPeriod] = useState<'daily' | 'weekly' | 'monthly' | 'yearly'>('daily')
+  const { metrics, loading, error, fetchLoginStats } = useMetrics()
+  const [loginPageIndex, setLoginPageIndex] = useState(0)
   const { user } = useAuth()
   const router = useRouter()
 
@@ -58,16 +55,14 @@ export default function MetriquesPage() {
   }, [user, isAdmin, router])
 
   const handlePeriodChange = (period: 'daily' | 'weekly' | 'monthly' | 'yearly') => {
-    setStatsPeriod(period)
     fetchLoginStats(period)
   }
-
 
   if (loading) {
     return (
       <AuthGuard fallback={null} redirectTo="/">
         <LayoutWrapper>
-          <StandardLoader />
+          <PageLoader />
         </LayoutWrapper>
       </AuthGuard>
     )
@@ -77,11 +72,10 @@ export default function MetriquesPage() {
     return (
       <AuthGuard fallback={null} redirectTo="/">
         <LayoutWrapper>
-          <StandardLoader 
-            error={error}
-            showRetry={true}
-            onRetry={() => window.location.reload()}
-          />
+          <div className="flex flex-col items-center justify-center min-h-[60vh] gap-3">
+            <p className="text-red-500 text-sm">{error}</p>
+            <button onClick={() => window.location.reload()} className="text-sm text-gray-400 underline">Réessayer</button>
+          </div>
         </LayoutWrapper>
       </AuthGuard>
     )
@@ -91,634 +85,272 @@ export default function MetriquesPage() {
     return (
       <AuthGuard fallback={null} redirectTo="/">
         <LayoutWrapper>
-          <div className="w-full space-y-4 xs:space-y-6">
-            <div className="max-w-7xl mx-auto">
-              <Card className="p-8 xs:p-12 text-center rounded-lg">
-                <div className="space-y-3 xs:space-y-4">
-                  <div className="w-12 h-12 xs:w-16 xs:h-16 bg-muted rounded-full flex items-center justify-center mx-auto">
-                    <BarChart3 className="h-6 w-6 xs:h-8 xs:w-8 text-muted-foreground" />
-                  </div>
-                  <div>
-                    <h3 className="text-base xs:text-lg font-semibold">Aucune donnée disponible</h3>
-                    <p className="text-sm text-gray-500 mt-1">Les métriques seront disponibles après les premières connexions</p>
-                  </div>
-                </div>
-              </Card>
-            </div>
+          <div className="mx-auto max-w-[1600px] px-6 py-6">
+            <Card className="p-12 text-center border border-gray-200 rounded-2xl">
+              <div className="w-14 h-14 rounded-2xl flex items-center justify-center mx-auto mb-4" style={{ backgroundColor: MAIN_LIGHT }}>
+                <BarChart3 className="h-7 w-7" style={{ color: MAIN }} />
+              </div>
+              <h3 className="text-base font-semibold text-gray-800">Aucune donnée disponible</h3>
+              <p className="text-sm text-gray-400 mt-1">Les métriques seront disponibles après les premières connexions</p>
+            </Card>
           </div>
         </LayoutWrapper>
       </AuthGuard>
     )
   }
 
-  // Préparer les données pour les graphiques
   const dailyChartData = metrics.login_trend_daily.map(item => ({
     date: format(parseISO(item.date), 'dd/MM', { locale: fr }),
-    fullDate: item.date,
-    connexions: item.count
+    connexions: item.count,
   }))
 
   const weeklyChartData = metrics.login_trend_weekly.map((item, index) => ({
-    semaine: `Sem ${index + 1}`,
-    fullWeek: item.week_start,
-    connexions: item.count
+    semaine: `S${index + 1}`,
+    connexions: item.count,
   }))
 
-  const monthlyChartData = metrics.login_trend_monthly.map((item, index) => ({
-    mois: format(parseISO(item.month_start), 'MMM yyyy', { locale: fr }),
-    fullMonth: item.month_start,
-    connexions: item.count
+  const monthlyChartData = metrics.login_trend_monthly.map(item => ({
+    mois: format(parseISO(item.month_start), 'MMM yy', { locale: fr }),
+    connexions: item.count,
   }))
 
-  const yearlyChartData = metrics.login_trend_yearly?.map((item, index) => ({
+  const yearlyChartData = metrics.login_trend_yearly?.map(item => ({
     annee: item.year.toString(),
-    fullYear: item.year_start,
-    connexions: item.count
+    connexions: item.count,
   })) || []
+
+  const loginPages = [
+    { icon: <LogIn className="h-5 w-5" style={{ color: MAIN }} />, label: "Aujourd'hui", value: metrics.daily_logins, sub: metrics.active_users_today },
+    { icon: <Calendar className="h-5 w-5" style={{ color: MAIN }} />, label: "Cette semaine", value: metrics.weekly_logins, sub: metrics.active_users_week },
+    { icon: <TrendingUp className="h-5 w-5" style={{ color: MAIN }} />, label: "Ce mois", value: metrics.monthly_logins, sub: metrics.active_users_month },
+  ]
+  const currentLoginPage = loginPages[loginPageIndex]
+
+  const tooltipStyle = {
+    backgroundColor: '#fff',
+    border: '1px solid #e2e8f0',
+    borderRadius: '8px',
+    fontSize: '12px',
+    color: '#374151',
+  }
 
   return (
     <AuthGuard fallback={null} redirectTo="/">
       <LayoutWrapper>
-        <div className="w-full space-y-4 xs:space-y-6">
-          {/* En-tête - Style actualités */}
-          <div className="flex items-center gap-2 mb-3 xs:mb-4 px-1 max-w-7xl mx-auto">
-            <div className="w-1 h-4 xs:h-6 bg-gradient-to-b from-blue-400 to-indigo-400 rounded-full shadow-sm"></div>
-            <h1 className="text-base xs:text-lg font-semibold text-gray-900">Métriques et Analytics</h1>
-            <Badge variant="secondary" className="ml-2 bg-blue-100 text-blue-800 text-xs xs:text-sm px-2 py-1">
-              Dashboard
-            </Badge>
-          </div>
+        <div className="mx-auto max-w-[1600px] px-6 py-6 space-y-4">
 
-          {/* Métriques principales - Style feed */}
-          <div className="space-y-3 xs:space-y-4 max-w-7xl mx-auto stagger-animation">
-            {/* Section: Vue d'ensemble */}
-            <div className="space-y-3 xs:space-y-4">
-              <div className="flex items-center gap-2 px-1">
-                <div className="w-1 h-4 bg-gradient-to-b from-green-400 to-emerald-400 rounded-full"></div>
-                <h2 className="text-sm xs:text-base font-semibold text-gray-800">Vue d'ensemble</h2>
-              </div>
-              
-              <div className="grid gap-3 xs:gap-4 sm:grid-cols-2 lg:grid-cols-4">
-                <Card className="group relative overflow-hidden rounded-xl border-0 shadow-lg hover:shadow-2xl transition-all duration-500 hover:-translate-y-1" style={{ backgroundColor: '#344256' }}>
-                  <div className="absolute inset-0 bg-gradient-to-br from-white/5 via-transparent to-white/5 opacity-0 group-hover:opacity-100 transition-opacity duration-500"></div>
-                  <CardContent className="relative p-4 xs:p-6">
-                    <div className="flex items-center justify-between mb-3">
-                      <div className="p-3 bg-white/20 rounded-xl shadow-lg group-hover:scale-110 transition-transform duration-300 backdrop-blur-sm">
-                        <LogIn className="h-5 w-5 xs:h-6 xs:w-6 text-white" />
-                      </div>
-                      <Badge className="bg-white/20 text-white border-white/30 backdrop-blur-sm">
-                        Aujourd'hui
-                      </Badge>
-                    </div>
-                    <div className="text-3xl xs:text-4xl font-bold text-white mb-1">
-                      {metrics.daily_logins}
-                    </div>
-                    <p className="text-xs xs:text-sm text-white/80 font-medium">
-                      {metrics.active_users_today} utilisateurs actifs
-                    </p>
-                  </CardContent>
-                </Card>
+          {/* Stat cards */}
+          <div className="grid gap-4 sm:grid-cols-2">
 
-                <Card className="group relative overflow-hidden rounded-xl border-0 shadow-lg hover:shadow-2xl transition-all duration-500 hover:-translate-y-1" style={{ backgroundColor: '#344256' }}>
-                  <div className="absolute inset-0 bg-gradient-to-br from-white/5 via-transparent to-white/5 opacity-0 group-hover:opacity-100 transition-opacity duration-500"></div>
-                  <CardContent className="relative p-4 xs:p-6">
-                    <div className="flex items-center justify-between mb-3">
-                      <div className="p-3 bg-white/20 rounded-xl shadow-lg group-hover:scale-110 transition-transform duration-300 backdrop-blur-sm">
-                        <Calendar className="h-5 w-5 xs:h-6 xs:w-6 text-white" />
-                      </div>
-                      <Badge className="bg-white/20 text-white border-white/30 backdrop-blur-sm">
-                        Cette semaine
-                      </Badge>
-                    </div>
-                    <div className="text-3xl xs:text-4xl font-bold text-white mb-1">
-                      {metrics.weekly_logins}
-                    </div>
-                    <p className="text-xs xs:text-sm text-white/80 font-medium">
-                      {metrics.active_users_week} utilisateurs actifs
-                    </p>
-                  </CardContent>
-                </Card>
-
-                <Card className="group relative overflow-hidden rounded-xl border-0 shadow-lg hover:shadow-2xl transition-all duration-500 hover:-translate-y-1" style={{ backgroundColor: '#344256' }}>
-                  <div className="absolute inset-0 bg-gradient-to-br from-white/5 via-transparent to-white/5 opacity-0 group-hover:opacity-100 transition-opacity duration-500"></div>
-                  <CardContent className="relative p-4 xs:p-6">
-                    <div className="flex items-center justify-between mb-3">
-                      <div className="p-3 bg-white/20 rounded-xl shadow-lg group-hover:scale-110 transition-transform duration-300 backdrop-blur-sm">
-                        <TrendingUp className="h-5 w-5 xs:h-6 xs:w-6 text-white" />
-                      </div>
-                      <Badge className="bg-white/20 text-white border-white/30 backdrop-blur-sm">
-                        Ce mois
-                      </Badge>
-                    </div>
-                    <div className="text-3xl xs:text-4xl font-bold text-white mb-1">
-                      {metrics.monthly_logins}
-                    </div>
-                    <p className="text-xs xs:text-sm text-white/80 font-medium">
-                      {metrics.active_users_month} utilisateurs actifs
-                    </p>
-                  </CardContent>
-                </Card>
-
-                <Card className="group relative overflow-hidden rounded-xl border-0 shadow-lg hover:shadow-2xl transition-all duration-500 hover:-translate-y-1" style={{ backgroundColor: '#344256' }}>
-                  <div className="absolute inset-0 bg-gradient-to-br from-white/5 via-transparent to-white/5 opacity-0 group-hover:opacity-100 transition-opacity duration-500"></div>
-                  <CardContent className="relative p-4 xs:p-6">
-                    <div className="flex items-center justify-between mb-3">
-                      <div className="p-3 bg-white/20 rounded-xl shadow-lg group-hover:scale-110 transition-transform duration-300 backdrop-blur-sm">
-                        <Users className="h-5 w-5 xs:h-6 xs:w-6 text-white" />
-                      </div>
-                      <Badge className="bg-white/20 text-white border-white/30 backdrop-blur-sm">
-                        Total
-                      </Badge>
-                    </div>
-                    <div className="text-3xl xs:text-4xl font-bold text-white mb-1">
-                      {metrics.total_users}
-                    </div>
-                    <p className="text-xs xs:text-sm text-white/80 font-medium">
-                      Utilisateurs enregistrés
-                    </p>
-                  </CardContent>
-                </Card>
-              </div>
-            </div>
-
-            {/* Section: Engagement */}
-            <div className="space-y-3 xs:space-y-4">
-              <div className="flex items-center gap-2 px-1">
-                <div className="w-1 h-4 bg-gradient-to-b from-pink-400 to-rose-400 rounded-full"></div>
-                <h2 className="text-sm xs:text-base font-semibold text-gray-800">Engagement</h2>
-              </div>
-              
-              <div className="grid gap-3 xs:gap-4 sm:grid-cols-2 lg:grid-cols-4">
-                <Card className="group relative overflow-hidden rounded-xl border-0 shadow-lg hover:shadow-2xl transition-all duration-500 hover:-translate-y-1" style={{ backgroundColor: '#344256' }}>
-                  <div className="absolute inset-0 bg-gradient-to-br from-white/5 via-transparent to-white/5 opacity-0 group-hover:opacity-100 transition-opacity duration-500"></div>
-                  <CardContent className="relative p-4 xs:p-6">
-                    <div className="flex items-center justify-between mb-3">
-                      <div className="p-3 bg-white/20 rounded-xl shadow-lg group-hover:scale-110 transition-transform duration-300 backdrop-blur-sm">
-                        <Clock className="h-5 w-5 xs:h-6 xs:w-6 text-white" />
-                      </div>
-                    </div>
-                    <div className="text-3xl xs:text-4xl font-bold text-white mb-1">
-                      {metrics.avg_session_duration_minutes} min
-                    </div>
-                    <p className="text-xs xs:text-sm text-white/80 font-medium">Durée moyenne de session</p>
-                  </CardContent>
-                </Card>
-
-                <Card className="group relative overflow-hidden rounded-xl border-0 shadow-lg hover:shadow-2xl transition-all duration-500 hover:-translate-y-1" style={{ backgroundColor: '#344256' }}>
-                  <div className="absolute inset-0 bg-gradient-to-br from-white/5 via-transparent to-white/5 opacity-0 group-hover:opacity-100 transition-opacity duration-500"></div>
-                  <CardContent className="relative p-4 xs:p-6">
-                    <div className="flex items-center justify-between mb-3">
-                      <div className="p-3 bg-white/20 rounded-xl shadow-lg group-hover:scale-110 transition-transform duration-300 backdrop-blur-sm">
-                        <Activity className="h-5 w-5 xs:h-6 xs:w-6 text-white" />
-                      </div>
-                    </div>
-                    <div className="text-3xl xs:text-4xl font-bold text-white mb-1">
-                      {metrics.engagement_rate}%
-                    </div>
-                    <p className="text-xs xs:text-sm text-white/80 font-medium">
-                      {metrics.active_users_month} / {metrics.total_users} utilisateurs
-                    </p>
-                  </CardContent>
-                </Card>
-
-                <Card className="group relative overflow-hidden rounded-xl border-0 shadow-lg hover:shadow-2xl transition-all duration-500 hover:-translate-y-1" style={{ backgroundColor: '#344256' }}>
-                  <div className="absolute inset-0 bg-gradient-to-br from-white/5 via-transparent to-white/5 opacity-0 group-hover:opacity-100 transition-opacity duration-500"></div>
-                  <CardContent className="relative p-4 xs:p-6">
-                    <div className="flex items-center justify-between mb-3">
-                      <div className="p-3 bg-white/20 rounded-xl shadow-lg group-hover:scale-110 transition-transform duration-300 backdrop-blur-sm">
-                        <Users className="h-5 w-5 xs:h-6 xs:w-6 text-white" />
-                      </div>
-                      <Badge className="bg-white/20 text-white border-white/30 backdrop-blur-sm">
-                        Nouveaux
-                      </Badge>
-                    </div>
-                    <div className="text-3xl xs:text-4xl font-bold text-white mb-1">
-                      {metrics.new_users_count}
-                    </div>
-                    <p className="text-xs xs:text-sm text-white/80 font-medium">30 derniers jours</p>
-                  </CardContent>
-                </Card>
-
-                <Card className="group relative overflow-hidden rounded-xl border-0 shadow-lg hover:shadow-2xl transition-all duration-500 hover:-translate-y-1" style={{ backgroundColor: '#344256' }}>
-                  <div className="absolute inset-0 bg-gradient-to-br from-white/5 via-transparent to-white/5 opacity-0 group-hover:opacity-100 transition-opacity duration-500"></div>
-                  <CardContent className="relative p-4 xs:p-6">
-                    <div className="flex items-center justify-between mb-3">
-                      <div className="p-3 bg-white/20 rounded-xl shadow-lg group-hover:scale-110 transition-transform duration-300 backdrop-blur-sm">
-                        <Download className="h-5 w-5 xs:h-6 xs:w-6 text-white" />
-                      </div>
-                    </div>
-                    <div className="text-3xl xs:text-4xl font-bold text-white mb-1">
-                      {metrics.total_downloads}
-                    </div>
-                    <p className="text-xs xs:text-sm text-white/80 font-medium">Documents téléchargés</p>
-                  </CardContent>
-                </Card>
-              </div>
-            </div>
-
-            {/* Section: Contenu */}
-            <div className="space-y-3 xs:space-y-4">
-              <div className="flex items-center gap-2 px-1">
-                <div className="w-1 h-4 bg-gradient-to-b from-teal-400 to-cyan-400 rounded-full"></div>
-                <h2 className="text-sm xs:text-base font-semibold text-gray-800">Contenu</h2>
-              </div>
-              
-              <div className="grid gap-3 xs:gap-4 sm:grid-cols-2 lg:grid-cols-4">
-                <Card className="group relative overflow-hidden rounded-xl border-0 shadow-lg hover:shadow-2xl transition-all duration-500 hover:-translate-y-1" style={{ backgroundColor: '#344256' }}>
-                  <div className="absolute inset-0 bg-gradient-to-br from-white/5 via-transparent to-white/5 opacity-0 group-hover:opacity-100 transition-opacity duration-500"></div>
-                  <CardContent className="relative p-4 xs:p-6">
-                    <div className="flex items-center justify-between mb-3">
-                      <div className="p-3 bg-white/20 rounded-xl shadow-lg group-hover:scale-110 transition-transform duration-300 backdrop-blur-sm">
-                        <FileText className="h-5 w-5 xs:h-6 xs:w-6 text-white" />
-                      </div>
-                    </div>
-                    <div className="text-3xl xs:text-4xl font-bold text-white mb-1">
-                      {metrics.total_articles}
-                    </div>
-                    <p className="text-xs xs:text-sm text-white/80 font-medium">Articles publiés</p>
-                  </CardContent>
-                </Card>
-
-                <Card className="group relative overflow-hidden rounded-xl border-0 shadow-lg hover:shadow-2xl transition-all duration-500 hover:-translate-y-1" style={{ backgroundColor: '#344256' }}>
-                  <div className="absolute inset-0 bg-gradient-to-br from-white/5 via-transparent to-white/5 opacity-0 group-hover:opacity-100 transition-opacity duration-500"></div>
-                  <CardContent className="relative p-4 xs:p-6">
-                    <div className="flex items-center justify-between mb-3">
-                      <div className="p-3 bg-white/20 rounded-xl shadow-lg group-hover:scale-110 transition-transform duration-300 backdrop-blur-sm">
-                        <FileText className="h-5 w-5 xs:h-6 xs:w-6 text-white" />
-                      </div>
-                    </div>
-                    <div className="text-3xl xs:text-4xl font-bold text-white mb-1">
-                      {metrics.total_documents}
-                    </div>
-                    <p className="text-xs xs:text-sm text-white/80 font-medium">Documents disponibles</p>
-                  </CardContent>
-                </Card>
-
-                <Card className="group relative overflow-hidden rounded-xl border-0 shadow-lg hover:shadow-2xl transition-all duration-500 hover:-translate-y-1" style={{ backgroundColor: '#344256' }}>
-                  <div className="absolute inset-0 bg-gradient-to-br from-white/5 via-transparent to-white/5 opacity-0 group-hover:opacity-100 transition-opacity duration-500"></div>
-                  <CardContent className="relative p-4 xs:p-6">
-                    <div className="flex items-center justify-between mb-3">
-                      <div className="p-3 bg-white/20 rounded-xl shadow-lg group-hover:scale-110 transition-transform duration-300 backdrop-blur-sm">
-                        <MessageSquare className="h-5 w-5 xs:h-6 xs:w-6 text-white" />
-                      </div>
-                    </div>
-                    <div className="text-3xl xs:text-4xl font-bold text-white mb-1">
-                      {metrics.total_forum_posts}
-                    </div>
-                    <p className="text-xs xs:text-sm text-white/80 font-medium">Messages forum</p>
-                  </CardContent>
-                </Card>
-
-                <Card className="group relative overflow-hidden rounded-xl border-0 shadow-lg hover:shadow-2xl transition-all duration-500 hover:-translate-y-1" style={{ backgroundColor: '#344256' }}>
-                  <div className="absolute inset-0 bg-gradient-to-br from-white/5 via-transparent to-white/5 opacity-0 group-hover:opacity-100 transition-opacity duration-500"></div>
-                  <CardContent className="relative p-4 xs:p-6">
-                    <div className="flex items-center justify-between mb-3">
-                      <div className="p-3 bg-white/20 rounded-xl shadow-lg group-hover:scale-110 transition-transform duration-300 backdrop-blur-sm">
-                        <Users className="h-5 w-5 xs:h-6 xs:w-6 text-white" />
-                      </div>
-                    </div>
-                    <div className="text-3xl xs:text-4xl font-bold text-white mb-1">
-                      {metrics.total_employees}
-                    </div>
-                    <p className="text-xs xs:text-sm text-white/80 font-medium">Personnes dans l'annuaire</p>
-                  </CardContent>
-                </Card>
-              </div>
-            </div>
-
-            {/* Section: Graphiques */}
-            <div className="space-y-3 xs:space-y-4">
-              <div className="flex items-center gap-2 px-1">
-                <div className="w-1 h-4 bg-gradient-to-b from-indigo-400 to-purple-400 rounded-full"></div>
-                <h2 className="text-sm xs:text-base font-semibold text-gray-800">Analyses détaillées</h2>
-              </div>
-
-              {/* Graphiques - Activité temporelle */}
-              <div className="grid gap-3 xs:gap-4 sm:grid-cols-2">
-                <Card className="group relative overflow-hidden rounded-xl border-0 shadow-lg hover:shadow-2xl transition-all duration-500" style={{ backgroundColor: '#344256' }}>
-                  <div className="absolute inset-0 bg-gradient-to-br from-white/5 via-transparent to-white/5 opacity-0 group-hover:opacity-100 transition-opacity duration-500"></div>
-                  <CardContent className="relative p-4 xs:p-6">
-                    <div className="mb-4">
-                      <div className="flex items-center gap-2 mb-2">
-                        <div className="p-2 bg-white/20 rounded-lg backdrop-blur-sm">
-                          <BarChart3 className="h-4 w-4 text-white" />
-                        </div>
-                        <h3 className="text-sm xs:text-base font-semibold text-white">Heures de Pointe</h3>
-                      </div>
-                      <p className="text-xs text-white/80 mt-1">Moyenne des connexions par heure (365 derniers jours)</p>
-                    </div>
-                    <ResponsiveContainer width="100%" height={250}>
-                      <BarChart data={metrics.hourly_logins}>
-                        <CartesianGrid strokeDasharray="3 3" stroke="rgba(255, 255, 255, 0.1)" />
-                        <XAxis 
-                          dataKey="hour" 
-                          tick={{ fontSize: 11, fill: 'rgba(255, 255, 255, 0.8)' }}
-                          label={{ value: 'Heure', position: 'insideBottom', offset: -5, fill: 'rgba(255, 255, 255, 0.8)' }}
-                        />
-                        <YAxis tick={{ fontSize: 11, fill: 'rgba(255, 255, 255, 0.8)' }} />
-                        <Tooltip 
-                          formatter={(value: any, payload: any) => {
-                            const data = payload?.[0]?.payload
-                            if (data?.avg_count !== undefined && data?.total_count !== undefined) {
-                              return [
-                                `${data.avg_count.toFixed(1)} connexions en moyenne`,
-                                `Total: ${data.total_count} sur 365 jours`
-                              ]
-                            }
-                            return [value, 'Connexions']
-                          }}
-                          labelFormatter={(label) => `Heure: ${label}h`}
-                          contentStyle={{ borderRadius: '8px', border: '1px solid #e5e7eb' }}
-                        />
-                        <Bar dataKey="count" fill="#8B5CF6" radius={[4, 4, 0, 0]} />
-                      </BarChart>
-                    </ResponsiveContainer>
-                  </CardContent>
-                </Card>
-
-                <Card className="group relative overflow-hidden rounded-xl border-0 shadow-lg hover:shadow-2xl transition-all duration-500" style={{ backgroundColor: '#344256' }}>
-                  <div className="absolute inset-0 bg-gradient-to-br from-white/5 via-transparent to-white/5 opacity-0 group-hover:opacity-100 transition-opacity duration-500"></div>
-                  <CardContent className="relative p-4 xs:p-6">
-                    <div className="mb-4">
-                      <div className="flex items-center gap-2 mb-2">
-                        <div className="p-2 bg-white/20 rounded-lg backdrop-blur-sm">
-                          <Calendar className="h-4 w-4 text-white" />
-                        </div>
-                        <h3 className="text-sm xs:text-base font-semibold text-white">Activité par Jour</h3>
-                      </div>
-                      <p className="text-xs text-white/80 mt-1">365 derniers jours</p>
-                    </div>
-                    <ResponsiveContainer width="100%" height={250}>
-                      <BarChart data={metrics.weekday_activity}>
-                        <CartesianGrid strokeDasharray="3 3" stroke="rgba(255, 255, 255, 0.1)" />
-                        <XAxis 
-                          dataKey="date" 
-                          tick={{ fontSize: 10, fill: 'rgba(255, 255, 255, 0.8)' }}
-                          angle={-45}
-                          textAnchor="end"
-                          height={80}
-                          tickFormatter={(value) => {
-                            try {
-                              const date = parseISO(value)
-                              return format(date, 'dd/MM', { locale: fr })
-                            } catch {
-                              return value
-                            }
-                          }}
-                        />
-                        <YAxis tick={{ fontSize: 11, fill: 'rgba(255, 255, 255, 0.8)' }} />
-                        <Tooltip 
-                          formatter={(value: any) => [value, 'Connexions']}
-                          labelFormatter={(label) => {
-                            try {
-                              const date = parseISO(label)
-                              return format(date, 'EEEE dd MMMM yyyy', { locale: fr })
-                            } catch {
-                              return `Date: ${label}`
-                            }
-                          }}
-                          contentStyle={{ borderRadius: '8px', border: '1px solid #e5e7eb' }}
-                        />
-                        <Bar dataKey="count" fill="#F59E0B" radius={[4, 4, 0, 0]} />
-                      </BarChart>
-                    </ResponsiveContainer>
-                  </CardContent>
-                </Card>
-              </div>
-
-              {/* Répartition par département */}
-              {metrics.department_stats && metrics.department_stats.length > 0 && (
-                <div className="grid gap-3 xs:gap-4 sm:grid-cols-2">
-                  <Card className="group relative overflow-hidden rounded-xl border-0 shadow-lg hover:shadow-2xl transition-all duration-500" style={{ backgroundColor: '#344256' }}>
-                    <div className="absolute inset-0 bg-gradient-to-br from-white/5 via-transparent to-white/5 opacity-0 group-hover:opacity-100 transition-opacity duration-500"></div>
-                    <CardContent className="relative p-4 xs:p-6">
-                      <div className="mb-4">
-                        <div className="flex items-center gap-2 mb-2">
-                          <div className="p-2 bg-white/20 rounded-lg backdrop-blur-sm">
-                            <Users className="h-4 w-4 text-white" />
-                          </div>
-                          <h3 className="text-sm xs:text-base font-semibold text-white">Par Département</h3>
-                        </div>
-                        <p className="text-xs text-white/80 mt-1">365 derniers jours</p>
-                      </div>
-                      <ResponsiveContainer width="100%" height={250}>
-                        <PieChart>
-                          <Pie
-                            data={metrics.department_stats}
-                            cx="50%"
-                            cy="50%"
-                            labelLine={false}
-                            label={({ name, percent }) => `${name}: ${(percent * 100).toFixed(0)}%`}
-                            outerRadius={80}
-                            fill="#8884d8"
-                            dataKey="login_count"
-                          >
-                            {metrics.department_stats.map((entry: any, index: number) => (
-                              <Cell key={`cell-${index}`} fill={COLORS[index % COLORS.length]} />
-                            ))}
-                          </Pie>
-                          <Tooltip contentStyle={{ borderRadius: '8px', border: '1px solid #e5e7eb' }} />
-                          <Legend />
-                        </PieChart>
-                      </ResponsiveContainer>
-                    </CardContent>
-                  </Card>
-
-                  {/* Top documents */}
-                  {metrics.top_documents && metrics.top_documents.length > 0 && (
-                    <Card className="group relative overflow-hidden rounded-xl border-0 shadow-lg hover:shadow-2xl transition-all duration-500" style={{ backgroundColor: '#344256' }}>
-                      <div className="absolute inset-0 bg-gradient-to-br from-white/5 via-transparent to-white/5 opacity-0 group-hover:opacity-100 transition-opacity duration-500"></div>
-                      <CardContent className="relative p-4 xs:p-6">
-                        <div className="mb-4">
-                          <div className="flex items-center gap-2 mb-2">
-                            <div className="p-2 bg-white/20 rounded-lg backdrop-blur-sm">
-                              <Download className="h-4 w-4 text-white" />
-                            </div>
-                            <h3 className="text-sm xs:text-base font-semibold text-white">Top Documents</h3>
-                          </div>
-                          <p className="text-xs text-white/80 mt-1">Les plus téléchargés</p>
-                        </div>
-                        <div className="space-y-2 max-h-[250px] overflow-y-auto">
-                          {metrics.top_documents.map((doc: any, index: number) => (
-                            <div key={index} className="group/item flex items-center justify-between p-3 border-2 border-white/20 rounded-lg hover:border-white/40 hover:bg-white/10 transition-all duration-300 hover:shadow-md">
-                              <div className="flex-1 min-w-0">
-                                <p className="text-xs xs:text-sm font-semibold text-white truncate group-hover/item:text-white transition-colors">{doc.title}</p>
-                                <p className="text-xs text-white/70 truncate">{doc.category}</p>
-                              </div>
-                              <Badge className="ml-2 bg-white/20 text-white border-white/30 backdrop-blur-sm group-hover/item:scale-110 transition-transform duration-300">
-                                {doc.download_count}
-                              </Badge>
-                            </div>
-                          ))}
-                        </div>
-                      </CardContent>
-                    </Card>
-                  )}
-                </div>
-              )}
-
-              {/* Graphiques hebdomadaires et mensuels */}
-              <Card className="group relative overflow-hidden rounded-xl border-0 shadow-lg hover:shadow-2xl transition-all duration-500" style={{ backgroundColor: '#344256' }}>
-                <div className="absolute inset-0 bg-gradient-to-br from-white/5 via-transparent to-white/5 opacity-0 group-hover:opacity-100 transition-opacity duration-500"></div>
-                <CardContent className="relative p-4 xs:p-6">
-                  <div className="mb-4">
-                    <div className="flex items-center gap-2 mb-2">
-                      <div className="p-2 bg-white/20 rounded-lg backdrop-blur-sm">
-                        <BarChart3 className="h-4 w-4 text-white" />
-                      </div>
-                      <h3 className="text-sm xs:text-base font-semibold text-white">Tendances de Connexion</h3>
+            {/* Connexions (paginated) */}
+            <Card className="bg-white border border-gray-200 rounded-2xl hover:shadow-md hover:border-[#344256]/20 transition-all duration-200">
+              <CardContent className="p-5">
+                <div className="flex items-center justify-between mb-4">
+                  <div className="w-10 h-10 rounded-xl flex items-center justify-center flex-shrink-0" style={{ backgroundColor: MAIN_LIGHT }}>
+                    {currentLoginPage.icon}
+                  </div>
+                  <div className="flex items-center gap-1.5">
+                    <span className="text-xs font-medium text-gray-500 bg-gray-100 px-2 py-0.5 rounded-full">
+                      {currentLoginPage.label}
+                    </span>
+                    <div className="flex gap-0.5">
+                      <button onClick={() => setLoginPageIndex(i => (i + 2) % 3)} className="p-1 rounded text-gray-400 hover:text-gray-600 hover:bg-gray-100 transition-colors">
+                        <ChevronLeft className="h-3 w-3" />
+                      </button>
+                      <button onClick={() => setLoginPageIndex(i => (i + 1) % 3)} className="p-1 rounded text-gray-400 hover:text-gray-600 hover:bg-gray-100 transition-colors">
+                        <ChevronRight className="h-3 w-3" />
+                      </button>
                     </div>
                   </div>
-                  <Tabs defaultValue="daily" className="space-y-4">
-                    <TabsList className="grid w-full grid-cols-4 relative bg-transparent" style={{ gap: '10px' }}>
-                      <TabsTrigger 
-                        value="daily" 
-                        onClick={() => handlePeriodChange('daily')} 
-                        className="w-full text-xs py-1.5 px-2 bg-white text-gray-900 hover:bg-white/90 data-[state=active]:bg-blue-500 data-[state=active]:text-white border-r transition-colors" 
-                        style={{ borderColor: '#344256' }}
-                      >
-                        Quotidien
-                      </TabsTrigger>
-                      <TabsTrigger 
-                        value="weekly" 
-                        onClick={() => handlePeriodChange('weekly')} 
-                        className="w-full text-xs py-1.5 px-2 bg-white text-gray-900 hover:bg-white/90 data-[state=active]:bg-blue-500 data-[state=active]:text-white border-r transition-colors" 
-                        style={{ borderColor: '#344256' }}
-                      >
-                        Hebdomadaire
-                      </TabsTrigger>
-                      <TabsTrigger 
-                        value="monthly" 
-                        onClick={() => handlePeriodChange('monthly')} 
-                        className="w-full text-xs py-1.5 px-2 bg-white text-gray-900 hover:bg-white/90 data-[state=active]:bg-blue-500 data-[state=active]:text-white border-r transition-colors" 
-                        style={{ borderColor: '#344256' }}
-                      >
-                        Mensuel
-                      </TabsTrigger>
-                      <TabsTrigger 
-                        value="yearly" 
-                        onClick={() => handlePeriodChange('yearly')} 
-                        className="w-full text-xs py-1.5 px-2 bg-white text-gray-900 hover:bg-white/90 data-[state=active]:bg-blue-500 data-[state=active]:text-white transition-colors"
-                      >
-                        Annuel
-                      </TabsTrigger>
-                    </TabsList>
+                </div>
+                <div className="text-3xl font-bold text-gray-800 mb-1">{currentLoginPage.value}</div>
+                <div className="flex items-center justify-between">
+                  <p className="text-sm text-gray-400">{currentLoginPage.sub} utilisateurs actifs</p>
+                  <div className="flex gap-1">
+                    {loginPages.map((_, i) => (
+                      <button key={i} onClick={() => setLoginPageIndex(i)}
+                        className="w-1.5 h-1.5 rounded-full transition-colors"
+                        style={{ backgroundColor: i === loginPageIndex ? MAIN : '#d1d5db' }}
+                      />
+                    ))}
+                  </div>
+                </div>
+              </CardContent>
+            </Card>
 
-                    <TabsContent value="daily" className="space-y-4">
-                      <div>
-                        <h3 className="text-sm xs:text-base font-semibold text-white mb-1">30 derniers jours</h3>
-                        <p className="text-xs text-white/80 mb-4">Évolution des connexions par jour</p>
-                      </div>
-                      <ResponsiveContainer width="100%" height={300}>
-                        <AreaChart data={dailyChartData}>
-                          <CartesianGrid strokeDasharray="3 3" stroke="rgba(255, 255, 255, 0.1)" />
-                          <XAxis 
-                            dataKey="date" 
-                            tick={{ fontSize: 10, fill: 'rgba(255, 255, 255, 0.8)' }}
-                            angle={-45}
-                            textAnchor="end"
-                            height={60}
-                          />
-                          <YAxis tick={{ fontSize: 11, fill: 'rgba(255, 255, 255, 0.8)' }} />
-                          <Tooltip 
-                            formatter={(value: any) => [value, 'Connexions']}
-                            labelFormatter={(label) => `Date: ${label}`}
-                            contentStyle={{ borderRadius: '8px', border: '1px solid #e5e7eb' }}
-                          />
-                          <Area 
-                            type="monotone" 
-                            dataKey="connexions" 
-                            stroke="#3B82F6" 
-                            fill="#3B82F6"
-                            fillOpacity={0.3}
-                            strokeWidth={2}
-                          />
-                        </AreaChart>
-                      </ResponsiveContainer>
-                    </TabsContent>
+            {/* Durée moyenne */}
+            <Card className="bg-white border border-gray-200 rounded-2xl hover:shadow-md hover:border-[#344256]/20 transition-all duration-200">
+              <CardContent className="p-5">
+                <div className="w-10 h-10 rounded-xl flex items-center justify-center mb-4" style={{ backgroundColor: MAIN_LIGHT }}>
+                  <Clock className="h-5 w-5" style={{ color: MAIN }} />
+                </div>
+                <div className="text-3xl font-bold text-gray-800 mb-1">{metrics.avg_session_duration_minutes} min</div>
+                <p className="text-sm text-gray-400">Durée moyenne de session</p>
+              </CardContent>
+            </Card>
 
-                    <TabsContent value="weekly" className="space-y-4">
-                      <div>
-                        <h3 className="text-sm xs:text-base font-semibold text-white mb-1">12 dernières semaines</h3>
-                        <p className="text-xs text-white/80 mb-4">Évolution des connexions par semaine</p>
-                      </div>
-                      <ResponsiveContainer width="100%" height={300}>
-                        <BarChart data={weeklyChartData}>
-                          <CartesianGrid strokeDasharray="3 3" stroke="rgba(255, 255, 255, 0.1)" />
-                          <XAxis 
-                            dataKey="semaine" 
-                            tick={{ fontSize: 11, fill: 'rgba(255, 255, 255, 0.8)' }}
-                          />
-                          <YAxis tick={{ fontSize: 11, fill: 'rgba(255, 255, 255, 0.8)' }} />
-                          <Tooltip 
-                            formatter={(value: any) => [value, 'Connexions']}
-                            labelFormatter={(label) => `Semaine: ${label}`}
-                            contentStyle={{ borderRadius: '8px', border: '1px solid #e5e7eb' }}
-                          />
-                          <Bar dataKey="connexions" fill="#8B5CF6" radius={[4, 4, 0, 0]} />
-                        </BarChart>
-                      </ResponsiveContainer>
-                    </TabsContent>
-
-                    <TabsContent value="monthly" className="space-y-4">
-                      <div>
-                        <h3 className="text-sm xs:text-base font-semibold text-white mb-1">12 derniers mois</h3>
-                        <p className="text-xs text-white/80 mb-4">Évolution des connexions par mois</p>
-                      </div>
-                      <ResponsiveContainer width="100%" height={300}>
-                        <LineChart data={monthlyChartData}>
-                          <CartesianGrid strokeDasharray="3 3" stroke="rgba(255, 255, 255, 0.1)" />
-                          <XAxis 
-                            dataKey="mois" 
-                            tick={{ fontSize: 10, fill: 'rgba(255, 255, 255, 0.8)' }}
-                            angle={-45}
-                            textAnchor="end"
-                            height={80}
-                          />
-                          <YAxis tick={{ fontSize: 11, fill: 'rgba(255, 255, 255, 0.8)' }} />
-                          <Tooltip 
-                            formatter={(value: any) => [value, 'Connexions']}
-                            labelFormatter={(label) => `Mois: ${label}`}
-                            contentStyle={{ borderRadius: '8px', border: '1px solid #e5e7eb' }}
-                          />
-                          <Line 
-                            type="monotone" 
-                            dataKey="connexions" 
-                            stroke="#F59E0B" 
-                            strokeWidth={2}
-                            dot={{ fill: '#F59E0B', r: 4 }}
-                          />
-                        </LineChart>
-                      </ResponsiveContainer>
-                    </TabsContent>
-
-                    <TabsContent value="yearly" className="space-y-4">
-                      <div>
-                        <h3 className="text-sm xs:text-base font-semibold text-white mb-1">5 dernières années</h3>
-                        <p className="text-xs text-white/80 mb-4">Évolution des connexions par année</p>
-                      </div>
-                      <ResponsiveContainer width="100%" height={300}>
-                        <BarChart data={yearlyChartData}>
-                          <CartesianGrid strokeDasharray="3 3" stroke="rgba(255, 255, 255, 0.1)" />
-                          <XAxis 
-                            dataKey="annee" 
-                            tick={{ fontSize: 11, fill: 'rgba(255, 255, 255, 0.8)' }}
-                          />
-                          <YAxis tick={{ fontSize: 11, fill: 'rgba(255, 255, 255, 0.8)' }} />
-                          <Tooltip 
-                            formatter={(value: any) => [value, 'Connexions']}
-                            labelFormatter={(label) => `Année: ${label}`}
-                            contentStyle={{ borderRadius: '8px', border: '1px solid #e5e7eb' }}
-                          />
-                          <Bar dataKey="connexions" fill="#10B981" radius={[4, 4, 0, 0]} />
-                        </BarChart>
-                      </ResponsiveContainer>
-                    </TabsContent>
-                  </Tabs>
-                </CardContent>
-              </Card>
-            </div>
           </div>
+
+          {/* Chart row: Heures de pointe + Activité par jour */}
+          <div className="grid gap-4 sm:grid-cols-2">
+
+            <Card className="bg-white border border-gray-200 rounded-2xl">
+              <CardContent className="p-5">
+                <div className="flex items-center gap-2 mb-1">
+                  <div className="w-8 h-8 rounded-lg flex items-center justify-center" style={{ backgroundColor: MAIN_LIGHT }}>
+                    <BarChart3 className="h-4 w-4" style={{ color: MAIN }} />
+                  </div>
+                  <h3 className="text-sm font-semibold text-gray-800">Heures de Pointe</h3>
+                </div>
+                <p className="text-xs text-gray-400 mb-4 ml-10">Connexions par heure — 365 derniers jours</p>
+                <ResponsiveContainer width="100%" height={240}>
+                  <BarChart data={metrics.hourly_logins} barSize={10}>
+                    <CartesianGrid strokeDasharray="3 3" stroke={GRID_COLOR} vertical={false} />
+                    <XAxis dataKey="hour" tick={{ fontSize: 10, fill: AXIS_COLOR }} axisLine={false} tickLine={false} />
+                    <YAxis tick={{ fontSize: 10, fill: AXIS_COLOR }} axisLine={false} tickLine={false} width={28} />
+                    <Tooltip
+                      formatter={(value: any, _: any, props: any) => {
+                        const d = props?.payload
+                        return d?.avg_count !== undefined
+                          ? [`${d.avg_count.toFixed(1)} moy. / ${d.total_count} total`, 'Connexions']
+                          : [value, 'Connexions']
+                      }}
+                      labelFormatter={(l) => `${l}h`}
+                      contentStyle={tooltipStyle}
+                    />
+                    <Bar dataKey="count" fill={CHART_SECONDARY} radius={[3, 3, 0, 0]} />
+                  </BarChart>
+                </ResponsiveContainer>
+              </CardContent>
+            </Card>
+
+            <Card className="bg-white border border-gray-200 rounded-2xl">
+              <CardContent className="p-5">
+                <div className="flex items-center gap-2 mb-1">
+                  <div className="w-8 h-8 rounded-lg flex items-center justify-center" style={{ backgroundColor: MAIN_LIGHT }}>
+                    <Calendar className="h-4 w-4" style={{ color: MAIN }} />
+                  </div>
+                  <h3 className="text-sm font-semibold text-gray-800">Activité par Jour</h3>
+                </div>
+                <p className="text-xs text-gray-400 mb-4 ml-10">365 derniers jours</p>
+                <ResponsiveContainer width="100%" height={240}>
+                  <BarChart data={metrics.weekday_activity} barSize={4}>
+                    <CartesianGrid strokeDasharray="3 3" stroke={GRID_COLOR} vertical={false} />
+                    <XAxis
+                      dataKey="date"
+                      tick={{ fontSize: 9, fill: AXIS_COLOR }}
+                      angle={-45}
+                      textAnchor="end"
+                      height={60}
+                      axisLine={false}
+                      tickLine={false}
+                      tickFormatter={(v) => {
+                        try { return format(parseISO(v), 'dd/MM', { locale: fr }) } catch { return v }
+                      }}
+                    />
+                    <YAxis tick={{ fontSize: 10, fill: AXIS_COLOR }} axisLine={false} tickLine={false} width={28} />
+                    <Tooltip
+                      formatter={(value: any) => [value, 'Connexions']}
+                      labelFormatter={(l) => {
+                        try { return format(parseISO(l), 'EEEE dd MMM yyyy', { locale: fr }) } catch { return l }
+                      }}
+                      contentStyle={tooltipStyle}
+                    />
+                    <Bar dataKey="count" fill={CHART_MUTED} radius={[2, 2, 0, 0]} />
+                  </BarChart>
+                </ResponsiveContainer>
+              </CardContent>
+            </Card>
+          </div>
+
+          {/* Tendances de connexion */}
+          <Card className="bg-white border border-gray-200 rounded-2xl">
+            <CardContent className="p-5">
+              <div className="flex items-center gap-2 mb-4">
+                <div className="w-8 h-8 rounded-lg flex items-center justify-center" style={{ backgroundColor: MAIN_LIGHT }}>
+                  <BarChart3 className="h-4 w-4" style={{ color: MAIN }} />
+                </div>
+                <h3 className="text-sm font-semibold text-gray-800">Tendances de Connexion</h3>
+              </div>
+
+              <Tabs defaultValue="daily" className="space-y-4">
+                <TabsList className="inline-flex h-8 bg-gray-100 rounded-lg p-0.5 gap-0.5">
+                  {(['daily', 'weekly', 'monthly', 'yearly'] as const).map((period, idx) => {
+                    const labels = ['Quotidien', 'Hebdomadaire', 'Mensuel', 'Annuel']
+                    return (
+                      <TabsTrigger
+                        key={period}
+                        value={period}
+                        onClick={() => handlePeriodChange(period)}
+                        className="h-7 px-3 text-xs rounded-md text-gray-500 data-[state=active]:bg-white data-[state=active]:text-gray-800 data-[state=active]:shadow-sm transition-all"
+                      >
+                        {labels[idx]}
+                      </TabsTrigger>
+                    )
+                  })}
+                </TabsList>
+
+                <TabsContent value="daily">
+                  <p className="text-xs text-gray-400 mb-3">30 derniers jours</p>
+                  <ResponsiveContainer width="100%" height={280}>
+                    <AreaChart data={dailyChartData}>
+                      <defs>
+                        <linearGradient id="gradDaily" x1="0" y1="0" x2="0" y2="1">
+                          <stop offset="5%" stopColor={CHART_PRIMARY} stopOpacity={0.15} />
+                          <stop offset="95%" stopColor={CHART_PRIMARY} stopOpacity={0} />
+                        </linearGradient>
+                      </defs>
+                      <CartesianGrid strokeDasharray="3 3" stroke={GRID_COLOR} vertical={false} />
+                      <XAxis dataKey="date" tick={{ fontSize: 10, fill: AXIS_COLOR }} angle={-45} textAnchor="end" height={55} axisLine={false} tickLine={false} />
+                      <YAxis tick={{ fontSize: 10, fill: AXIS_COLOR }} axisLine={false} tickLine={false} width={28} />
+                      <Tooltip formatter={(v: any) => [v, 'Connexions']} labelFormatter={(l) => `${l}`} contentStyle={tooltipStyle} />
+                      <Area type="monotone" dataKey="connexions" stroke={CHART_PRIMARY} strokeWidth={2} fill="url(#gradDaily)" dot={false} />
+                    </AreaChart>
+                  </ResponsiveContainer>
+                </TabsContent>
+
+                <TabsContent value="weekly">
+                  <p className="text-xs text-gray-400 mb-3">12 dernières semaines</p>
+                  <ResponsiveContainer width="100%" height={280}>
+                    <BarChart data={weeklyChartData} barSize={18}>
+                      <CartesianGrid strokeDasharray="3 3" stroke={GRID_COLOR} vertical={false} />
+                      <XAxis dataKey="semaine" tick={{ fontSize: 10, fill: AXIS_COLOR }} axisLine={false} tickLine={false} />
+                      <YAxis tick={{ fontSize: 10, fill: AXIS_COLOR }} axisLine={false} tickLine={false} width={28} />
+                      <Tooltip formatter={(v: any) => [v, 'Connexions']} labelFormatter={(l) => `Semaine ${l}`} contentStyle={tooltipStyle} />
+                      <Bar dataKey="connexions" fill={CHART_SECONDARY} radius={[3, 3, 0, 0]} />
+                    </BarChart>
+                  </ResponsiveContainer>
+                </TabsContent>
+
+                <TabsContent value="monthly">
+                  <p className="text-xs text-gray-400 mb-3">12 derniers mois</p>
+                  <ResponsiveContainer width="100%" height={280}>
+                    <LineChart data={monthlyChartData}>
+                      <CartesianGrid strokeDasharray="3 3" stroke={GRID_COLOR} vertical={false} />
+                      <XAxis dataKey="mois" tick={{ fontSize: 10, fill: AXIS_COLOR }} angle={-45} textAnchor="end" height={60} axisLine={false} tickLine={false} />
+                      <YAxis tick={{ fontSize: 10, fill: AXIS_COLOR }} axisLine={false} tickLine={false} width={28} />
+                      <Tooltip formatter={(v: any) => [v, 'Connexions']} contentStyle={tooltipStyle} />
+                      <Line type="monotone" dataKey="connexions" stroke={CHART_PRIMARY} strokeWidth={2} dot={{ fill: CHART_PRIMARY, r: 3, strokeWidth: 0 }} activeDot={{ r: 5 }} />
+                    </LineChart>
+                  </ResponsiveContainer>
+                </TabsContent>
+
+                <TabsContent value="yearly">
+                  <p className="text-xs text-gray-400 mb-3">5 dernières années</p>
+                  <ResponsiveContainer width="100%" height={280}>
+                    <BarChart data={yearlyChartData} barSize={32}>
+                      <CartesianGrid strokeDasharray="3 3" stroke={GRID_COLOR} vertical={false} />
+                      <XAxis dataKey="annee" tick={{ fontSize: 10, fill: AXIS_COLOR }} axisLine={false} tickLine={false} />
+                      <YAxis tick={{ fontSize: 10, fill: AXIS_COLOR }} axisLine={false} tickLine={false} width={28} />
+                      <Tooltip formatter={(v: any) => [v, 'Connexions']} labelFormatter={(l) => `Année ${l}`} contentStyle={tooltipStyle} />
+                      <Bar dataKey="connexions" fill={CHART_PRIMARY} radius={[3, 3, 0, 0]} />
+                    </BarChart>
+                  </ResponsiveContainer>
+                </TabsContent>
+              </Tabs>
+            </CardContent>
+          </Card>
+
         </div>
       </LayoutWrapper>
     </AuthGuard>

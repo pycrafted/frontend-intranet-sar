@@ -4,7 +4,7 @@ import { useEffect, useState, useRef } from 'react'
 import { useRouter } from 'next/navigation'
 import { LayoutWrapper } from '@/components/layout-wrapper'
 import { AuthGuard } from '@/components/auth-guard'
-import { StandardLoader } from '@/components/ui/standard-loader'
+import { PageLoader } from '@/components/ui/loader'
 import { useAuth } from '@/hooks/useAuth'
 import { useAdminUsers, AdminUser } from '@/hooks/useAdminUsers'
 import { API_CONFIG } from '@/lib/config'
@@ -175,10 +175,7 @@ export default function UtilisateursPage() {
     return (
       <AuthGuard>
         <LayoutWrapper>
-          <StandardLoader
-            title="Chargement des utilisateurs..."
-            message="Veuillez patienter pendant que nous récupérons la liste des utilisateurs."
-          />
+          <PageLoader />
         </LayoutWrapper>
       </AuthGuard>
     )
@@ -227,178 +224,152 @@ export default function UtilisateursPage() {
             </div>
           )}
 
-          {/* Table */}
-          <div className="overflow-x-auto rounded-2xl border border-gray-200 shadow-sm">
-          <div className="bg-white min-w-[700px]">
-            {/* Table header */}
-            <div
-              className="grid text-xs font-semibold text-white uppercase tracking-wider px-4 py-3"
-              style={{
-                backgroundColor: '#344256',
-                gridTemplateColumns: '2fr 2fr 1fr 1fr 1fr',
-              }}
-            >
-              {[
-                { key: 'name' as SortKey, label: 'Nom' },
-                { key: 'email' as SortKey, label: 'Email' },
-                { key: 'role' as SortKey, label: 'Admin' },
-                { key: 'status' as SortKey, label: 'Statut' },
-              ].map(({ key, label }) => (
-                <button
-                  key={key}
-                  onClick={() => handleSort(key)}
-                  className="text-left hover:text-white/80 transition-colors"
-                >
-                  {label}<SortIcon k={key} />
-                </button>
-              ))}
-              <span className="text-right">Actions</span>
+          {/* État vide / chargement */}
+          {loading && users.length === 0 ? (
+            <div className="flex items-center justify-center py-16 text-gray-400 text-sm gap-2">
+              <RefreshCw className="w-4 h-4 animate-spin" /> Chargement...
             </div>
-
-            {/* Rows */}
-            {loading && users.length === 0 ? (
-              <div className="flex items-center justify-center py-16 text-gray-400 text-sm gap-2">
-                <RefreshCw className="w-4 h-4 animate-spin" />
-                Chargement...
-              </div>
-            ) : filtered.length === 0 ? (
-              <div className="flex flex-col items-center justify-center py-16 text-gray-400 gap-2">
-                <Users className="w-8 h-8 opacity-40" />
-                <p className="text-sm">Aucun utilisateur trouvé</p>
-              </div>
-            ) : (
-              <div className="divide-y divide-gray-100">
-                {paginated.map(u => (
+          ) : filtered.length === 0 ? (
+            <div className="flex flex-col items-center justify-center py-16 text-gray-400 gap-2">
+              <Users className="w-8 h-8 opacity-40" />
+              <p className="text-sm">Aucun utilisateur trouvé</p>
+            </div>
+          ) : (
+            <>
+              {/* ── Vue tableau (sm+) ── */}
+              <div className="hidden sm:block overflow-x-auto rounded-2xl border border-gray-200 shadow-sm">
+                <div className="bg-white">
                   <div
-                    key={u.id}
-                    className="grid items-center px-4 py-3 hover:bg-gray-50 transition-colors text-sm"
-                    style={{ gridTemplateColumns: '2fr 2fr 1fr 1fr 1fr' }}
+                    className="grid text-xs font-semibold text-white uppercase tracking-wider px-4 py-3"
+                    style={{ backgroundColor: '#344256', gridTemplateColumns: '2fr 2fr 1fr 1fr 1fr' }}
                   >
-                    {/* Name */}
-                    <div className="min-w-0">
-                      <p className="font-medium text-gray-800 truncate">{fullName(u)}</p>
-                      {u.matricule && <p className="text-xs text-gray-400">{u.matricule}</p>}
-                    </div>
-
-                    {/* Email */}
-                    <p className="text-gray-500 truncate pr-2">{u.email || '—'}</p>
-
-                    {/* Superadmin badge */}
-                    <div>
-                      {u.is_superuser ? (
-                        <span className="inline-flex items-center gap-1 text-xs font-medium px-2 py-0.5 rounded-full bg-[#34425618] text-[#344256]">
-                          <ShieldCheck className="w-3 h-3" />
-                          Oui
-                        </span>
-                      ) : (
-                        <span className="text-xs text-gray-400">Non</span>
-                      )}
-                    </div>
-
-                    {/* Status badge */}
-                    <div>
-                      <span className={`inline-flex items-center gap-1 text-xs font-medium px-2 py-0.5 rounded-full ${
-                        u.is_active
-                          ? 'bg-green-100 text-green-700'
-                          : 'bg-red-100 text-red-600'
-                      }`}>
-                        {u.is_active ? <UserCheck className="w-3 h-3" /> : <UserX className="w-3 h-3" />}
-                        {u.is_active ? 'Actif' : 'Inactif'}
-                      </span>
-                    </div>
-
-                    {/* Actions */}
-                    <div className="flex items-center justify-end gap-1.5">
-                      {u.id !== (user as any)?.id ? (
-                        <>
-                          <button
-                            onClick={() => handleToggleSuperuser(u)}
-                            disabled={actionLoading === u.id}
-                            title={u.is_superuser ? 'Retirer le statut superadmin' : 'Accorder le statut superadmin'}
-                            className={`p-1.5 rounded-lg transition-all text-xs font-medium ${
-                              u.is_superuser
-                                ? 'bg-[#34425618] text-[#344256] hover:bg-[#344256]/20'
-                                : 'bg-gray-100 text-gray-500 hover:bg-[#34425618] hover:text-[#344256]'
-                            } disabled:opacity-50`}
-                          >
-                            {actionLoading === u.id ? (
-                              <RefreshCw className="w-3.5 h-3.5 animate-spin" />
-                            ) : u.is_superuser ? (
-                              <ShieldOff className="w-3.5 h-3.5" />
-                            ) : (
-                              <ShieldCheck className="w-3.5 h-3.5" />
-                            )}
-                          </button>
-
-                          <button
-                            onClick={() => handleToggleActive(u)}
-                            disabled={actionLoading === u.id}
-                            title={u.is_active ? 'Désactiver le compte' : 'Activer le compte'}
-                            className={`p-1.5 rounded-lg transition-all ${
-                              u.is_active
-                                ? 'bg-red-50 text-red-500 hover:bg-red-100'
-                                : 'bg-green-50 text-green-600 hover:bg-green-100'
-                            } disabled:opacity-50`}
-                          >
-                            {u.is_active ? <UserX className="w-3.5 h-3.5" /> : <UserCheck className="w-3.5 h-3.5" />}
-                          </button>
-                        </>
-                      ) : (
-                        <span className="text-xs text-gray-300 pr-1">Vous</span>
-                      )}
-                    </div>
-                  </div>
-                ))}
-              </div>
-            )}
-          </div>
-          </div>
-
-          {/* Pagination */}
-          {totalPages > 1 && (
-            <div className="flex flex-col items-center gap-2">
-              <div className="flex items-center gap-1">
-                <button
-                  onClick={() => setPage(p => Math.max(1, p - 1))}
-                  disabled={safePage === 1}
-                  className="p-1.5 rounded-lg border border-gray-200 text-gray-500 hover:bg-gray-50 disabled:opacity-30 disabled:cursor-not-allowed transition-all"
-                >
-                  <ChevronLeft className="w-4 h-4" />
-                </button>
-                {Array.from({ length: totalPages }, (_, i) => i + 1)
-                  .filter(p => p === 1 || p === totalPages || Math.abs(p - safePage) <= 1)
-                  .reduce<(number | '...')[]>((acc, p, idx, arr) => {
-                    if (idx > 0 && p - (arr[idx - 1] as number) > 1) acc.push('...')
-                    acc.push(p)
-                    return acc
-                  }, [])
-                  .map((p, idx) =>
-                    p === '...' ? (
-                      <span key={`e${idx}`} className="px-1 text-gray-400 text-xs">…</span>
-                    ) : (
-                      <button
-                        key={p}
-                        onClick={() => setPage(p as number)}
-                        className={`min-w-[2rem] h-8 px-2 rounded-lg text-xs font-medium transition-all border ${
-                          safePage === p
-                            ? 'text-white border-transparent'
-                            : 'border-gray-200 text-gray-600 hover:bg-gray-50'
-                        }`}
-                        style={safePage === p ? { backgroundColor: '#344256' } : {}}
-                      >
-                        {p}
+                    {([
+                      { key: 'name' as SortKey, label: 'Nom' },
+                      { key: 'email' as SortKey, label: 'Email' },
+                      { key: 'role' as SortKey, label: 'Admin' },
+                      { key: 'status' as SortKey, label: 'Statut' },
+                    ] as const).map(({ key, label }) => (
+                      <button key={key} onClick={() => handleSort(key)} className="text-left hover:text-white/80 transition-colors">
+                        {label}<SortIcon k={key} />
                       </button>
-                    )
+                    ))}
+                    <span className="text-right">Actions</span>
+                  </div>
+                  <div className="divide-y divide-gray-100">
+                    {paginated.map(u => (
+                      <div
+                        key={u.id}
+                        className="grid items-center px-4 py-3 hover:bg-gray-50 transition-colors text-sm"
+                        style={{ gridTemplateColumns: '2fr 2fr 1fr 1fr 1fr' }}
+                      >
+                        <div className="min-w-0">
+                          <p className="font-medium text-gray-800 truncate">{fullName(u)}</p>
+                          {u.matricule && <p className="text-xs text-gray-400">{u.matricule}</p>}
+                        </div>
+                        <p className="text-gray-500 truncate pr-2">{u.email || '—'}</p>
+                        <div>
+                          {u.is_superuser
+                            ? <span className="inline-flex items-center gap-1 text-xs font-medium px-2 py-0.5 rounded-full bg-[#34425618] text-[#344256]"><ShieldCheck className="w-3 h-3" />Oui</span>
+                            : <span className="text-xs text-gray-400">Non</span>}
+                        </div>
+                        <div>
+                          <span className={`inline-flex items-center gap-1 text-xs font-medium px-2 py-0.5 rounded-full ${u.is_active ? 'bg-green-100 text-green-700' : 'bg-red-100 text-red-600'}`}>
+                            {u.is_active ? <UserCheck className="w-3 h-3" /> : <UserX className="w-3 h-3" />}
+                            {u.is_active ? 'Actif' : 'Inactif'}
+                          </span>
+                        </div>
+                        <div className="flex items-center justify-end gap-1.5">
+                          {u.id !== (user as any)?.id ? (
+                            <>
+                              <button onClick={() => handleToggleSuperuser(u)} disabled={actionLoading === u.id}
+                                title={u.is_superuser ? 'Retirer superadmin' : 'Accorder superadmin'}
+                                className={`p-1.5 rounded-lg transition-all ${u.is_superuser ? 'bg-[#34425618] text-[#344256] hover:bg-[#344256]/20' : 'bg-gray-100 text-gray-500 hover:bg-[#34425618] hover:text-[#344256]'} disabled:opacity-50`}>
+                                {actionLoading === u.id ? <RefreshCw className="w-3.5 h-3.5 animate-spin" /> : u.is_superuser ? <ShieldOff className="w-3.5 h-3.5" /> : <ShieldCheck className="w-3.5 h-3.5" />}
+                              </button>
+                              <button onClick={() => handleToggleActive(u)} disabled={actionLoading === u.id}
+                                title={u.is_active ? 'Désactiver' : 'Activer'}
+                                className={`p-1.5 rounded-lg transition-all ${u.is_active ? 'bg-red-50 text-red-500 hover:bg-red-100' : 'bg-green-50 text-green-600 hover:bg-green-100'} disabled:opacity-50`}>
+                                {u.is_active ? <UserX className="w-3.5 h-3.5" /> : <UserCheck className="w-3.5 h-3.5" />}
+                              </button>
+                            </>
+                          ) : <span className="text-xs text-gray-300 pr-1">Vous</span>}
+                        </div>
+                      </div>
+                    ))}
+                  </div>
+                  {/* Pagination tableau */}
+                  {totalPages > 1 && (
+                    <div className="flex items-center justify-between border-t border-gray-100 px-4 py-2.5" style={{ backgroundColor: '#344256' }}>
+                      <button onClick={() => setPage(p => Math.max(1, p - 1))} disabled={safePage === 1}
+                        className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-sm font-medium text-white/80 hover:bg-white/10 disabled:opacity-30 disabled:cursor-not-allowed transition-all">
+                        <ChevronLeft className="w-4 h-4" /> Précédent
+                      </button>
+                      <span className="text-xs text-white/60">{safePage} / {totalPages}</span>
+                      <button onClick={() => setPage(p => Math.min(totalPages, p + 1))} disabled={safePage === totalPages}
+                        className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-sm font-medium text-white/80 hover:bg-white/10 disabled:opacity-30 disabled:cursor-not-allowed transition-all">
+                        Suivant <ChevronRight className="w-4 h-4" />
+                      </button>
+                    </div>
                   )}
-                <button
-                  onClick={() => setPage(p => Math.min(totalPages, p + 1))}
-                  disabled={safePage === totalPages}
-                  className="p-1.5 rounded-lg border border-gray-200 text-gray-500 hover:bg-gray-50 disabled:opacity-30 disabled:cursor-not-allowed transition-all"
-                >
-                  <ChevronRight className="w-4 h-4" />
-                </button>
+                </div>
               </div>
-            </div>
+
+              {/* ── Vue cartes (mobile) ── */}
+              <div className="sm:hidden rounded-2xl border border-gray-200 shadow-sm overflow-hidden">
+                <div className="divide-y divide-gray-100">
+                  {paginated.map(u => (
+                    <div key={u.id} className="bg-white px-4 py-3 space-y-2">
+                      <div className="flex items-start justify-between gap-2">
+                        <div className="min-w-0">
+                          <p className="font-semibold text-sm text-gray-800 truncate">{fullName(u)}</p>
+                          <p className="text-xs text-gray-400 truncate">{u.email || '—'}</p>
+                          {u.department?.name && <p className="text-xs text-gray-400 truncate">{u.department.name}</p>}
+                        </div>
+                        <div className="flex flex-col items-end gap-1 flex-shrink-0">
+                          <span className={`inline-flex items-center gap-1 text-xs font-medium px-2 py-0.5 rounded-full ${u.is_active ? 'bg-green-100 text-green-700' : 'bg-red-100 text-red-600'}`}>
+                            {u.is_active ? <UserCheck className="w-3 h-3" /> : <UserX className="w-3 h-3" />}
+                            {u.is_active ? 'Actif' : 'Inactif'}
+                          </span>
+                          {u.is_superuser && (
+                            <span className="inline-flex items-center gap-1 text-xs font-medium px-2 py-0.5 rounded-full bg-[#34425618] text-[#344256]">
+                              <ShieldCheck className="w-3 h-3" />Admin
+                            </span>
+                          )}
+                        </div>
+                      </div>
+                      {u.id !== (user as any)?.id && (
+                        <div className="flex gap-2 pt-1 border-t border-gray-100">
+                          <button onClick={() => handleToggleSuperuser(u)} disabled={actionLoading === u.id}
+                            className={`flex-1 flex items-center justify-center gap-1.5 py-1.5 rounded-lg text-xs font-medium transition-all ${u.is_superuser ? 'bg-[#34425618] text-[#344256]' : 'bg-gray-100 text-gray-500'} disabled:opacity-50`}>
+                            {actionLoading === u.id ? <RefreshCw className="w-3.5 h-3.5 animate-spin" /> : u.is_superuser ? <ShieldOff className="w-3.5 h-3.5" /> : <ShieldCheck className="w-3.5 h-3.5" />}
+                            {u.is_superuser ? 'Retirer admin' : 'Rendre admin'}
+                          </button>
+                          <button onClick={() => handleToggleActive(u)} disabled={actionLoading === u.id}
+                            className={`flex-1 flex items-center justify-center gap-1.5 py-1.5 rounded-lg text-xs font-medium transition-all ${u.is_active ? 'bg-red-50 text-red-500' : 'bg-green-50 text-green-600'} disabled:opacity-50`}>
+                            {u.is_active ? <UserX className="w-3.5 h-3.5" /> : <UserCheck className="w-3.5 h-3.5" />}
+                            {u.is_active ? 'Désactiver' : 'Activer'}
+                          </button>
+                        </div>
+                      )}
+                    </div>
+                  ))}
+                </div>
+                {/* Pagination cartes */}
+                {totalPages > 1 && (
+                  <div className="flex items-center justify-between border-t border-gray-100 px-4 py-2.5" style={{ backgroundColor: '#344256' }}>
+                    <button onClick={() => setPage(p => Math.max(1, p - 1))} disabled={safePage === 1}
+                      className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-sm font-medium text-white/80 hover:bg-white/10 disabled:opacity-30 disabled:cursor-not-allowed transition-all">
+                      <ChevronLeft className="w-4 h-4" /> Précédent
+                    </button>
+                    <span className="text-xs text-white/60">{safePage} / {totalPages}</span>
+                    <button onClick={() => setPage(p => Math.min(totalPages, p + 1))} disabled={safePage === totalPages}
+                      className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-sm font-medium text-white/80 hover:bg-white/10 disabled:opacity-30 disabled:cursor-not-allowed transition-all">
+                      Suivant <ChevronRight className="w-4 h-4" />
+                    </button>
+                  </div>
+                )}
+              </div>
+            </>
           )}
 
         </div>
@@ -416,7 +387,8 @@ export default function UtilisateursPage() {
         {/* Panneau logs LDAP */}
         {syncLogs.length > 0 && (
           <div style={{
-            position: 'fixed', bottom: 24, right: 24, width: 440, maxHeight: 320,
+            position: 'fixed', bottom: 16, right: 16, left: 16, width: 'auto', maxWidth: 440, maxHeight: 320,
+            marginLeft: 'auto',
             background: '#1e293b', borderRadius: 14, boxShadow: '0 8px 32px rgba(0,0,0,0.35)',
             display: 'flex', flexDirection: 'column', zIndex: 9999,
             border: '1.5px solid #334155', overflow: 'hidden',

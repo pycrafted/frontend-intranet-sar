@@ -122,7 +122,7 @@ export function LayoutWrapper({ children, secondaryNavbarProps }: LayoutWrapperP
         />
       )}
             
-            <div className={`overflow-x-hidden ${pathname === "/" || pathname === "/securite" || pathname === "/recrutement" || pathname === "/forum" ? "w-full px-1 xs:px-1.5 sm:px-2 md:px-3 lg:px-4 py-3 xs:py-4 sm:py-6" : pathname === "/documents" || pathname === "/annuaire" || pathname?.startsWith("/forum/") || pathname === "/administration/utilisateurs" ? "w-full p-0" : pathname === "/organigramme" ? "w-full px-0" : "max-w-7xl mx-auto px-2 xs:px-3 sm:px-4 md:px-5 py-3 xs:py-4 sm:py-6 lg:px-8"}`}>
+            <div className={`overflow-x-hidden ${pathname === "/" || pathname === "/securite" || pathname === "/recrutement" || pathname === "/forum" ? "w-full px-1 xs:px-1.5 sm:px-2 md:px-3 lg:px-4 py-3 xs:py-4 sm:py-6" : pathname === "/documents" || pathname === "/annuaire" || pathname?.startsWith("/forum/") || pathname === "/administration/utilisateurs" || pathname === "/metriques" ? "w-full p-0" : pathname === "/organigramme" ? "w-full px-0" : "max-w-7xl mx-auto px-2 xs:px-3 sm:px-4 md:px-5 py-3 xs:py-4 sm:py-6 lg:px-8"}`}>
               {(() => {
                 // Vérifier si l'enfant est un composant React (pas un élément DOM)
                 if ((pathname === "/recrutement" || pathname === "/organigramme" || pathname === "/forum" || pathname?.startsWith("/forum/")) && React.isValidElement(children)) {

@@ -290,7 +290,7 @@ const handleLoginSubmit = async (e: FormEvent<HTMLFormElement>) => {
           {mounted && isAuthenticated && user && (
             <Button
               variant="ghost"
-              onClick={async () => { await logout(); router.push('/login') }}
+              onClick={async () => { await logout(); router.push('/') }}
               className="h-10 w-10 p-0 text-white hover:bg-red-500/20 hover:text-red-300 transition-colors flex-shrink-0"
               title="Se déconnecter"
             >

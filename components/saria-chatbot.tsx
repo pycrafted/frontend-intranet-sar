@@ -128,7 +128,7 @@ export function MaiChatbot({ className }: MaiChatbotProps) {
         "flex flex-col shadow-2xl border-0 bg-gradient-to-br from-white/95 via-[#344256]/5 to-[#344256]/10 backdrop-blur-xl transition-all duration-500 saria-chat-window",
         "rounded-2xl overflow-hidden",
         // Tailles responsives
-        isSmallMobile ? "w-[95vw] h-[90vh]" : isMobile ? "w-[95vw] h-[90vh]" : isTablet ? "w-[450px] h-[650px]" : "w-[500px] h-[700px]"
+        isSmallMobile ? "w-[95vw] h-[90vh]" : isMobile ? "w-[95vw] h-[90vh]" : isTablet ? "w-[490px] h-[700px]" : "w-[550px] h-[750px]"
       )
   }
 

@@ -9,7 +9,7 @@ import { Eye, EyeOff, Lock, Mail, User, Phone, Briefcase, Building, Users, Arrow
 import Image from "next/image"
 import Link from "next/link"
 import { useRegister, useAuth } from "@/hooks/useAuth"
-import { StandardLoader } from "@/components/ui/standard-loader"
+import { PageLoader } from "@/components/ui/loader"
 import { useUsers } from "@/hooks/useUsers"
 
 // Liste des départements disponibles
@@ -59,11 +59,7 @@ export default function RegisterPage() {
 
   // Afficher un loader pendant la vérification de l'authentification
   if (authLoading) {
-    return (
-      <div className="min-h-screen bg-gradient-to-br from-slate-50 via-blue-50 to-indigo-100 flex items-center justify-center">
-        <StandardLoader title="Vérification..." />
-      </div>
-    )
+    return <PageLoader />
   }
 
   const handleInputChange = (field: string, value: string) => {

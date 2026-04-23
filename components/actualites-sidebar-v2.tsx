@@ -50,7 +50,7 @@ function useActualitesStats() {
   useEffect(() => {
     const fetchStats = async () => {
       try {
-        const response = await fetch(`${process.env.NEXT_PUBLIC_API_URL || 'https://backend-intranet-sar-1.onrender.com/api'}/actualites/stats/`)
+        const response = await fetch(`${process.env.NEXT_PUBLIC_API_URL || 'http://localhost:8000/api'}/actualites/stats/`)
         if (response.ok) {
           const data = await response.json()
           setStats(data)

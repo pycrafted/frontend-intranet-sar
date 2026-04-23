@@ -10,7 +10,7 @@ import { ForumCreateModal } from "@/components/forum/forum-create-modal"
 import { ForumCard } from "@/components/forum/forum-card"
 import { ForumSidebar } from "@/components/forum-sidebar"
 import { useForum } from "@/hooks/useForum"
-import { StandardLoader } from "@/components/ui/standard-loader"
+import { PageLoader } from "@/components/ui/loader"
 import { useAuth } from "@/hooks/useAuth"
 import type { ForumCreateData, ForumUpdateData } from "@/lib/types/forum"
 import { useToast } from "@/components/ui/toast"
@@ -195,11 +195,12 @@ export default function ForumPage() {
           <div className="px-3 sm:px-6 pb-8">
           <div className="mx-auto max-w-[760px] space-y-3">
             {loading ? (
-              <div className="flex items-center justify-center py-20">
-                <StandardLoader title="Chargement des forums..." />
-              </div>
+              <PageLoader />
             ) : error ? (
-              <StandardLoader error={error} showRetry onRetry={fetchForums} />
+              <div className="bg-red-50 border border-red-200 rounded-xl px-5 py-4 flex items-center justify-between text-red-700 text-sm">
+                <span>{error}</span>
+                <button onClick={() => fetchForums()} className="underline ml-4">Réessayer</button>
+              </div>
             ) : forums.length === 0 ? (
               <div className="rounded-xl bg-white border border-gray-200 p-10 text-center shadow-sm">
                 <div className="w-16 h-16 rounded-full flex items-center justify-center mx-auto mb-4" style={{ backgroundColor: '#344256' + '18' }}>

@@ -80,7 +80,7 @@ async function main() {
           clientSecret: CLIENT_SECRET,
           redirectUri: REDIRECT_URI,
           accessToken: tokenData.access_token,
-          organizationUrn: existing.organizationUrn || 'urn:li:organization:91588959',
+          organizationUrn: process.env.LINKEDIN_ORGANIZATION_URN || existing.organizationUrn || 'urn:li:organization:91588959',
         }, null, 2), 'utf-8')
         console.log('✅ Config sauvegardée dans data/linkedin-config.json')
         resolve()

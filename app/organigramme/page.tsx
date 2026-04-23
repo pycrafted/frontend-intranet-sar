@@ -411,7 +411,7 @@ function MobileOrgView() {
           {nodes.length}
         </span>
       </div>
-      <div className="grid grid-cols-2 gap-3">
+      <div className="grid grid-cols-1 xs:grid-cols-2 gap-3">
         {nodes.map(node => (
           <MobileOrgCard key={node.id} node={node} />
         ))}
@@ -424,7 +424,7 @@ export default function OrganigrammePage() {
   const [isMobile, setIsMobile] = useState(false)
 
   useEffect(() => {
-    const check = () => setIsMobile(window.innerWidth < 768)
+    const check = () => setIsMobile(window.innerWidth < 640)
     check()
     window.addEventListener("resize", check)
     return () => window.removeEventListener("resize", check)
@@ -442,10 +442,7 @@ export default function OrganigrammePage() {
       {isMobile ? (
         <MobileOrgView />
       ) : (
-        <div
-          className="fixed m-0 p-0"
-          style={{ top: 128, bottom: 0, left: 72, right: 0 }}
-        >
+        <div className="w-full" style={{ height: "calc(100dvh - 9rem)" }}>
           <OrganigrammeStatic />
         </div>
       )}

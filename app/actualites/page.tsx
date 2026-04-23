@@ -9,7 +9,7 @@ import { Label } from "@/components/ui/label"
 import { Search, MoreVertical, Pencil, Trash2, EyeOff, Eye, Save, ImageIcon, RefreshCw, Loader2 } from "lucide-react"
 import { useLinkedInActualites, LinkedInActualite } from "@/hooks/useLinkedInActualites"
 import LinkedInModal from "@/components/linkedin-modal"
-import { StandardLoader } from "@/components/ui/standard-loader"
+import { PageLoader } from "@/components/ui/loader"
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -446,14 +446,11 @@ export default function ActualitesPage() {
       <div className="w-full max-w-3xl mx-auto space-y-4 xs:space-y-6">
 
         {/* Loading / Error */}
-        {(loading || error) && (
-          <StandardLoader
-            title={loading ? "Chargement des actualités..." : undefined}
-            message={loading ? "Veuillez patienter pendant que nous récupérons les données." : undefined}
-            error={error ?? undefined}
-            showRetry={!!error}
-            onRetry={() => window.location.reload()}
-          />
+        {loading && <PageLoader />}
+        {!loading && error && (
+          <div className="bg-red-50 border border-red-200 rounded-xl px-5 py-4 text-red-700 text-sm">
+            {error}
+          </div>
         )}
 
         {!loading && !error && (

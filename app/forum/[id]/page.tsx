@@ -11,7 +11,7 @@ import { ForumMessageForm } from "@/components/forum/forum-message-form"
 import { ForumCreateModal } from "@/components/forum/forum-create-modal"
 import { ForumSidebar } from "@/components/forum-sidebar"
 import { useForum } from "@/hooks/useForum"
-import { StandardLoader } from "@/components/ui/standard-loader"
+import { PageLoader } from "@/components/ui/loader"
 import { useAuth } from "@/hooks/useAuth"
 import { useToast } from "@/components/ui/toast"
 import { useConfirm } from "@/components/ui/confirm-dialog"
@@ -295,9 +295,7 @@ export default function ForumDetailPage(_: ForumDetailPageProps) {
     return (
       <AuthGuard redirectTo="/">
         <LayoutWrapper>
-          <div className="flex items-center justify-center min-h-[60vh]">
-            <StandardLoader title="Chargement..." />
-          </div>
+          <PageLoader />
         </LayoutWrapper>
       </AuthGuard>
     )
@@ -307,8 +305,11 @@ export default function ForumDetailPage(_: ForumDetailPageProps) {
     return (
       <AuthGuard redirectTo="/">
         <LayoutWrapper>
-          <div className="flex items-center justify-center min-h-[60vh]">
-            <StandardLoader error={error} />
+          <div className="flex items-center justify-center min-h-[60vh] px-6">
+            <div className="text-center">
+              <p className="text-red-600 text-sm mb-4">{error}</p>
+              <Button variant="outline" onClick={() => router.push("/forum")}>Retour aux forums</Button>
+            </div>
           </div>
         </LayoutWrapper>
       </AuthGuard>

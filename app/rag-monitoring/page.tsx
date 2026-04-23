@@ -6,7 +6,7 @@ import { Badge } from '@/components/ui/badge'
 import { Button } from '@/components/ui/button'
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs'
 import { RefreshCw, TrendingUp, Clock, CheckCircle, Activity } from 'lucide-react'
-import { StandardLoader } from '@/components/ui/standard-loader'
+import { PageLoader } from '@/components/ui/loader'
 
 interface MonitoringData {
   success: boolean
@@ -96,17 +96,14 @@ export default function RAGMonitoringPage() {
   }
 
   if (loading) {
-    return (
-      <div className="flex items-center justify-center min-h-[60vh]">
-        <StandardLoader title="Chargement des métriques..." />
-      </div>
-    )
+    return <PageLoader />
   }
 
   if (error) {
     return (
-      <div className="flex items-center justify-center min-h-[60vh]">
-        <StandardLoader error={error} showRetry onRetry={() => fetchMonitoringData(selectedPeriod)} />
+      <div className="flex flex-col items-center justify-center min-h-[60vh] gap-3">
+        <p className="text-red-600 text-sm">{error}</p>
+        <button onClick={() => fetchMonitoringData(selectedPeriod)} className="text-sm text-gray-500 underline">Réessayer</button>
       </div>
     )
   }

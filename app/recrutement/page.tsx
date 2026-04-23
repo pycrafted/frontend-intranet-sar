@@ -2,7 +2,7 @@
 
 import { useState, useEffect, useRef, useCallback } from "react"
 import { LayoutWrapper } from "@/components/layout-wrapper"
-import { StandardLoader } from "@/components/ui/standard-loader"
+import { PageLoader } from "@/components/ui/loader"
 import { useJobs, OdooJob } from "@/hooks/useJobs"
 import { API_CONFIG } from "@/lib/config"
 import { Button } from "@/components/ui/button"
@@ -394,16 +394,13 @@ function RecrutementPageContent({ search, onClearSearch }: RecrutementPageConten
       )}
 
       {/* Chargement initial */}
-      {loading && (
-        <div className="flex items-center justify-center min-h-[40vh]">
-          <StandardLoader title="Chargement des offres..." />
-        </div>
-      )}
+      {loading && <PageLoader />}
 
       {/* Erreur */}
       {!loading && error && (
-        <div className="flex items-center justify-center min-h-[40vh]">
-          <StandardLoader error={error} showRetry onRetry={refetch} />
+        <div className="flex flex-col items-center justify-center min-h-[40vh] gap-3">
+          <p className="text-red-600 text-sm">{error}</p>
+          <button onClick={refetch} className="text-sm text-gray-500 underline">Réessayer</button>
         </div>
       )}
 

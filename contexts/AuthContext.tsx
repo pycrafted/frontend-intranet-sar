@@ -338,21 +338,15 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
     } catch (error) {
       // Erreur silencieuse - on déconnecte quand même côté client
     } finally {
-      // Vider l'état côté client
-      setUser(null)
       setIsLoading(false)
-      
-      // Redirection après déconnexion
       if (typeof window !== 'undefined') {
-        // Nettoyer le cache d'authentification spécifiquement
         localStorage.removeItem(USER_CACHE_KEY)
         localStorage.removeItem(AUTH_TIMESTAMP_KEY)
-        
-        // Nettoyer le localStorage et sessionStorage si nécessaire
-        // (on garde seulement les données non liées à l'auth)
-        
-        // Rediriger vers la page d'accueil
+        // Naviguer vers l'accueil AVANT setUser(null) pour éviter que AuthGuard
+        // redirige vers /login?redirect=... au lieu de /
         window.location.href = '/'
+      } else {
+        setUser(null)
       }
     }
   }

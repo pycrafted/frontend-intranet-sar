@@ -25,7 +25,7 @@ interface SirhServiceGridProps {
 
 export function SirhServiceGrid({ active, onChange, counts }: SirhServiceGridProps) {
   return (
-    <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-5 gap-3" style={{ gridAutoRows: '1fr' }}>
+    <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-5 gap-3">
       {SERVICES.map(({ id, label, description, icon: Icon, iconBg, iconColor }) => {
         const isActive = active === id
         const count = counts?.[id] ?? 0
@@ -34,7 +34,7 @@ export function SirhServiceGrid({ active, onChange, counts }: SirhServiceGridPro
             key={id}
             onClick={() => onChange(id)}
             className={cn(
-              'flex flex-col items-start gap-3 p-4 rounded-xl border text-left transition-all duration-200 group h-full',
+              'flex flex-col items-start gap-3 p-4 rounded-xl border text-left transition-all duration-200 group h-[160px]',
               isActive
                 ? 'border-[#344256] bg-[#344256]/5 shadow-sm'
                 : 'border-gray-200 bg-white hover:shadow-md hover:border-[#344256]/30'

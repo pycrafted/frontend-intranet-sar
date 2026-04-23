@@ -9,6 +9,9 @@ interface AIChatbotContextType {
   isMinimized: boolean
   toggleMinimize: () => void
   chatbotEnabled: boolean
+  setChatbotEnabled: (enabled: boolean) => void
+  sirhEnabled: boolean
+  setSirhEnabled: (enabled: boolean) => void
 }
 
 const AIChatbotContext = createContext<AIChatbotContextType | undefined>(undefined)
@@ -52,21 +55,19 @@ export function AIChatbotProvider({ children }: { children: ReactNode }) {
   const [isOpen, setIsOpenState] = useState(initialIsOpen)
   const [isMinimized, setIsMinimized] = useState(initialIsMinimized)
   const [chatbotEnabled, setChatbotEnabled] = useState(true)
+  const [sirhEnabled, setSirhEnabled] = useState(true)
 
-  // Vérifier si le chatbot est activé côté admin au démarrage
+  // Charger la config site au démarrage
   useEffect(() => {
     const apiUrl = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:8000/api'
     const base = apiUrl.replace(/\/api$/, '')
     fetch(`${base}/api/config/chatbot/`)
       .then(res => res.json())
       .then(data => {
-        if (typeof data.chatbot_enabled === 'boolean') {
-          setChatbotEnabled(data.chatbot_enabled)
-        }
+        if (typeof data.chatbot_enabled === 'boolean') setChatbotEnabled(data.chatbot_enabled)
+        if (typeof data.sirh_enabled === 'boolean') setSirhEnabled(data.sirh_enabled)
       })
-      .catch(() => {
-        // En cas d'erreur réseau, on laisse activé par défaut
-      })
+      .catch(() => {})
   }, [])
 
   // Sauvegarder dans sessionStorage à chaque changement
@@ -98,7 +99,7 @@ export function AIChatbotProvider({ children }: { children: ReactNode }) {
   }, [])
 
   return (
-    <AIChatbotContext.Provider value={{ isOpen, setIsOpen, toggleChat, isMinimized, toggleMinimize, chatbotEnabled }}>
+    <AIChatbotContext.Provider value={{ isOpen, setIsOpen, toggleChat, isMinimized, toggleMinimize, chatbotEnabled, setChatbotEnabled, sirhEnabled, setSirhEnabled }}>
       {children}
     </AIChatbotContext.Provider>
   )

@@ -4,7 +4,7 @@ import { useState } from 'react'
 import Link from 'next/link'
 import { ArrowLeft, AlertCircle } from 'lucide-react'
 import { LayoutWrapper } from '@/components/layout-wrapper'
-import { StandardLoader } from '@/components/ui/standard-loader'
+import { PageLoader } from '@/components/ui/loader'
 import { AuthGuard } from '@/components/auth-guard'
 import { useSirhContext } from '@/contexts/SirhContext'
 import { TrainingList } from '@/components/sirh/training/TrainingList'
@@ -32,9 +32,7 @@ export default function FormationPage() {
           )}
 
           {sirh.loading ? (
-            <div className="flex items-center justify-center py-10">
-              <StandardLoader title="" message="" />
-            </div>
+            <PageLoader />
           ) : (
             <TrainingList trainingRequests={sirh.trainingRequests} trainingNames={sirh.trainingNames} onNew={() => setModal(true)} />
           )}

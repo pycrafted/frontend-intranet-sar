@@ -6,7 +6,7 @@ import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 import { Badge } from "@/components/ui/badge"
 import { Checkbox } from "@/components/ui/checkbox"
-import { StandardLoader } from "@/components/ui/standard-loader"
+import { PageLoader } from "@/components/ui/loader"
 import { DocumentUpload } from "@/components/document-upload"
 import { ContextMenu } from "@/components/context-menu"
 import { FolderCreateModal } from "@/components/folder-create-modal"
@@ -725,10 +725,7 @@ export default function DocumentsPage() {
   if (isLoading && documents.length === 0) {
     return (
       <LayoutWrapper>
-        <StandardLoader 
-          title="Chargement des documents..."
-          message="Veuillez patienter pendant que nous récupérons vos documents."
-        />
+        <PageLoader />
       </LayoutWrapper>
     )
   }
@@ -736,11 +733,10 @@ export default function DocumentsPage() {
   if (error && documents.length === 0) {
     return (
       <LayoutWrapper>
-        <StandardLoader 
-          error={error}
-          showRetry={true}
-          onRetry={() => fetchDocuments()}
-        />
+        <div className="flex flex-col items-center justify-center min-h-[60vh] gap-3">
+          <p className="text-red-600 text-sm">{error}</p>
+          <button onClick={() => fetchDocuments()} className="text-sm text-gray-500 underline">Réessayer</button>
+        </div>
       </LayoutWrapper>
     )
   }

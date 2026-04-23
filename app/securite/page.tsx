@@ -13,7 +13,7 @@ import { useSecurityVideos, SecurityVideo } from "@/hooks/useSecurityVideos"
 import { useAuth } from "@/hooks/useAuth"
 import { useConfirm } from "@/components/ui/confirm-dialog"
 import { X, FileText, Image as ImageIcon, Play, Plus, Trash2, Upload, Loader2, Video, Download } from "lucide-react"
-import { StandardLoader } from "@/components/ui/standard-loader"
+import { PageLoader } from "@/components/ui/loader"
 import { cn } from "@/lib/utils"
 
 // ── Modal upload document ──────────────────────────────────────────────────────
@@ -287,14 +287,12 @@ export default function SecuritePage() {
   return (
     <LayoutWrapper>
       <div className="w-full" style={{ paddingTop: 'clamp(0.5rem, 1vw, 1.5rem)', paddingBottom: 'clamp(1rem, 2vw, 3rem)' }}>
-        {(isLoading || error) && (
-          <StandardLoader
-            title={isLoading ? "Chargement des ressources de sécurité..." : undefined}
-            message={isLoading ? "Veuillez patienter pendant que nous récupérons les données." : undefined}
-            error={error}
-            showRetry={!!error}
-            onRetry={() => window.location.reload()}
-          />
+        {isLoading && <PageLoader />}
+        {!isLoading && error && (
+          <div className="flex flex-col items-center justify-center min-h-[60vh] gap-3">
+            <p className="text-red-600 text-sm">{error}</p>
+            <button onClick={() => window.location.reload()} className="text-sm text-gray-500 underline">Réessayer</button>
+          </div>
         )}
 
         {!isLoading && !error && (

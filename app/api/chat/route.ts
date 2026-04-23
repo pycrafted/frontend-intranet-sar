@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server'
 
-const CLAUDE_API_URL = "https://api.anthropic.com/v1/messages"
+const CLAUDE_API_URL = process.env.CLAUDE_API_URL || process.env.NEXT_PUBLIC_CLAUDE_API_URL || "https://api.anthropic.com/v1/messages"
+const CLAUDE_MODEL = process.env.CLAUDE_MODEL || process.env.NEXT_PUBLIC_CLAUDE_MODEL || 'claude-sonnet-4-6'
 
 function cleanResponse(text: string): string {
   // Supprimer les emojis
@@ -623,7 +624,7 @@ async function runAgenticLoop(
         'anthropic-beta': 'prompt-caching-2024-07-31'
       },
       body: JSON.stringify({
-        model: 'claude-sonnet-4-6',
+        model: CLAUDE_MODEL,
         max_tokens: 1200,
         system: [
           {
